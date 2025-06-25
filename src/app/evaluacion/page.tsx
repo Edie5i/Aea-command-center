@@ -102,6 +102,18 @@ export default function EvaluacionPage() {
   };
 
   const calculateResult = () => {
+    const beginnerResult: Result = {
+      level: 'Principiante',
+      description: 'Tus respuestas indican que estás comenzando tu viaje como conductor.',
+      recommendation: 'Nuestro curso para principiantes es perfecto para ti. Cubrimos desde los conceptos más básicos hasta tus primeras prácticas en tráfico ligero, construyendo tu confianza paso a paso.',
+    };
+
+    // Rule: If user has never driven, they are a beginner.
+    if (answers.experience === 'none') {
+      setResult(beginnerResult);
+      return;
+    }
+
     let totalScore = 0;
     for (const question of questions) {
       const answerValue = answers[question.id];
@@ -114,11 +126,7 @@ export default function EvaluacionPage() {
     }
 
     if (totalScore <= 5) {
-      setResult({
-        level: 'Principiante',
-        description: 'Tus respuestas indican que estás comenzando tu viaje como conductor.',
-        recommendation: 'Nuestro curso para principiantes es perfecto para ti. Cubrimos desde los conceptos más básicos hasta tus primeras prácticas en tráfico ligero, construyendo tu confianza paso a paso.',
-      });
+      setResult(beginnerResult);
     } else if (totalScore <= 11) {
       setResult({
         level: 'Intermedio',
