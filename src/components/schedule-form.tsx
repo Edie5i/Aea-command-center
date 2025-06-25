@@ -59,7 +59,7 @@ export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) 
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const whatsAppNumber = "525534433212";
+    const whatsAppNumber = "525634433212";
     const formattedDate = format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
     
     const message = `¡Nueva solicitud de clase!
