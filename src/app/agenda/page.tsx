@@ -228,6 +228,11 @@ export default function AgendaPage() {
           </a>
         </p>
         <p className="mt-2">
+          <Link href="/terminos" className="hover:underline">
+            Términos y Condiciones
+          </Link>
+        </p>
+        <p className="mt-2">
           Powered by Next.js and Genkit.
         </p>
       </footer>

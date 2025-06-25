@@ -114,11 +114,16 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <footer className="mt-8 text-center text-sm text-muted-foreground">
+      <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
         <p>
           <a href="https://www.autoescuelaamericana.mx" target="_blank" rel="noopener noreferrer" className="hover:underline">
             www.autoescuelaamericana.mx
           </a>
+        </p>
+        <p className="mt-2">
+          <Link href="/terminos" className="hover:underline">
+            Términos y Condiciones
+          </Link>
         </p>
         <p className="mt-2">
           Powered by Next.js and Genkit.
