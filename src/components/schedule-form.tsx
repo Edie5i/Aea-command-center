@@ -67,7 +67,7 @@ ${formattedDates}
 *Teléfono:* ${values.phone}`;
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${whatsAppNumber}?text=${encodedMessage}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
 
     window.open(whatsappUrl, '_blank');
 
