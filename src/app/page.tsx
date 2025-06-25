@@ -42,12 +42,18 @@ export default function Home() {
 
       <div className="w-full max-w-4xl mb-8 flex flex-wrap justify-center gap-3">
         <Button asChild>
+            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Catálogo y Precios
+            </Link>
+        </Button>
+        <Button asChild variant="secondary">
             <Link href="/agenda">
                 <CalendarDays className="mr-2 h-4 w-4" />
                 Agendar Clase
             </Link>
         </Button>
-        <Button asChild variant="secondary">
+        <Button asChild>
             <Link href="/evaluacion">
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Evaluar Nivel
@@ -59,7 +65,7 @@ export default function Home() {
                 Examen Teórico
             </Link>
         </Button>
-        <Button asChild variant="secondary">
+        <Button asChild>
             <Link href="/programa">
                 <BookOpen className="mr-2 h-4 w-4" />
                 Programa del Curso
@@ -69,12 +75,6 @@ export default function Home() {
             <Link href="/pagos">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Métodos de Pago
-            </Link>
-        </Button>
-        <Button asChild variant="secondary">
-            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Catálogo y Precios
             </Link>
         </Button>
       </div>
