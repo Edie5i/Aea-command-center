@@ -115,7 +115,7 @@ export default function AgendaPage() {
           Agenda de Clases
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Consulta y gestiona las clases de manejo programadas.
+          Aquí puedes agendar nuevas clases y administrar las solicitudes de los alumnos.
         </p>
       </div>
       <div className="container px-4 sm:px-6 md:px-8 pb-8">
@@ -333,5 +333,3 @@ export default function AgendaPage() {
     </main>
   );
 }
-
-    

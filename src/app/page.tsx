@@ -44,7 +44,7 @@ export default function Home() {
           AEA
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Recibe consejos y planes de lecciones personalizados para mejorar tus habilidades de manejo.
+          Plataforma de gestión para instructores y alumnos. Genera planes de lecciones y consejos de manejo personalizados.
         </p>
       </div>
 

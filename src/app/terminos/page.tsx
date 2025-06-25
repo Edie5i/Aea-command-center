@@ -20,7 +20,7 @@ export default function TerminosPage() {
           Términos y Condiciones
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Por favor, lee nuestros términos de contratación antes de agendar tu curso.
+          Detalles del acuerdo de servicio entre la autoescuela y los alumnos.
         </p>
       </div>
 

@@ -14,8 +14,8 @@ export function InstructionsDisplay({ tips, onReset }: TipsDisplayProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">¡Aquí tienes tus consejos!</h2>
-        <p className="text-muted-foreground">Hemos recopilado algunos consejos para ti.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Consejos Generados</h2>
+        <p className="text-muted-foreground">Utiliza estos puntos como base para tu próxima lección de manejo.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {tips.map((tip, index) => (

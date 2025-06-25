@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AEA",
-  description: "Consejos de manejo personalizados para instructores y alumnos.",
+  title: "AEA - Autoescuela Americana",
+  description: "Plataforma para instructores y alumnos de la Autoescuela Americana. Genera consejos de manejo personalizados, gestiona tu agenda y más.",
 };
 
 export default function RootLayout({

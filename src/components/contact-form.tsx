@@ -57,10 +57,10 @@ export function ContactForm() {
         <CardHeader>
             <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-6 w-6 text-primary" />
-                ¿Tienes Preguntas? Contáctanos
+                Solicita Más Información
             </CardTitle>
             <CardDescription>
-                Déjanos tu nombre y teléfono y te contactaremos por WhatsApp para resolver todas tus dudas.
+                Completa el formulario y un asesor te contactará por WhatsApp para brindarte toda la información que necesites.
             </CardDescription>
         </CardHeader>
         <CardContent>

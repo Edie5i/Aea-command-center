@@ -65,9 +65,9 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps
     <div className="space-y-6">
       <Alert>
         <Car className="h-4 w-4" />
-        <AlertTitle>Mejora tus Habilidades</AlertTitle>
+        <AlertTitle>Generador de Consejos AI</AlertTitle>
         <AlertDescription>
-          Indica un área de manejo en la que quieras mejorar y la IA te dará consejos.
+          Describe un tema o área de enfoque y nuestra IA creará una lista de consejos de manejo.
         </AlertDescription>
       </Alert>
       <Form {...form}>
@@ -77,7 +77,7 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps
             name="topic"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold">Tu Enfoque</FormLabel>
+                <FormLabel className="text-lg font-semibold">Tema para Consejos</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="ej. estacionamiento en paralelo, manejo en carretera"
@@ -86,7 +86,7 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps
                   />
                 </FormControl>
                 <FormDescription>
-                  ¿En qué quieres mejorar?
+                  Sé específico para obtener mejores resultados.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

@@ -14,7 +14,7 @@ export default function PagosPage() {
           Información de Pago
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Aquí encontrarás los detalles para realizar el pago de tus clases de manejo.
+          Facilita a tus alumnos los detalles para realizar el pago de sus cursos de manejo.
         </p>
       </div>
       
