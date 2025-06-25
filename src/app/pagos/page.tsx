@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Banknote } from 'lucide-react';
+import { ArrowLeft, Banknote, CalendarDays, ShoppingBag } from 'lucide-react';
 import { PaymentDetails } from '@/components/payment-details';
 
 export default function PagosPage() {
@@ -19,11 +19,23 @@ export default function PagosPage() {
       </div>
       
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4">
+        <div className="w-full max-w-3xl mb-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al Inicio
+            </Link>
+          </Button>
+           <Button asChild variant="outline">
+              <Link href="/agenda">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  Ver Agenda
+              </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Ver Catálogo
             </Link>
           </Button>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Car, CalendarDays, MapPin, CreditCard } from "lucide-react";
+import { Car, CalendarDays, MapPin, CreditCard, ShoppingBag } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -76,6 +76,12 @@ export default function Home() {
                 <Link href="/pagos">
                     <CreditCard className="mr-2 h-4 w-4" />
                     Ver Datos de Pago
+                </Link>
+            </Button>
+            <Button asChild variant="secondary">
+                <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    Ver Catálogo
                 </Link>
             </Button>
         </CardFooter>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -79,6 +79,12 @@ export default function AgendaPage() {
             <Link href="/pagos">
               <CreditCard className="mr-2 h-4 w-4" />
               Ver Datos de Pago
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Ver Catálogo
             </Link>
           </Button>
         </div>
