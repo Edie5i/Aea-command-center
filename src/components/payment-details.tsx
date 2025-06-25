@@ -7,13 +7,15 @@ import {
 } from '@/components/ui/card';
 import { CopyButton } from './copy-button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Info, Banknote, Landmark } from 'lucide-react';
+import { Info, Banknote, Landmark, MessageSquare } from 'lucide-react';
 import { Separator } from './ui/separator';
+import Image from 'next/image';
 
 export function PaymentDetails() {
   const accountNumber = '0484695739';
   const clabe = '012180004846957399';
   const debitCard = '4152314404288527';
+  const whatsAppCatalogUrl = 'https://wa.me/c/5215634433212';
   
   return (
     <Card className="w-full max-w-3xl shadow-lg rounded-xl">
@@ -61,6 +63,25 @@ export function PaymentDetails() {
                     </div>
                     <CopyButton textToCopy={debitCard} />
                 </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><MessageSquare className="h-5 w-5 text-primary" />Envía tu Comprobante</h3>
+            <div className="rounded-lg border p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 bg-muted/20">
+              <div className="text-center sm:text-left max-w-sm">
+                <p className="text-sm text-muted-foreground">Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmar tu curso y agilizar el proceso.</p>
+                <p className="text-sm font-semibold mt-2 text-primary">¡Escanea el código QR para abrir el chat!</p>
+              </div>
+              <div className="p-2 bg-white rounded-md shadow-md">
+                <Image
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(whatsAppCatalogUrl)}`}
+                    alt="Código QR para contactar por WhatsApp"
+                    width={150}
+                    height={150}
+                    data-ai-hint="QR code"
+                />
+              </div>
             </div>
         </div>
 
