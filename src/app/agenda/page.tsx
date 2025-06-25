@@ -119,7 +119,7 @@ export default function AgendaPage() {
         </p>
       </div>
       <div className="container px-4 sm:px-6 md:px-8 pb-8">
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-4 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />

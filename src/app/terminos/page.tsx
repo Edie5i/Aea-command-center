@@ -25,7 +25,7 @@ export default function TerminosPage() {
       </div>
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4 flex flex-wrap gap-2">
+        <div className="w-full max-w-3xl mb-4 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
