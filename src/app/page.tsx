@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Car, CalendarDays, MapPin, CreditCard, ShoppingBag } from "lucide-react";
+import Image from "next/image";
+import { CalendarDays, MapPin, CreditCard, ShoppingBag } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -29,8 +30,15 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
-        <div className="bg-primary/20 text-primary rounded-full p-3 mb-4">
-          <Car className="h-8 w-8" />
+        <div className="mb-4">
+          <Image
+            src="/logo.png"
+            alt="AEA Logo"
+            width={150}
+            height={150}
+            className="rounded-full"
+            data-ai-hint="logo driving school"
+          />
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           AEA
