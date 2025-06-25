@@ -67,6 +67,12 @@ export default function Home() {
         </CardContent>
          <CardFooter className="p-6 pt-0 border-t flex flex-wrap justify-center gap-4">
             <Button asChild variant="secondary">
+                <Link href="/agenda">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    Ver Agenda de Clases
+                </Link>
+            </Button>
+            <Button asChild variant="secondary">
                 <Link href="/evaluacion">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Evalúa tus Habilidades
@@ -82,12 +88,6 @@ export default function Home() {
                 <Link href="/programa">
                     <BookOpen className="mr-2 h-4 w-4" />
                     Ver Programa del Curso
-                </Link>
-            </Button>
-            <Button asChild variant="secondary">
-                <Link href="/agenda">
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    Ver Agenda de Clases
                 </Link>
             </Button>
             <Button asChild variant="secondary">
