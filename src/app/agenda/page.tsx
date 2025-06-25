@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home, CheckCircle, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -29,6 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Course = {
   id: number;
@@ -182,7 +183,14 @@ export default function AgendaPage() {
                 </CardFooter>
              </Card>
           </div>
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-4">
+            <Alert variant="default" className="bg-primary/10 border-primary/50">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertTitle className="text-primary font-bold">Aviso para Menores de Edad</AlertTitle>
+              <AlertDescription className="text-foreground">
+                Si el alumno es menor de edad y requiere constancia para el trámite de permiso de conducir, es necesario adjuntar su documentación. Este proceso tiene un costo adicional al del curso.
+              </AlertDescription>
+            </Alert>
             <Card className="h-full shadow-lg rounded-xl">
               <CardHeader>
                 <CardTitle>Cursos por Confirmar</CardTitle>
