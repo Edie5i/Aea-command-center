@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Car, CalendarDays } from "lucide-react";
+import { Car, CalendarDays, MapPin } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -26,8 +26,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-full flex-col items-center justify-center bg-background p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col items-center text-center mb-8">
+    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
+      <div className="flex flex-col items-center text-center my-8">
         <div className="bg-primary/20 text-primary rounded-full p-3 mb-4">
           <Car className="h-8 w-8" />
         </div>
@@ -73,6 +73,29 @@ export default function Home() {
             </Button>
         </CardFooter>
       </Card>
+
+      <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-6 w-6 text-primary" />
+            Nuestra Zona de Cobertura
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="aspect-video w-full overflow-hidden rounded-lg border">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d240827.4627993354!2d-99.28002494396264!3d19.42991612499149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce0026db3b7a83%3A0x88d2588b0a93f773!2sMexico%20City%2C%20CDMX!5e0!3m2!1sen!2smx!4v1678832960410!5m2!1sen!2smx"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </CardContent>
+      </Card>
+
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         <p>
           Powered by Next.js and Genkit.
