@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -15,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from '@/components/ui/badge';
 import { ScheduleForm } from '@/components/schedule-form';
@@ -27,12 +30,15 @@ type Course = {
   time: string;
   dates: Date[];
   status: 'Pendiente' | 'Confirmado';
+  instructor?: string;
 };
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [courseToConfirm, setCourseToConfirm] = useState<Course | null>(null);
+  const [instructorName, setInstructorName] = useState('');
 
   const datesInfo = dates && dates.length > 0 
     ? `${dates.length} ${dates.length === 1 ? 'día' : 'días'} seleccionado${dates.length > 1 ? 's' : ''}` 
@@ -49,13 +55,24 @@ export default function AgendaPage() {
     setDates([]); // Reset date selection
   };
 
-  const handleConfirmCourse = (courseId: number) => {
+  const handleConfirmCourse = () => {
+    if (!courseToConfirm || !instructorName.trim()) return;
+    
     setCourses(prevCourses =>
       prevCourses.map(course =>
-        course.id === courseId ? { ...course, status: 'Confirmado' } : course
+        course.id === courseToConfirm.id ? { ...course, status: 'Confirmado', instructor: instructorName.trim() } : course
       )
     );
+    
+    closeConfirmationDialog();
   };
+
+  const isConfirmDialogButtonDisabled = !instructorName.trim();
+
+  const closeConfirmationDialog = () => {
+    setCourseToConfirm(null);
+    setInstructorName('');
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background">
@@ -137,9 +154,9 @@ export default function AgendaPage() {
               <CardHeader>
                 <CardTitle>Cursos por Confirmar</CardTitle>
                 <CardDescription>
-                    Aquí se muestran las solicitudes de los alumnos. Confirma para asignar un instructor.
+                    Aquí se muestran las solicitudes de los alumnos. Confirma para asignar un instructor y enlazarlo con el alumno.
                     <br/>
-                    <span className="text-xs text-muted-foreground italic">(Los datos se perderán al recargar la página)</span>
+                    <span className="text-xs text-muted-foreground italic">(Esto es una simulación. Los datos se perderán al recargar la página)</span>
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -177,12 +194,21 @@ export default function AgendaPage() {
                                             ))}
                                         </ul>
                                     </div>
+                                     {course.status === 'Confirmado' && course.instructor && (
+                                        <>
+                                            <Separator className="my-2" />
+                                            <div className="flex items-center pt-1 text-green-700 dark:text-green-400 font-semibold">
+                                                <UserCheck className="mr-2 h-4 w-4" />
+                                                <span>Confirmado por: {course.instructor}</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </CardContent>
                                 {course.status === 'Pendiente' && (
                                     <CardFooter>
-                                        <Button className="w-full" onClick={() => handleConfirmCourse(course.id)}>
+                                        <Button className="w-full" onClick={() => setCourseToConfirm(course)}>
                                             <CheckCircle2 className="mr-2 h-4 w-4" />
-                                            Confirmar Curso
+                                            Asignar Instructor y Confirmar
                                         </Button>
                                     </CardFooter>
                                 )}
@@ -205,6 +231,37 @@ export default function AgendaPage() {
           Powered by Next.js and Genkit.
         </p>
       </footer>
+
+      <Dialog open={!!courseToConfirm} onOpenChange={(open) => !open && closeConfirmationDialog()}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirmar Curso y Asignar Instructor</DialogTitle>
+                <DialogDescription>
+                    Ingresa tu nombre para confirmar que tomarás este curso. Esto enlazará al alumno contigo.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="instructor-name" className="text-right">
+                        Instructor
+                    </Label>
+                    <Input
+                        id="instructor-name"
+                        value={instructorName}
+                        onChange={(e) => setInstructorName(e.target.value)}
+                        placeholder="Tu nombre"
+                        className="col-span-3"
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={closeConfirmationDialog}>Cancelar</Button>
+                <Button onClick={handleConfirmCourse} disabled={isConfirmDialogButtonDisabled}>
+                    Confirmar y Asignar
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
