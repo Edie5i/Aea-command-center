@@ -30,19 +30,14 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
-        <div className="mb-4">
-          <Image
-            src="/logo.png"
-            alt="AEA Logo"
-            width={150}
-            height={150}
-            className="rounded-full"
-            data-ai-hint="logo driving school"
-          />
-        </div>
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          AEA
-        </h1>
+        <Image
+          src="/logo.png"
+          alt="AEA Logo"
+          width={150}
+          height={150}
+          className="rounded-full mb-4"
+          data-ai-hint="logo driving school"
+        />
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
           Plataforma de gestión para instructores y alumnos. Genera planes de lecciones y consejos de manejo personalizados.
         </p>
