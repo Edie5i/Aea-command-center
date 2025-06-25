@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -28,6 +28,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 type Course = {
   id: number;
@@ -48,6 +49,7 @@ export default function AgendaPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [courseToConfirm, setCourseToConfirm] = useState<Course | null>(null);
   const [instructorName, setInstructorName] = useState('');
+  const { toast } = useToast();
   
   const instructors = ['Eduardo Walter', 'Mauricio'];
 
@@ -69,11 +71,31 @@ export default function AgendaPage() {
   const handleConfirmCourse = () => {
     if (!courseToConfirm || !instructorName.trim()) return;
     
+    // Update local state
     setCourses(prevCourses =>
       prevCourses.map(course =>
         course.id === courseToConfirm.id ? { ...course, status: 'Confirmado', instructor: instructorName.trim() } : course
       )
     );
+
+    // Prepare WhatsApp message for the student
+    const studentPhoneNumber = courseToConfirm.phone.replace(/\D/g, '');
+    const countryCode = '52'; // Assuming Mexico country code
+    const fullPhoneNumber = studentPhoneNumber.length === 10 ? countryCode + studentPhoneNumber : studentPhoneNumber;
+
+    const formattedDates = courseToConfirm.dates.map(date => format(date, "EEEE, d 'de' MMMM", { locale: es })).join(', ');
+
+    const message = `¡Hola ${courseToConfirm.name}! Soy ${instructorName.trim()} de Autoescuela Americana. He confirmado tu curso de manejo para los días: ${formattedDates} a las ${courseToConfirm.time}. ¡Estoy a tu disposición para coordinarnos!`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${fullPhoneNumber}&text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
+
+    toast({
+        title: '¡Curso confirmado!',
+        description: `Se abrirá WhatsApp para que contactes a ${courseToConfirm.name}.`,
+    });
     
     closeConfirmationDialog();
   };
@@ -267,7 +289,7 @@ export default function AgendaPage() {
             <DialogHeader>
                 <DialogTitle>Confirmar Curso y Asignar Instructor</DialogTitle>
                 <DialogDescription>
-                    Selecciona tu nombre de la lista para confirmar que tomarás este curso. Esto enlazará al alumno contigo.
+                    Selecciona tu nombre de la lista para confirmar que tomarás este curso. Se abrirá WhatsApp para enlazar al alumno contigo.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -303,3 +325,5 @@ export default function AgendaPage() {
     </main>
   );
 }
+
+    
