@@ -18,13 +18,13 @@ export function CopyButton({ textToCopy }: CopyButtonProps) {
     try {
       await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
-      toast({ title: 'Copied to clipboard!' });
+      toast({ title: '¡Copiado al portapapeles!' });
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       toast({
         variant: 'destructive',
-        title: 'Failed to copy',
-        description: 'Could not copy text to clipboard.',
+        title: 'Error al copiar',
+        description: 'No se pudo copiar el texto al portapapeles.',
       });
       console.error('Failed to copy text: ', err);
     }
@@ -40,11 +40,11 @@ export function CopyButton({ textToCopy }: CopyButtonProps) {
             ) : (
               <ClipboardCopy className="h-4 w-4" />
             )}
-            <span className="sr-only">Copy to clipboard</span>
+            <span className="sr-only">Copiar al portapapeles</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Copy code</p>
+          <p>Copiar código</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
