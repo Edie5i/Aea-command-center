@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -38,6 +38,8 @@ type Course = {
   meetingPoint: string;
   status: 'Pendiente' | 'Confirmado';
   instructor?: string;
+  transmission: string;
+  address?: string;
 };
 
 export default function AgendaPage() {
@@ -53,7 +55,7 @@ export default function AgendaPage() {
     ? `${dates.length} ${dates.length === 1 ? 'día' : 'días'} seleccionado${dates.length > 1 ? 's' : ''}` 
     : 'Ninguna fecha seleccionada';
 
-  const handleScheduleCourse = (newCourseData: { name: string; phone: string; time: string; dates: Date[]; meetingPoint: string; }) => {
+  const handleScheduleCourse = (newCourseData: { name: string; phone: string; time: string; dates: Date[]; meetingPoint: string; transmission: string; address?: string; }) => {
     const newCourse: Course = {
       id: Date.now(),
       ...newCourseData,
@@ -190,6 +192,10 @@ export default function AgendaPage() {
                                         <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
                                         <span>{course.phone}</span>
                                     </div>
+                                     <div className="flex items-center">
+                                        <Settings2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span>Transmisión: {course.transmission}</span>
+                                    </div>
                                     <div className="flex items-center">
                                         <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                         <span>Clases a las {course.time}</span>
@@ -198,6 +204,12 @@ export default function AgendaPage() {
                                         <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                                         <span>Punto de encuentro: {course.meetingPoint}</span>
                                     </div>
+                                    {course.address && (
+                                        <div className="flex items-center">
+                                            <Home className="mr-2 h-4 w-4 text-muted-foreground" />
+                                            <span>{course.address}</span>
+                                        </div>
+                                    )}
                                     <Separator className="my-2" />
                                     <div className="flex items-start">
                                         <CalendarIcon className="mr-2 mt-1 h-4 w-4 text-muted-foreground" />
