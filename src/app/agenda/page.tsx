@@ -124,16 +124,11 @@ type Course = {
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [courseToConfirm, setCourseToConfirm] = useState<Course | null>(null);
   const [instructorName, setInstructorName] = useState('');
   const { toast } = useToast();
   
   const instructors = ['Eduardo Walter', 'Mauricio'];
-
-  const datesInfo = dates && dates.length > 0 
-    ? `${dates.length} ${dates.length === 1 ? 'día' : 'días'} seleccionado${dates.length > 1 ? 's' : ''}` 
-    : 'Ninguna fecha seleccionada';
 
   const handleScheduleCourse = (newCourseData: { name: string; phone: string; time: string; dates: Date[]; meetingPoint: string; transmission: string; address?: string; }) => {
     const newCourse: Course = {
@@ -143,7 +138,6 @@ export default function AgendaPage() {
       currentStage: 0,
     };
     setCourses(prevCourses => [newCourse, ...prevCourses]);
-    setIsDialogOpen(false);
     setDates([]);
   };
 
@@ -249,12 +243,12 @@ export default function AgendaPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-3">
              <Card className="shadow-lg rounded-xl">
                 <CardHeader>
-                    <CardTitle>Seleccionar Fechas</CardTitle>
-                    <CardDescription>Elige hasta 6 días para el curso.</CardDescription>
+                    <CardTitle>Agendar Nuevo Curso</CardTitle>
+                    <CardDescription>Paso 1: Elige hasta 6 días para el curso en el calendario.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-2 flex justify-center">
                     <Calendar
@@ -268,28 +262,18 @@ export default function AgendaPage() {
                         disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))}
                     />
                 </CardContent>
-                <CardFooter className="flex-col items-start p-4 border-t">
-                    <p className="text-sm font-medium mb-2">Fechas seleccionadas: <span className="text-primary font-bold">{datesInfo}</span></p>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button disabled={!dates || dates.length === 0} className="w-full">
-                            <CalendarPlus className="mr-2 h-4 w-4" />
-                            Agendar Curso
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle>Agendar nuevo curso</DialogTitle>
-                          <DialogDescription>
-                            Completa los datos del alumno para agendar un curso en las fechas seleccionadas.
-                          </DialogDescription>
-                        </DialogHeader>
-                        {dates && dates.length > 0 && (
-                            <ScheduleForm selectedDates={dates} onCourseScheduled={handleScheduleCourse} />
-                        )}
-                      </DialogContent>
-                    </Dialog>
-                </CardFooter>
+                {dates && dates.length > 0 && (
+                  <>
+                    <Separator />
+                    <CardHeader>
+                        <CardTitle>Paso 2: Datos del Alumno</CardTitle>
+                        <CardDescription>Completa el formulario para finalizar la solicitud.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ScheduleForm selectedDates={dates} onCourseScheduled={handleScheduleCourse} />
+                    </CardContent>
+                  </>
+                )}
              </Card>
           </div>
           <div className="lg:col-span-2 space-y-4">
