@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Car } from "lucide-react";
+import Link from "next/link";
+import { Car, CalendarDays } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [tips, setTips] = useState<string[] | null>(null);
@@ -62,6 +64,14 @@ export default function Home() {
             </motion.div>
           </AnimatePresence>
         </CardContent>
+         <CardFooter className="p-6 pt-0 border-t flex justify-center">
+            <Button asChild variant="secondary" className="mt-6">
+                <Link href="/agenda">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    Ver Agenda de Clases
+                </Link>
+            </Button>
+        </CardFooter>
       </Card>
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         <p>
