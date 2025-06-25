@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Car, CalendarDays, MapPin } from "lucide-react";
+import { Car, CalendarDays, MapPin, CreditCard } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -65,11 +65,17 @@ export default function Home() {
             </motion.div>
           </AnimatePresence>
         </CardContent>
-         <CardFooter className="p-6 pt-0 border-t flex justify-center">
-            <Button asChild variant="secondary" className="mt-6">
+         <CardFooter className="p-6 pt-0 border-t flex flex-wrap justify-center gap-4">
+            <Button asChild variant="secondary">
                 <Link href="/agenda">
                     <CalendarDays className="mr-2 h-4 w-4" />
                     Ver Agenda de Clases
+                </Link>
+            </Button>
+            <Button asChild variant="secondary">
+                <Link href="/pagos">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Ver Datos de Pago
                 </Link>
             </Button>
         </CardFooter>
