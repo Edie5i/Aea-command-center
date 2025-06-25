@@ -85,15 +85,18 @@ export default function Home() {
 
       <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 justify-center">
             <MapPin className="h-6 w-6 text-primary" />
-            Nuestra Zona de Cobertura
+            Nuestra Ubicación
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="text-center text-muted-foreground mb-4">
+            Torreón #49, Colonia Roma Sur, Alcaldía Cuauhtémoc, CDMX
+          </p>
           <div className="aspect-video w-full overflow-hidden rounded-lg border">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d240827.4627993354!2d-99.28002494396264!3d19.42991612499149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce0026db3b7a83%3A0x88d2588b0a93f773!2sMexico%20City%2C%20CDMX!5e0!3m2!1sen!2smx!4v1678832960410!5m2!1sen!2smx"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.910334861842!2d-99.1650399256956!3d19.41584284067989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff394a4f8999%3A0x89223c21a3295b9c!2sTorre%C3%B3n%2049%2C%20Roma%20Sur%2C%20Cuauht%C3%A9moc%2C%2006760%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1sen!2smx!4v1719524940549!5m2!1sen!2smx"
               width="100%"
               height="100%"
               style={{ border: 0 }}
