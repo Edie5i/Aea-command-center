@@ -24,11 +24,16 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Checkbox } from '@/components/ui/checkbox';
+import Link from 'next/link';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   time: z.string({ required_error: 'Debes seleccionar un horario.' }),
+  terms: z.boolean().refine((value) => value === true, {
+    message: 'Debes aceptar los términos y condiciones.',
+  }),
 });
 
 type ScheduleFormProps = {
@@ -52,6 +57,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     defaultValues: {
       name: '',
       phone: '',
+      terms: false,
     },
   });
 
@@ -145,6 +151,34 @@ ${formattedDates}
                   </Select>
                </div>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="terms"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Acepto los{' '}
+                  <Link
+                    href="/terminos"
+                    target="_blank"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    Términos y Condiciones
+                  </Link>
+                  .
+                </FormLabel>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
