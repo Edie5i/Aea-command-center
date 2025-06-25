@@ -141,6 +141,41 @@ export default function AgendaPage() {
     setDates([]);
   };
 
+  const generateGoogleCalendarLink = (course: Course) => {
+    const firstDate = course.dates[0];
+    if (!firstDate) return '#';
+
+    const [hours, minutes] = course.time.split(':').map(Number);
+    
+    const startDateTime = new Date(firstDate);
+    startDateTime.setHours(hours, minutes, 0, 0);
+
+    const endDateTime = new Date(startDateTime.getTime() + 90 * 60 * 1000);
+
+    const toGoogleISO = (date: Date) => date.toISOString().replace(/-|:|\.\d{3}/g, '');
+
+    const allDatesFormatted = course.dates.map(d => format(d, "EEEE, d 'de' MMMM", { locale: es })).join('\n');
+
+    const details = `Curso de manejo para ${course.name}.
+Instructor: ${course.instructor}
+Teléfono: ${course.phone}
+Punto de encuentro: ${course.meetingPoint}
+${course.address ? `Dirección: ${course.address}\n` : ''}
+Fechas del curso:\n${allDatesFormatted}
+`;
+
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: `Clase de manejo - ${course.name}`,
+      dates: `${toGoogleISO(startDateTime)}/${toGoogleISO(endDateTime)}`,
+      details: details,
+      location: course.meetingPoint === 'Domicilio del alumno' ? course.address || '' : 'Torreón #49, Roma Sur, CDMX',
+      ctz: 'America/Mexico_City'
+    });
+
+    return `https://www.google.com/calendar/render?${params.toString()}`;
+  };
+
   const handleConfirmCourse = () => {
     if (!courseToConfirm || !instructorName.trim()) return;
     
@@ -163,7 +198,7 @@ export default function AgendaPage() {
 
     toast({
         title: '¡Curso confirmado!',
-        description: `Se abrirá WhatsApp para que contactes a ${courseToConfirm.name}.`,
+        description: `Contacta a ${courseToConfirm.name} y añade el evento a tu calendario.`,
     });
     
     closeConfirmationDialog();
@@ -394,6 +429,12 @@ export default function AgendaPage() {
                                                     )}
                                                 </div>
                                             )}
+                                            <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+                                                <Link href={generateGoogleCalendarLink(course)} target="_blank" rel="noopener noreferrer">
+                                                    <CalendarPlus className="mr-2 h-4 w-4" />
+                                                    Añadir a Google Calendar
+                                                </Link>
+                                            </Button>
                                         </div>
                                     )}
                                 </CardContent>
