@@ -78,6 +78,12 @@ export default function TerminosPage() {
                 Al realizar el pago y agendar la primera clase, el alumno y/o su tutor aceptan en su totalidad los términos y condiciones aquí descritos.
               </p>
             </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">7. Confidencialidad y Protección de Datos</h3>
+              <p>
+                Los datos personales proporcionados por el alumno (nombre, teléfono, domicilio) así como los datos del instructor asignado, son estrictamente confidenciales. Autoescuela Americana se compromete a no compartir, vender o divulgar esta información a terceros bajo ninguna circunstancia, salvo requerimiento legal. Los datos se utilizan únicamente para la coordinación y logística del curso contratado.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -87,6 +93,11 @@ export default function TerminosPage() {
           <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
             www.autoescuelaamericana.com
           </a>
+        </p>
+        <p className="mt-2">
+          <Link href="/terminos" className="hover:underline">
+            Términos y Condiciones
+          </Link>
         </p>
         <p className="mt-2">
           Powered by Next.js and Genkit.
