@@ -32,7 +32,7 @@ export default function Home() {
           <Car className="h-8 w-8" />
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Escuela de Manejo AI
+          Autoescuela Americana
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
           Recibe consejos y planes de lecciones personalizados para mejorar tus habilidades de manejo.
@@ -98,6 +98,11 @@ export default function Home() {
 
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         <p>
+          <a href="https://www.autoescuelaamericana.mx" target="_blank" rel="noopener noreferrer" className="hover:underline">
+            www.autoescuelaamericana.mx
+          </a>
+        </p>
+        <p className="mt-2">
           Powered by Next.js and Genkit.
         </p>
       </footer>
