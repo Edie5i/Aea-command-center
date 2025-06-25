@@ -135,7 +135,7 @@ export default function AgendaPage() {
           <Button asChild variant="outline">
             <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                Ver Catálogo
+                Ver Catálogo y Precios
             </Link>
           </Button>
         </div>
