@@ -39,12 +39,11 @@ type ScheduleFormProps = {
 
 // Hardcoded available time slots for demonstration
 const availableTimes = [
-  '09:00',
-  '10:30',
-  '12:00',
-  '14:00',
-  '15:30',
-  '17:00',
+  '07:00',
+  '10:00',
+  '13:00',
+  '16:00',
+  '19:00',
 ];
 
 export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) {
