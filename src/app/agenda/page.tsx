@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
@@ -19,6 +18,13 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
@@ -39,6 +45,8 @@ export default function AgendaPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [courseToConfirm, setCourseToConfirm] = useState<Course | null>(null);
   const [instructorName, setInstructorName] = useState('');
+  
+  const instructors = ['Eduardo Walter', 'Mauricio'];
 
   const datesInfo = dates && dates.length > 0 
     ? `${dates.length} ${dates.length === 1 ? 'día' : 'días'} seleccionado${dates.length > 1 ? 's' : ''}` 
@@ -242,7 +250,7 @@ export default function AgendaPage() {
             <DialogHeader>
                 <DialogTitle>Confirmar Curso y Asignar Instructor</DialogTitle>
                 <DialogDescription>
-                    Ingresa tu nombre para confirmar que tomarás este curso. Esto enlazará al alumno contigo.
+                    Selecciona tu nombre de la lista para confirmar que tomarás este curso. Esto enlazará al alumno contigo.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -250,13 +258,21 @@ export default function AgendaPage() {
                     <Label htmlFor="instructor-name" className="text-right">
                         Instructor
                     </Label>
-                    <Input
-                        id="instructor-name"
-                        value={instructorName}
-                        onChange={(e) => setInstructorName(e.target.value)}
-                        placeholder="Tu nombre"
-                        className="col-span-3"
-                    />
+                    <Select
+                        onValueChange={setInstructorName}
+                        defaultValue={instructorName}
+                    >
+                        <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Seleccionar instructor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {instructors.map((name) => (
+                                <SelectItem key={name} value={name}>
+                                    {name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
             <DialogFooter>
