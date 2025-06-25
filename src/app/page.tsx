@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, Star, BarChart3 } from "lucide-react";
+import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, Star, BarChart3, FileQuestion } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -70,6 +70,12 @@ export default function Home() {
                 <Link href="/evaluacion">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Evalúa tus Habilidades
+                </Link>
+            </Button>
+            <Button asChild variant="secondary">
+                <Link href="/examen-teorico">
+                    <FileQuestion className="mr-2 h-4 w-4" />
+                    Examen Teórico
                 </Link>
             </Button>
             <Button asChild variant="secondary">
