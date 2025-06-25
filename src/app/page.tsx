@@ -40,6 +40,45 @@ export default function Home() {
         </p>
       </div>
 
+      <div className="w-full max-w-4xl mb-8 flex flex-wrap justify-center gap-3">
+        <Button asChild>
+            <Link href="/agenda">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Agendar Clase
+            </Link>
+        </Button>
+        <Button asChild variant="secondary">
+            <Link href="/evaluacion">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Evaluar Nivel
+            </Link>
+        </Button>
+        <Button asChild variant="secondary">
+            <Link href="/examen-teorico">
+                <FileQuestion className="mr-2 h-4 w-4" />
+                Examen Teórico
+            </Link>
+        </Button>
+        <Button asChild variant="secondary">
+            <Link href="/programa">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Programa del Curso
+            </Link>
+        </Button>
+        <Button asChild variant="secondary">
+            <Link href="/pagos">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Métodos de Pago
+            </Link>
+        </Button>
+        <Button asChild variant="secondary">
+            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Catálogo y Precios
+            </Link>
+        </Button>
+      </div>
+
       <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
         <CardContent className="p-6 md:p-8">
           <AnimatePresence mode="wait">
@@ -65,44 +104,6 @@ export default function Home() {
             </motion.div>
           </AnimatePresence>
         </CardContent>
-         <CardFooter className="p-6 pt-0 border-t flex flex-wrap justify-center gap-4">
-            <Button asChild variant="secondary">
-                <Link href="/agenda">
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    Ver Agenda de Clases
-                </Link>
-            </Button>
-            <Button asChild variant="secondary">
-                <Link href="/evaluacion">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Evalúa tus Habilidades
-                </Link>
-            </Button>
-            <Button asChild variant="secondary">
-                <Link href="/examen-teorico">
-                    <FileQuestion className="mr-2 h-4 w-4" />
-                    Examen Teórico
-                </Link>
-            </Button>
-            <Button asChild variant="secondary">
-                <Link href="/programa">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Ver Programa del Curso
-                </Link>
-            </Button>
-            <Button asChild variant="secondary">
-                <Link href="/pagos">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Ver Datos de Pago
-                </Link>
-            </Button>
-            <Button asChild variant="secondary">
-                <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
-                    <ShoppingBag className="mr-2 h-4 w-4" />
-                    Ver Catálogo y Precios
-                </Link>
-            </Button>
-        </CardFooter>
       </Card>
 
       <ContactForm />
