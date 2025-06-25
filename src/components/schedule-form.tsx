@@ -59,15 +59,24 @@ export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) 
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real app, you would save this data to a database.
-    console.log({
-      ...values,
-      date: format(selectedDate, 'yyyy-MM-dd'),
-    });
+    const whatsAppNumber = "525634433212";
+    const formattedDate = format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+    
+    const message = `¡Nueva solicitud de clase!
+*Fecha:* ${formattedDate}
+*Hora:* ${values.time}
+*Alumno:* ${values.name}
+*Email:* ${values.email}
+*Teléfono:* ${values.phone}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${whatsAppNumber}?text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
 
     toast({
-      title: '¡Clase Agendada!',
-      description: `Tu clase para el ${format(selectedDate, "d 'de' MMMM", { locale: es })} a las ${values.time} ha sido confirmada.`,
+      title: '¡Información Lista!',
+      description: `Se abrirá WhatsApp para enviar los detalles de la clase.`,
     });
     
     onFormSubmit(); // Close the dialog
