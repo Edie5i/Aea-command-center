@@ -45,7 +45,7 @@ export default function TerminosPage() {
             <div className="space-y-2">
               <h3 className="font-semibold text-foreground">1. Objeto del Contrato</h3>
               <p>
-                Autoescuela Americana se compromete a impartir un curso de manejo práctico y teórico al alumno, de acuerdo al paquete contratado. El objetivo es proporcionar las herramientas y conocimientos necesarios para una conducción segura y responsable.
+                AEA se compromete a impartir un curso de manejo práctico y teórico al alumno, de acuerdo al paquete contratado. El objetivo es proporcionar las herramientas y conocimientos necesarios para una conducción segura y responsable.
               </p>
             </div>
             <div className="space-y-2">
@@ -81,7 +81,7 @@ export default function TerminosPage() {
             <div className="space-y-2">
               <h3 className="font-semibold text-foreground">7. Confidencialidad y Protección de Datos</h3>
               <p>
-                Los datos personales proporcionados por el alumno (nombre, teléfono, domicilio) así como los datos del instructor asignado, son estrictamente confidenciales. Autoescuela Americana se compromete a no compartir, vender o divulgar esta información a terceros bajo ninguna circunstancia, salvo requerimiento legal. Los datos se utilizan únicamente para la coordinación y logística del curso contratado.
+                Los datos personales proporcionados por el alumno (nombre, teléfono, domicilio) así como los datos del instructor asignado, son estrictamente confidenciales. AEA se compromete a no compartir, vender o divulgar esta información a terceros bajo ninguna circunstancia, salvo requerimiento legal. Los datos se utilizan únicamente para la coordinación y logística del curso contratado.
               </p>
             </div>
           </CardContent>

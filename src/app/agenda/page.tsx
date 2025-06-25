@@ -86,7 +86,7 @@ export default function AgendaPage() {
 
     const formattedDates = courseToConfirm.dates.map(date => format(date, "EEEE, d 'de' MMMM", { locale: es })).join(', ');
 
-    const message = `¡Hola ${courseToConfirm.name}! Soy ${instructorName.trim()} de Autoescuela Americana. He confirmado tu curso de manejo para los días: ${formattedDates} a las ${courseToConfirm.time}. ¡Estoy a tu disposición para coordinarnos!`;
+    const message = `¡Hola ${courseToConfirm.name}! Soy ${instructorName.trim()} de AEA. He confirmado tu curso de manejo para los días: ${formattedDates} a las ${courseToConfirm.time}. ¡Estoy a tu disposición para coordinarnos!`;
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${fullPhoneNumber}&text=${encodedMessage}`;

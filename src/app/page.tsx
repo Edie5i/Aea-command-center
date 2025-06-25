@@ -33,7 +33,7 @@ export default function Home() {
           <Car className="h-8 w-8" />
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Autoescuela Americana
+          AEA
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
           Recibe consejos y planes de lecciones personalizados para mejorar tus habilidades de manejo.
