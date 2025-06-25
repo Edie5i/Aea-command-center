@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Phone, User, Mail, Clock } from 'lucide-react';
+import { Calendar, Phone, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -27,7 +27,6 @@ import { es } from 'date-fns/locale';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
-  email: z.string().email({ message: 'Por favor, introduce un correo electrónico válido.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   time: z.string({ required_error: 'Debes seleccionar un horario.' }),
 });
@@ -52,7 +51,6 @@ export function ScheduleForm({ selectedDates, onFormSubmit }: ScheduleFormProps)
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      email: '',
       phone: '',
     },
   });
@@ -66,7 +64,6 @@ export function ScheduleForm({ selectedDates, onFormSubmit }: ScheduleFormProps)
 ${formattedDates}
 *Hora para cada día:* ${values.time}
 *Alumno:* ${values.name}
-*Email:* ${values.email}
 *Teléfono:* ${values.phone}`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -96,22 +93,6 @@ ${formattedDates}
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <FormControl>
                   <Input placeholder="ej. Ana Pérez" {...field} className="pl-10" />
-                </FormControl>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Correo Electrónico</FormLabel>
-               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <FormControl>
-                  <Input placeholder="ej. ana.perez@email.com" {...field} className="pl-10" />
                 </FormControl>
               </div>
               <FormMessage />
