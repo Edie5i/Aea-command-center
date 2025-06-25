@@ -33,7 +33,7 @@ const formSchema = z.object({
 });
 
 type ScheduleFormProps = {
-  selectedDate: Date;
+  selectedDates: Date[];
   onFormSubmit: () => void;
 };
 
@@ -46,7 +46,7 @@ const availableTimes = [
   '19:00',
 ];
 
-export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) {
+export function ScheduleForm({ selectedDates, onFormSubmit }: ScheduleFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,11 +59,12 @@ export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const whatsAppNumber = "525634433212";
-    const formattedDate = format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+    const formattedDates = selectedDates.map(date => format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })).join('\n');
     
-    const message = `¡Nueva solicitud de clase!
-*Fecha:* ${formattedDate}
-*Hora:* ${values.time}
+    const message = `¡Nueva solicitud de curso!
+*Fechas:*
+${formattedDates}
+*Hora para cada día:* ${values.time}
 *Alumno:* ${values.name}
 *Email:* ${values.email}
 *Teléfono:* ${values.phone}`;
@@ -75,7 +76,7 @@ export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) 
 
     toast({
       title: '¡Información Lista!',
-      description: `Se abrirá WhatsApp para enviar los detalles de la clase.`,
+      description: `Se abrirá WhatsApp para enviar los detalles del curso.`,
     });
     
     onFormSubmit(); // Close the dialog
@@ -138,7 +139,7 @@ export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) 
           name="time"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Horario Disponible</FormLabel>
+              <FormLabel>Horario Disponible para cada día</FormLabel>
                <div className="relative">
                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -163,7 +164,7 @@ export function ScheduleForm({ selectedDate, onFormSubmit }: ScheduleFormProps) 
         <div className="flex justify-end">
           <Button type="submit">
             <Calendar className="mr-2 h-4 w-4" />
-            Confirmar Clase
+            Confirmar Curso
           </Button>
         </div>
       </form>
