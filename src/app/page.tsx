@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, Star } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
@@ -30,20 +29,18 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
-        <Image
-          src="/logo.png"
-          alt="AEA Logo"
-          width={150}
-          height={150}
-          className="rounded-full mb-4"
-          data-ai-hint="logo driving school"
-        />
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
+        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
+          Auto Escuela Americana
+        </h1>
+        <h2 className="text-6xl md:text-8xl font-extrabold tracking-tighter mt-1 bg-clip-text text-transparent bg-gradient-to-b from-neutral-400 to-neutral-600 dark:from-neutral-200 dark:to-neutral-500">
+          AEA
+        </h2>
+        <p className="mt-4 max-w-xl text-lg text-muted-foreground">
           Plataforma de gestión para instructores y alumnos. Genera planes de lecciones y consejos de manejo personalizados.
         </p>
       </div>
 
-      <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden mt-8">
+      <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
         <CardContent className="p-6 md:p-8">
           <AnimatePresence mode="wait">
             <motion.div
