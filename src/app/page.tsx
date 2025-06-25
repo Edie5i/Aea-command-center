@@ -48,7 +48,9 @@ export default function Home() {
         </p>
       </div>
 
-      <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
+      <ContactForm />
+
+      <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden mt-8">
         <CardContent className="p-6 md:p-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -94,8 +96,6 @@ export default function Home() {
             </Button>
         </CardFooter>
       </Card>
-
-      <ContactForm />
 
       <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
         <CardHeader>
