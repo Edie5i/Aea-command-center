@@ -8,6 +8,7 @@ import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ContactForm } from "@/components/contact-form";
 
 export default function Home() {
   const [tips, setTips] = useState<string[] | null>(null);
@@ -73,6 +74,8 @@ export default function Home() {
             </Button>
         </CardFooter>
       </Card>
+
+      <ContactForm />
 
       <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
         <CardHeader>
