@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home, CheckCircle, Info } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin, Settings2, Home, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -30,6 +30,82 @@ import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+
+
+const programData = [
+    {
+        title: "01 - Introducción",
+        items: [
+            "Funcionamiento de sistemas",
+            "Posición correcta del asiento, pies y espejos",
+            "Envío del manual al alumno",
+            "Reglamento de tránsito",
+            "Documentos del vehículo",
+            "Aspectos legales"
+        ]
+    },
+    {
+        title: "02 - Proceso de Inicio",
+        items: [
+            "Introducción a los sistemas del vehículo",
+            "Tablero",
+            "Volante",
+            "Pedales",
+            "Cambios",
+            "Retrovisores",
+            "Sistema de luces",
+            "Sistema de seguridad"
+        ]
+    },
+    {
+        title: "03 - Avance Inicial",
+        items: [
+            "Aceleración",
+            "Control del Clutch",
+            "Frenado",
+            "Control del Volante",
+            "Avance en Línea Recta",
+            "Avance en Reversa",
+            "Avance con Vuelta",
+            "Avance con Vuelta en 'U'"
+        ]
+    },
+    {
+        title: "04 - Avance Intermedio",
+        items: [
+            "Recorrido en vías primarias y secundarias",
+            "Recorrido en vías rápidas (laterales)",
+            "Uso de agujas laterales para reincorporación a vías",
+            "Subidas",
+            "Frenado con motor (bajadas)",
+            "Reversa"
+        ]
+    },
+    {
+        title: "05 - Avance Final",
+        items: [
+            "Arranque en vías principales",
+            "Rebases",
+            "Cambio de carriles",
+            "Curvas",
+            "Estacionamiento en 3 pasos"
+        ]
+    },
+    {
+        title: "06 - Mecánica",
+        items: [
+            "Nivel de aceite del motor y dirección",
+            "Nivel de líquido de frenos",
+            "Nivel de anticongelante",
+            "Nivel de aceite de transmisión",
+            "Explicación sobre alineación (servicio)",
+            "Paso de corriente",
+            "Arranque sin carga de batería",
+            "Cambio de llantas"
+        ]
+    }
+];
 
 type Course = {
   id: number;
@@ -42,6 +118,7 @@ type Course = {
   instructor?: string;
   transmission: string;
   address?: string;
+  currentStage: number;
 };
 
 export default function AgendaPage() {
@@ -63,31 +140,28 @@ export default function AgendaPage() {
       id: Date.now(),
       ...newCourseData,
       status: 'Pendiente',
+      currentStage: 0,
     };
     setCourses(prevCourses => [newCourse, ...prevCourses]);
     setIsDialogOpen(false);
-    setDates([]); // Reset date selection
+    setDates([]);
   };
 
   const handleConfirmCourse = () => {
     if (!courseToConfirm || !instructorName.trim()) return;
     
-    // Update local state
     setCourses(prevCourses =>
       prevCourses.map(course =>
-        course.id === courseToConfirm.id ? { ...course, status: 'Confirmado', instructor: instructorName.trim() } : course
+        course.id === courseToConfirm.id ? { ...course, status: 'Confirmado', instructor: instructorName.trim(), currentStage: 0 } : course
       )
     );
 
-    // Prepare WhatsApp message for the student
     const studentPhoneNumber = courseToConfirm.phone.replace(/\D/g, '');
-    const countryCode = '52'; // Assuming Mexico country code
+    const countryCode = '52';
     const fullPhoneNumber = studentPhoneNumber.length === 10 ? countryCode + studentPhoneNumber : studentPhoneNumber;
 
     const formattedDates = courseToConfirm.dates.map(date => format(date, "EEEE, d 'de' MMMM", { locale: es })).join(', ');
-
     const message = `¡Hola ${courseToConfirm.name}! Soy ${instructorName.trim()} de AEA. He confirmado tu curso de manejo para los días: ${formattedDates} a las ${courseToConfirm.time}. ¡Estoy a tu disposición para coordinarnos!`;
-    
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${fullPhoneNumber}&text=${encodedMessage}`;
 
@@ -99,6 +173,41 @@ export default function AgendaPage() {
     });
     
     closeConfirmationDialog();
+  };
+
+  const handleUpdateStage = (courseId: number, newStage: number) => {
+    const courseToUpdate = courses.find(c => c.id === courseId);
+    if (!courseToUpdate) return;
+
+    setCourses(prevCourses =>
+      prevCourses.map(course =>
+        course.id === courseId ? { ...course, currentStage: newStage } : course
+      )
+    );
+
+    const studentPhoneNumber = courseToUpdate.phone.replace(/\D/g, '');
+    const countryCode = '52';
+    const fullPhoneNumber = studentPhoneNumber.length === 10 ? countryCode + studentPhoneNumber : studentPhoneNumber;
+
+    const completedStageInfo = programData[newStage - 1];
+    const nextStageInfo = programData[newStage];
+
+    let message = `¡Hola ${courseToUpdate.name}! Felicidades por completar la etapa ${newStage}: "${completedStageInfo.title}".`;
+    if (nextStageInfo) {
+      message += `\n\nTu siguiente objetivo es la etapa ${newStage + 1}: "${nextStageInfo.title}". ¡Sigue así!`;
+    } else {
+      message += `\n\n¡Has completado todas las etapas del curso! ¡Excelente trabajo!`;
+    }
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${fullPhoneNumber}&text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
+
+    toast({
+      title: '¡Progreso actualizado!',
+      description: `Se abrirá WhatsApp para notificar a ${courseToUpdate.name}.`,
+    });
   };
 
   const isConfirmDialogButtonDisabled = !instructorName.trim();
@@ -250,13 +359,58 @@ export default function AgendaPage() {
                                         </ul>
                                     </div>
                                      {course.status === 'Confirmado' && course.instructor && (
-                                        <>
-                                            <Separator className="my-2" />
-                                            <div className="flex items-center pt-1 text-green-700 dark:text-green-400 font-semibold">
+                                            <div className="flex items-center pt-2 text-green-700 dark:text-green-400 font-semibold">
                                                 <UserCheck className="mr-2 h-4 w-4" />
                                                 <span>Confirmado por: {course.instructor}</span>
                                             </div>
-                                        </>
+                                    )}
+                                    {course.status === 'Confirmado' && (
+                                        <div className="mt-4 pt-4 border-t">
+                                            <h4 className="font-semibold text-md mb-2">Progreso del Curso</h4>
+                                            {course.currentStage === 0 && (
+                                                <div className="text-center p-4 bg-muted/50 rounded-md">
+                                                    <p className="text-sm text-muted-foreground mb-2">
+                                                        El curso está listo para comenzar. La primera etapa es: <strong>{programData[0].title}</strong>.
+                                                    </p>
+                                                    <Button size="sm" onClick={() => handleUpdateStage(course.id, 1)}>
+                                                        Comenzar y Completar Etapa 1
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            {course.currentStage > 0 && (
+                                                <div className="space-y-3">
+                                                    <Progress value={(course.currentStage / programData.length) * 100} className="w-full" />
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <p className="text-muted-foreground">
+                                                            <CheckCircle className="inline-block h-4 w-4 mr-1 text-green-500" />
+                                                            Etapa {course.currentStage} de {programData.length} completada
+                                                        </p>
+                                                        <p className="font-bold">{Math.round((course.currentStage / programData.length) * 100)}%</p>
+                                                    </div>
+
+                                                    {course.currentStage < programData.length ? (
+                                                        <div className="flex flex-col items-start gap-2 pt-2">
+                                                            <p className="text-sm">
+                                                                Siguiente etapa: <strong>{programData[course.currentStage].title}</strong>
+                                                            </p>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleUpdateStage(course.id, course.currentStage + 1)}
+                                                                className="w-full"
+                                                            >
+                                                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                                                Completar y Notificar al Alumno
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center justify-center gap-2 pt-2 text-green-600 dark:text-green-400 font-semibold">
+                                                            <CheckCircle className="h-5 w-5" />
+                                                            <span>¡Curso completado!</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </CardContent>
                                 {course.status === 'Pendiente' && (
