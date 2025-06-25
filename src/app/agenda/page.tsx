@@ -223,8 +223,8 @@ export default function AgendaPage() {
       </div>
        <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
         <p>
-          <a href="https://www.autoescuelaamericana.mx" target="_blank" rel="noopener noreferrer" className="hover:underline">
-            www.autoescuelaamericana.mx
+          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
+            www.autoescuelaamericana.com
           </a>
         </p>
         <p className="mt-2">
