@@ -1,9 +1,10 @@
-// use server'
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for generating creative ideas.
  *
  * - generateIdeas - A function that generates ideas based on a topic.
+ * - GenerateIdeasInput - The input type for the generateIdeas function.
+ * - GenerateIdeasOutput - The return type for the generateIdeas function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -12,14 +13,14 @@ import {z} from 'genkit';
 const GenerateIdeasInputSchema = z.object({
   topic: z.string().describe('The topic to generate ideas for.'),
 });
-type GenerateIdeasInput = z.infer<typeof GenerateIdeasInputSchema>;
+export type GenerateIdeasInput = z.infer<typeof GenerateIdeasInputSchema>;
 
 const GenerateIdeasOutputSchema = z.object({
   ideas: z
     .array(z.string().describe('A single, creative idea.'))
     .describe('A list of 5 creative ideas based on the provided topic.'),
 });
-type GenerateIdeasOutput = z.infer<typeof GenerateIdeasOutputSchema>;
+export type GenerateIdeasOutput = z.infer<typeof GenerateIdeasOutputSchema>;
 
 export async function generateIdeas(
   input: GenerateIdeasInput
@@ -43,7 +44,7 @@ const generateIdeasFlow = ai.defineFlow(
     inputSchema: GenerateIdeasInputSchema,
     outputSchema: GenerateIdeasOutputSchema,
   },
-  async input => {
+  async (input) => {
     const {output} = await prompt(input);
     return output!;
   }
