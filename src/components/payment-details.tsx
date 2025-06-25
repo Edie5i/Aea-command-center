@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/card';
 import { CopyButton } from './copy-button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Info, Banknote, Landmark, MessageSquare } from 'lucide-react';
+import { Info, Banknote, Landmark, MessageSquare, CreditCard } from 'lucide-react';
 import { Separator } from './ui/separator';
 import Image from 'next/image';
 
@@ -29,6 +29,19 @@ export function PaymentDetails() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
+        <div>
+            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><CreditCard className="h-5 w-5 text-primary" />Pago con Tarjeta (Crédito/Débito)</h3>
+            <div className="rounded-lg border p-4 space-y-3 bg-muted/20">
+                <p className="text-sm text-muted-foreground">Aceptamos todas las tarjetas. El pago se procesa de forma segura a través de <strong>Openpay</strong>.</p>
+                <Separator />
+                <ul className="list-disc list-inside text-sm space-y-2 pl-2">
+                    <li><strong>Meses Sin Intereses (MSI):</strong> Disponibles exclusivamente con tarjetas American Express y BBVA.</li>
+                    <li><strong>Pagos Diferidos:</strong> Opción disponible para tarjetas de otros bancos a través de Openpay.</li>
+                </ul>
+                <p className="text-xs text-muted-foreground pt-2">Contacta a un asesor para generar tu enlace de pago personalizado.</p>
+            </div>
+        </div>
+
         <div>
             <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><Landmark className="h-5 w-5 text-primary" />Transferencia Bancaria</h3>
             <div className="rounded-lg border p-4 space-y-4 bg-muted/20">
