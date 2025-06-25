@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarDays, MapPin, CreditCard, ShoppingBag } from "lucide-react";
+import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -74,6 +74,12 @@ export default function Home() {
           </AnimatePresence>
         </CardContent>
          <CardFooter className="p-6 pt-0 border-t flex flex-wrap justify-center gap-4">
+            <Button asChild variant="secondary">
+                <Link href="/programa">
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Ver Programa del Curso
+                </Link>
+            </Button>
             <Button asChild variant="secondary">
                 <Link href="/agenda">
                     <CalendarDays className="mr-2 h-4 w-4" />
