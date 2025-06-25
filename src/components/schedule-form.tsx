@@ -33,7 +33,7 @@ const formSchema = z.object({
 
 type ScheduleFormProps = {
   selectedDates: Date[];
-  onFormSubmit: () => void;
+  onCourseScheduled: (courseData: { name: string; phone: string; time: string; dates: Date[] }) => void;
 };
 
 // Hardcoded available time slots for demonstration
@@ -45,7 +45,7 @@ const availableTimes = [
   '19:00',
 ];
 
-export function ScheduleForm({ selectedDates, onFormSubmit }: ScheduleFormProps) {
+export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,7 +76,13 @@ ${formattedDates}
       description: `Se abrirá WhatsApp para enviar los detalles del curso.`,
     });
     
-    onFormSubmit(); // Close the dialog
+    onCourseScheduled({
+      name: values.name,
+      phone: values.phone,
+      time: values.time,
+      dates: selectedDates,
+    });
+    
     form.reset(); // Reset form fields
   }
 

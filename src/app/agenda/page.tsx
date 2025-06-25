@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarPlus } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -16,15 +16,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Badge } from '@/components/ui/badge';
 import { ScheduleForm } from '@/components/schedule-form';
+import { Separator } from '@/components/ui/separator';
+
+type Course = {
+  id: number;
+  name: string;
+  phone: string;
+  time: string;
+  dates: Date[];
+  status: 'Pendiente' | 'Confirmado';
+};
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const datesInfo = dates && dates.length > 0 
     ? `${dates.length} ${dates.length === 1 ? 'día' : 'días'} seleccionado${dates.length > 1 ? 's' : ''}` 
     : 'Ninguna fecha seleccionada';
+
+  const handleScheduleCourse = (newCourseData: { name: string; phone: string; time: string; dates: Date[] }) => {
+    const newCourse: Course = {
+      id: Date.now(),
+      ...newCourseData,
+      status: 'Pendiente',
+    };
+    setCourses(prevCourses => [newCourse, ...prevCourses]);
+    setIsDialogOpen(false);
+    setDates([]); // Reset date selection
+  };
+
+  const handleConfirmCourse = (courseId: number) => {
+    setCourses(prevCourses =>
+      prevCourses.map(course =>
+        course.id === courseId ? { ...course, status: 'Confirmado' } : course
+      )
+    );
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background">
@@ -49,6 +80,10 @@ export default function AgendaPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
              <Card className="shadow-lg rounded-xl">
+                <CardHeader>
+                    <CardTitle>Seleccionar Fechas</CardTitle>
+                    <CardDescription>Elige hasta 6 días para el curso.</CardDescription>
+                </CardHeader>
                 <CardContent className="p-2 flex justify-center">
                     <Calendar
                         mode="multiple"
@@ -61,37 +96,88 @@ export default function AgendaPage() {
                         disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))}
                     />
                 </CardContent>
+                <CardFooter className="flex-col items-start p-4 border-t">
+                    <p className="text-sm font-medium mb-2">Fechas seleccionadas: <span className="text-primary font-bold">{datesInfo}</span></p>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button disabled={!dates || dates.length === 0} className="w-full">
+                            <CalendarPlus className="mr-2 h-4 w-4" />
+                            Agendar Curso
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Agendar nuevo curso</DialogTitle>
+                          <DialogDescription>
+                            Completa los datos del alumno para agendar un curso en las fechas seleccionadas.
+                          </DialogDescription>
+                        </DialogHeader>
+                        {dates && dates.length > 0 && (
+                            <ScheduleForm selectedDates={dates} onCourseScheduled={handleScheduleCourse} />
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                </CardFooter>
              </Card>
           </div>
           <div className="lg:col-span-2">
             <Card className="h-full shadow-lg rounded-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Fechas seleccionadas: <span className="text-primary">{datesInfo}</span></CardTitle>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button disabled={!dates || dates.length === 0}>
-                        <CalendarPlus className="mr-2 h-4 w-4" />
-                        Agendar Curso
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Agendar nuevo curso</DialogTitle>
-                      <DialogDescription>
-                        Completa los datos del alumno para agendar un curso en las fechas seleccionadas.
-                      </DialogDescription>
-                    </DialogHeader>
-                    {dates && dates.length > 0 && (
-                        <ScheduleForm selectedDates={dates} onFormSubmit={() => setIsDialogOpen(false)} />
-                    )}
-                  </DialogContent>
-                </Dialog>
+              <CardHeader>
+                <CardTitle>Cursos por Confirmar</CardTitle>
+                <CardDescription>
+                    Aquí se muestran las solicitudes de los alumnos. Confirma para asignar un instructor.
+                    <br/>
+                    <span className="text-xs text-muted-foreground italic">(Los datos se perderán al recargar la página)</span>
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center text-muted-foreground py-16 border-t">
-                  <p className="font-semibold">No hay cursos programados.</p>
-                  <p className="text-sm mt-1">Selecciona una o más fechas y agenda un nuevo curso.</p>
-                </div>
+                {courses.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-16 border rounded-lg">
+                        <p className="font-semibold">No hay cursos programados.</p>
+                        <p className="text-sm mt-1">Selecciona una o más fechas y agenda un nuevo curso.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {courses.map((course) => (
+                            <Card key={course.id} className="bg-muted/30">
+                                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                    <CardTitle className="text-lg">{course.name}</CardTitle>
+                                    <Badge variant={course.status === 'Confirmado' ? 'default' : 'secondary'} className="capitalize">
+                                        {course.status === 'Confirmado' && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                                        {course.status}
+                                    </Badge>
+                                </CardHeader>
+                                <CardContent className="space-y-2 text-sm">
+                                    <div className="flex items-center">
+                                        <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span>{course.phone}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span>Clases a las {course.time}</span>
+                                    </div>
+                                    <Separator className="my-2" />
+                                    <div className="flex items-start">
+                                        <CalendarIcon className="mr-2 mt-1 h-4 w-4 text-muted-foreground" />
+                                        <ul className="list-disc list-inside">
+                                            {course.dates.map(date => (
+                                                <li key={date.toISOString()}>{format(date, "EEEE, d 'de' MMMM", { locale: es })}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </CardContent>
+                                {course.status === 'Pendiente' && (
+                                    <CardFooter>
+                                        <Button className="w-full" onClick={() => handleConfirmCourse(course.id)}>
+                                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                                            Confirmar Curso
+                                        </Button>
+                                    </CardFooter>
+                                )}
+                            </Card>
+                        ))}
+                    </div>
+                )}
               </CardContent>
             </Card>
           </div>
