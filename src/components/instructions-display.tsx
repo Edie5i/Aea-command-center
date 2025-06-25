@@ -1,33 +1,33 @@
 'use client';
 
 import React from 'react';
-import { RotateCw, Rocket } from 'lucide-react';
+import { RotateCw, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-type IdeasDisplayProps = {
-  ideas: string[];
+type TipsDisplayProps = {
+  tips: string[];
   onReset: () => void;
 };
 
-export function InstructionsDisplay({ ideas, onReset }: IdeasDisplayProps) {
+export function InstructionsDisplay({ tips, onReset }: TipsDisplayProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Here are your ideas!</h2>
-        <p className="text-muted-foreground">We've brainstormed a few concepts for you.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">¡Aquí tienes tus consejos!</h2>
+        <p className="text-muted-foreground">Hemos recopilado algunos consejos para ti.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        {ideas.map((idea, index) => (
+        {tips.map((tip, index) => (
           <Card key={index} className="flex flex-col">
             <CardHeader>
                 <div className="flex items-center gap-2">
-                    <Rocket className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg">Idea {index + 1}</CardTitle>
+                    <ClipboardCheck className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg">Consejo {index + 1}</CardTitle>
                 </div>
             </CardHeader>
             <CardContent className="flex-grow">
-              <p>{idea}</p>
+              <p>{tip}</p>
             </CardContent>
           </Card>
         ))}
@@ -35,7 +35,7 @@ export function InstructionsDisplay({ ideas, onReset }: IdeasDisplayProps) {
       <div className="flex justify-end mt-6">
         <Button onClick={onReset} variant="outline">
           <RotateCw className="mr-2 h-4 w-4" />
-          Generate More
+          Generar Más Consejos
         </Button>
       </div>
     </div>

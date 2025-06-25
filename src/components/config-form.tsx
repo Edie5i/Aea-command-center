@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Lightbulb, Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -17,19 +17,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { getIdeasAction } from '@/app/actions';
+import { getDrivingTipsAction } from '@/app/actions';
 
 const formSchema = z.object({
-  topic: z.string().min(3, { message: 'Topic must be at least 3 characters long.' }),
+  topic: z.string().min(3, { message: 'El tema debe tener al menos 3 caracteres.' }),
 });
 
-type IdeaFormProps = {
-  onGenerated: (ideas: string[]) => void;
+type TipsFormProps = {
+  onGenerated: (tips: string[]) => void;
   setLoading: (loading: boolean) => void;
   isLoading: boolean;
 };
 
-export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps) {
+export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,7 +40,7 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    const result = await getIdeasAction(values.topic);
+    const result = await getDrivingTipsAction(values.topic);
 
     if (result.error) {
       toast({
@@ -49,13 +49,13 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps
         description: result.error,
       });
       setLoading(false);
-    } else if (result.ideas) {
-      onGenerated(result.ideas);
+    } else if (result.tips) {
+      onGenerated(result.tips);
     } else {
         toast({
             variant: 'destructive',
             title: 'Error',
-            description: 'An unknown error occurred.',
+            description: 'Ocurrió un error desconocido.',
         });
         setLoading(false);
     }
@@ -64,10 +64,10 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps
   return (
     <div className="space-y-6">
       <Alert>
-        <Lightbulb className="h-4 w-4" />
-        <AlertTitle>Unleash Your Creativity</AlertTitle>
+        <Car className="h-4 w-4" />
+        <AlertTitle>Mejora tus Habilidades</AlertTitle>
         <AlertDescription>
-          Enter a topic and let our AI generate some brilliant ideas for you.
+          Indica un área de manejo en la que quieras mejorar y la IA te dará consejos.
         </AlertDescription>
       </Alert>
       <Form {...form}>
@@ -77,16 +77,16 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps
             name="topic"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold">Your Topic</FormLabel>
+                <FormLabel className="text-lg font-semibold">Tu Enfoque</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g., mobile apps for book lovers"
+                    placeholder="ej. estacionamiento en paralelo, manejo en carretera"
                     className="bg-muted/50"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  What kind of ideas are you looking for?
+                  ¿En qué quieres mejorar?
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -99,7 +99,7 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
               )}
-              {isLoading ? 'Generating...' : 'Generate Ideas'}
+              {isLoading ? 'Generando...' : 'Generar Consejos'}
             </Button>
           </div>
         </form>

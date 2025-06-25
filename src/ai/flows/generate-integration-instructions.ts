@@ -1,48 +1,48 @@
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for generating creative ideas.
+ * @fileOverview This file defines a Genkit flow for generating driving tips.
  *
- * - generateIdeas - A function that generates ideas based on a topic.
- * - GenerateIdeasInput - The input type for the generateIdeas function.
- * - GenerateIdeasOutput - The return type for the generateIdeas function.
+ * - generateDrivingTips - A function that generates tips based on a topic.
+ * - GenerateDrivingTipsInput - The input type for the generateDrivingTips function.
+ * - GenerateDrivingTipsOutput - The return type for the generateDrivingTips function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateIdeasInputSchema = z.object({
-  topic: z.string().describe('The topic to generate ideas for.'),
+const GenerateDrivingTipsInputSchema = z.object({
+  topic: z.string().describe('The topic to generate driving tips for.'),
 });
-export type GenerateIdeasInput = z.infer<typeof GenerateIdeasInputSchema>;
+export type GenerateDrivingTipsInput = z.infer<typeof GenerateDrivingTipsInputSchema>;
 
-const GenerateIdeasOutputSchema = z.object({
-  ideas: z
-    .array(z.string().describe('A single, creative idea.'))
-    .describe('A list of 5 creative ideas based on the provided topic.'),
+const GenerateDrivingTipsOutputSchema = z.object({
+  tips: z
+    .array(z.string().describe('A single, actionable driving tip.'))
+    .describe('A list of 5 driving tips based on the provided topic.'),
 });
-export type GenerateIdeasOutput = z.infer<typeof GenerateIdeasOutputSchema>;
+export type GenerateDrivingTipsOutput = z.infer<typeof GenerateDrivingTipsOutputSchema>;
 
-export async function generateIdeas(
-  input: GenerateIdeasInput
-): Promise<GenerateIdeasOutput> {
-  return generateIdeasFlow(input);
+export async function generateDrivingTips(
+  input: GenerateDrivingTipsInput
+): Promise<GenerateDrivingTipsOutput> {
+  return generateDrivingTipsFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'generateIdeasPrompt',
-  input: {schema: GenerateIdeasInputSchema},
-  output: {schema: GenerateIdeasOutputSchema},
-  prompt: `You are a creative brainstorming assistant. Your goal is to generate interesting and unique ideas.
-Based on the following topic, please generate 5 ideas.
+  name: 'generateDrivingTipsPrompt',
+  input: {schema: GenerateDrivingTipsInputSchema},
+  output: {schema: GenerateDrivingTipsOutputSchema},
+  prompt: `You are an expert driving instructor. Your goal is to provide clear, concise, and helpful tips for drivers looking to improve their skills.
+Based on the following topic, please generate 5 specific and actionable tips.
 
 Topic: {{{topic}}}`,
 });
 
-const generateIdeasFlow = ai.defineFlow(
+const generateDrivingTipsFlow = ai.defineFlow(
   {
-    name: 'generateIdeasFlow',
-    inputSchema: GenerateIdeasInputSchema,
-    outputSchema: GenerateIdeasOutputSchema,
+    name: 'generateDrivingTipsFlow',
+    inputSchema: GenerateDrivingTipsInputSchema,
+    outputSchema: GenerateDrivingTipsOutputSchema,
   },
   async (input) => {
     const {output} = await prompt(input);

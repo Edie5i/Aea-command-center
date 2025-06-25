@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Idea Spark",
-  description: "Generate brilliant ideas with AI.",
+  title: "Escuela de Manejo AI",
+  description: "Consejos de manejo personalizados para instructores y alumnos.",
 };
 
 export default function RootLayout({
