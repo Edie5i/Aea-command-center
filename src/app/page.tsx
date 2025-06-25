@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, Star } from "lucide-react";
+import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, Star, BarChart3 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -66,6 +66,12 @@ export default function Home() {
           </AnimatePresence>
         </CardContent>
          <CardFooter className="p-6 pt-0 border-t flex flex-wrap justify-center gap-4">
+            <Button asChild variant="secondary">
+                <Link href="/evaluacion">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Evalúa tus Habilidades
+                </Link>
+            </Button>
             <Button asChild variant="secondary">
                 <Link href="/programa">
                     <BookOpen className="mr-2 h-4 w-4" />

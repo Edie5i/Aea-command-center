@@ -53,7 +53,7 @@ export function ContactForm() {
   }
 
   return (
-    <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
+    <Card id="contact-form" className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
         <CardHeader>
             <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-6 w-6 text-primary" />
