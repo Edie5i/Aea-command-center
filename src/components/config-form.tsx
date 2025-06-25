@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Lightbulb, Loader2 } from 'lucide-react';
+import { ArrowRight, Lightbulb, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -14,43 +14,43 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { getInstructionsAction } from '@/app/actions';
+import { getIdeasAction } from '@/app/actions';
 
 const formSchema = z.object({
-  firebaseConfig: z.string().min(1, { message: 'Firebase config is required.' }),
+  topic: z.string().min(3, { message: 'Topic must be at least 3 characters long.' }),
 });
 
-type ConfigFormProps = {
-  onGenerated: (instructions: string) => void;
+type IdeaFormProps = {
+  onGenerated: (ideas: string[]) => void;
   setLoading: (loading: boolean) => void;
   isLoading: boolean;
 };
 
-export function ConfigForm({ onGenerated, setLoading, isLoading }: ConfigFormProps) {
+export function ConfigForm({ onGenerated, setLoading, isLoading }: IdeaFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firebaseConfig: '',
+      topic: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    const result = await getInstructionsAction(values.firebaseConfig);
+    const result = await getIdeasAction(values.topic);
 
     if (result.error) {
       toast({
         variant: 'destructive',
-        title: 'Validation Error',
+        title: 'Error',
         description: result.error,
       });
       setLoading(false);
-    } else if (result.instructions) {
-      onGenerated(result.instructions);
+    } else if (result.ideas) {
+      onGenerated(result.ideas);
     } else {
         toast({
             variant: 'destructive',
@@ -65,28 +65,28 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: ConfigFormPro
     <div className="space-y-6">
       <Alert>
         <Lightbulb className="h-4 w-4" />
-        <AlertTitle>Start Here</AlertTitle>
+        <AlertTitle>Unleash Your Creativity</AlertTitle>
         <AlertDescription>
-          Paste your Firebase config object into the text area below to get started.
+          Enter a topic and let our AI generate some brilliant ideas for you.
         </AlertDescription>
       </Alert>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="firebaseConfig"
+            name="topic"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg font-semibold">Firebase Config</FormLabel>
+                <FormLabel className="text-lg font-semibold">Your Topic</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder={`const firebaseConfig = {\n  apiKey: "AIza...",\n  authDomain: "your-project.firebaseapp.com",\n  ...\n};`}
-                    className="min-h-[200px] font-code text-sm bg-muted/50"
+                  <Input
+                    placeholder="e.g., mobile apps for book lovers"
+                    className="bg-muted/50"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  You can find this in your Firebase project settings.
+                  What kind of ideas are you looking for?
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -97,9 +97,9 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: ConfigFormPro
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <ArrowRight className="mr-2 h-4 w-4" />
+                <Sparkles className="mr-2 h-4 w-4" />
               )}
-              {isLoading ? 'Generating...' : 'Generate Instructions'}
+              {isLoading ? 'Generating...' : 'Generate Ideas'}
             </Button>
           </div>
         </form>

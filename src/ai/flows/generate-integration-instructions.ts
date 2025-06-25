@@ -1,57 +1,47 @@
 // use server'
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for generating Firebase integration instructions.
+ * @fileOverview This file defines a Genkit flow for generating creative ideas.
  *
- * - generateIntegrationInstructions - A function that generates Firebase integration instructions.
- * - GenerateIntegrationInstructionsInput - The input type for the generateIntegrationInstructions function.
- * - GenerateIntegrationInstructionsOutput - The return type for the generateIntegrationInstructions function.
+ * - generateIdeas - A function that generates ideas based on a topic.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateIntegrationInstructionsInputSchema = z.object({
-  firebaseConfig: z
-    .string()
-    .describe('The Firebase config object as a JSON string.'),
+const GenerateIdeasInputSchema = z.object({
+  topic: z.string().describe('The topic to generate ideas for.'),
 });
-export type GenerateIntegrationInstructionsInput = z.infer<
-  typeof GenerateIntegrationInstructionsInputSchema
->;
+type GenerateIdeasInput = z.infer<typeof GenerateIdeasInputSchema>;
 
-const GenerateIntegrationInstructionsOutputSchema = z.object({
-  instructions: z
-    .string()
-    .describe(
-      'Clear, step-by-step instructions on how to integrate Firebase into a Next.js project.'
-    ),
+const GenerateIdeasOutputSchema = z.object({
+  ideas: z
+    .array(z.string().describe('A single, creative idea.'))
+    .describe('A list of 5 creative ideas based on the provided topic.'),
 });
-export type GenerateIntegrationInstructionsOutput = z.infer<
-  typeof GenerateIntegrationInstructionsOutputSchema
->;
+type GenerateIdeasOutput = z.infer<typeof GenerateIdeasOutputSchema>;
 
-export async function generateIntegrationInstructions(
-  input: GenerateIntegrationInstructionsInput
-): Promise<GenerateIntegrationInstructionsOutput> {
-  return generateIntegrationInstructionsFlow(input);
+export async function generateIdeas(
+  input: GenerateIdeasInput
+): Promise<GenerateIdeasOutput> {
+  return generateIdeasFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'generateIntegrationInstructionsPrompt',
-  input: {schema: GenerateIntegrationInstructionsInputSchema},
-  output: {schema: GenerateIntegrationInstructionsOutputSchema},
-  prompt: `You are an expert in Firebase and Next.js. You will take the provided Firebase config and generate clear, step-by-step instructions on how to integrate Firebase into a Next.js project.
+  name: 'generateIdeasPrompt',
+  input: {schema: GenerateIdeasInputSchema},
+  output: {schema: GenerateIdeasOutputSchema},
+  prompt: `You are a creative brainstorming assistant. Your goal is to generate interesting and unique ideas.
+Based on the following topic, please generate 5 ideas.
 
-Firebase Config:
-{{{firebaseConfig}}}',
+Topic: {{{topic}}}`,
 });
 
-const generateIntegrationInstructionsFlow = ai.defineFlow(
+const generateIdeasFlow = ai.defineFlow(
   {
-    name: 'generateIntegrationInstructionsFlow',
-    inputSchema: GenerateIntegrationInstructionsInputSchema,
-    outputSchema: GenerateIntegrationInstructionsOutputSchema,
+    name: 'generateIdeasFlow',
+    inputSchema: GenerateIdeasInputSchema,
+    outputSchema: GenerateIdeasOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);

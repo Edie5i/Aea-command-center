@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Firebase Flow",
-  description: "Effortlessly integrate Firebase into your projects.",
+  title: "AI Idea Spark",
+  description: "Generate brilliant ideas with AI.",
 };
 
 export default function RootLayout({
