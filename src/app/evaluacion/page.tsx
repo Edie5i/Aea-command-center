@@ -28,6 +28,24 @@ const questions: Question[] = [
     ],
   },
   {
+    id: 'lane_change',
+    text: '¿Cómo te sientes al cambiar de carril en avenidas transitadas?',
+    options: [
+      { label: 'Inseguro/a, prefiero evitarlo', value: 'no', score: 0 },
+      { label: 'Algo nervioso/a, pero lo logro con precaución', value: 'some', score: 1 },
+      { label: 'Confiado/a, lo hago de forma segura y fluida', value: 'yes', score: 2 },
+    ]
+  },
+  {
+    id: 'intersections',
+    text: '¿Sabes cómo incorporarte a vías rápidas como Viaducto o Periférico?',
+    options: [
+      { label: 'No, lo evito por completo', value: 'no', score: 0 },
+      { label: 'Lo he hecho, pero me genera mucho estrés', value: 'some', score: 1 },
+      { label: 'Sí, me incorporo y manejo sin problemas', value: 'yes', score: 2 },
+    ]
+  },
+  {
     id: 'parking',
     text: '¿Cómo te sientes al estacionarte en paralelo o en batería?',
     options: [
@@ -95,13 +113,13 @@ export default function EvaluacionPage() {
       }
     }
 
-    if (totalScore <= 3) {
+    if (totalScore <= 5) {
       setResult({
         level: 'Principiante',
         description: 'Tus respuestas indican que estás comenzando tu viaje como conductor.',
         recommendation: 'Nuestro curso para principiantes es perfecto para ti. Cubrimos desde los conceptos más básicos hasta tus primeras prácticas en tráfico ligero, construyendo tu confianza paso a paso.',
       });
-    } else if (totalScore <= 7) {
+    } else if (totalScore <= 11) {
       setResult({
         level: 'Intermedio',
         description: 'Ya tienes algo de experiencia, pero hay áreas clave en las que puedes mejorar para sentirte más seguro.',
