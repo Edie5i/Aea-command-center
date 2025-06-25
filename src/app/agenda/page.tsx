@@ -8,9 +8,19 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CalendarPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScheduleForm } from '@/components/schedule-form';
 
 export default function AgendaPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const selectedDateString = date ? format(date, "EEEE, d 'de' MMMM", { locale: es }) : 'Ninguna fecha seleccionada';
 
@@ -53,10 +63,25 @@ export default function AgendaPage() {
             <Card className="h-full shadow-lg rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Clases para: <span className="text-primary">{selectedDateString}</span></CardTitle>
-                <Button>
-                    <CalendarPlus className="mr-2 h-4 w-4" />
-                    Agendar Clase
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                        <CalendarPlus className="mr-2 h-4 w-4" />
+                        Agendar Clase
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Agendar nueva clase</DialogTitle>
+                      <DialogDescription>
+                        Completa los datos del alumno para agendar una clase el <span className="font-semibold text-foreground">{date ? format(date, "d 'de' MMMM", { locale: es }) : ''}</span>.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {date && (
+                        <ScheduleForm selectedDate={date} onFormSubmit={() => setIsDialogOpen(false)} />
+                    )}
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
                 <div className="text-center text-muted-foreground py-16 border-t">
