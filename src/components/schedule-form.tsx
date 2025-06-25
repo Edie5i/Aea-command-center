@@ -26,11 +26,13 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   time: z.string({ required_error: 'Debes seleccionar un horario.' }),
+  meetingPoint: z.string({ required_error: 'Debes seleccionar un punto de encuentro.' }),
   terms: z.boolean().refine((value) => value === true, {
     message: 'Debes aceptar los términos y condiciones.',
   }),
@@ -38,7 +40,7 @@ const formSchema = z.object({
 
 type ScheduleFormProps = {
   selectedDates: Date[];
-  onCourseScheduled: (courseData: { name: string; phone: string; time: string; dates: Date[] }) => void;
+  onCourseScheduled: (courseData: { name: string; phone: string; time: string; dates: Date[]; meetingPoint: string; }) => void;
 };
 
 // Hardcoded available time slots for demonstration
@@ -69,6 +71,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 *Fechas:*
 ${formattedDates}
 *Hora para cada día:* ${values.time}
+*Punto de encuentro:* ${values.meetingPoint}
 *Alumno:* ${values.name}
 *Teléfono:* ${values.phone}`;
 
@@ -87,6 +90,7 @@ ${formattedDates}
       phone: values.phone,
       time: values.time,
       dates: selectedDates,
+      meetingPoint: values.meetingPoint,
     });
     
     form.reset(); // Reset form fields
@@ -150,6 +154,48 @@ ${formattedDates}
                     </SelectContent>
                   </Select>
                </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="meetingPoint"
+          render={({ field }) => (
+            <FormItem className="space-y-2">
+              <FormLabel>Punto de Encuentro</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Sucursal" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Sucursal (Torreón #49, Roma Sur)
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Punto de encuentro" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Punto de encuentro (a convenir)
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Domicilio del alumno" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Domicilio del alumno (conlleva costo extra)
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

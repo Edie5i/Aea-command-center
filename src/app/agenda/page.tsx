@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Phone, Clock, Calendar as CalendarIcon, CreditCard, ShoppingBag, UserCheck, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -35,6 +35,7 @@ type Course = {
   phone: string;
   time: string;
   dates: Date[];
+  meetingPoint: string;
   status: 'Pendiente' | 'Confirmado';
   instructor?: string;
 };
@@ -52,7 +53,7 @@ export default function AgendaPage() {
     ? `${dates.length} ${dates.length === 1 ? 'día' : 'días'} seleccionado${dates.length > 1 ? 's' : ''}` 
     : 'Ninguna fecha seleccionada';
 
-  const handleScheduleCourse = (newCourseData: { name: string; phone: string; time: string; dates: Date[] }) => {
+  const handleScheduleCourse = (newCourseData: { name: string; phone: string; time: string; dates: Date[]; meetingPoint: string; }) => {
     const newCourse: Course = {
       id: Date.now(),
       ...newCourseData,
@@ -192,6 +193,10 @@ export default function AgendaPage() {
                                     <div className="flex items-center">
                                         <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                         <span>Clases a las {course.time}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        <span>Punto de encuentro: {course.meetingPoint}</span>
                                     </div>
                                     <Separator className="my-2" />
                                     <div className="flex items-start">
