@@ -247,14 +247,14 @@ export default function EncuestaSatisfaccionPage() {
                         Responder de nuevo
                     </Button>
                     <Button asChild>
-                        <Link
+                        <a
                             href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
                             <Star className="mr-2 h-4 w-4 fill-current" />
                             Dejar una reseña en Google
-                        </Link>
+                        </a>
                     </Button>
                 </div>
             </CardContent>

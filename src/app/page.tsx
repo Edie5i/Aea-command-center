@@ -156,14 +156,14 @@ export default function Home() {
         </CardContent>
         <CardFooter className="flex justify-center">
             <Button asChild>
-                <Link
+                <a
                 href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
                 target="_blank"
                 rel="noopener noreferrer"
                 >
                 <Star className="mr-2 h-4 w-4 fill-current" />
                 Escribe una Reseña en Google
-                </Link>
+                </a>
             </Button>
         </CardFooter>
       </Card>
