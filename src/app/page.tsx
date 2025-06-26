@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, BarChart3, FileQuestion, Smile } from "lucide-react";
+import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, BarChart3, FileQuestion, Smile, Star } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -153,6 +154,18 @@ export default function Home() {
             ></iframe>
           </div>
         </CardContent>
+        <CardFooter className="flex justify-center">
+            <Button asChild>
+                <Link
+                href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+                target="_blank"
+                rel="noopener noreferrer"
+                >
+                <Star className="mr-2 h-4 w-4" />
+                Escribe una Reseña en Google
+                </Link>
+            </Button>
+        </CardFooter>
       </Card>
 
       <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">

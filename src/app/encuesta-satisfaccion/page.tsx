@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Smile, Send, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Smile, Send, CheckCircle, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormItem } from '@/components/ui/form';
 
@@ -238,13 +238,25 @@ export default function EncuestaSatisfaccionPage() {
                         ¡Encuesta Enviada!
                     </AlertTitle>
                     <AlertDescription className="text-foreground mt-2">
-                       Muchas gracias por tu tiempo y tus comentarios. ¡Nos ayudan a seguir mejorando!
+                       Muchas gracias por tu tiempo y tus comentarios. ¡Tu opinión nos ayuda a seguir mejorando!
                     </AlertDescription>
                 </Alert>
-                 <Button onClick={() => setSubmitted(false)} className="mt-6">
-                    <Smile className="mr-2 h-4 w-4" />
-                    Responder de nuevo
-                </Button>
+                <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button onClick={() => setSubmitted(false)} variant="secondary">
+                        <Smile className="mr-2 h-4 w-4" />
+                        Responder de nuevo
+                    </Button>
+                    <Button asChild>
+                        <Link
+                            href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Star className="mr-2 h-4 w-4" />
+                            Dejar una reseña en Google
+                        </Link>
+                    </Button>
+                </div>
             </CardContent>
           )}
         </Card>
