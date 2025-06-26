@@ -161,7 +161,7 @@ export default function Home() {
                 target="_blank"
                 rel="noopener noreferrer"
                 >
-                <Star className="mr-2 h-4 w-4" />
+                <Star className="mr-2 h-4 w-4 fill-current" />
                 Escribe una Reseña en Google
                 </Link>
             </Button>

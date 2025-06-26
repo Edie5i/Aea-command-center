@@ -252,7 +252,7 @@ export default function EncuestaSatisfaccionPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <Star className="mr-2 h-4 w-4" />
+                            <Star className="mr-2 h-4 w-4 fill-current" />
                             Dejar una reseña en Google
                         </Link>
                     </Button>
