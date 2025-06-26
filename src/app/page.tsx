@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, Star, BarChart3, FileQuestion } from "lucide-react";
+import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, BarChart3, FileQuestion, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
@@ -111,20 +111,20 @@ export default function Home() {
       <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
         <CardHeader>
           <CardTitle className="flex items-center justify-center gap-2">
-            <Star className="h-6 w-6 text-accent" />
-            ¡Valora Tu Experiencia!
+            <Smile className="h-6 w-6 text-accent" />
+            Encuesta de Satisfacción
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground">
-            Tu opinión es muy importante para nosotros. Ayúdanos a mejorar y a que otros futuros conductores nos conozcan. ¡Te tomará solo un minuto!
+            ¿Ya tomaste un curso con nosotros? Tu opinión es muy valiosa. Ayúdanos a mejorar respondiendo una breve encuesta.
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button asChild>
-            <Link href="https://g.page/r/CXb43zwsdca7EBE/review" target="_blank" rel="noopener noreferrer">
-              <Star className="mr-2 h-4 w-4" />
-              Dejar una reseña en Google
+            <Link href="/encuesta-satisfaccion">
+              <Smile className="mr-2 h-4 w-4" />
+              Responder Encuesta
             </Link>
           </Button>
         </CardFooter>
