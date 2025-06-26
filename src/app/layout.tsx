@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
+import { FloatingWhatsappButton } from "@/components/floating-whatsapp-button";
 
 export const metadata: Metadata = {
   title: "AEA - Autoescuela Americana",
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={cn("font-body antialiased h-full")}>
         {children}
         <Toaster />
+        <FloatingWhatsappButton />
       </body>
     </html>
   );
