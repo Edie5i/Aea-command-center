@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as z from 'zod';
@@ -51,7 +52,7 @@ const formSchema = z.object({
 
 type ScheduleFormProps = {
   selectedDates: Date[];
-  onCourseScheduled: (courseData: { name: string; phone: string; time: string; dates: Date[]; meetingPoint: string; transmission: string; address?: string; }) => void;
+  onCourseScheduled: () => void;
 };
 
 // Hardcoded available time slots for demonstration
@@ -106,15 +107,7 @@ ${formattedDates}
       description: `Se abrirá WhatsApp para enviar los detalles del curso.`,
     });
     
-    onCourseScheduled({
-      name: values.name,
-      phone: values.phone,
-      time: values.time,
-      dates: selectedDates,
-      meetingPoint: values.meetingPoint,
-      transmission: values.transmission,
-      address: values.address,
-    });
+    onCourseScheduled();
     
     form.reset(); // Reset form fields
   }
