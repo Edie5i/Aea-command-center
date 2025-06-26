@@ -1,6 +1,5 @@
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info } from 'lucide-react';
 import {
@@ -17,57 +16,41 @@ const courses = [
     title: 'Curso Principiante',
     description: 'Perfecto si nunca has manejado. Aprende desde cero los fundamentos de la conducción segura.',
     price: '3,400.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'driving school student',
   },
   {
     title: 'Curso Intermedio',
     description: 'Para personas que ya saben manejar pero quieren perfeccionar su técnica y ganar confianza.',
     price: '2,600.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'city driving',
   },
   {
     title: 'Curso de Reforzamiento',
     description: '¿Dejaste de manejar por un tiempo? Retoma la confianza y actualiza tus conocimientos.',
     price: '1,800.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'confident driver',
   },
   {
     title: 'Curso para Personas Nerviosas',
     description: 'Un programa especial con paciencia y técnicas para superar la ansiedad al volante.',
     price: '5,100.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'calm driving',
   },
   {
     title: 'Curso Mixto (Automático y Estándar)',
     description: 'Aprende a dominar ambos tipos de transmisión y amplía tus habilidades de conducción.',
     price: '5,100.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'gear shift',
   },
   {
     title: 'Curso en Coche Propio',
     description: 'Clases personalizadas en tu propio vehículo para que te familiarices completamente con él.',
     price: '3,900.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'person own car',
   },
   {
     title: 'English Driving Course',
     description: 'Complete driving lessons for all levels, conducted entirely in English.',
     price: '4,800.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'international driving',
   },
    {
     title: 'Curso de Manejo Defensivo',
     description: 'Aprende técnicas avanzadas para anticipar peligros y reaccionar de forma segura en el tráfico.',
     price: '3,000.00',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'safe driving traffic',
   },
 ];
 
@@ -99,19 +82,9 @@ export default function CatalogoPage() {
         <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
             <Card key={course.title} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
-              <div className="relative">
-                <Image
-                  src={course.image}
-                  alt={`Imagen del ${course.title}`}
-                  width={600}
-                  height={400}
-                  className="object-cover w-full h-48"
-                  data-ai-hint={course.aiHint}
-                />
-              </div>
               <CardHeader>
                 <CardTitle>{course.title}</CardTitle>
-                <CardDescription className="h-20">{course.description}</CardDescription>
+                <CardDescription>{course.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
                  <p className="text-3xl font-bold text-primary">${course.price}</p>
