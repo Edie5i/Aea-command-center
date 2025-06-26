@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Info } from 'lucide-react';
+import { ArrowLeft, Info, Motorcycle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -52,10 +52,10 @@ const courses = [
     description: 'Complete driving lessons for all levels, conducted entirely in English.',
     price: '4,800.00',
   },
-   {
-    title: 'Curso de Manejo Defensivo',
-    description: 'Aprende técnicas avanzadas para anticipar peligros y reaccionar de forma segura en el tráfico.',
-    price: '3,000.00',
+  {
+    title: 'Curso de Motocicleta',
+    description: 'Curso de 8 horas para aprender a manejar motocicleta de forma segura y dominar las técnicas de conducción en la ciudad.',
+    price: '4,300.00',
   },
 ];
 
@@ -88,7 +88,10 @@ export default function CatalogoPage() {
           {courses.map((course) => (
             <Card key={course.title} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
               <CardHeader>
-                <CardTitle>{course.title}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  {course.title.includes('Motocicleta') && <Motorcycle className="h-6 w-6" />}
+                  {course.title}
+                </CardTitle>
                 <CardDescription>{course.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
