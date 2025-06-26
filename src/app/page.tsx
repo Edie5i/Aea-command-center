@@ -109,63 +109,77 @@ export default function Home() {
 
       <ContactForm />
 
-      <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-center gap-2">
-            <Smile className="h-6 w-6 text-accent" />
-            Encuesta de Satisfacción
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground">
-            ¿Ya tomaste un curso con nosotros? Tu opinión es muy valiosa. Ayúdanos a mejorar respondiendo una breve encuesta.
-          </p>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button asChild>
-            <Link href="/encuesta-satisfaccion">
-              <Smile className="mr-2 h-4 w-4" />
-              Responder Encuesta
-            </Link>
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 justify-center">
-            <MapPin className="h-6 w-6 text-primary" />
-            Nuestra Ubicación
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground mb-4">
-            Torreón #49, Colonia Roma Sur, Alcaldía Cuauhtémoc, CDMX
-          </p>
-          <div className="aspect-video w-full overflow-hidden rounded-lg border">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.910334861842!2d-99.1650399256956!3d19.41584284067989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff394a4f8999%3A0x89223c21a3295b9c!2sTorre%C3%B3n%2049%2C%20Roma%20Sur%2C%20Cuauht%C3%A9moc%2C%2006760%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1sen!2smx!4v1719524940549!5m2!1sen!2smx"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen={true}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center">
+      <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+        <Card className="shadow-lg rounded-xl h-full flex flex-col">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
+              <Smile className="h-6 w-6 text-accent" />
+              Encuesta
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-grow text-center">
+            <p className="text-muted-foreground">
+              ¿Ya tomaste un curso? Tu opinión es muy valiosa para nosotros.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
             <Button asChild>
-                <a
-                href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
-                target="_blank"
-                rel="noopener noreferrer"
-                >
-                <Star className="mr-2 h-4 w-4 fill-current" />
-                Escribe una Reseña en Google
-                </a>
+              <Link href="/encuesta-satisfaccion">
+                <Smile className="mr-2 h-4 w-4" />
+                Responder Encuesta
+              </Link>
             </Button>
-        </CardFooter>
+          </CardFooter>
+        </Card>
+
+        <Card className="shadow-lg rounded-xl h-full flex flex-col">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center gap-2 justify-center">
+              <MapPin className="h-6 w-6 text-primary" />
+              Ubicación
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-grow">
+             <p className="text-center text-muted-foreground mb-4">
+                Torreón #49, Roma Sur, CDMX.
+             </p>
+              <div className="aspect-square w-full overflow-hidden rounded-lg border">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.910334861842!2d-99.1650399256956!3d19.41584284067989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff394a4f8999%3A0x89223c21a3295b9c!2sTorre%C3%B3n%2049%2C%20Roma%20Sur%2C%20Cuauht%C3%A9moc%2C%2006760%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1sen!2smx!4v1719524940549!5m2!1sen!2smx"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen={true}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="w-full max-w-3xl mt-8 bg-primary/10 border-primary/20">
+        <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-center text-center sm:text-left sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="bg-white p-3 rounded-full shadow-md">
+              <Star className="h-8 w-8 text-yellow-500 fill-yellow-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground">¿Te gustó nuestro servicio?</h3>
+              <p className="text-muted-foreground mt-1">¡Tu opinión nos ayuda a crecer! Déjanos una reseña en Google.</p>
+            </div>
+          </div>
+          <Button asChild className="shrink-0 mt-4 sm:mt-0">
+            <a
+              href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Star className="mr-2 h-4 w-4 fill-current" />
+              Escribir una Reseña
+            </a>
+          </Button>
+        </CardContent>
       </Card>
 
       <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
