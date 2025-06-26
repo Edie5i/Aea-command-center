@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Info, Moped } from 'lucide-react';
+import { ArrowLeft, Info } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -59,6 +59,30 @@ const courses = [
   },
 ];
 
+const MopedIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
+  >
+    <path d="M12 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+    <path d="M19 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+    <path d="m5 11 2.5 2.5" />
+    <path d="M6 13.5h1l2 2" />
+    <path d="m10.5 11.5 2-2 2.5 2.5" />
+    <path d="m14 8 2 2" />
+    <path d="M12 11.5V6a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v2" />
+  </svg>
+);
+
+
 export default function CatalogoPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
@@ -89,7 +113,7 @@ export default function CatalogoPage() {
             <Card key={course.title} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {course.title.includes('Motocicleta') && <Moped className="h-6 w-6" />}
+                  {course.title.includes('Motocicleta') && <MopedIcon />}
                   {course.title}
                 </CardTitle>
                 <CardDescription>{course.description}</CardDescription>
