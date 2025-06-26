@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Info, Motorcycle } from 'lucide-react';
+import { ArrowLeft, Info, Moped } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -89,7 +89,7 @@ export default function CatalogoPage() {
             <Card key={course.title} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {course.title.includes('Motocicleta') && <Motorcycle className="h-6 w-6" />}
+                  {course.title.includes('Motocicleta') && <Moped className="h-6 w-6" />}
                   {course.title}
                 </CardTitle>
                 <CardDescription>{course.description}</CardDescription>
