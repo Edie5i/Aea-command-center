@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -21,10 +22,10 @@ const surveySchema = z.object({
   instructorName: z.string().optional(),
   instructorRating: z.string({ required_error: 'Por favor, califica a tu instructor.' }),
   clarityRating: z.string({ required_error: 'Por favor, califica la claridad.' }),
-  vehicleRating: z.string({ required_error: 'Por favor, califica el vehículo.' }),
   contentRating: z.string({ required_error: 'Por favor, califica el contenido.' }),
   confidenceImproved: z.string({ required_error: 'Por favor, selecciona una opción.' }),
   recommend: z.string({ required_error: 'Por favor, selecciona una opción.' }),
+  source: z.string({ required_error: 'Por favor, selecciona cómo nos encontraste.' }),
   comments: z.string().optional(),
 });
 
@@ -59,10 +60,10 @@ export default function EncuestaSatisfaccionPage() {
 
     message += `*Amabilidad y profesionalismo del instructor:* ${data.instructorRating}/5\n`;
     message += `*Claridad en explicaciones y paciencia:* ${data.clarityRating}/5\n`;
-    message += `*Limpieza y estado del vehículo:* ${data.vehicleRating}/5\n`;
     message += `*Utilidad del contenido del curso:* ${data.contentRating}/5\n`;
     message += `*¿Sientes que tu confianza mejoró?:* ${data.confidenceImproved}\n`;
-    message += `*¿Recomendarías AEA?:* ${data.recommend}\n\n`;
+    message += `*¿Recomendarías AEA?:* ${data.recommend}\n`;
+    message += `*¿Cómo nos encontraste?:* ${data.source}\n\n`;
 
     if (data.comments) {
         message += `*Comentarios adicionales:*\n${data.comments}`;
@@ -163,11 +164,10 @@ export default function EncuestaSatisfaccionPage() {
 
                     {renderRatingGroup('instructorRating', '1. Amabilidad y profesionalismo del instructor.')}
                     {renderRatingGroup('clarityRating', '2. Claridad en las explicaciones y paciencia del instructor.')}
-                    {renderRatingGroup('vehicleRating', '3. Limpieza y estado del vehículo de práctica.')}
-                    {renderRatingGroup('contentRating', '4. ¿Qué tan útil fue el contenido del curso?')}
+                    {renderRatingGroup('contentRating', '3. ¿Qué tan útil fue el contenido del curso?')}
                     
                     <div className="space-y-3">
-                        <Label className="font-semibold">5. ¿Sientes que tu confianza al manejar mejoró después del curso?</Label>
+                        <Label className="font-semibold">4. ¿Sientes que tu confianza al manejar mejoró después del curso?</Label>
                          <Controller
                             name="confidenceImproved"
                             control={form.control}
@@ -183,7 +183,7 @@ export default function EncuestaSatisfaccionPage() {
                     </div>
 
                      <div className="space-y-3">
-                        <Label className="font-semibold">6. ¿Recomendarías Auto Escuela Americana a un amigo o familiar?</Label>
+                        <Label className="font-semibold">5. ¿Recomendarías Auto Escuela Americana a un amigo o familiar?</Label>
                         <Controller
                             name="recommend"
                             control={form.control}
@@ -195,6 +195,23 @@ export default function EncuestaSatisfaccionPage() {
                             )}
                         />
                         {form.formState.errors.recommend && <p className="text-sm font-medium text-destructive">{form.formState.errors.recommend.message}</p>}
+                    </div>
+
+                    <div className="space-y-3">
+                        <Label className="font-semibold">6. ¿Cómo nos encontraste?</Label>
+                        <Controller
+                            name="source"
+                            control={form.control}
+                            render={({ field }) => (
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-6 gap-y-2">
+                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Facebook" id="source-facebook" /></FormControl><Label htmlFor="source-facebook" className="font-normal cursor-pointer">Facebook</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Google" id="source-google" /></FormControl><Label htmlFor="source-google" className="font-normal cursor-pointer">Google</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Recomendación" id="source-recommendation" /></FormControl><Label htmlFor="source-recommendation" className="font-normal cursor-pointer">Recomendación</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Otro" id="source-other" /></FormControl><Label htmlFor="source-other" className="font-normal cursor-pointer">Otro</Label></FormItem>
+                                </RadioGroup>
+                            )}
+                        />
+                        {form.formState.errors.source && <p className="text-sm font-medium text-destructive">{form.formState.errors.source.message}</p>}
                     </div>
 
                     <FormItem>
