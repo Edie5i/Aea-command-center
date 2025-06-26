@@ -445,7 +445,7 @@ Fechas del curso:\n${allDatesFormatted}
               <Info className="h-4 w-4 text-primary" />
               <AlertTitle className="text-primary font-bold">Aviso para Menores de Edad</AlertTitle>
               <AlertDescription className="text-foreground">
-                Si el alumno es menor de edad y requiere constancia para el trámite de permiso de conducir, es necesario adjuntar su documentación. Este proceso tiene un costo adicional al del curso.
+                Si el alumno es menor de edad y requiere constancia para el trámite de permiso de conducir, es necesario adjuntar su documentación. Este proceso tiene un costo adicional de $500 MXN.
               </AlertDescription>
             </Alert>
             <Card className="h-full shadow-lg rounded-xl">

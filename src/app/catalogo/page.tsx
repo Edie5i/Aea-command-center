@@ -13,8 +13,8 @@ import {
 
 const courses = [
   {
-    title: 'Curso Principiante',
-    description: 'Perfecto si nunca has manejado. Aprende desde cero los fundamentos de la conducción segura.',
+    title: 'Curso Principiante (Estándar o Automático)',
+    description: 'Perfecto si nunca has manejado. Aprende desde cero los fundamentos de la conducción segura. Para menores de edad, se puede tramitar la constancia para el permiso de conducir por $500 adicionales.',
     price: '3,400.00',
   },
   {
