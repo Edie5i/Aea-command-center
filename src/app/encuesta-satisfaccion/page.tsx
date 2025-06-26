@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -116,14 +115,8 @@ export default function EncuestaSatisfaccionPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
-        <Link href="/">
-            <Image
-                src="/logo.png"
-                alt="Logo de Auto Escuela Americana"
-                width={100}
-                height={100}
-                className="mb-4"
-            />
+        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
+          Auto Escuela Americana
         </Link>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Encuesta de Satisfacción

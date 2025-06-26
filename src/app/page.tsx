@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, BarChart3, FileQuestion, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
@@ -30,14 +29,6 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
-        <Image
-            src="/logo.png"
-            alt="Logo de Auto Escuela Americana"
-            width={150}
-            height={150}
-            className="mb-4"
-            priority
-        />
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
           Auto Escuela Americana
         </h1>
