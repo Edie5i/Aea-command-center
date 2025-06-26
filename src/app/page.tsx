@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, BarChart3, FileQuestion, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
@@ -29,12 +30,17 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
+        <Image
+            src="/logo.png"
+            alt="Logo de Auto Escuela Americana"
+            width={150}
+            height={150}
+            className="mb-4"
+            priority
+        />
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
           Auto Escuela Americana
         </h1>
-        <h2 className="text-6xl md:text-8xl font-extrabold tracking-tighter mt-1 bg-clip-text text-transparent bg-gradient-to-b from-neutral-400 to-neutral-600 dark:from-neutral-200 dark:to-neutral-500">
-          AEA
-        </h2>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
           Plataforma de gestión para instructores y alumnos. Genera planes de lecciones y consejos de manejo personalizados.
         </p>
