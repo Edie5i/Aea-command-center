@@ -400,7 +400,7 @@ Fechas del curso:\n${allDatesFormatted}
             </Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+            <Link href="/catalogo">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Ver Catálogo y Precios
             </Link>

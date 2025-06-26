@@ -29,6 +29,9 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
+        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
+          Auto Escuela Americana
+        </Link>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
           Auto Escuela Americana
         </h1>
@@ -39,7 +42,7 @@ export default function Home() {
 
       <div className="w-full max-w-4xl mb-8 flex flex-wrap justify-center gap-3">
         <Button asChild>
-            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+            <Link href="/catalogo">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Catálogo y Precios
             </Link>

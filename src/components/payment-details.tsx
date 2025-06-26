@@ -15,7 +15,7 @@ export function PaymentDetails() {
   const accountNumber = '0484695739';
   const clabe = '012180004846957399';
   const debitCard = '4152314404288527';
-  const whatsAppCatalogUrl = 'https://wa.me/c/5215634433212';
+  const whatsAppChatUrl = 'https://wa.me/525634433212';
   
   return (
     <Card className="w-full max-w-3xl shadow-lg rounded-xl">
@@ -88,7 +88,7 @@ export function PaymentDetails() {
               </div>
               <div className="p-2 bg-white rounded-md shadow-md">
                 <Image
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(whatsAppCatalogUrl)}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(whatsAppChatUrl)}`}
                     alt="Código QR para contactar por WhatsApp"
                     width={150}
                     height={150}

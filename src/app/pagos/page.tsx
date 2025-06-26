@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Banknote, CalendarDays, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ShoppingBag } from 'lucide-react';
 import { PaymentDetails } from '@/components/payment-details';
 
 export default function PagosPage() {
@@ -33,7 +33,7 @@ export default function PagosPage() {
               </Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="https://wa.me/c/5215634433212" target="_blank" rel="noopener noreferrer">
+            <Link href="/catalogo">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Ver Catálogo y Precios
             </Link>
