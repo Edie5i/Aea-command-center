@@ -1,15 +1,78 @@
+
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, Banknote, Landmark, User, MessageSquare, Send, CheckCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const refundSchema = z.object({
+  studentName: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
+  reason: z.string().min(10, { message: 'Por favor, detalla el motivo de tu solicitud (mínimo 10 caracteres).' }),
+  bankName: z.string().min(2, { message: 'Por favor, ingresa el nombre del banco.' }),
+  accountHolder: z.string().min(2, { message: 'Por favor, ingresa el nombre del titular de la cuenta.' }),
+  clabe: z.string().length(18, { message: 'La CLABE debe tener 18 dígitos.' }).regex(/^\d+$/, { message: 'La CLABE solo debe contener números.' }),
+});
+
+type RefundFormValues = z.infer<typeof refundSchema>;
+
 
 export default function TerminosPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const { toast } = useToast();
+  const form = useForm<RefundFormValues>({
+    resolver: zodResolver(refundSchema),
+    defaultValues: {
+      studentName: '',
+      reason: '',
+      bankName: '',
+      accountHolder: '',
+      clabe: '',
+    }
+  });
+
+  function onSubmit(values: RefundFormValues) {
+    const whatsAppNumber = "525634433212";
+    
+    let message = `🚨 *Solicitud de Reembolso* 🚨\n\n`;
+    message += `*Nombre del Alumno:* ${values.studentName}\n`;
+    message += `*Motivo de la Solicitud:*\n${values.reason}\n\n`;
+    message += `*Datos Bancarios para Reembolso:*\n`;
+    message += `*Banco:* ${values.bankName}\n`;
+    message += `*Titular de la Cuenta:* ${values.accountHolder}\n`;
+    message += `*CLABE Interbancaria:* ${values.clabe}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
+
+    toast({
+      title: '¡Solicitud Lista para Enviar!',
+      description: `Se abrirá WhatsApp para que puedas enviar tu solicitud.`,
+    });
+    
+    setSubmitted(true);
+    form.reset();
+  }
+  
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
@@ -85,6 +148,126 @@ export default function TerminosPage() {
               </p>
             </div>
           </CardContent>
+        </Card>
+        
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
+          {!submitted ? (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardHeader>
+                  <CardTitle>Solicitud de Reembolso</CardTitle>
+                  <CardDescription>
+                    De acuerdo con la cláusula 3 y 4 de los términos, puedes solicitar un reembolso aquí.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="studentName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>Nombre del Alumno</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <FormControl>
+                            <Input placeholder="Nombre completo del alumno" {...field} className="pl-10" />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="reason"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>Motivo de la Solicitud</Label>
+                        <FormControl>
+                          <Textarea placeholder="Describe detalladamente por qué solicitas el reembolso..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-2">
+                     <Label className="font-semibold">Datos Bancarios para Transferencia</Label>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="bankName"
+                            render={({ field }) => (
+                            <FormItem>
+                                <Label>Banco</Label>
+                                <div className="relative">
+                                    <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <FormControl>
+                                        <Input placeholder="Ej. BBVA, Santander" {...field} className="pl-10" />
+                                    </FormControl>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="accountHolder"
+                            render={({ field }) => (
+                            <FormItem>
+                                <Label>Nombre del Titular</Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <FormControl>
+                                        <Input placeholder="Nombre completo" {...field} className="pl-10" />
+                                    </FormControl>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                     </div>
+                  </div>
+                   <FormField
+                    control={form.control}
+                    name="clabe"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>CLABE Interbancaria (18 dígitos)</Label>
+                        <div className="relative">
+                            <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <FormControl>
+                                <Input placeholder="012345678901234567" {...field} className="pl-10" />
+                            </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar Solicitud por WhatsApp
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
+          ) : (
+            <CardContent className="pt-6 text-center">
+              <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
+                      ¡Solicitud Enviada!
+                  </AlertTitle>
+                  <AlertDescription className="text-foreground mt-2">
+                     Se abrirá WhatsApp para que completes el envío. Tu solicitud será procesada lo antes posible.
+                  </AlertDescription>
+              </Alert>
+               <Button onClick={() => setSubmitted(false)} className="mt-6">
+                  Realizar otra solicitud
+              </Button>
+            </CardContent>
+          )}
         </Card>
       </div>
 
