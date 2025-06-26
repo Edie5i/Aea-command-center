@@ -15,12 +15,12 @@ const courses = [
   {
     title: 'Curso Principiante (Automático)',
     description: 'Perfecto si nunca has manejado. Aprende a conducir un coche automático con facilidad y confianza, enfocándote en las reglas de tránsito y maniobras esenciales. Para menores de edad, se puede tramitar la constancia para el permiso de conducir por $500 adicionales.',
-    price: '3,400.00',
+    price: '3,900.00',
   },
   {
     title: 'Curso Principiante (Estándar)',
     description: 'Aprende a dominar la transmisión manual desde cero. Este curso cubre el control del clutch, cambios de marcha y los fundamentos de la conducción segura. Para menores de edad, se puede tramitar la constancia para el permiso de conducir por $500 adicionales.',
-    price: '3,600.00',
+    price: '3,400.00',
   },
   {
     title: 'Curso Intermedio',
