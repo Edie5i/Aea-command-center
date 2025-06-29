@@ -42,6 +42,7 @@ export default function Home() {
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [documentToGenerate, setDocumentToGenerate] = useState<"constancia" | "laboral" | "diploma" | null>(null);
   const [studentName, setStudentName] = useState('');
+  const [curp, setCurp] = useState('');
 
   const handleTipsGenerated = (generatedTips: string[]) => {
     setTips(generatedTips);
@@ -54,13 +55,13 @@ export default function Home() {
     setKey(prevKey => prevKey + 1);
   };
 
-  const generateConstanciaMenor = (alumno: string) => {
+  const generateConstanciaMenor = (alumno: string, curp: string) => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('Constancia para Menor de Edad', 105, 20, { align: 'center' });
     doc.setFontSize(12);
-    doc.text(`Este documento certifica que ${alumno} ha completado`, 20, 40);
-    doc.text('satisfactoriamente el curso de manejo requerido para el trámite', 20, 47);
+    doc.text(`Este documento certifica que ${alumno}, con CURP ${curp},`, 20, 40);
+    doc.text('ha completado satisfactoriamente el curso de manejo requerido para el trámite', 20, 47);
     doc.text('de su permiso de conducir para menor de edad.', 20, 54);
     doc.text('Auto Escuela Americana', 20, 70);
     doc.save(`Constancia_Menor_Edad_${alumno.replace(/\s+/g, '_')}.pdf`);
@@ -95,6 +96,7 @@ export default function Home() {
   const handleDocumentSelect = (docType: 'constancia' | 'laboral' | 'diploma') => {
     setDocumentToGenerate(docType);
     setStudentName('');
+    setCurp('');
     setIsGeneratorOpen(true);
   };
 
@@ -102,9 +104,15 @@ export default function Home() {
     if (!documentToGenerate || !studentName.trim()) return;
 
     let docTitle = '';
+    let whatsAppMessageDetails = `*Para el alumno:* ${studentName.trim()}`;
+
     if (documentToGenerate === 'constancia') {
-      generateConstanciaMenor(studentName.trim());
+      if (curp.trim().length !== 18) {
+        return;
+      }
+      generateConstanciaMenor(studentName.trim(), curp.trim().toUpperCase());
       docTitle = 'Constancia de Menor de Edad';
+      whatsAppMessageDetails += `\n*CURP:* ${curp.trim().toUpperCase()}`;
     } else if (documentToGenerate === 'laboral') {
       generateCartaLaboral(studentName.trim());
       docTitle = 'Carta Laboral de Curso Aprobado';
@@ -114,7 +122,7 @@ export default function Home() {
     }
     
     const whatsAppNumber = "525634433212";
-    const message = `Se ha generado el siguiente documento:\n\n*Tipo:* ${docTitle}\n*Para el alumno:* ${studentName.trim()}`;
+    const message = `Se ha generado el siguiente documento:\n\n*Tipo:* ${docTitle}\n${whatsAppMessageDetails}`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
@@ -296,7 +304,7 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>Generar Documento</DialogTitle>
             <DialogDescription>
-              Ingresa el nombre completo del alumno para generar el documento y notificar por WhatsApp.
+              Ingresa los datos para generar el documento y notificar por WhatsApp.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -312,9 +320,27 @@ export default function Home() {
                 placeholder="Nombre completo del alumno"
               />
             </div>
+            {documentToGenerate === 'constancia' && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="curp" className="text-right">
+                  CURP
+                </Label>
+                <Input
+                  id="curp"
+                  value={curp}
+                  onChange={(e) => setCurp(e.target.value.toUpperCase())}
+                  className="col-span-3"
+                  placeholder="CURP del alumno (18 caracteres)"
+                  maxLength={18}
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button onClick={handleGenerateDocument} disabled={!studentName.trim()}>
+            <Button
+              onClick={handleGenerateDocument}
+              disabled={!studentName.trim() || (documentToGenerate === 'constancia' && curp.trim().length !== 18)}
+            >
               Generar y Enviar
             </Button>
           </DialogFooter>
