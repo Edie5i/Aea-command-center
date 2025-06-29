@@ -94,35 +94,47 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const whatsAppNumber = "525634433212";
-    const formattedDates = selectedDates.map(date => `- ${format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}`).join('\n');
+
+    // Date formatting
+    const dateStrings = selectedDates.map(date => format(date, "d 'de' MMMM", { locale: es }));
+    const year = selectedDates.length > 0 ? format(selectedDates[0], 'yyyy') : '';
+    const finalDateString = selectedDates.length > 0 ? `${dateStrings.join(', ')} de ${year}` : "Fechas no seleccionadas";
     
+    // Time formatting
+    const [hourStr, minuteStr] = values.time.split(':');
+    let hour = parseInt(hourStr, 10);
+    const ampm = hour >= 12 ? 'pm' : 'am';
+    hour = hour % 12;
+    hour = hour ? hour : 12; // The hour '0' should be '12'
+    const formattedTime = `${hour}:${minuteStr} ${ampm}`;
+
+    // Meeting point formatting
     let puntoDeEncuentroMsg = values.meetingPoint;
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
-      puntoDeEncuentroMsg += ` (sugerencia: ${values.suggestedMeetingPoint})`;
-    }
-    if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
-        puntoDeEncuentroMsg = `Domicilio del alumno: ${values.address}`;
+      puntoDeEncuentroMsg = `Punto de encuentro (sugerencia: ${values.suggestedMeetingPoint})`;
+    } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
+      puntoDeEncuentroMsg = `Domicilio del alumno: ${values.address}`;
     }
     
+    // Message construction
     let message = `*FICHA DE INSCRIPCIÓN*\n`;
     message += `*Auto Escuela Americana*\n\n`;
     
     message += `*CURSO:* Manejo de Vehículos\n\n`;
 
     message += `*DATOS DEL ALUMNO*\n\n`;
-    message += `*- Nombre:* ${values.name}\n`;
-    message += `*- Teléfono:* ${values.phone}\n\n`;
+    message += `- *Nombre:* ${values.name}\n`;
+    message += `- *Teléfono:* ${values.phone}\n\n`;
 
     message += `*DETALLES DEL CURSO*\n\n`;
-    message += `*- Fechas:*\n${formattedDates}\n`;
-    message += `*- Hora:* ${values.time}\n`;
-    message += `*- Transmisión:* ${values.transmission}\n`;
-    message += `*- Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
+    message += `- *Fechas:* ${finalDateString}\n`;
+    message += `- *Hora:* ${formattedTime}\n`;
+    message += `- *Transmisión:* ${values.transmission}\n`;
+    message += `- *Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
     
-    message += `*OBSERVACIONES:*\n${values.observaciones || 'Sin observaciones.'}\n\n`;
+    message += `*OBSERVACIONES:*\n${values.observaciones || '[Espacio para agregar observaciones o comentarios]'}\n\n`;
     
-    message += `*NOTA:*\n${values.nota || 'Sin notas.'}`;
-
+    message += `*NOTA:*\n${values.nota || '[Espacio para agregar notas importantes]'}`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
