@@ -79,5 +79,39 @@ export const botContextData = {
       cancelaciones: "Se requiere avisar con 24 horas de anticipación para cancelar o reprogramar. Si no, se pierde la clase.",
       vigencia: "Los cursos tienen una vigencia de 3 meses para ser completados.",
       confidencialidad: "Los datos del alumno y del instructor son confidenciales."
-  }
+  },
+  preguntasFrecuentes: [
+    {
+      pregunta: "¿Qué necesito para inscribirme?",
+      respuesta: "Para inscribirte, solo necesitas ser mayor de 16 años y realizar el pago del curso. Si eres menor de edad, tu padre o tutor debe dar su autorización. Puedes iniciar el proceso de inscripción desde la página de Agenda en /agenda."
+    },
+    {
+      pregunta: "¿Los precios ya incluyen IVA?",
+      respuesta: "Sí, todos los precios que ves en nuestro catálogo en /catalogo ya incluyen el IVA. No hay costos ocultos."
+    },
+    {
+      pregunta: "¿Puedo tomar clases en fines de semana?",
+      respuesta: "La disponibilidad para fines de semana puede variar. Te recomendamos consultar directamente con un asesor a través de nuestro WhatsApp para confirmar los horarios. El calendario en la página de agenda te muestra los días disponibles que puedes solicitar."
+    },
+    {
+      pregunta: "¿Qué pasa si llueve el día de mi clase?",
+      respuesta: "Las clases no se cancelan por lluvia. De hecho, consideramos que es una excelente oportunidad para que aprendas a conducir en condiciones climáticas adversas, siempre con la seguridad y guía de tu instructor."
+    },
+    {
+      pregunta: "¿Cuánto dura cada clase?",
+      respuesta: "La duración y el número de sesiones dependen del paquete de curso que elijas. Por ejemplo, los cursos para principiantes suelen consistir en varias clases para cubrir todos los fundamentos. Puedes ver más detalles en nuestro catálogo (/catalogo)."
+    },
+    {
+      pregunta: "¿Tengo que ir hasta la sucursal para mis clases?",
+      respuesta: "No necesariamente. Ofrecemos mucha flexibilidad. Al agendar tu clase en /agenda, puedes elegir entre: iniciar en nuestra sucursal de la colonia Roma, que te recojamos en tu domicilio, o acordar un punto de encuentro conveniente para ambos."
+    },
+    {
+      pregunta: "¿Puedo pagar el curso en partes?",
+      respuesta: "El pago del curso se debe realizar en su totalidad antes de la primera clase. Sin embargo, si pagas con tarjeta de crédito, tienes opciones de financiamiento como Meses Sin Intereses con tarjetas American Express y BBVA, o pagos diferidos con otros bancos a través de Openpay."
+    },
+    {
+      pregunta: "¿El coche para las prácticas lo ponen ustedes?",
+      respuesta: "Sí, nosotros proporcionamos el vehículo para tus clases, ya sea automático o estándar. Está en perfectas condiciones y cuenta con doble control para tu seguridad. También ofrecemos el 'Curso en Coche Propio' si prefieres aprender en tu vehículo."
+    }
+  ]
 };
