@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -17,6 +17,11 @@ import { Badge } from '@/components/ui/badge';
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const mockAppointments = [
     { time: '09:00', student: 'Ana G.', type: 'Automático', status: 'confirmed' as const },
@@ -146,16 +151,22 @@ export default function AgendaPage() {
                     <CardDescription>Puedes seleccionar hasta 6 días para tu curso en el calendario.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-2 flex flex-col items-center gap-4">
-                    <Calendar
-                        mode="multiple"
-                        min={1}
-                        max={6}
-                        selected={dates}
-                        onSelect={setDates}
-                        className="rounded-md"
-                        locale={es}
-                        disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1))}
-                    />
+                    {isClient ? (
+                        <Calendar
+                            mode="multiple"
+                            min={1}
+                            max={6}
+                            selected={dates}
+                            onSelect={setDates}
+                            className="rounded-md"
+                            locale={es}
+                            disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
+                        />
+                    ) : (
+                        <div className="p-3">
+                            <div className="h-[290px] w-[280px] bg-muted rounded-md animate-pulse"></div>
+                        </div>
+                    )}
                     <Alert variant="default" className="bg-primary/10 border-primary/50 w-full max-w-md">
                         <Info className="h-4 w-4 text-primary" />
                         <AlertTitle className="text-primary font-bold">Aviso para Menores de Edad</AlertTitle>
