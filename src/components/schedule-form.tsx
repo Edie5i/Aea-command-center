@@ -336,7 +336,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
                       <RadioGroupItem value="Domicilio del alumno" />
                     </FormControl>
                     <FormLabel className="font-normal">
-                      Domicilio del alumno (conlleva costo extra)
+                      Domicilio del alumno
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>
