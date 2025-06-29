@@ -13,7 +13,8 @@ import {
   FileQuestion, 
   Smile, 
   Star,
-  FileText 
+  FileText,
+  Bot
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import jsPDF from "jspdf";
@@ -181,6 +182,12 @@ export default function Home() {
                 <CreditCard className="mr-2 h-4 w-4" />
                 Métodos de Pago
             </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/chatbot">
+            <Bot className="mr-2 h-4 w-4" />
+            Chat con IA
+          </Link>
         </Button>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
