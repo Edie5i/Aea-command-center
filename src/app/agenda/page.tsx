@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -47,9 +46,8 @@ export default function AgendaPage() {
         <Image
           src="https://placehold.co/1920x480.png"
           alt="Banner de calendario de manejo"
-          layout="fill"
-          objectFit="cover"
-          className="absolute inset-0 z-0 opacity-10"
+          fill
+          className="absolute inset-0 z-0 object-cover opacity-10"
           data-ai-hint="calendar schedule"
         />
         <div className="relative z-10 flex flex-col items-center text-center px-4">
