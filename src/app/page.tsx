@@ -1,15 +1,27 @@
-
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, MapPin, CreditCard, ShoppingBag, BookOpen, BarChart3, FileQuestion, Smile, Star } from "lucide-react";
+import { 
+  CalendarDays, 
+  MapPin, 
+  CreditCard, 
+  ShoppingBag, 
+  BookOpen, 
+  BarChart3, 
+  FileQuestion, 
+  Smile, 
+  Star,
+  FileText 
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import jsPDF from "jspdf";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function Home() {
   const [tips, setTips] = useState<string[] | null>(null);
@@ -25,6 +37,44 @@ export default function Home() {
   const handleReset = () => {
     setTips(null);
     setKey(prevKey => prevKey + 1);
+  };
+
+  const generateConstanciaMenor = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Constancia para Menor de Edad', 105, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('Este documento certifica que [Nombre del Alumno] ha completado', 20, 40);
+    doc.text('satisfactoriamente el curso de manejo requerido para el trámite', 20, 47);
+    doc.text('de su permiso de conducir para menor de edad.', 20, 54);
+    doc.text('Auto Escuela Americana', 20, 70);
+    doc.save('Constancia_Menor_Edad.pdf');
+  };
+
+  const generateCartaLaboral = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Carta Laboral de Curso Aprobado', 105, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('A quien corresponda:', 20, 40);
+    doc.text('Por medio de la presente, se hace constar que [Nombre del Alumno]', 20, 50);
+    doc.text('ha aprobado el curso de manejo impartido por Auto Escuela Americana,', 20, 57);
+    doc.text('demostrando las habilidades necesarias para una conducción segura.', 20, 64);
+    doc.save('Carta_Laboral.pdf');
+  };
+
+  const generateDiploma = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.text('Diploma de Conducción', 105, 40, { align: 'center' });
+    doc.setFontSize(16);
+    doc.text('Otorgado a:', 105, 60, { align: 'center' });
+    doc.setFontSize(20);
+    doc.text('[Nombre del Alumno]', 105, 80, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('Por haber completado exitosamente el curso de manejo.', 105, 100, { align: 'center' });
+    doc.text('Auto Escuela Americana', 105, 120, { align: 'center' });
+    doc.save('Diploma.pdf');
   };
 
   return (
@@ -78,6 +128,19 @@ export default function Home() {
                 Métodos de Pago
             </Link>
         </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Generar Documentos
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onClick={generateConstanciaMenor}>Constancia de Menor de Edad</DropdownMenuItem>
+                <DropdownMenuItem onClick={generateCartaLaboral}>Carta Laboral de Curso Aprobado</DropdownMenuItem>
+                <DropdownMenuItem onClick={generateDiploma}>Diploma</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
