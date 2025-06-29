@@ -171,7 +171,7 @@ export default function AgendaPage() {
                         <Info className="h-4 w-4 text-primary" />
                         <AlertTitle className="text-primary font-bold">Aviso para Menores de Edad</AlertTitle>
                         <AlertDescription className="text-foreground">
-                        Si requieres constancia para el trámite de permiso de conducir, es necesario adjuntar tu documentación. Este proceso tiene un costo adicional de $500 MXN.
+                        La constancia para el trámite de permiso de conducir tiene un costo adicional de $500 MXN. Si la necesitas, podrás solicitarla en el siguiente paso.
                         </AlertDescription>
                     </Alert>
                 </CardContent>
