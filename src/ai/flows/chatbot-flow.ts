@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { botContextData } from '@/lib/bot-data';
 
 const ChatWithBotInputSchema = z.object({
   message: z.string().describe("The user's message to the chatbot."),
@@ -26,56 +27,33 @@ export async function chatWithBot(
   return chatbotFlow(input);
 }
 
+// Helper function to detect language based on character set
+function detectarIdioma(texto: string): 'es' | 'en' {
+  return /[a-zA-Z]/.test(texto) ? 'en' : 'es';
+}
+
+const ChatbotPromptInputSchema = z.object({
+    message: z.string(),
+    instructions: z.string(),
+    context: z.string(),
+});
+
+
 const prompt = ai.definePrompt({
   name: 'chatbotPrompt',
-  input: {schema: ChatWithBotInputSchema},
+  input: {schema: ChatbotPromptInputSchema},
   output: {schema: ChatWithBotOutputSchema},
-  prompt: `Eres "Auto EscuelaBot", un asistente virtual amigable y servicial para la "Auto Escuela Americana". Tu propósito es responder las preguntas de los usuarios sobre la escuela de manejo, sus cursos, precios, horarios y políticas. Debes ser conciso, claro y usar un tono amable y profesional.
+  prompt: `{{{instructions}}}
 
-Aquí tienes información clave sobre la Auto Escuela Americana para basar tus respuestas. No inventes información que no esté aquí. Si no sabes la respuesta, di amablemente que no tienes esa información y sugiere contactar a un asesor por WhatsApp.
+Basado en esta información, responde a la siguiente pregunta del usuario de manera útil y concisa. No inventes información que no esté aquí. Si no sabes la respuesta, di amablemente que no tienes esa información y sugiere contactar a un asesor por WhatsApp.
 
-**INFORMACIÓN GENERAL:**
-- **Nombre:** Auto Escuela Americana
-- **Ubicación:** Torreón #49, Roma Sur, CDMX.
-- **WhatsApp de Contacto:** 525634433212
-- **Página para agendar:** /agenda
-- **Página de Catálogo:** /catalogo
-- **Página de Pagos:** /pagos
-- **Página de Términos:** /terminos
+**INFORMACIÓN DISPONIBLE:**
+\`\`\`json
+{{{context}}}
+\`\`\`
 
-**CATÁLOGO DE CURSOS Y PRECIOS (MXN):**
-- **Curso Principiante (Automático):** $3,900.00. Para novatos, enfocado en reglas y maniobras esenciales.
-- **Curso Principiante (Estándar):** $3,400.00. Para aprender a manejar transmisión manual desde cero.
-- **Curso Intermedio:** $2,600.00. Para perfeccionar técnica y ganar confianza.
-- **Curso de Reforzamiento:** $1,800.00. Para quienes dejaron de manejar y quieren retomar la confianza.
-- **Curso para Personas Nerviosas:** $5,100.00. Programa especial con paciencia y técnicas para superar la ansiedad.
-- **Curso Mixto (Automático y Estándar):** $5,100.00. Para dominar ambos tipos de transmisión.
-- **Curso en Coche Propio:** $3,900.00. Clases personalizadas en el vehículo del alumno.
-- **English Driving Course:** $4,800.00. Clases en inglés para todos los niveles.
-- **Curso de Motocicleta:** $4,300.00. 8 horas para aprender a manejar moto de forma segura.
-- **Constancia para permiso de menor de edad:** Tiene un costo adicional de $500 MXN.
-
-**PROCESO PARA AGENDAR:**
-1.  Ir a la página de Agenda (/agenda).
-2.  Elegir hasta 6 días en el calendario.
-3.  Completar el formulario con datos personales, horario deseado, tipo de transmisión y punto de encuentro.
-4.  Enviar el formulario, lo cual prepara un mensaje para enviar por WhatsApp y genera una ficha de inscripción en PDF.
-
-**MÉTODOS DE PAGO:**
-- **Transferencia Bancaria:** A la cuenta de Eduardo W. Czaplewski (BBVA). Se proporcionan los números de cuenta y CLABE en la página de pagos.
-- **Depósito en Efectivo:** En Walmart, Sanborns, OXXO, 7-Eleven, usando el número de tarjeta de débito.
-- **Pago con Tarjeta (Crédito/Débito):** A través de un enlace de Openpay. Hay Meses Sin Intereses con American Express y BBVA.
-- **Importante:** Siempre se debe poner el nombre del alumno en el concepto y enviar el comprobante por WhatsApp.
-
-**POLÍTICAS IMPORTANTES (Términos y Condiciones):**
-- **Cancelaciones:** Se requiere avisar con 24 horas de anticipación para cancelar o reprogramar. Si no, se pierde la clase.
-- **Vigencia:** Los cursos tienen una vigencia de 3 meses para ser completados.
-- **Confidencialidad:** Los datos del alumno y del instructor son confidenciales.
-
-**RESPUESTA DEL USUARIO:**
-Basado en esta información, responde a la siguiente pregunta del usuario de manera útil y concisa.
-
-Pregunta del usuario: {{{message}}}
+**PREGUNTA DEL USUARIO:**
+{{{message}}}
 `,
 });
 
@@ -86,7 +64,19 @@ const chatbotFlow = ai.defineFlow(
     outputSchema: ChatWithBotOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
+    const idioma = detectarIdioma(input.message);
+    
+    const instructions = idioma === 'es'
+        ? 'Eres "Auto EscuelaBot", un asistente virtual amigable y servicial para la "Auto Escuela Americana". Tu propósito es responder las preguntas de los usuarios sobre la escuela de manejo, sus cursos, precios, horarios y políticas. Debes ser conciso, claro y usar un tono amable y profesional.'
+        : 'You are "Auto EscuelaBot", a friendly and helpful virtual assistant for "Auto Escuela Americana". Your purpose is to answer user questions about the driving school, its courses, prices, schedules, and policies. You must be concise, clear, and use a friendly, professional tone.';
+
+    const context = JSON.stringify(botContextData, null, 2);
+
+    const {output} = await prompt({
+        message: input.message,
+        instructions: instructions,
+        context: context,
+    });
     return output!;
   }
 );
