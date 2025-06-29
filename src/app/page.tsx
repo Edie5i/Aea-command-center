@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -22,11 +23,25 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 
 export default function Home() {
   const [tips, setTips] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [key, setKey] = useState(0);
+  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+  const [documentToGenerate, setDocumentToGenerate] = useState<"constancia" | "laboral" | "diploma" | null>(null);
+  const [studentName, setStudentName] = useState('');
 
   const handleTipsGenerated = (generatedTips: string[]) => {
     setTips(generatedTips);
@@ -39,43 +54,74 @@ export default function Home() {
     setKey(prevKey => prevKey + 1);
   };
 
-  const generateConstanciaMenor = () => {
+  const generateConstanciaMenor = (alumno: string) => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('Constancia para Menor de Edad', 105, 20, { align: 'center' });
     doc.setFontSize(12);
-    doc.text('Este documento certifica que [Nombre del Alumno] ha completado', 20, 40);
+    doc.text(`Este documento certifica que ${alumno} ha completado`, 20, 40);
     doc.text('satisfactoriamente el curso de manejo requerido para el trámite', 20, 47);
     doc.text('de su permiso de conducir para menor de edad.', 20, 54);
     doc.text('Auto Escuela Americana', 20, 70);
-    doc.save('Constancia_Menor_Edad.pdf');
+    doc.save(`Constancia_Menor_Edad_${alumno.replace(/\s+/g, '_')}.pdf`);
   };
 
-  const generateCartaLaboral = () => {
+  const generateCartaLaboral = (alumno: string) => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('Carta Laboral de Curso Aprobado', 105, 20, { align: 'center' });
     doc.setFontSize(12);
     doc.text('A quien corresponda:', 20, 40);
-    doc.text('Por medio de la presente, se hace constar que [Nombre del Alumno]', 20, 50);
+    doc.text(`Por medio de la presente, se hace constar que ${alumno}`, 20, 50);
     doc.text('ha aprobado el curso de manejo impartido por Auto Escuela Americana,', 20, 57);
     doc.text('demostrando las habilidades necesarias para una conducción segura.', 20, 64);
-    doc.save('Carta_Laboral.pdf');
+    doc.save(`Carta_Laboral_${alumno.replace(/\s+/g, '_')}.pdf`);
   };
 
-  const generateDiploma = () => {
+  const generateDiploma = (alumno: string) => {
     const doc = new jsPDF();
     doc.setFontSize(22);
     doc.text('Diploma de Conducción', 105, 40, { align: 'center' });
     doc.setFontSize(16);
     doc.text('Otorgado a:', 105, 60, { align: 'center' });
     doc.setFontSize(20);
-    doc.text('[Nombre del Alumno]', 105, 80, { align: 'center' });
+    doc.text(alumno, 105, 80, { align: 'center' });
     doc.setFontSize(12);
     doc.text('Por haber completado exitosamente el curso de manejo.', 105, 100, { align: 'center' });
     doc.text('Auto Escuela Americana', 105, 120, { align: 'center' });
-    doc.save('Diploma.pdf');
+    doc.save(`Diploma_${alumno.replace(/\s+/g, '_')}.pdf`);
   };
+
+  const handleDocumentSelect = (docType: 'constancia' | 'laboral' | 'diploma') => {
+    setDocumentToGenerate(docType);
+    setStudentName('');
+    setIsGeneratorOpen(true);
+  };
+
+  const handleGenerateDocument = () => {
+    if (!documentToGenerate || !studentName.trim()) return;
+
+    let docTitle = '';
+    if (documentToGenerate === 'constancia') {
+      generateConstanciaMenor(studentName.trim());
+      docTitle = 'Constancia de Menor de Edad';
+    } else if (documentToGenerate === 'laboral') {
+      generateCartaLaboral(studentName.trim());
+      docTitle = 'Carta Laboral de Curso Aprobado';
+    } else if (documentToGenerate === 'diploma') {
+      generateDiploma(studentName.trim());
+      docTitle = 'Diploma';
+    }
+    
+    const whatsAppNumber = "525634433212";
+    const message = `Se ha generado el siguiente documento:\n\n*Tipo:* ${docTitle}\n*Para el alumno:* ${studentName.trim()}`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+
+    setIsGeneratorOpen(false);
+  };
+
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
@@ -136,9 +182,9 @@ export default function Home() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem onClick={generateConstanciaMenor}>Constancia de Menor de Edad</DropdownMenuItem>
-                <DropdownMenuItem onClick={generateCartaLaboral}>Carta Laboral de Curso Aprobado</DropdownMenuItem>
-                <DropdownMenuItem onClick={generateDiploma}>Diploma</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDocumentSelect('constancia')}>Constancia de Menor de Edad</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDocumentSelect('laboral')}>Carta Laboral de Curso Aprobado</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDocumentSelect('diploma')}>Diploma</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -244,6 +290,36 @@ export default function Home() {
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={isGeneratorOpen} onOpenChange={setIsGeneratorOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Generar Documento</DialogTitle>
+            <DialogDescription>
+              Ingresa el nombre completo del alumno para generar el documento y notificar por WhatsApp.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nombre
+              </Label>
+              <Input
+                id="name"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                className="col-span-3"
+                placeholder="Nombre completo del alumno"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleGenerateDocument} disabled={!studentName.trim()}>
+              Generar y Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
         <p>
