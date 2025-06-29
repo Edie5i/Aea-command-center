@@ -12,6 +12,7 @@ import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
@@ -96,7 +97,9 @@ export default function AgendaPage() {
                     )}
                     <div>
                       <p className="font-semibold text-foreground">{apt.time} - {apt.student}</p>
-                      <p className="text-sm text-muted-foreground">{apt.type}</p>
+                      <Badge variant={apt.type === 'Automático' ? 'default' : 'secondary'} className="mt-1">
+                        {apt.type}
+                      </Badge>
                     </div>
                   </div>
                   <div className="text-sm font-medium">
