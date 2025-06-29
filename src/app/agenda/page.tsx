@@ -24,11 +24,9 @@ export default function AgendaPage() {
   }, []);
 
   const mockAppointments = [
-    { time: '09:00', student: 'Ana G.', type: 'Automático', status: 'confirmed' as const },
-    { time: '10:30', student: 'Luis M.', type: 'Estándar', status: 'confirmed' as const },
-    { time: '12:00', student: 'Sofía R.', type: 'Automático', status: 'pending' as const },
-    { time: '14:00', student: 'Carlos V.', type: 'Estándar', status: 'pending' as const },
-    { time: '15:30', student: 'Mariana F.', type: 'Automático', status: 'confirmed' as const },
+    { time: '10:00', student: 'Juan P.', type: 'Automático', status: 'confirmed' as const },
+    { time: '13:00', student: 'Maria L.', type: 'Estándar', status: 'pending' as const },
+    { time: '16:00', student: 'Pedro S.', type: 'Automático', status: 'confirmed' as const },
   ];
 
   const handleCourseScheduled = () => {
