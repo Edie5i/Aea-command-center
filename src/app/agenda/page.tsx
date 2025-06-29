@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -41,20 +42,30 @@ export default function AgendaPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background">
-       <div className="flex flex-col items-center text-center my-8 px-4">
-        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-          Auto Escuela Americana
-        </Link>
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Agenda tu Curso
-        </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Sigue los pasos para solicitar tu curso de manejo. ¡Es rápido y fácil!
-        </p>
-      </div>
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="mb-4 flex flex-wrap justify-center gap-2">
+    <main className="flex min-h-screen flex-col bg-background">
+      <section className="relative w-full bg-muted py-12">
+        <Image
+          src="https://placehold.co/1920x480.png"
+          alt="Banner de calendario de manejo"
+          layout="fill"
+          objectFit="cover"
+          className="absolute inset-0 z-0 opacity-10"
+          data-ai-hint="calendar schedule"
+        />
+        <div className="relative z-10 flex flex-col items-center text-center px-4">
+          <Link href="/" className="mb-4 text-sm text-primary hover:underline">
+            Auto Escuela Americana
+          </Link>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
+            Agenda tu Curso
+          </h1>
+          <p className="mt-2 max-w-xl text-lg text-muted-foreground">
+            Sigue los pasos para solicitar tu curso de manejo. ¡Es rápido y fácil!
+          </p>
+        </div>
+      </section>
+      <div className="container px-4 sm:px-6 md:px-8 py-8 flex flex-col items-center">
+        <div className="mb-8 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
