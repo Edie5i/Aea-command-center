@@ -4,7 +4,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Phone, User, Clock, Home } from 'lucide-react';
+import { Calendar, Phone, User, Clock, Home, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -36,6 +36,7 @@ const formSchema = z.object({
   transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
   meetingPoint: z.string({ required_error: 'Debes seleccionar un punto de encuentro.' }),
   address: z.string().optional(),
+  suggestedMeetingPoint: z.string().optional(),
   terms: z.boolean().refine((value) => value === true, {
     message: 'Debes aceptar los términos y condiciones.',
   }),
@@ -47,6 +48,14 @@ const formSchema = z.object({
 }, {
     message: 'La dirección es requerida para esta opción.',
     path: ['address'],
+}).refine(data => {
+    if (data.meetingPoint === 'Punto de encuentro' && (!data.suggestedMeetingPoint || data.suggestedMeetingPoint.trim() === '')) {
+        return false;
+    }
+    return true;
+}, {
+    message: 'Por favor, sugiere un punto de encuentro (ej. Metro Chilpancingo).',
+    path: ['suggestedMeetingPoint'],
 });
 
 
@@ -72,6 +81,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       phone: '',
       terms: false,
       address: '',
+      suggestedMeetingPoint: '',
     },
   });
 
@@ -88,6 +98,9 @@ ${formattedDates}
 *Transmisión:* ${values.transmission}
 *Punto de encuentro:* ${values.meetingPoint}`;
 
+    if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
+      message += `\n*Sugerencia:* ${values.suggestedMeetingPoint}`;
+    }
     if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
         message += `\n*Dirección:* ${values.address}`;
     }
@@ -251,6 +264,25 @@ ${formattedDates}
             </FormItem>
           )}
         />
+
+        {meetingPoint === 'Punto de encuentro' && (
+          <FormField
+            control={form.control}
+            name="suggestedMeetingPoint"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Punto de Encuentro Sugerido</FormLabel>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <FormControl>
+                    <Input placeholder="ej. Metro Chilpancingo, Parque México" {...field} value={field.value ?? ''} className="pl-10" />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {meetingPoint === 'Domicilio del alumno' && (
           <FormField
