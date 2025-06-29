@@ -147,6 +147,12 @@ export default function Home() {
       </div>
 
       <div className="w-full max-w-4xl mb-8 flex flex-wrap justify-center gap-3">
+        <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
+          <Link href="/chatbot">
+            <Bot className="mr-2 h-4 w-4" />
+            Chat con IA (Servicio al Cliente)
+          </Link>
+        </Button>
         <Button asChild>
             <Link href="/catalogo">
                 <ShoppingBag className="mr-2 h-4 w-4" />
@@ -182,12 +188,6 @@ export default function Home() {
                 <CreditCard className="mr-2 h-4 w-4" />
                 Métodos de Pago
             </Link>
-        </Button>
-        <Button asChild>
-          <Link href="/chatbot">
-            <Bot className="mr-2 h-4 w-4" />
-            Chat con IA
-          </Link>
         </Button>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
