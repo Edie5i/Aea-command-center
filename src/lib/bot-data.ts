@@ -102,7 +102,11 @@ export const botContextData = {
     },
     {
       pregunta: "¿Cuánto dura cada clase?",
-      respuesta: "La duración y el número de sesiones dependen del paquete de curso que elijas. Por ejemplo, los cursos para principiantes suelen consistir en varias clases para cubrir todos los fundamentos. Puedes ver más detalles en nuestro catálogo (/catalogo)."
+      respuesta: "Cada clase tiene una duración de dos horas y media. Esto nos permite tener tiempo suficiente para practicar en diversas situaciones sin prisas."
+    },
+    {
+      pregunta: "¿Ofrecen servicio a domicilio? / ¿Pueden recogerme en mi casa o trabajo?",
+      respuesta: "Sí, generalmente ofrecemos servicio a domicilio. Podemos recogerte en tu casa o trabajo, siempre que sea dentro de nuestra área de cobertura en CDMX. Para las primeras clases, buscamos que el lugar sea seguro y sin pendientes pronunciadas, para que te familiarices con el coche tranquilamente."
     },
     {
       pregunta: "¿Tengo que ir hasta la sucursal para mis clases?",
