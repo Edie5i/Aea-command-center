@@ -6,15 +6,24 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, CreditCard, ShoppingBag, Info } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, ShoppingBag, Info, Hourglass } from 'lucide-react';
 import { es } from 'date-fns/locale';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [submitted, setSubmitted] = useState(false);
+
+  const mockAppointments = [
+    { time: '09:00', student: 'Ana G.', type: 'Automático', status: 'confirmed' as const },
+    { time: '10:30', student: 'Luis M.', type: 'Estándar', status: 'confirmed' as const },
+    { time: '12:00', student: 'Sofía R.', type: 'Automático', status: 'pending' as const },
+    { time: '14:00', student: 'Carlos V.', type: 'Estándar', status: 'pending' as const },
+    { time: '15:30', student: 'Mariana F.', type: 'Automático', status: 'confirmed' as const },
+  ];
 
   const handleCourseScheduled = () => {
     setSubmitted(true);
@@ -61,6 +70,47 @@ export default function AgendaPage() {
         </div>
         
         <div className="w-full max-w-3xl">
+          <Card className="w-full max-w-3xl shadow-lg rounded-xl mb-8">
+            <CardHeader>
+              <CardTitle>Agenda del Día (Ejemplo)</CardTitle>
+              <CardDescription>
+                Así se verían las clases confirmadas (verde) y pendientes (amarillo).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {mockAppointments.map((apt) => (
+                <div
+                  key={apt.time}
+                  className={cn(
+                    "flex items-center justify-between p-3 rounded-lg border",
+                    apt.status === 'confirmed'
+                      ? 'bg-green-100/50 dark:bg-green-900/30 border-green-500/50'
+                      : 'bg-yellow-100/50 dark:bg-yellow-900/30 border-yellow-500/50'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    {apt.status === 'confirmed' ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <Hourglass className="h-5 w-5 text-yellow-600" />
+                    )}
+                    <div>
+                      <p className="font-semibold text-foreground">{apt.time} - {apt.student}</p>
+                      <p className="text-sm text-muted-foreground">{apt.type}</p>
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium">
+                    {apt.status === 'confirmed' ? (
+                      <span className="text-green-700 dark:text-green-300">Confirmado</span>
+                    ) : (
+                      <span className="text-yellow-700 dark:text-yellow-300">Pendiente</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        
           {submitted ? (
             <Card className="shadow-lg rounded-xl text-center">
               <CardHeader>
