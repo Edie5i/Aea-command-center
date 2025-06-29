@@ -4,7 +4,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Phone, User, Clock, Home, MapPin, MessageSquare, StickyNote } from 'lucide-react';
+import { Calendar, Phone, User, Clock, Home, MapPin, MessageSquare, StickyNote, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -29,6 +29,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import jsPDF from 'jspdf';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -116,24 +117,19 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       puntoDeEncuentroMsg = `Domicilio del alumno: ${values.address}`;
     }
     
-    // Message construction
+    // Message construction for WhatsApp
     let message = `*FICHA DE INSCRIPCIÓN*\n`;
     message += `*Auto Escuela Americana*\n\n`;
-    
     message += `*CURSO:* Manejo de Vehículos\n\n`;
-
     message += `*DATOS DEL ALUMNO*\n\n`;
     message += `- *Nombre:* ${values.name}\n`;
     message += `- *Teléfono:* ${values.phone}\n\n`;
-
     message += `*DETALLES DEL CURSO*\n\n`;
     message += `- *Fechas:* ${finalDateString}\n`;
     message += `- *Hora:* ${formattedTime}\n`;
     message += `- *Transmisión:* ${values.transmission}\n`;
     message += `- *Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
-    
     message += `*OBSERVACIONES:*\n${values.observaciones || '[Espacio para agregar observaciones o comentarios]'}\n\n`;
-    
     message += `*NOTA:*\n${values.nota || '[Espacio para agregar notas importantes]'}`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -141,9 +137,67 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
     window.open(whatsappUrl, '_blank');
 
+    // PDF Generation
+    const doc = new jsPDF();
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('FICHA DE INSCRIPCIÓN', 105, yPos, { align: 'center' });
+    yPos += 7;
+    doc.setFontSize(14);
+    doc.text('Auto Escuela Americana', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    doc.setFontSize(12);
+    doc.text('CURSO: Manejo de Vehículos', 15, yPos);
+    yPos += 10;
+
+    doc.setFontSize(14);
+    doc.text('DATOS DEL ALUMNO', 15, yPos);
+    yPos += 7;
+    doc.setFontSize(12);
+    doc.text(`- Nombre: ${values.name}`, 20, yPos);
+    yPos += 7;
+    doc.text(`- Teléfono: ${values.phone}`, 20, yPos);
+    yPos += 10;
+
+    doc.setFontSize(14);
+    doc.text('DETALLES DEL CURSO', 15, yPos);
+    yPos += 7;
+    doc.setFontSize(12);
+    doc.text(`- Fechas: ${finalDateString}`, 20, yPos);
+    yPos += 7;
+    doc.text(`- Hora: ${formattedTime}`, 20, yPos);
+    yPos += 7;
+    doc.text(`- Transmisión: ${values.transmission}`, 20, yPos);
+    yPos += 7;
+    const meetingPointLines = doc.splitTextToSize(`- Punto de Encuentro: ${puntoDeEncuentroMsg}`, 170);
+    doc.text(meetingPointLines, 20, yPos);
+    yPos += (meetingPointLines.length * 6);
+    yPos += 3;
+
+    doc.setFontSize(14);
+    doc.text('OBSERVACIONES:', 15, yPos);
+    yPos += 7;
+    doc.setFontSize(12);
+    const observacionesLines = doc.splitTextToSize(values.observaciones || '[Espacio para agregar observaciones o comentarios]', 175);
+    doc.text(observacionesLines, 15, yPos);
+    yPos += (observacionesLines.length * 6);
+    yPos += 3;
+
+    doc.setFontSize(14);
+    doc.text('NOTA:', 15, yPos);
+    yPos += 7;
+    doc.setFontSize(12);
+    const notaLines = doc.splitTextToSize(values.nota || '[Espacio para agregar notas importantes]', 175);
+    doc.text(notaLines, 15, yPos);
+
+    doc.save(`Ficha-${values.name.replace(/\s/g, '_')}.pdf`);
+
+
     toast({
-      title: '¡Información Lista!',
-      description: `Se abrirá WhatsApp para enviar los detalles del curso.`,
+      title: '¡Ficha Generada!',
+      description: `Se abrirá WhatsApp y se descargará la ficha en formato PDF.`,
     });
     
     onCourseScheduled();
@@ -402,8 +456,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         />
         <div className="flex justify-end">
           <Button type="submit">
-            <Calendar className="mr-2 h-4 w-4" />
-            Confirmar Curso
+            <Download className="mr-2 h-4 w-4" />
+            Enviar y Descargar Ficha
           </Button>
         </div>
       </form>
