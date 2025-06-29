@@ -88,7 +88,7 @@ export default function ChatbotPage() {
       </div>
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4 flex flex-wrap justify-center gap-2">
+        <div className="w-full max-w-4xl mb-4 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -97,7 +97,7 @@ export default function ChatbotPage() {
           </Button>
         </div>
 
-        <Card className="w-full max-w-3xl shadow-lg rounded-xl h-[80vh] flex flex-col">
+        <Card className="w-full max-w-4xl shadow-lg rounded-xl h-[calc(100vh-280px)] flex flex-col">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
               <Bot className="text-primary" />
@@ -114,7 +114,7 @@ export default function ChatbotPage() {
                   <div
                     key={message.id}
                     className={cn(
-                      'flex items-start gap-3',
+                      'flex items-end gap-3',
                       message.role === 'user' && 'justify-end'
                     )}
                   >
@@ -127,10 +127,10 @@ export default function ChatbotPage() {
                     )}
                     <div
                       className={cn(
-                        'max-w-[75%] rounded-lg p-3 text-sm',
+                        'max-w-[75%] rounded-xl p-3 text-sm shadow-md',
                         message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
+                          ? 'bg-primary text-primary-foreground rounded-br-none'
+                          : 'bg-muted rounded-bl-none'
                       )}
                     >
                       {message.text}
@@ -145,7 +145,7 @@ export default function ChatbotPage() {
                   </div>
                 ))}
                  {isLoading && (
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-end gap-3">
                     <Avatar className="h-8 w-8 border">
                       <AvatarFallback>
                         <Bot />
