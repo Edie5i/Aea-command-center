@@ -4,7 +4,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Phone, User, Clock, Home, MapPin } from 'lucide-react';
+import { Calendar, Phone, User, Clock, Home, MapPin, MessageSquare, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -28,6 +28,7 @@ import { es } from 'date-fns/locale';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -37,6 +38,8 @@ const formSchema = z.object({
   meetingPoint: z.string({ required_error: 'Debes seleccionar un punto de encuentro.' }),
   address: z.string().optional(),
   suggestedMeetingPoint: z.string().optional(),
+  observaciones: z.string().optional(),
+  nota: z.string().optional(),
   terms: z.boolean().refine((value) => value === true, {
     message: 'Debes aceptar los términos y condiciones.',
   }),
@@ -82,6 +85,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       terms: false,
       address: '',
       suggestedMeetingPoint: '',
+      observaciones: '',
+      nota: '',
     },
   });
 
@@ -89,25 +94,35 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const whatsAppNumber = "525634433212";
-    const formattedDates = selectedDates.map(date => format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })).join('\n');
+    const formattedDates = selectedDates.map(date => `- ${format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}`).join('\n');
     
-    let message = `¡Nueva solicitud de curso!
-*Fechas:*
-${formattedDates}
-*Hora para cada día:* ${values.time}
-*Transmisión:* ${values.transmission}
-*Punto de encuentro:* ${values.meetingPoint}`;
-
+    let puntoDeEncuentroMsg = values.meetingPoint;
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
-      message += `\n*Sugerencia:* ${values.suggestedMeetingPoint}`;
+      puntoDeEncuentroMsg += ` (sugerencia: ${values.suggestedMeetingPoint})`;
     }
     if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
-        message += `\n*Dirección:* ${values.address}`;
+        puntoDeEncuentroMsg = `Domicilio del alumno: ${values.address}`;
     }
     
-    message += `
-*Alumno:* ${values.name}
-*Teléfono:* ${values.phone}`;
+    let message = `*FICHA DE INSCRIPCIÓN*\n`;
+    message += `*Auto Escuela Americana*\n\n`;
+    
+    message += `*CURSO:* Manejo de Vehículos\n\n`;
+
+    message += `*DATOS DEL ALUMNO*\n\n`;
+    message += `*- Nombre:* ${values.name}\n`;
+    message += `*- Teléfono:* ${values.phone}\n\n`;
+
+    message += `*DETALLES DEL CURSO*\n\n`;
+    message += `*- Fechas:*\n${formattedDates}\n`;
+    message += `*- Hora:* ${values.time}\n`;
+    message += `*- Transmisión:* ${values.transmission}\n`;
+    message += `*- Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
+    
+    message += `*OBSERVACIONES:*\n${values.observaciones || 'Sin observaciones.'}\n\n`;
+    
+    message += `*NOTA:*\n${values.nota || 'Sin notas.'}`;
+
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
@@ -303,6 +318,48 @@ ${formattedDates}
           />
         )}
         
+        <FormField
+            control={form.control}
+            name="observaciones"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Observaciones (Opcional)</FormLabel>
+                <div className="relative">
+                    <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <FormControl>
+                    <Textarea
+                        placeholder="Ej. El alumno es menor de edad y requiere constancia para el trámite de su permiso."
+                        className="pl-10"
+                        {...field}
+                    />
+                    </FormControl>
+                </div>
+                <FormMessage />
+                </FormItem>
+            )}
+        />
+        <FormField
+            control={form.control}
+            name="nota"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Nota Adicional para el Instructor (Opcional)</FormLabel>
+                <div className="relative">
+                    <StickyNote className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <FormControl>
+                    <Textarea
+                        placeholder="Cualquier otra información importante que el instructor deba saber."
+                        className="pl-10"
+                        {...field}
+                    />
+                    </FormControl>
+                </div>
+                <FormMessage />
+                </FormItem>
+            )}
+        />
+
+
         <FormField
           control={form.control}
           name="terms"
