@@ -2,6 +2,9 @@ export const botContextData = {
   informacionGeneral: {
     nombre: "Auto Escuela Americana",
     ubicacion: "Torreón #49, Roma Sur, CDMX.",
+    cobertura: "Ciudad de México (CDMX) únicamente.",
+    horariosGenerales: "Los horarios principales para iniciar clases son 7am, 10am, 13pm, 16pm y 19pm, todos los días. Se debe confirmar disponibilidad al agendar.",
+    tiposDeVehiculo: "Enseñamos en coches con transmisión automática y estándar.",
     whatsappContacto: "525634433212",
     enlaces: {
       agenda: "/agenda",
@@ -14,17 +17,17 @@ export const botContextData = {
     {
       nombre: "Curso Principiante (Automático)",
       precioMXN: 3900.00,
-      descripcion: "Para novatos, enfocado en reglas y maniobras esenciales.",
+      descripcion: "Perfecto si nunca has manejado. Aprende a conducir un coche automático con facilidad y confianza, enfocándote en las reglas de tránsito y maniobras esenciales.",
     },
     {
       nombre: "Curso Principiante (Estándar)",
       precioMXN: 3400.00,
-      descripcion: "Para aprender a manejar transmisión manual desde cero.",
+      descripcion: "Aprende a dominar la transmisión manual desde cero. Este curso cubre el control del clutch, cambios de marcha y los fundamentos de la conducción segura.",
     },
     {
       nombre: "Curso Intermedio",
       precioMXN: 2600.00,
-      descripcion: "Para perfeccionar técnica y ganar confianza.",
+      descripcion: "Para personas que ya saben manejar pero quieren perfeccionar su técnica y ganar confianza.",
     },
     {
       nombre: "Curso de Reforzamiento",
@@ -34,32 +37,32 @@ export const botContextData = {
     {
       nombre: "Curso para Personas Nerviosas",
       precioMXN: 5100.00,
-      descripcion: "Programa especial con paciencia y técnicas para superar la ansiedad.",
+      descripcion: "Un programa especial con paciencia y técnicas para superar la ansiedad al volante.",
     },
     {
       nombre: "Curso Mixto (Automático y Estándar)",
       precioMXN: 5100.00,
-      descripcion: "Para dominar ambos tipos de transmisión.",
+      descripcion: "Aprende a dominar ambos tipos de transmisión y amplía tus habilidades de conducción.",
     },
     {
       nombre: "Curso en Coche Propio",
       precioMXN: 3900.00,
-      descripcion: "Clases personalizadas en el vehículo del alumno.",
+      descripcion: "Clases personalizadas en el vehículo del alumno para que se familiarice con él.",
     },
     {
       nombre: "English Driving Course",
       precioMXN: 4800.00,
-      descripcion: "Clases en inglés para todos los niveles.",
+      descripcion: "Clases de manejo completas para todos los niveles, impartidas totalmente en inglés.",
     },
     {
       nombre: "Curso de Motocicleta",
       precioMXN: 4300.00,
-      descripcion: "8 horas para aprender a manejar moto de forma segura.",
+      descripcion: "Curso de 8 horas para aprender a manejar motocicleta de forma segura.",
     },
   ],
   tramitesAdicionales: {
     constanciaMenorEdad: {
-        descripcion: "Constancia para permiso de menor de edad.",
+        descripcion: "Constancia para el trámite del permiso de conducir de menor de edad.",
         costoAdicionalMXN: 500.00,
     }
   },
@@ -120,6 +123,30 @@ export const botContextData = {
     {
       pregunta: "¿Qué pasa si falto a una clase sin avisar?",
       respuesta: "Según nuestros términos y condiciones, es necesario cancelar o reprogramar con al menos 24 horas de anticipación. Si no se cumple este plazo, la clase se considerará como tomada y no podrá ser repuesta."
+    },
+    {
+      pregunta: "¿En qué zonas dan servicio? / ¿Cuál es su área de cobertura?",
+      respuesta: "Por el momento, nuestra cobertura es exclusivamente en la Ciudad de México (CDMX)."
+    },
+    {
+      pregunta: "¿Qué horarios manejan?",
+      respuesta: "Nuestros horarios generales para iniciar clases son a las 7am, 10am, 13pm, 16pm y 19pm, todos los días. Sin embargo, te recomendamos siempre confirmar la disponibilidad al momento de agendar tu curso."
+    },
+    {
+      pregunta: "¿Tienen cursos para menores de edad?",
+      respuesta: "Sí, claro. Ofrecemos cursos para menores de edad y también tramitamos la constancia para su permiso de conducir por un costo adicional."
+    },
+    {
+      pregunta: "Do you offer courses in English?",
+      respuesta: "Yes, we have an 'English Driving Course' available. All lessons are conducted entirely in English."
+    },
+    {
+      pregunta: "¿Dan clases de moto?",
+      respuesta: "Sí, tenemos un curso de 8 horas para aprender a manejar motocicleta de forma segura. Puedes ver los detalles y el precio en nuestro catálogo /catalogo."
+    },
+    {
+      pregunta: "¿Qué tipo de coches usan? / ¿Tienen automáticos o estándar?",
+      respuesta: "Contamos con vehículos de transmisión automática y estándar para que puedas aprender en el que prefieras. Ambos están equipados con doble control por seguridad."
     }
   ]
 };
