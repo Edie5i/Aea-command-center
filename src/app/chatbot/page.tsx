@@ -97,7 +97,7 @@ export default function ChatbotPage() {
           </Button>
         </div>
 
-        <Card className="w-full max-w-3xl shadow-lg rounded-xl h-[70vh] flex flex-col">
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl h-[80vh] flex flex-col">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
               <Bot className="text-primary" />
