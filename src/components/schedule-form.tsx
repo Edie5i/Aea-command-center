@@ -4,7 +4,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Phone, User, Clock, Home, MapPin, MessageSquare, StickyNote, Download } from 'lucide-react';
+import { Calendar, Phone, User, Clock, Home, MapPin, MessageSquare, StickyNote, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -41,6 +42,7 @@ const formSchema = z.object({
   suggestedMeetingPoint: z.string().optional(),
   observaciones: z.string().optional(),
   nota: z.string().optional(),
+  requiereConstancia: z.boolean().optional(),
   terms: z.boolean().refine((value) => value === true, {
     message: 'Debes aceptar los términos y condiciones.',
   }),
@@ -88,10 +90,12 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       suggestedMeetingPoint: '',
       observaciones: '',
       nota: '',
+      requiereConstancia: false,
     },
   });
 
   const meetingPoint = form.watch('meetingPoint');
+  const requiereConstancia = form.watch('requiereConstancia');
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const whatsAppNumber = "525634433212";
@@ -129,6 +133,11 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     message += `- *Hora:* ${formattedTime}\n`;
     message += `- *Transmisión:* ${values.transmission}\n`;
     message += `- *Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
+
+    if (values.requiereConstancia) {
+      message += `*TRÁMITE SEMOVI:* Sí, requiero constancia. (Se adjuntará CURP en PDF por WhatsApp)\n\n`;
+    }
+
     message += `*OBSERVACIONES:*\n${values.observaciones || '[Espacio para agregar observaciones o comentarios]'}\n\n`;
     message += `*NOTA:*\n${values.nota || '[Espacio para agregar notas importantes]'}`;
 
@@ -175,6 +184,17 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     doc.text(meetingPointLines, 20, yPos);
     yPos += (meetingPointLines.length * 6);
     yPos += 3;
+
+    if (values.requiereConstancia) {
+        doc.setFontSize(14);
+        doc.text('TRÁMITE SEMOVI', 15, yPos);
+        yPos += 7;
+        doc.setFontSize(12);
+        doc.text('- Se requiere constancia para permiso de conducir.', 20, yPos);
+        yPos += 6;
+        doc.text('- El alumno enviará su CURP en PDF por WhatsApp.', 20, yPos);
+        yPos += 10;
+    }
 
     doc.setFontSize(14);
     doc.text('OBSERVACIONES:', 15, yPos);
@@ -425,6 +445,35 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
             )}
         />
 
+        <FormField
+          control={form.control}
+          name="requiereConstancia"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm bg-muted/50">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Requiero constancia para trámite de permiso ante SEMOVI
+                </FormLabel>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
+        {requiereConstancia && (
+            <Alert variant="default" className="bg-primary/10 border-primary/50">
+                <FileText className="h-4 w-4 text-primary" />
+                <AlertTitle className="text-primary font-bold">¡Importante!</AlertTitle>
+                <AlertDescription className="text-foreground">
+                Para completar tu solicitud de constancia, no olvides enviar tu <strong>CURP en formato PDF</strong> a nuestro chat de WhatsApp después de enviar esta ficha.
+                </AlertDescription>
+            </Alert>
+        )}
 
         <FormField
           control={form.control}
