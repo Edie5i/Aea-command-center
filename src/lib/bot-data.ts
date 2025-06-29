@@ -112,6 +112,14 @@ export const botContextData = {
     {
       pregunta: "¿El coche para las prácticas lo ponen ustedes?",
       respuesta: "Sí, nosotros proporcionamos el vehículo para tus clases, ya sea automático o estándar. Está en perfectas condiciones y cuenta con doble control para tu seguridad. También ofrecemos el 'Curso en Coche Propio' si prefieres aprender en tu vehículo."
+    },
+    {
+      pregunta: "¿La constancia para el permiso de menor de edad tiene costo extra?",
+      respuesta: "Sí, el trámite para generar la constancia que se presenta ante SEMOVI para el permiso de conducir de menor de edad tiene un costo adicional de $500 MXN. Puedes solicitarla al momento de agendar tu curso."
+    },
+    {
+      pregunta: "¿Qué pasa si falto a una clase sin avisar?",
+      respuesta: "Según nuestros términos y condiciones, es necesario cancelar o reprogramar con al menos 24 horas de anticipación. Si no se cumple este plazo, la clase se considerará como tomada y no podrá ser repuesta."
     }
   ]
 };
