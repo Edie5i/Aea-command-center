@@ -289,8 +289,8 @@ export default function Home() {
               <Star className="h-8 w-8 text-yellow-500 fill-yellow-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-foreground">¿Te gustó nuestro servicio?</h3>
-              <p className="text-muted-foreground mt-1">¡Tu opinión nos ayuda a crecer! Déjanos una reseña en Google.</p>
+              <h3 className="text-lg font-bold text-foreground">Nuestros Casos de Éxito</h3>
+              <p className="text-muted-foreground mt-1">Descubre por qué nuestros alumnos nos califican con 5 estrellas en Google.</p>
             </div>
           </div>
           <Button asChild className="shrink-0 mt-4 sm:mt-0">
@@ -300,7 +300,7 @@ export default function Home() {
               rel="noopener noreferrer"
             >
               <Star className="mr-2 h-4 w-4 fill-current" />
-              Escribir una Reseña
+              Leer Reseñas en Google
             </a>
           </Button>
         </CardContent>
