@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,7 +36,9 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
-  time: z.string({ required_error: 'Debes seleccionar un horario.' }),
+  times: z.array(z.string()).refine((value) => value.length > 0, {
+    message: 'Debes seleccionar al menos un horario.',
+  }),
   transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
   meetingPoint: z.string({ required_error: 'Debes seleccionar un punto de encuentro.' }),
   address: z.string().optional(),
@@ -85,6 +88,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     defaultValues: {
       name: '',
       phone: '',
+      times: [],
       terms: false,
       address: '',
       suggestedMeetingPoint: '',
@@ -106,12 +110,14 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     const finalDateString = selectedDates.length > 0 ? `${dateStrings.join(', ')} de ${year}` : "Fechas no seleccionadas";
     
     // Time formatting
-    const [hourStr, minuteStr] = values.time.split(':');
-    let hour = parseInt(hourStr, 10);
-    const ampm = hour >= 12 ? 'pm' : 'am';
-    hour = hour % 12;
-    hour = hour ? hour : 12; // The hour '0' should be '12'
-    const formattedTime = `${hour}:${minuteStr} ${ampm}`;
+    const formattedTimes = values.times.sort().map(time => {
+        const [hourStr, minuteStr] = time.split(':');
+        let hour = parseInt(hourStr, 10);
+        const ampm = hour >= 12 ? 'pm' : 'am';
+        hour = hour % 12;
+        hour = hour ? hour : 12; // The hour '0' should be '12'
+        return `${hour}:${minuteStr} ${ampm}`;
+    }).join(', ');
 
     // Meeting point formatting
     let puntoDeEncuentroMsg = values.meetingPoint;
@@ -130,7 +136,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     message += `- *Teléfono:* ${values.phone}\n\n`;
     message += `*DETALLES DEL CURSO*\n\n`;
     message += `- *Fechas:* ${finalDateString}\n`;
-    message += `- *Hora:* ${formattedTime}\n`;
+    message += `- *Horarios:* ${formattedTimes}\n`;
     message += `- *Transmisión:* ${values.transmission}\n`;
     message += `- *Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
 
@@ -221,7 +227,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
     drawSection('DETALLES DEL CURSO', [
         ['Fechas Seleccionadas:', finalDateString],
-        ['Horario de Inicio:', formattedTime],
+        ['Horarios Seleccionados:', formattedTimes],
         ['Tipo de Transmisión:', values.transmission],
         ['Punto de Encuentro:', puntoDeEncuentroMsgFull],
     ]);
@@ -311,27 +317,51 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         />
         <FormField
           control={form.control}
-          name="time"
-          render={({ field }) => (
+          name="times"
+          render={() => (
             <FormItem>
-              <FormLabel>Horario Disponible para cada día</FormLabel>
-               <div className="relative">
-                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="pl-10">
-                        <SelectValue placeholder="Selecciona un horario" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {availableTimes.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-               </div>
+              <div className="space-y-1.5">
+                <FormLabel>Horarios Disponibles para cada día</FormLabel>
+                <FormDescription>
+                    Puedes seleccionar uno o varios horarios.
+                </FormDescription>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-2">
+                {availableTimes.map((item) => (
+                  <FormField
+                    key={item}
+                    control={form.control}
+                    name="times"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={item}
+                          className="flex flex-row items-center space-x-2 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes(item)}
+                              onCheckedChange={(checked) => {
+                                const currentValues = field.value ?? [];
+                                return checked
+                                  ? field.onChange([...currentValues, item])
+                                  : field.onChange(
+                                      currentValues.filter(
+                                        (value) => value !== item
+                                      )
+                                    );
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            {item}
+                          </FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
+              </div>
               <FormMessage />
             </FormItem>
           )}
