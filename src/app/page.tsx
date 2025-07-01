@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -150,7 +149,7 @@ export default function Home() {
         <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
           <Link href="/chatbot">
             <Bot className="mr-2 h-4 w-4" />
-            Chat con IA
+            Chat con IA (Servicio al Cliente)
           </Link>
         </Button>
         <Button asChild className="w-full">
@@ -295,7 +294,7 @@ export default function Home() {
           </div>
           <Button asChild className="shrink-0 mt-4 sm:mt-0">
             <a
-              href="https://search.google.com/local/writereview?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+              href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
               target="_blank"
               rel="noopener noreferrer"
             >
