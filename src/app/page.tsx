@@ -146,54 +146,54 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="w-full max-w-4xl mb-8 flex flex-wrap justify-center gap-3">
-        <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
+      <div className="w-full max-w-5xl mb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
           <Link href="/chatbot">
             <Bot className="mr-2 h-4 w-4" />
-            Chat con IA (Servicio al Cliente)
+            Chat con IA
           </Link>
         </Button>
-        <Button asChild>
+        <Button asChild className="w-full">
             <Link href="/catalogo">
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                Catálogo y Precios
+                Catálogo
             </Link>
         </Button>
-        <Button asChild variant="secondary">
+        <Button asChild variant="secondary" className="w-full">
             <Link href="/agenda">
                 <CalendarDays className="mr-2 h-4 w-4" />
-                Agendar Clase
+                Agendar
             </Link>
         </Button>
-        <Button asChild>
+        <Button asChild className="w-full">
             <Link href="/evaluacion">
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Evaluar Nivel
             </Link>
         </Button>
-        <Button asChild variant="secondary">
+        <Button asChild variant="secondary" className="w-full">
             <Link href="/examen-teorico">
                 <FileQuestion className="mr-2 h-4 w-4" />
-                Examen Teórico
+                Examen
             </Link>
         </Button>
-        <Button asChild>
+        <Button asChild className="w-full">
             <Link href="/programa">
                 <BookOpen className="mr-2 h-4 w-4" />
-                Programa del Curso
+                Programa
             </Link>
         </Button>
-        <Button asChild variant="secondary">
+        <Button asChild variant="secondary" className="w-full">
             <Link href="/pagos">
                 <CreditCard className="mr-2 h-4 w-4" />
-                Métodos de Pago
+                Pagos
             </Link>
         </Button>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button>
+                <Button className="w-full">
                     <FileText className="mr-2 h-4 w-4" />
-                    Generar Documentos
+                    Documentos
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
