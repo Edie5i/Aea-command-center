@@ -150,120 +150,118 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
-    let yPos = 0;
+    let y = 15; // Initial Y position
 
     // --- Header ---
     const primaryColor = '#2563EB'; // approx. from hsl(221.2 83.2% 53.3%)
     doc.setFillColor(primaryColor);
-    doc.rect(0, 0, pageWidth, 35, 'F');
-    
-    doc.setFontSize(20);
+    doc.rect(0, 0, pageWidth, 25, 'F');
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor('#FFFFFF');
-    doc.text('AEA', 20, 23);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(18);
-    doc.text('Ficha de Inscripción', pageWidth / 2, 23, { align: 'center' });
-    yPos = 50;
+    doc.text('FICHA DE INSCRIPCIÓN', pageWidth / 2, 17, { align: 'center' });
 
-    // --- Helper function for sections ---
-    const drawSection = (title: string, content: () => void) => {
-        if (yPos > pageHeight - 40) {
+    y += 20;
+
+    // --- Date ---
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor('#333333');
+    doc.text(`Fecha de Emisión: ${format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es })}`, pageWidth - 15, y, { align: 'right' });
+    y += 10;
+
+    // --- Helper for drawing a section ---
+    const drawSection = (title: string, contentPairs: string[][]) => {
+        if (y > pageHeight - 60) { // Check for page break
             doc.addPage();
-            yPos = 20;
+            y = 20;
         }
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(primaryColor);
-        doc.text(title, 15, yPos);
-        yPos += 2;
+        doc.text(title, 15, y);
+        y += 7;
+
         doc.setDrawColor('#DDDDDD');
-        doc.line(15, yPos, pageWidth - 15, yPos);
-        yPos += 8;
-        
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor('#333333');
-        content();
-        yPos += 8;
-    };
-    
-    const drawKeyValuePair = (key: string, value: string) => {
-        const keyWidth = doc.getTextWidth(key);
-        const valueX = 20 + keyWidth + 5;
-        const valueLines = doc.splitTextToSize(value, pageWidth - valueX - 20);
-        
-        if (yPos + (valueLines.length * 6) > pageHeight - 30) {
-             doc.addPage();
-             yPos = 20;
-        }
+        doc.setLineWidth(0.5);
+        doc.line(15, y - 2, pageWidth - 15, y - 2);
 
-        doc.setFont('helvetica', 'bold');
-        doc.text(key, 20, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(valueLines, valueX, yPos);
-        yPos += (valueLines.length * 5) + 4;
+        contentPairs.forEach(([label, value]) => {
+            if (y > pageHeight - 30) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor('#555555');
+            doc.text(label, 20, y);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor('#000000');
+            const valueLines = doc.splitTextToSize(value, pageWidth - 95);
+            doc.text(valueLines, 70, y);
+            y += (valueLines.length * 5) + 4;
+        });
+        y += 5; // Space after section
     };
 
+    // --- Alumno Section ---
+    drawSection('DATOS DEL ALUMNO', [
+        ['Nombre Completo:', values.name],
+        ['Teléfono de Contacto:', values.phone],
+    ]);
 
-    // --- Datos del Alumno ---
-    drawSection('Datos del Alumno', () => {
-        drawKeyValuePair('Nombre:', values.name);
-        drawKeyValuePair('Teléfono:', values.phone);
-    });
+    // --- Curso Section ---
+    let puntoDeEncuentroMsgFull = values.meetingPoint;
+    if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
+        puntoDeEncuentroMsgFull = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
+    } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
+        puntoDeEncuentroMsgFull = `Domicilio del alumno: ${values.address}`;
+    }
 
-    // --- Detalles del Curso ---
-    drawSection('Detalles del Curso', () => {
-        drawKeyValuePair('Fechas:', finalDateString);
-        drawKeyValuePair('Hora:', formattedTime);
-        drawKeyValuePair('Transmisión:', values.transmission);
-        
-        let puntoDeEncuentroMsgFull = values.meetingPoint;
-        if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
-            puntoDeEncuentroMsgFull = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
-        } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
-            puntoDeEncuentroMsgFull = `Domicilio del alumno: ${values.address}`;
-        }
-        drawKeyValuePair('Punto de Encuentro:', puntoDeEncuentroMsgFull);
-    });
-    
+    drawSection('DETALLES DEL CURSO', [
+        ['Fechas Seleccionadas:', finalDateString],
+        ['Horario de Inicio:', formattedTime],
+        ['Tipo de Transmisión:', values.transmission],
+        ['Punto de Encuentro:', puntoDeEncuentroMsgFull],
+    ]);
+
     // --- Trámite SEMOVI ---
     if (values.requiereConstancia) {
-        drawSection('Trámite SEMOVI', () => {
-            const text = '- Sí, se requiere constancia para permiso de conducir.\n- El alumno enviará su CURP en formato PDF por WhatsApp.';
-            const lines = doc.splitTextToSize(text, pageWidth - 40);
-            doc.text(lines, 20, yPos);
-            yPos += (lines.length * 5) + 4;
-        });
+        drawSection('TRÁMITE ADICIONAL', [
+            ['Constancia SEMOVI:', 'Sí, se requiere constancia para permiso de conducir.'],
+            ['Documentación:', 'El alumno enviará su CURP en formato PDF vía WhatsApp.'],
+        ]);
     }
 
-    // --- Observaciones y Notas ---
-    const hasObservaciones = values.observaciones && values.observaciones.trim() !== '';
-    const hasNota = values.nota && values.nota.trim() !== '';
-
-    if (hasObservaciones || hasNota) {
-         drawSection('Información Adicional', () => {
-            if (hasObservaciones) {
-                drawKeyValuePair('Observaciones:', values.observaciones!);
-            }
-            if (hasNota) {
-                drawKeyValuePair('Nota Adicional:', values.nota!);
-            }
-        });
+    // --- Info Adicional ---
+    const observaciones = values.observaciones?.trim();
+    const nota = values.nota?.trim();
+    if (observaciones || nota) {
+        const additionalInfo: string[][] = [];
+        if (observaciones) {
+            additionalInfo.push(['Observaciones:', observaciones]);
+        }
+        if (nota) {
+            additionalInfo.push(['Nota para Instructor:', nota]);
+        }
+        drawSection('INFORMACIÓN ADICIONAL', additionalInfo);
     }
-    
+
     // --- Footer ---
-    const finalYPos = pageHeight - 25;
-    doc.setDrawColor('#CCCCCC');
-    doc.line(15, finalYPos, pageWidth - 15, finalYPos);
-    
-    doc.setFontSize(9);
+    const finalY = pageHeight - 20;
+    doc.setDrawColor('#DDDDDD');
+    doc.setLineWidth(0.5);
+    doc.line(15, finalY, pageWidth - 15, finalY);
+
+    doc.setFontSize(8);
     doc.setTextColor('#777777');
-    doc.text('Auto Escuela Americana | www.autoescuelaamericana.com | WhatsApp: 52 56 3443 3212', pageWidth / 2, finalYPos + 8, { align: 'center' });
+    doc.text('Auto Escuela Americana', 15, finalY + 8);
+    doc.text('www.autoescuelaamericana.com', pageWidth / 2, finalY + 8, { align: 'center' });
+    doc.text(`Ficha generada por el sistema.`, pageWidth - 15, finalY + 8, { align: 'right' });
 
 
-    doc.save(`Ficha-${values.name.replace(/\s/g, '_')}.pdf`);
+    doc.save(`Ficha_Inscripcion_${values.name.replace(/\s/g, '_')}.pdf`);
 
 
     toast({
