@@ -146,71 +146,122 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
     window.open(whatsappUrl, '_blank');
 
-    // PDF Generation
+    // PDF Generation - Redesigned for a professional look
     const doc = new jsPDF();
-    let yPos = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 0;
 
+    // --- Header ---
+    const primaryColor = '#2563EB'; // approx. from hsl(221.2 83.2% 53.3%)
+    doc.setFillColor(primaryColor);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor('#FFFFFF');
+    doc.text('AEA', 20, 23);
+    
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(18);
-    doc.text('FICHA DE INSCRIPCIÓN', 105, yPos, { align: 'center' });
-    yPos += 7;
-    doc.setFontSize(14);
-    doc.text('Auto Escuela Americana', 105, yPos, { align: 'center' });
-    yPos += 15;
+    doc.text('Ficha de Inscripción', pageWidth / 2, 23, { align: 'center' });
+    yPos = 50;
 
-    doc.setFontSize(12);
-    doc.text('CURSO: Manejo de Vehículos', 15, yPos);
-    yPos += 10;
-
-    doc.setFontSize(14);
-    doc.text('DATOS DEL ALUMNO', 15, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    doc.text(`- Nombre: ${values.name}`, 20, yPos);
-    yPos += 7;
-    doc.text(`- Teléfono: ${values.phone}`, 20, yPos);
-    yPos += 10;
-
-    doc.setFontSize(14);
-    doc.text('DETALLES DEL CURSO', 15, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    doc.text(`- Fechas: ${finalDateString}`, 20, yPos);
-    yPos += 7;
-    doc.text(`- Hora: ${formattedTime}`, 20, yPos);
-    yPos += 7;
-    doc.text(`- Transmisión: ${values.transmission}`, 20, yPos);
-    yPos += 7;
-    const meetingPointLines = doc.splitTextToSize(`- Punto de Encuentro: ${puntoDeEncuentroMsg}`, 170);
-    doc.text(meetingPointLines, 20, yPos);
-    yPos += (meetingPointLines.length * 6);
-    yPos += 3;
-
-    if (values.requiereConstancia) {
+    // --- Helper function for sections ---
+    const drawSection = (title: string, content: () => void) => {
+        if (yPos > pageHeight - 40) {
+            doc.addPage();
+            yPos = 20;
+        }
         doc.setFontSize(14);
-        doc.text('TRÁMITE SEMOVI', 15, yPos);
-        yPos += 7;
-        doc.setFontSize(12);
-        doc.text('- Se requiere constancia para permiso de conducir.', 20, yPos);
-        yPos += 6;
-        doc.text('- El alumno enviará su CURP en PDF por WhatsApp.', 20, yPos);
-        yPos += 10;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(primaryColor);
+        doc.text(title, 15, yPos);
+        yPos += 2;
+        doc.setDrawColor('#DDDDDD');
+        doc.line(15, yPos, pageWidth - 15, yPos);
+        yPos += 8;
+        
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor('#333333');
+        content();
+        yPos += 8;
+    };
+    
+    const drawKeyValuePair = (key: string, value: string) => {
+        const keyWidth = doc.getTextWidth(key);
+        const valueX = 20 + keyWidth + 5;
+        const valueLines = doc.splitTextToSize(value, pageWidth - valueX - 20);
+        
+        if (yPos + (valueLines.length * 6) > pageHeight - 30) {
+             doc.addPage();
+             yPos = 20;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(key, 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(valueLines, valueX, yPos);
+        yPos += (valueLines.length * 5) + 4;
+    };
+
+
+    // --- Datos del Alumno ---
+    drawSection('Datos del Alumno', () => {
+        drawKeyValuePair('Nombre:', values.name);
+        drawKeyValuePair('Teléfono:', values.phone);
+    });
+
+    // --- Detalles del Curso ---
+    drawSection('Detalles del Curso', () => {
+        drawKeyValuePair('Fechas:', finalDateString);
+        drawKeyValuePair('Hora:', formattedTime);
+        drawKeyValuePair('Transmisión:', values.transmission);
+        
+        let puntoDeEncuentroMsgFull = values.meetingPoint;
+        if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
+            puntoDeEncuentroMsgFull = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
+        } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
+            puntoDeEncuentroMsgFull = `Domicilio del alumno: ${values.address}`;
+        }
+        drawKeyValuePair('Punto de Encuentro:', puntoDeEncuentroMsgFull);
+    });
+    
+    // --- Trámite SEMOVI ---
+    if (values.requiereConstancia) {
+        drawSection('Trámite SEMOVI', () => {
+            const text = '- Sí, se requiere constancia para permiso de conducir.\n- El alumno enviará su CURP en formato PDF por WhatsApp.';
+            const lines = doc.splitTextToSize(text, pageWidth - 40);
+            doc.text(lines, 20, yPos);
+            yPos += (lines.length * 5) + 4;
+        });
     }
 
-    doc.setFontSize(14);
-    doc.text('OBSERVACIONES:', 15, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    const observacionesLines = doc.splitTextToSize(values.observaciones || '[Espacio para agregar observaciones o comentarios]', 175);
-    doc.text(observacionesLines, 15, yPos);
-    yPos += (observacionesLines.length * 6);
-    yPos += 3;
+    // --- Observaciones y Notas ---
+    const hasObservaciones = values.observaciones && values.observaciones.trim() !== '';
+    const hasNota = values.nota && values.nota.trim() !== '';
 
-    doc.setFontSize(14);
-    doc.text('NOTA:', 15, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    const notaLines = doc.splitTextToSize(values.nota || '[Espacio para agregar notas importantes]', 175);
-    doc.text(notaLines, 15, yPos);
+    if (hasObservaciones || hasNota) {
+         drawSection('Información Adicional', () => {
+            if (hasObservaciones) {
+                drawKeyValuePair('Observaciones:', values.observaciones!);
+            }
+            if (hasNota) {
+                drawKeyValuePair('Nota Adicional:', values.nota!);
+            }
+        });
+    }
+    
+    // --- Footer ---
+    const finalYPos = pageHeight - 25;
+    doc.setDrawColor('#CCCCCC');
+    doc.line(15, finalYPos, pageWidth - 15, finalYPos);
+    
+    doc.setFontSize(9);
+    doc.setTextColor('#777777');
+    doc.text('Auto Escuela Americana | www.autoescuelaamericana.com | WhatsApp: 52 56 3443 3212', pageWidth / 2, finalYPos + 8, { align: 'center' });
+
 
     doc.save(`Ficha-${values.name.replace(/\s/g, '_')}.pdf`);
 
