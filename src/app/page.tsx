@@ -149,7 +149,7 @@ export default function Home() {
         <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
           <Link href="/chatbot">
             <Bot className="mr-2 h-4 w-4" />
-            Chat con IA (Servicio al Cliente)
+            IA Bot
           </Link>
         </Button>
         <Button asChild className="w-full">
