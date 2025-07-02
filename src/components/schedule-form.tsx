@@ -32,13 +32,16 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
-  times: z.array(z.string()).refine((value) => value.length > 0, {
-    message: 'Debes seleccionar al menos un horario.',
-  }),
+  schedule: z.record(z.array(z.string()))
+    .refine(
+      (schedule) => Object.values(schedule).every((times) => times.length > 0),
+      { message: 'Debes seleccionar al menos un horario para cada fecha.' }
+    ),
   transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
   meetingPoint: z.string({ required_error: 'Debes seleccionar un punto de encuentro.' }),
   address: z.string().optional(),
@@ -88,7 +91,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     defaultValues: {
       name: '',
       phone: '',
-      times: [],
+      schedule: {},
       terms: false,
       address: '',
       suggestedMeetingPoint: '',
@@ -98,27 +101,38 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     },
   });
 
+  useEffect(() => {
+    const newSchedule = selectedDates.reduce((acc, date) => {
+        const dateString = format(date, 'yyyy-MM-dd');
+        acc[dateString] = form.getValues(`schedule.${dateString}`) || [];
+        return acc;
+    }, {} as Record<string, string[]>);
+    
+    form.setValue('schedule', newSchedule, { shouldValidate: true });
+}, [selectedDates, form]);
+
   const meetingPoint = form.watch('meetingPoint');
   const requiereConstancia = form.watch('requiereConstancia');
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const whatsAppNumber = "525634433212";
 
-    // Date formatting
-    const dateStrings = selectedDates.map(date => format(date, "d 'de' MMMM", { locale: es }));
-    const year = selectedDates.length > 0 ? format(selectedDates[0], 'yyyy') : '';
-    const finalDateString = selectedDates.length > 0 ? `${dateStrings.join(', ')} de ${year}` : "Fechas no seleccionadas";
+    // Schedule formatting
+    const scheduleDetails = Object.entries(values.schedule).map(([dateStr, times]) => {
+      // Add timezone offset to avoid date shifting issues
+      const date = new Date(dateStr + 'T12:00:00Z');
+      const formattedDate = format(date, "EEEE d 'de' MMMM", { locale: es });
+      const formattedTimes = times.sort().map(time => {
+          const [hourStr, minuteStr] = time.split(':');
+          let hour = parseInt(hourStr, 10);
+          const ampm = hour >= 12 ? 'pm' : 'am';
+          hour = hour % 12;
+          hour = hour ? hour : 12; // The hour '0' should be '12'
+          return `${hour}:${minuteStr} ${ampm}`;
+      }).join(', ');
+      return `- *${formattedDate}:* ${formattedTimes}`;
+    }).join('\n');
     
-    // Time formatting
-    const formattedTimes = values.times.sort().map(time => {
-        const [hourStr, minuteStr] = time.split(':');
-        let hour = parseInt(hourStr, 10);
-        const ampm = hour >= 12 ? 'pm' : 'am';
-        hour = hour % 12;
-        hour = hour ? hour : 12; // The hour '0' should be '12'
-        return `${hour}:${minuteStr} ${ampm}`;
-    }).join(', ');
-
     // Meeting point formatting
     let puntoDeEncuentroMsg = values.meetingPoint;
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
@@ -135,8 +149,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     message += `- *Nombre:* ${values.name}\n`;
     message += `- *Teléfono:* ${values.phone}\n\n`;
     message += `*DETALLES DEL CURSO*\n\n`;
-    message += `- *Fechas:* ${finalDateString}\n`;
-    message += `- *Horarios:* ${formattedTimes}\n`;
+    message += `*FECHAS Y HORARIOS:*\n${scheduleDetails}\n\n`;
     message += `- *Transmisión:* ${values.transmission}\n`;
     message += `- *Punto de Encuentro:* ${puntoDeEncuentroMsg}\n\n`;
 
@@ -177,7 +190,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     y += 10;
 
     // --- Helper for drawing a section ---
-    const drawSection = (title: string, contentPairs: string[][]) => {
+    const drawSection = (title: string, contentPairs: (string | [string, string])[]) => {
         if (y > pageHeight - 60) { // Check for page break
             doc.addPage();
             y = 20;
@@ -192,21 +205,31 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         doc.setLineWidth(0.5);
         doc.line(15, y - 2, pageWidth - 15, y - 2);
 
-        contentPairs.forEach(([label, value]) => {
+        contentPairs.forEach((item) => {
             if (y > pageHeight - 30) {
                 doc.addPage();
                 y = 20;
             }
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor('#555555');
-            doc.text(label, 20, y);
+            
+            if (typeof item === 'string') {
+              doc.setFont('helvetica', 'normal');
+              doc.setTextColor('#000000');
+              const valueLines = doc.splitTextToSize(item, pageWidth - 35);
+              doc.text(valueLines, 20, y);
+              y += (valueLines.length * 5) + 4;
+            } else {
+              const [label, value] = item;
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor('#555555');
+              doc.text(label, 20, y);
 
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor('#000000');
-            const valueLines = doc.splitTextToSize(value, pageWidth - 95);
-            doc.text(valueLines, 70, y);
-            y += (valueLines.length * 5) + 4;
+              doc.setFont('helvetica', 'normal');
+              doc.setTextColor('#000000');
+              const valueLines = doc.splitTextToSize(value, pageWidth - 95);
+              doc.text(valueLines, 70, y);
+              y += (valueLines.length * 5) + 4;
+            }
         });
         y += 5; // Space after section
     };
@@ -224,13 +247,20 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
         puntoDeEncuentroMsgFull = `Domicilio del alumno: ${values.address}`;
     }
+    
+    const scheduleDetailsPdf = Object.entries(values.schedule).map(([dateStr, times]) => {
+      const date = new Date(dateStr + 'T12:00:00Z');
+      const formattedDate = format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
+      const formattedTimes = times.sort().join(', ');
+      return `${formattedDate}: ${formattedTimes}`;
+    });
 
     drawSection('DETALLES DEL CURSO', [
-        ['Fechas Seleccionadas:', finalDateString],
-        ['Horarios Seleccionados:', formattedTimes],
         ['Tipo de Transmisión:', values.transmission],
         ['Punto de Encuentro:', puntoDeEncuentroMsgFull],
     ]);
+    
+    drawSection('FECHAS Y HORARIOS', scheduleDetailsPdf);
 
     // --- Trámite SEMOVI ---
     if (values.requiereConstancia) {
@@ -244,7 +274,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     const observaciones = values.observaciones?.trim();
     const nota = values.nota?.trim();
     if (observaciones || nota) {
-        const additionalInfo: string[][] = [];
+        const additionalInfo: [string, string][] = [];
         if (observaciones) {
             additionalInfo.push(['Observaciones:', observaciones]);
         }
@@ -315,57 +345,65 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="times"
-          render={() => (
-            <FormItem>
-              <div className="space-y-1.5">
-                <FormLabel>Horarios Disponibles para cada día</FormLabel>
-                <FormDescription>
-                    Puedes seleccionar uno o varios horarios.
-                </FormDescription>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-2">
-                {availableTimes.map((item) => (
-                  <FormField
-                    key={item}
-                    control={form.control}
-                    name="times"
-                    render={({ field }) => {
-                      return (
-                        <FormItem
-                          key={item}
-                          className="flex flex-row items-center space-x-2 space-y-0"
-                        >
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value?.includes(item)}
-                              onCheckedChange={(checked) => {
-                                const currentValues = field.value ?? [];
-                                return checked
-                                  ? field.onChange([...currentValues, item])
-                                  : field.onChange(
-                                      currentValues.filter(
-                                        (value) => value !== item
-                                      )
-                                    );
-                              }}
-                            />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">
-                            {item}
-                          </FormLabel>
-                        </FormItem>
-                      );
-                    }}
-                  />
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
+        <div className="space-y-4">
+            <FormLabel>Horarios Disponibles</FormLabel>
+            <FormDescription>
+                Selecciona uno o varios horarios para cada día de tu curso.
+            </FormDescription>
+            {selectedDates.map(date => {
+                const dateString = format(date, 'yyyy-MM-dd');
+                return (
+                    <div key={dateString} className="rounded-md border p-4 space-y-2">
+                        <h4 className="font-semibold text-foreground">{format(date, "EEEE, d 'de' MMMM", { locale: es })}</h4>
+                        <FormField
+                            control={form.control}
+                            name={`schedule.${dateString}`}
+                            render={() => (
+                                <FormItem>
+                                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-2">
+                                        {availableTimes.map(time => (
+                                            <FormField
+                                                key={time}
+                                                control={form.control}
+                                                name={`schedule.${dateString}`}
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <Checkbox
+                                                                checked={field.value?.includes(time)}
+                                                                onCheckedChange={checked => {
+                                                                    const currentValues = field.value || [];
+                                                                    return checked
+                                                                        ? field.onChange([...currentValues, time])
+                                                                        : field.onChange(currentValues.filter(value => value !== time));
+                                                                }}
+                                                            />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal cursor-pointer">{time}</FormLabel>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )
+            })}
+             <FormField
+                control={form.control}
+                name="schedule"
+                render={() => (
+                    <FormItem>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+        </div>
+
 
         <FormField
           control={form.control}
