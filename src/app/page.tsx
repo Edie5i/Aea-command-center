@@ -294,7 +294,7 @@ export default function Home() {
           </div>
           <Button asChild className="shrink-0 mt-4 sm:mt-0">
             <a
-              href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+              href="https://g.co/kgs/6Ks1oGz"
               target="_blank"
               rel="noopener noreferrer"
             >
