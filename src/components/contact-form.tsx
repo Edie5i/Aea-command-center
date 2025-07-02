@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Phone, User, MessageSquare } from 'lucide-react';
+import { Phone, User, MessageSquare, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -16,11 +16,26 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
+  alcaldia: z.string({ required_error: 'Por favor, selecciona tu alcaldía.' }),
 });
+
+const alcaldias = [
+  "Álvaro Obregón", "Azcapotzalco", "Benito Juárez", "Coyoacán", 
+  "Cuajimalpa de Morelos", "Cuauhtémoc", "Gustavo A. Madero", 
+  "Iztacalco", "Iztapalapa", "La Magdalena Contreras", "Miguel Hidalgo",
+  "Milpa Alta", "Tláhuac", "Tlalpan", "Venustiano Carranza", "Xochimilco"
+];
 
 export function ContactForm() {
   const { toast } = useToast();
@@ -29,6 +44,7 @@ export function ContactForm() {
     defaultValues: {
       name: '',
       phone: '',
+      alcaldia: '',
     },
   });
 
@@ -37,7 +53,8 @@ export function ContactForm() {
     
     const message = `¡Hola! Me gustaría más información sobre los cursos de manejo.
 *Nombre:* ${values.name}
-*Teléfono:* ${values.phone}`;
+*Teléfono:* ${values.phone}
+*Alcaldía:* ${values.alcaldia}`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
@@ -100,6 +117,31 @@ export function ContactForm() {
                     )}
                     />
                 </div>
+                 <FormField
+                    control={form.control}
+                    name="alcaldia"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Alcaldía</FormLabel>
+                             <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger className="pl-10">
+                                        <SelectValue placeholder="Selecciona tu alcaldía" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {alcaldias.map((alcaldia) => (
+                                        <SelectItem key={alcaldia} value={alcaldia}>{alcaldia}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <div className="flex justify-end">
                 <Button type="submit">
                     Enviar por WhatsApp
