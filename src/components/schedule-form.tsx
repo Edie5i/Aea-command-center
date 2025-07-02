@@ -165,136 +165,217 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
     window.open(whatsappUrl, '_blank');
 
-    // PDF Generation - Redesigned for a professional look
+    // PDF Generation - Inspired by professional templates
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 15; // Initial Y position
+    let y = 0;
+
+    const primaryColor = '#2563EB'; // Blue
+    const grayColor = '#F3F4F6'; // Light gray
+    const textColor = '#374151'; // Dark gray
+    const lightTextColor = '#6B7281'; // Lighter gray
+
+    // --- Page Border ---
+    doc.setDrawColor(grayColor);
+    doc.setLineWidth(1.5);
+    doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
 
     // --- Header ---
-    const primaryColor = '#2563EB'; // approx. from hsl(221.2 83.2% 53.3%)
+    y = 20;
+    // Logo Placeholder - A simple "AEA" in a circle
     doc.setFillColor(primaryColor);
-    doc.rect(0, 0, pageWidth, 25, 'F');
-    doc.setFontSize(16);
+    doc.circle(25, y, 10, 'F');
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor('#FFFFFF');
-    doc.text('FICHA DE INSCRIPCIÓN', pageWidth / 2, 17, { align: 'center' });
+    doc.text('AEA', 25, y + 3, { align: 'center' });
+    
+    // School Name and Contact
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(textColor);
+    doc.text('Auto Escuela Americana', 45, y - 2);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(lightTextColor);
+    doc.text('Torreón #49, Roma Sur, CDMX', 45, y + 4);
+    doc.text('www.autoescuelaamericana.com', 45, y + 8);
+
+    // Document Title
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(primaryColor);
+    doc.text('FICHA DE INSCRIPCIÓN', pageWidth - 15, y, { align: 'right' });
 
     y += 20;
+    doc.setDrawColor(grayColor);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, pageWidth - 15, y);
+    y += 15;
 
-    // --- Date ---
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor('#333333');
-    doc.text(`Fecha de Emisión: ${format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es })}`, pageWidth - 15, y, { align: 'right' });
-    y += 10;
 
     // --- Helper for drawing a section ---
-    const drawSection = (title: string, contentPairs: (string | [string, string])[]) => {
-        if (y > pageHeight - 60) { // Check for page break
+    const drawSection = (title: string, contentPairs: ([string, string])[], isTwoColumn = false) => {
+        if (y > pageHeight - 60) {
             doc.addPage();
+            // Re-draw border on new page
+            doc.setDrawColor(grayColor);
+            doc.setLineWidth(1.5);
+            doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
             y = 20;
         }
+
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(primaryColor);
+        doc.setTextColor(textColor);
         doc.text(title, 15, y);
-        y += 7;
+        y += 8;
 
-        doc.setDrawColor('#DDDDDD');
-        doc.setLineWidth(0.5);
-        doc.line(15, y - 2, pageWidth - 15, y - 2);
+        if (isTwoColumn) {
+            const midPoint = pageWidth / 2 + 5;
+            contentPairs.forEach(([label, value], index) => {
+                 if (y > pageHeight - 40) {
+                    doc.addPage();
+                    doc.setDrawColor(grayColor);
+                    doc.setLineWidth(1.5);
+                    doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+                    y = 20;
+                }
+                const xPos = (index % 2 === 0) ? 15 : midPoint;
+                if (index > 0 && index % 2 === 0) y += 12;
 
-        contentPairs.forEach((item) => {
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(lightTextColor);
+                doc.text(label, xPos, y);
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(textColor);
+                doc.text(value, xPos, y + 5);
+            });
+            y+= 12;
+        } else {
+             contentPairs.forEach(([label, value]) => {
+                if (y > pageHeight - 40) {
+                    doc.addPage();
+                    doc.setDrawColor(grayColor);
+                    doc.setLineWidth(1.5);
+                    doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+                    y = 20;
+                }
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(lightTextColor);
+                doc.text(label, 15, y);
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(textColor);
+                const valueLines = doc.splitTextToSize(value, pageWidth - 30);
+                doc.text(valueLines, 15, y + 5);
+                y += (valueLines.length * 5) + 5;
+            });
+        }
+        
+        y += 5;
+    };
+    
+    const drawScheduleSection = (title: string, scheduleItems: string[]) => {
+        if (y > pageHeight - 60) {
+            doc.addPage();
+            doc.setDrawColor(grayColor);
+            doc.setLineWidth(1.5);
+            doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+            y = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(textColor);
+        doc.text(title, 15, y);
+        y += 8;
+
+        scheduleItems.forEach(item => {
             if (y > pageHeight - 30) {
                 doc.addPage();
+                doc.setDrawColor(grayColor);
+                doc.setLineWidth(1.5);
+                doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
                 y = 20;
             }
             doc.setFontSize(10);
-            
-            if (typeof item === 'string') {
-              doc.setFont('helvetica', 'normal');
-              doc.setTextColor('#000000');
-              const valueLines = doc.splitTextToSize(item, pageWidth - 35);
-              doc.text(valueLines, 20, y);
-              y += (valueLines.length * 5) + 4;
-            } else {
-              const [label, value] = item;
-              doc.setFont('helvetica', 'bold');
-              doc.setTextColor('#555555');
-              doc.text(label, 20, y);
-
-              doc.setFont('helvetica', 'normal');
-              doc.setTextColor('#000000');
-              const valueLines = doc.splitTextToSize(value, pageWidth - 95);
-              doc.text(valueLines, 70, y);
-              y += (valueLines.length * 5) + 4;
-            }
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(textColor);
+            doc.text(`• ${item}`, 20, y);
+            y += 6;
         });
-        y += 5; // Space after section
+        y += 5;
     };
 
-    // --- Alumno Section ---
-    drawSection('DATOS DEL ALUMNO', [
-        ['Nombre Completo:', values.name],
-        ['Teléfono de Contacto:', values.phone],
-    ]);
-
-    // --- Curso Section ---
+    // --- Alumno & Curso Section ---
     let puntoDeEncuentroMsgFull = values.meetingPoint;
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
         puntoDeEncuentroMsgFull = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
     } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
         puntoDeEncuentroMsgFull = `Domicilio del alumno: ${values.address}`;
     }
+
+    drawSection('DATOS GENERALES', [
+        ['Alumno:', values.name],
+        ['Teléfono:', values.phone],
+        ['Transmisión:', values.transmission],
+        ['Punto de Encuentro:', puntoDeEncuentroMsgFull],
+    ], true);
+
     
+    // --- Schedule Section ---
     const scheduleDetailsPdf = Object.entries(values.schedule).map(([dateStr, times]) => {
       const date = new Date(dateStr + 'T12:00:00Z');
-      const formattedDate = format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
+      const formattedDate = format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
       const formattedTimes = times.sort().join(', ');
       return `${formattedDate}: ${formattedTimes}`;
     });
 
-    drawSection('DETALLES DEL CURSO', [
-        ['Tipo de Transmisión:', values.transmission],
-        ['Punto de Encuentro:', puntoDeEncuentroMsgFull],
-    ]);
+    drawScheduleSection('FECHAS Y HORARIOS SOLICITADOS', scheduleDetailsPdf);
     
-    drawSection('FECHAS Y HORARIOS', scheduleDetailsPdf);
-
     // --- Trámite SEMOVI ---
     if (values.requiereConstancia) {
         drawSection('TRÁMITE ADICIONAL', [
             ['Constancia SEMOVI:', 'Sí, se requiere constancia para permiso de conducir.'],
-            ['Documentación:', 'El alumno enviará su CURP en formato PDF vía WhatsApp.'],
+            ['Documentación Adicional:', 'El alumno enviará su CURP en formato PDF vía WhatsApp.'],
         ]);
     }
 
-    // --- Info Adicional ---
+    // --- Observaciones ---
     const observaciones = values.observaciones?.trim();
-    const nota = values.nota?.trim();
-    if (observaciones || nota) {
-        const additionalInfo: [string, string][] = [];
-        if (observaciones) {
-            additionalInfo.push(['Observaciones:', observaciones]);
-        }
-        if (nota) {
-            additionalInfo.push(['Nota para Instructor:', nota]);
-        }
-        drawSection('INFORMACIÓN ADICIONAL', additionalInfo);
+    if (observaciones) {
+        drawSection('OBSERVACIONES', [
+             ['', observaciones]
+        ]);
     }
-
+    
+    // --- Nota ---
+    const nota = values.nota?.trim();
+    if (nota) {
+        drawSection('NOTA PARA INSTRUCTOR', [
+            ['', nota]
+        ]);
+    }
+    
     // --- Footer ---
-    const finalY = pageHeight - 20;
-    doc.setDrawColor('#DDDDDD');
+    const finalY = pageHeight - 15;
+    doc.setDrawColor(grayColor);
     doc.setLineWidth(0.5);
-    doc.line(15, finalY, pageWidth - 15, finalY);
-
+    doc.line(15, finalY - 5, pageWidth - 15, finalY - 5);
+    
     doc.setFontSize(8);
-    doc.setTextColor('#777777');
-    doc.text('Auto Escuela Americana', 15, finalY + 8);
-    doc.text('www.autoescuelaamericana.com', pageWidth / 2, finalY + 8, { align: 'center' });
-    doc.text(`Ficha generada por el sistema.`, pageWidth - 15, finalY + 8, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(lightTextColor);
+    doc.text(`Ficha generada el ${format(new Date(), "d/MM/yyyy", { locale: es })}. Este documento es una solicitud y está sujeto a confirmación.`,
+      pageWidth / 2, finalY, { align: 'center' });
 
 
     doc.save(`Ficha_Inscripcion_${values.name.replace(/\s/g, '_')}.pdf`);
