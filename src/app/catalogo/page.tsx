@@ -3,44 +3,21 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Info, AlertCircle, Search } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { 
+  ArrowLeft, 
+  Info, 
+  AlertCircle, 
+  Search,
+  ShoppingCart,
+  Plus,
+  Link as LinkIcon
+} from 'lucide-react';
 import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-const MopedIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="h-6 w-6"
-  >
-    <path d="M12 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-    <path d="M19 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-    <path d="m5 11 2.5 2.5" />
-    <path d="M6 13.5h1l2 2" />
-    <path d="m10.5 11.5 2-2 2.5 2.5" />
-    <path d="m14 8 2 2" />
-    <path d="M12 11.5V6a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v2" />
-  </svg>
-);
-
 
 export default function CatalogoPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -86,31 +63,36 @@ export default function CatalogoPage() {
   }, [courses, maxPrice]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col items-center text-center my-8 px-4">
-        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-          Auto Escuela Americana
-        </Link>
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Catálogo de Cursos
-        </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Elige el curso que mejor se adapte a tus necesidades. Todos los precios son en MXN.
-        </p>
-      </div>
-      
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-5xl mb-6 flex flex-wrap justify-center items-center gap-4">
-          <Button asChild variant="outline">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
-            </Link>
-          </Button>
-           <div className="flex-grow max-w-xs">
+    <main className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-10 w-full border-b bg-background/80 backdrop-blur-sm">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/">
+                <ArrowLeft className="h-5 w-5" />
+                <span className="sr-only">Volver al inicio</span>
+              </Link>
+            </Button>
+            <h1 className="text-xl font-bold">Catálogo</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" disabled>
+              <ShoppingCart className="h-5 w-5" />
+              <span className="sr-only">Carrito (Próximamente)</span>
+            </Button>
+            <Button variant="ghost" size="icon" disabled>
+              <LinkIcon className="h-5 w-5" />
+              <span className="sr-only">Copiar enlace (Próximamente)</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container flex-grow p-4 sm:p-6 md:p-8">
+        <div className="w-full max-w-sm mb-6">
             <Label htmlFor="price-filter" className="sr-only">Filtrar por precio máximo</Label>
             <div className="relative">
-                 <Input
+                <Input
                     id="price-filter"
                     type="number"
                     placeholder="Filtrar por precio máximo..."
@@ -120,7 +102,6 @@ export default function CatalogoPage() {
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
-          </div>
         </div>
         
         <div className="w-full max-w-5xl">
@@ -141,28 +122,29 @@ export default function CatalogoPage() {
                 </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex flex-col gap-4">
               {filteredCourses.map((course) => (
-                <Card key={course.id} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {course.title.includes('Motocicleta') && <MopedIcon />}
-                      {course.title}
-                    </CardTitle>
-                    <CardDescription>{course.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-3xl font-bold text-primary">${course.price}</p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild className="w-full">
-                        <Link href="/#contact-form">
-                            <Info className="mr-2 h-4 w-4" />
-                            Solicitar Información
-                        </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <div key={course.id} className="flex items-center gap-4 p-3 border rounded-xl shadow-sm hover:bg-muted/50 transition-colors">
+                  <Image
+                      src={course.imageUrl || `https://placehold.co/100x100.png`}
+                      alt={course.title}
+                      width={80}
+                      height={80}
+                      className="rounded-lg object-cover aspect-square"
+                      data-ai-hint="driving course"
+                  />
+                  <div className="flex-grow overflow-hidden">
+                      <h3 className="font-bold text-lg leading-tight truncate">{course.title}</h3>
+                      <p className="text-sm text-muted-foreground truncate">{course.description}</p>
+                      <p className="text-lg font-semibold text-primary mt-1">${course.price}</p>
+                  </div>
+                  <Button asChild size="icon" className="rounded-full flex-shrink-0">
+                      <Link href="/#contact-form">
+                          <Plus className="h-5 w-5" />
+                          <span className="sr-only">Solicitar Información</span>
+                      </Link>
+                  </Button>
+                </div>
               ))}
             </div>
           )}

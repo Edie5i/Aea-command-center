@@ -1,4 +1,3 @@
-
 'use server';
 
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
@@ -10,6 +9,7 @@ export interface Course {
   description: string;
   price: string;
   order?: number; // Optional: use this field in Firestore to control the display order
+  imageUrl?: string;
 }
 
 /**
