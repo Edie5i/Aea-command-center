@@ -45,7 +45,7 @@ export default async function CatalogoPage() {
     courses = await getCourses();
   } catch (e) {
     console.error("Failed to fetch courses:", e);
-    error = "No se pudieron cargar los cursos. Por favor, asegúrate de que la configuración de Firebase sea correcta y que la colección 'courses' exista en Firestore.";
+    error = "No se pudieron cargar los cursos. Por favor, verifica tu conexión y asegúrate de que la configuración de Firebase en el archivo .env sea correcta. La colección 'courses' debe existir en Firestore.";
   }
 
   return (
