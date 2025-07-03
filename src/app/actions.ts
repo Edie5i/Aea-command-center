@@ -4,8 +4,6 @@
 import { z } from 'zod';
 import { generateDrivingTips } from '@/ai/flows/generate-integration-instructions';
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
-import { getAuthenticatedCalendarClient, GOOGLE_AUTH_TOKEN_COOKIE_KEY } from '@/lib/google-auth';
-import { cookies } from 'next/headers';
 
 const inputSchema = z.object({
   topic: z.string().min(3, { message: 'El tema debe tener al menos 3 caracteres.' }),
@@ -46,43 +44,5 @@ export async function getChatbotResponseAction(message: string) {
     }
     console.error('Error al obtener respuesta del chatbot:', error);
     return { response: null, error: 'Ocurrió un error inesperado. Por favor, revisa los registros del servidor.' };
-  }
-}
-
-export async function isGoogleCalendarConnected() {
-  const cookieStore = cookies();
-  return cookieStore.has(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
-}
-
-export async function createCalendarEventAction(eventDetails: {
-  summary: string;
-  description: string;
-  start: { dateTime: string; timeZone: string };
-  end: { dateTime: string; timeZone: string };
-}) {
-  try {
-    const calendar = await getAuthenticatedCalendarClient();
-    if (!calendar) {
-      return { success: false, error: 'El administrador no está autenticado con Google Calendar.' };
-    }
-
-    await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody: {
-        ...eventDetails,
-        reminders: {
-          useDefault: false,
-          overrides: [
-            { method: 'email', minutes: 24 * 60 },
-            { method: 'popup', minutes: 120 },
-          ],
-        },
-      },
-    });
-
-    return { success: true };
-  } catch (error: any) {
-    console.error('Error al crear el evento de calendario:', error);
-    return { success: false, error: error.message || 'Ocurrió un error desconocido.' };
   }
 }

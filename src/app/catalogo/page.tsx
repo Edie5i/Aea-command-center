@@ -30,16 +30,7 @@ export default function CatalogoPage() {
       } catch (e) {
         console.error("Failed to fetch courses:", e);
         const errorMessage = e instanceof Error ? e.message : String(e);
-
-        if (errorMessage.includes('ID de la Hoja de Cálculo')) {
-            setError("Error de configuración: Parece que no has configurado tu Hoja de Cálculo de Google. Por favor, ve al archivo `.env` y añade el ID de tu spreadsheet en la variable `NEXT_PUBLIC_GOOGLE_SHEET_ID`. Asegúrate también de que la cuenta de administrador esté conectada en la página `/admin`.");
-        } else if (errorMessage.includes('autenticado con Google')) {
-             setError("Error de autenticación: La cuenta de administrador no está conectada con Google. Por favor, ve a la página de `/admin` para conectar la cuenta y habilitar la lectura de cursos desde Google Sheets.");
-        } else if (errorMessage.includes('No se pudo encontrar la Hoja de Cálculo') || errorMessage.includes('Permiso denegado')) {
-             setError(`Error de acceso: ${errorMessage} Asegúrate de que el ID es correcto, el nombre de la hoja existe, y que la hoja es accesible para la cuenta de Google conectada.`);
-        } else {
-            setError(`No se pudieron cargar los cursos. Error: ${errorMessage}`);
-        }
+        setError(`No se pudieron cargar los cursos. Error: ${errorMessage}`);
       } finally {
         setIsLoading(false);
       }
@@ -68,7 +59,7 @@ export default function CatalogoPage() {
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 text-muted-foreground pt-10">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <p>Cargando cursos desde Google Sheets...</p>
+                <p>Cargando cursos...</p>
             </div>
           ) : error ? (
             <Alert variant="destructive" className="mt-4">
@@ -81,7 +72,7 @@ export default function CatalogoPage() {
                 <Info className="h-4 w-4" />
                 <AlertTitle>No se encontraron cursos</AlertTitle>
                 <AlertDescription>
-                    No se encontraron cursos en la Hoja de Cálculo de Google. Por favor, asegúrate de que la hoja no esté vacía y que los datos comiencen en la segunda fila.
+                    No hay cursos configurados. Por favor, verifica la fuente de datos.
                 </AlertDescription>
             </Alert>
           ) : (
