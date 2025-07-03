@@ -33,7 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useEffect } from 'react';
-import { createCalendarEventAction } from '@/app/actions';
+import { createCalendarEventAction, isGoogleCalendarConnected } from '@/app/actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -306,59 +306,67 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
     doc.save(`Ficha_Inscripcion_${values.name.replace(/\s/g, '_')}.pdf`);
 
-    // Google Calendar Event Creation
-    let calendarSuccess = true;
-    try {
-      for (const [dateStr, times] of Object.entries(values.schedule)) {
-        for (const time of times) {
-          const [hours, minutes] = time.split(':').map(Number);
-          const startDateTime = new Date(dateStr);
-          startDateTime.setHours(hours, minutes, 0, 0);
-
-          const endDateTime = new Date(startDateTime);
-          endDateTime.setHours(endDateTime.getHours() + 1); // Assuming 1-hour classes
-
-          const eventDetails = {
-            summary: `Clase de manejo - ${values.name} (${values.transmission})`,
-            description: `<b>Alumno:</b> ${values.name}\n<b>Teléfono:</b> ${values.phone}\n<b>Punto de encuentro:</b> ${puntoDeEncuentroMsg}\n<b>Observaciones:</b> ${values.observaciones || 'N/A'}\n\n<i>Evento creado automáticamente desde la plataforma de AEA.</i>`,
-            start: {
-              dateTime: startDateTime.toISOString(),
-              timeZone: 'America/Mexico_City',
-            },
-            end: {
-              dateTime: endDateTime.toISOString(),
-              timeZone: 'America/Mexico_City',
-            },
-          };
-          
-          const result = await createCalendarEventAction(eventDetails);
-          if (!result.success) {
-            console.error("Failed to create Google Calendar event:", result.error);
-            calendarSuccess = false;
-          }
-        }
-      }
-    } catch (error) {
-       console.error("An exception occurred while creating Google Calendar event(s)", error);
-       calendarSuccess = false;
-    }
-
+    // --- User Feedback ---
     toast({
       title: '¡Ficha Generada!',
       description: 'Se abrirá WhatsApp y se descargará la ficha en formato PDF.',
     });
+    
+    // --- Google Calendar Event Creation ---
+    const calendarIsConnected = await isGoogleCalendarConnected();
+    if (calendarIsConnected) {
+      let calendarSuccess = true;
+      try {
+        for (const [dateStr, times] of Object.entries(values.schedule)) {
+          for (const time of times) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const startDateTime = new Date(dateStr);
+            startDateTime.setHours(hours, minutes, 0, 0);
 
-    if (calendarSuccess) {
-      toast({
-        title: '¡Cita Agregada al Calendario!',
-        description: 'La(s) clase(s) se han guardado en Google Calendar.',
-      });
+            const endDateTime = new Date(startDateTime);
+            endDateTime.setHours(endDateTime.getHours() + 1); // Assuming 1-hour classes
+
+            const eventDetails = {
+              summary: `Clase de manejo - ${values.name} (${values.transmission})`,
+              description: `<b>Alumno:</b> ${values.name}\n<b>Teléfono:</b> ${values.phone}\n<b>Punto de encuentro:</b> ${puntoDeEncuentroMsg}\n<b>Observaciones:</b> ${values.observaciones || 'N/A'}\n\n<i>Evento creado automáticamente desde la plataforma de AEA.</i>`,
+              start: {
+                dateTime: startDateTime.toISOString(),
+                timeZone: 'America/Mexico_City',
+              },
+              end: {
+                dateTime: endDateTime.toISOString(),
+                timeZone: 'America/Mexico_City',
+              },
+            };
+            
+            const result = await createCalendarEventAction(eventDetails);
+            if (!result.success) {
+              console.error("Failed to create Google Calendar event:", result.error);
+              calendarSuccess = false;
+              break; // Stop trying if one fails
+            }
+          }
+          if (!calendarSuccess) break;
+        }
+      } catch (error) {
+        console.error("An exception occurred while creating Google Calendar event(s)", error);
+        calendarSuccess = false;
+      }
+      
+      if (calendarSuccess) {
+        toast({
+          title: '¡Cita Agregada al Calendario!',
+          description: 'La clase se ha guardado en el Google Calendar del administrador.',
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error de Calendario',
+          description: 'No se pudo crear el evento en el calendario del administrador. La conexión puede estar vencida.',
+        });
+      }
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error de Calendario',
-        description: 'No se pudo crear el evento. Asegúrate de que el calendario del administrador esté conectado.',
-      });
+        console.log("Admin Google Calendar not connected. Skipping event creation.");
     }
     
     onCourseScheduled();
