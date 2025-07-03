@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Calendar as CalendarIcon, CalendarCheck, Sheet } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, Sheet } from 'lucide-react';
 import { isGoogleCalendarConnected } from '@/app/actions';
 
 export default function AdminPage() {

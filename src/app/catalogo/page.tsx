@@ -63,21 +63,21 @@ export default function CatalogoPage() {
         </div>
       </header>
 
-      <div className="container flex-grow p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-5xl">
+      <div className="container flex-grow p-4 sm:p-6 md:p-8 flex justify-center">
+        <div className="w-full max-w-4xl">
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground pt-10">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <p>Cargando cursos desde Google Sheets...</p>
             </div>
           ) : error ? (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Error al Cargar Cursos</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : courses.length === 0 ? (
-            <Alert>
+            <Alert className="mt-4">
                 <Info className="h-4 w-4" />
                 <AlertTitle>No se encontraron cursos</AlertTitle>
                 <AlertDescription>

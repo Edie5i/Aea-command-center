@@ -1,3 +1,4 @@
+
 import { google } from 'googleapis';
 import { cookies } from 'next/headers';
 
@@ -13,39 +14,6 @@ export function getOAuth2Client() {
     redirectURI
   );
 }
-
-async function getAuthenticatedClient<T>(
-    serviceGenerator: (options: { version: string; auth: any }) => T
-): Promise<T | null> {
-    const cookieStore = cookies();
-    const tokenCookie = cookieStore.get(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
-
-    if (!tokenCookie) {
-        return null;
-    }
-
-    try {
-        const tokens = JSON.parse(tokenCookie.value);
-        const oauth2Client = getOAuth2Client();
-        oauth2Client.setCredentials(tokens);
-
-        // Test the credentials by getting a new access token if the current one is expired.
-        // This will throw an error if the refresh token is invalid.
-        await oauth2Client.getAccessToken();
-
-        const service = serviceGenerator({ version: 'v3', auth: oauth2Client });
-        // A generic way to test credentials would be to make a lightweight, read-only call,
-        // but for now we trust getAccessToken() to suffice.
-
-        return service;
-    } catch (error) {
-        console.error('Error getting authenticated client:', error);
-        // If tokens are invalid (e.g., revoked), clear the cookie to allow re-authentication.
-        cookieStore.delete(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
-        return null;
-    }
-}
-
 
 export async function getAuthenticatedCalendarClient() {
   const cookieStore = cookies();

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getAuthenticatedSheetsClient } from '@/lib/google-auth';
@@ -22,7 +23,7 @@ export async function getCourses(): Promise<Course[]> {
   }
 
   const spreadsheetId = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID;
-  const sheetName = process.env.NEXT_PUBLIC_GOOGLE_SHEET_NAME;
+  const sheetName = process.env.NEXT_PUBLIC_GOOGLE_SHEET_NAME || 'Cursos';
 
   if (!spreadsheetId || spreadsheetId.startsWith('YOUR_')) {
     throw new Error('El ID de la Hoja de Cálculo de Google no está configurado. Por favor, agrégalo al archivo .env.');
@@ -31,7 +32,7 @@ export async function getCourses(): Promise<Course[]> {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${sheetName}!A2:E`, // Assumes row 1 is headers. Reads columns A (title) to E (imageUrl).
+      range: `'${sheetName}'!A2:E`, // Assumes row 1 is headers. Reads columns A (title) to E (imageUrl).
     });
 
     const rows = response.data.values;
