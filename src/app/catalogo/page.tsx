@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Info } from 'lucide-react';
+import { ArrowLeft, Info, AlertCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -10,54 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
-const courses = [
-  {
-    title: 'Curso Principiante (Automático)',
-    description: 'Perfecto si nunca has manejado. Aprende a conducir un coche automático con facilidad y confianza, enfocándote en las reglas de tránsito y maniobras esenciales. Para menores de edad, se puede tramitar la constancia para el permiso de conducir por $500 adicionales.',
-    price: '3,900.00',
-  },
-  {
-    title: 'Curso Principiante (Estándar)',
-    description: 'Aprende a dominar la transmisión manual desde cero. Este curso cubre el control del clutch, cambios de marcha y los fundamentos de la conducción segura. Para menores de edad, se puede tramitar la constancia para el permiso de conducir por $500 adicionales.',
-    price: '3,400.00',
-  },
-  {
-    title: 'Curso Intermedio',
-    description: 'Para personas que ya saben manejar pero quieren perfeccionar su técnica y ganar confianza.',
-    price: '2,600.00',
-  },
-  {
-    title: 'Curso de Reforzamiento',
-    description: '¿Dejaste de manejar por un tiempo? Retoma la confianza y actualiza tus conocimientos.',
-    price: '1,800.00',
-  },
-  {
-    title: 'Curso para Personas Nerviosas',
-    description: 'Un programa especial con paciencia y técnicas para superar la ansiedad al volante.',
-    price: '5,100.00',
-  },
-  {
-    title: 'Curso Mixto (Automático y Estándar)',
-    description: 'Aprende a dominar ambos tipos de transmisión y amplía tus habilidades de conducción.',
-    price: '5,100.00',
-  },
-  {
-    title: 'Curso en Coche Propio',
-    description: 'Clases personalizadas en tu propio vehículo para que te familiarices completamente con él.',
-    price: '3,900.00',
-  },
-  {
-    title: 'English Driving Course',
-    description: 'Complete driving lessons for all levels, conducted entirely in English.',
-    price: '4,800.00',
-  },
-  {
-    title: 'Curso de Motocicleta',
-    description: 'Curso de 8 horas para aprender a manejar motocicleta de forma segura y dominar las técnicas de conducción en la ciudad.',
-    price: '4,300.00',
-  },
-];
+import { getCourses, type Course } from '@/services/courseService';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const MopedIcon = () => (
   <svg
@@ -83,7 +37,17 @@ const MopedIcon = () => (
 );
 
 
-export default function CatalogoPage() {
+export default async function CatalogoPage() {
+  let courses: Course[] = [];
+  let error: string | null = null;
+
+  try {
+    courses = await getCourses();
+  } catch (e) {
+    console.error("Failed to fetch courses:", e);
+    error = "No se pudieron cargar los cursos. Por favor, asegúrate de que la configuración de Firebase sea correcta y que la colección 'courses' exista en Firestore.";
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
@@ -108,29 +72,47 @@ export default function CatalogoPage() {
           </Button>
         </div>
         
-        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <Card key={course.title} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {course.title.includes('Motocicleta') && <MopedIcon />}
-                  {course.title}
-                </CardTitle>
-                <CardDescription>{course.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                 <p className="text-3xl font-bold text-primary">${course.price}</p>
-              </CardContent>
-              <CardFooter>
-                 <Button asChild className="w-full">
-                    <Link href="/#contact-form">
-                        <Info className="mr-2 h-4 w-4" />
-                        Solicitar Información
-                    </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="w-full max-w-5xl">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error al Cargar Cursos</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : courses.length === 0 ? (
+            <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>No hay cursos disponibles</AlertTitle>
+                <AlertDescription>
+                    Parece que no hay cursos en la base de datos. Por favor, añade algunos en tu colección 'courses' de Firestore.
+                </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map((course) => (
+                <Card key={course.id} className="flex flex-col overflow-hidden shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      {course.title.includes('Motocicleta') && <MopedIcon />}
+                      {course.title}
+                    </CardTitle>
+                    <CardDescription>{course.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-3xl font-bold text-primary">${course.price}</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild className="w-full">
+                        <Link href="/#contact-form">
+                            <Info className="mr-2 h-4 w-4" />
+                            Solicitar Información
+                        </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       
