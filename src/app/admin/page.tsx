@@ -5,16 +5,16 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Calendar as CalendarIcon, CalendarCheck } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, CalendarCheck, Sheet } from 'lucide-react';
 import { isGoogleCalendarConnected } from '@/app/actions';
 
 export default function AdminPage() {
-  const [isCalendarConnected, setIsCalendarConnected] = useState(false);
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
   useEffect(() => {
     async function checkConnection() {
       const connected = await isGoogleCalendarConnected();
-      setIsCalendarConnected(connected);
+      setIsGoogleConnected(connected);
     }
     checkConnection();
   }, []);
@@ -42,22 +42,22 @@ export default function AdminPage() {
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
-            <CardTitle>Integración con Google Calendar</CardTitle>
+            <CardTitle>Integración con Google</CardTitle>
             <CardDescription>
-              Conecta tu cuenta de Google para que las clases agendadas se creen automáticamente en tu calendario principal. Solo el administrador necesita hacer esto una vez.
+              Conecta tu cuenta de Google para que las clases agendadas se creen automáticamente en tu calendario y para gestionar el catálogo de cursos desde una Hoja de Cálculo (Google Sheets). Solo el administrador necesita hacer esto una vez.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center pt-6">
-            <Button asChild variant="secondary" disabled={isCalendarConnected} className="w-full max-w-xs">
-              {isCalendarConnected ? (
+            <Button asChild variant="secondary" disabled={isGoogleConnected} className="w-full max-w-xs">
+              {isGoogleConnected ? (
                 <div className="flex items-center cursor-not-allowed">
                   <CalendarCheck className="mr-2 h-4 w-4" />
-                  Calendario Conectado
+                  Cuenta de Google Conectada
                 </div>
               ) : (
                 <Link href="/api/auth/google">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Conectar con Google Calendar
+                  <Sheet className="mr-2 h-4 w-4" />
+                  Conectar con Google
                 </Link>
               )}
             </Button>

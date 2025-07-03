@@ -9,7 +9,8 @@ import {
   ArrowLeft, 
   Info, 
   AlertCircle, 
-  Plus
+  Plus,
+  Loader2,
 } from 'lucide-react';
 import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -21,6 +22,8 @@ export default function CatalogoPage() {
 
   useEffect(() => {
     async function fetchCourses() {
+      setIsLoading(true);
+      setError(null);
       try {
         const fetchedCourses = await getCourses();
         setCourses(fetchedCourses);
@@ -28,12 +31,14 @@ export default function CatalogoPage() {
         console.error("Failed to fetch courses:", e);
         const errorMessage = e instanceof Error ? e.message : String(e);
 
-        if (errorMessage.includes('PERMISSION_DENIED') && errorMessage.includes('YOUR_PROJECT_ID')) {
-            setError("Parece que tu proyecto de Firebase no está configurado correctamente. El error indica que se está intentando conectar con 'YOUR_PROJECT_ID'. Por favor, ve al archivo `.env` en la raíz de tu proyecto y reemplaza los valores de ejemplo con las credenciales reales de tu proyecto de Firebase. Puedes encontrarlas en la configuración de tu proyecto en la consola de Firebase.");
-        } else if (errorMessage.includes('PERMISSION_DENIED')) {
-            setError("Se ha denegado el permiso para acceder a los cursos. Por favor, revisa las reglas de seguridad de tu base de datos Firestore en la Consola de Firebase para asegurar que la lectura de la colección 'courses' está permitida.");
+        if (errorMessage.includes('ID de la Hoja de Cálculo')) {
+            setError("Error de configuración: Parece que no has configurado tu Hoja de Cálculo de Google. Por favor, ve al archivo `.env` y añade el ID de tu spreadsheet en la variable `NEXT_PUBLIC_GOOGLE_SHEET_ID`. Asegúrate también de que la cuenta de administrador esté conectada en la página `/admin`.");
+        } else if (errorMessage.includes('autenticado con Google')) {
+             setError("Error de autenticación: La cuenta de administrador no está conectada con Google. Por favor, ve a la página de `/admin` para conectar la cuenta y habilitar la lectura de cursos desde Google Sheets.");
+        } else if (errorMessage.includes('No se pudo encontrar la Hoja de Cálculo') || errorMessage.includes('Permiso denegado')) {
+             setError(`Error de acceso: ${errorMessage} Asegúrate de que el ID es correcto, el nombre de la hoja existe, y que la hoja es accesible para la cuenta de Google conectada.`);
         } else {
-            setError("No se pudieron cargar los cursos. Por favor, verifica tu conexión y asegúrate de que la configuración de Firebase en el archivo .env sea correcta y que la colección 'courses' exista en Firestore.");
+            setError(`No se pudieron cargar los cursos. Error: ${errorMessage}`);
         }
       } finally {
         setIsLoading(false);
@@ -61,7 +66,10 @@ export default function CatalogoPage() {
       <div className="container flex-grow p-4 sm:p-6 md:p-8">
         <div className="w-full max-w-5xl">
           {isLoading ? (
-            <p className="text-center text-muted-foreground">Cargando cursos...</p>
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <p>Cargando cursos desde Google Sheets...</p>
+            </div>
           ) : error ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -73,7 +81,7 @@ export default function CatalogoPage() {
                 <Info className="h-4 w-4" />
                 <AlertTitle>No se encontraron cursos</AlertTitle>
                 <AlertDescription>
-                    Actualmente no hay cursos disponibles. Por favor, revisa que la colección 'courses' en Firestore no esté vacía.
+                    No se encontraron cursos en la Hoja de Cálculo de Google. Por favor, asegúrate de que la hoja no esté vacía y que los datos comiencen en la segunda fila.
                 </AlertDescription>
             </Alert>
           ) : (
