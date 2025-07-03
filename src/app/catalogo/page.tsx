@@ -9,9 +9,7 @@ import {
   ArrowLeft, 
   Info, 
   AlertCircle, 
-  ShoppingCart,
-  Plus,
-  Link as LinkIcon
+  Plus
 } from 'lucide-react';
 import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -56,16 +54,6 @@ export default function CatalogoPage() {
               </Link>
             </Button>
             <h1 className="text-xl font-bold">Catálogo de Cursos</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" disabled>
-              <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Carrito (Próximamente)</span>
-            </Button>
-            <Button variant="ghost" size="icon" disabled>
-              <LinkIcon className="h-5 w-5" />
-              <span className="sr-only">Copiar enlace (Próximamente)</span>
-            </Button>
           </div>
         </div>
       </header>

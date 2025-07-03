@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, CreditCard, ShoppingBag, Info, Hourglass } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, List, Info, Hourglass } from 'lucide-react';
 import { es } from 'date-fns/locale';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
@@ -76,7 +76,7 @@ export default function AgendaPage() {
           </Button>
           <Button asChild variant="outline">
             <Link href="/catalogo">
-                <ShoppingBag className="mr-2 h-4 w-4" />
+                <List className="mr-2 h-4 w-4" />
                 Ver Catálogo y Precios
             </Link>
           </Button>

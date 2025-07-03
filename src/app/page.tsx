@@ -6,7 +6,7 @@ import {
   CalendarDays, 
   MapPin, 
   CreditCard, 
-  ShoppingBag, 
+  List, 
   BookOpen, 
   BarChart3, 
   FileQuestion, 
@@ -154,7 +154,7 @@ export default function Home() {
         </Button>
         <Button asChild className="w-full">
             <Link href="/catalogo">
-                <ShoppingBag className="mr-2 h-4 w-4" />
+                <List className="mr-2 h-4 w-4" />
                 Catálogo
             </Link>
         </Button>
