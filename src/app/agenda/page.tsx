@@ -6,28 +6,21 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, CreditCard, List, Info, Hourglass, Calendar as CalendarIcon, CalendarCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, List, Info, Hourglass } from 'lucide-react';
 import { es } from 'date-fns/locale';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { isGoogleCalendarConnected } from '@/app/actions';
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
   const [submitted, setSubmitted] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [isCalendarConnected, setIsCalendarConnected] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    async function checkConnection() {
-      const connected = await isGoogleCalendarConnected();
-      setIsCalendarConnected(connected);
-    }
-    checkConnection();
   }, []);
 
   const mockAppointments = [
@@ -86,19 +79,6 @@ export default function AgendaPage() {
                 <List className="mr-2 h-4 w-4" />
                 Ver Catálogo y Precios
             </Link>
-          </Button>
-           <Button asChild variant="secondary" disabled={isCalendarConnected}>
-            {isCalendarConnected ? (
-                <div className="flex items-center cursor-not-allowed">
-                    <CalendarCheck className="mr-2 h-4 w-4" />
-                    Calendario Conectado
-                </div>
-            ) : (
-                <Link href="/api/auth/google">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    Conectar con Google Calendar
-                </Link>
-            )}
           </Button>
         </div>
         
