@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -9,21 +9,17 @@ import {
   ArrowLeft, 
   Info, 
   AlertCircle, 
-  Search,
   ShoppingCart,
   Plus,
   Link as LinkIcon
 } from 'lucide-react';
 import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 export default function CatalogoPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [maxPrice, setMaxPrice] = useState<string>('');
 
   useEffect(() => {
     async function fetchCourses() {
@@ -48,20 +44,6 @@ export default function CatalogoPage() {
     fetchCourses();
   }, []);
 
-  const filteredCourses = useMemo(() => {
-    if (!maxPrice) {
-      return courses;
-    }
-    const priceLimit = parseFloat(maxPrice);
-    if (isNaN(priceLimit)) {
-      return courses;
-    }
-    return courses.filter(course => {
-      const coursePrice = parseFloat(course.price.replace(/,/g, ''));
-      return !isNaN(coursePrice) && coursePrice <= priceLimit;
-    });
-  }, [courses, maxPrice]);
-
   return (
     <main className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 w-full border-b bg-background/80 backdrop-blur-sm">
@@ -73,7 +55,7 @@ export default function CatalogoPage() {
                 <span className="sr-only">Volver al inicio</span>
               </Link>
             </Button>
-            <h1 className="text-xl font-bold">Catálogo</h1>
+            <h1 className="text-xl font-bold">Catálogo de Cursos</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" disabled>
@@ -89,21 +71,6 @@ export default function CatalogoPage() {
       </header>
 
       <div className="container flex-grow p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-sm mb-6">
-            <Label htmlFor="price-filter" className="sr-only">Filtrar por precio máximo</Label>
-            <div className="relative">
-                <Input
-                    id="price-filter"
-                    type="number"
-                    placeholder="Filtrar por precio máximo..."
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    className="pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
-        </div>
-        
         <div className="w-full max-w-5xl">
           {isLoading ? (
             <p className="text-center text-muted-foreground">Cargando cursos...</p>
@@ -113,17 +80,17 @@ export default function CatalogoPage() {
               <AlertTitle>Error al Cargar Cursos</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-          ) : filteredCourses.length === 0 ? (
+          ) : courses.length === 0 ? (
             <Alert>
                 <Info className="h-4 w-4" />
                 <AlertTitle>No se encontraron cursos</AlertTitle>
                 <AlertDescription>
-                    No hay cursos que coincidan con tu búsqueda. Intenta con otro precio o revisa que la colección 'courses' en Firestore no esté vacía.
+                    Actualmente no hay cursos disponibles. Por favor, revisa que la colección 'courses' en Firestore no esté vacía.
                 </AlertDescription>
             </Alert>
           ) : (
             <div className="flex flex-col gap-4">
-              {filteredCourses.map((course) => (
+              {courses.map((course) => (
                 <div key={course.id} className="flex items-center gap-4 p-3 border rounded-xl shadow-sm hover:bg-muted/50 transition-colors">
                   <Image
                       src={course.imageUrl || `https://placehold.co/100x100.png`}
@@ -136,7 +103,7 @@ export default function CatalogoPage() {
                   <div className="flex-grow overflow-hidden">
                       <h3 className="font-bold text-lg leading-tight truncate">{course.title}</h3>
                       <p className="text-sm text-muted-foreground truncate">{course.description}</p>
-                      <p className="text-lg font-semibold text-primary mt-1">${course.price}</p>
+                      <p className="text-lg font-semibold text-primary mt-1">${course.price} MXN</p>
                   </div>
                   <Button asChild size="icon" className="rounded-full flex-shrink-0">
                       <Link href="/#contact-form">
