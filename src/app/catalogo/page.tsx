@@ -45,7 +45,15 @@ export default async function CatalogoPage() {
     courses = await getCourses();
   } catch (e) {
     console.error("Failed to fetch courses:", e);
-    error = "No se pudieron cargar los cursos. Por favor, verifica tu conexión y asegúrate de que la configuración de Firebase en el archivo .env sea correcta. La colección 'courses' debe existir en Firestore.";
+    const errorMessage = e instanceof Error ? e.message : String(e);
+
+    if (errorMessage.includes('PERMISSION_DENIED') && errorMessage.includes('YOUR_PROJECT_ID')) {
+        error = "Parece que tu proyecto de Firebase no está configurado correctamente. El error indica que se está intentando conectar con 'YOUR_PROJECT_ID'. Por favor, ve al archivo `.env` en la raíz de tu proyecto y reemplaza los valores de ejemplo con las credenciales reales de tu proyecto de Firebase. Puedes encontrarlas en la configuración de tu proyecto en la consola de Firebase.";
+    } else if (errorMessage.includes('PERMISSION_DENIED')) {
+        error = "Se ha denegado el permiso para acceder a los cursos. Por favor, revisa las reglas de seguridad de tu base de datos Firestore en la Consola de Firebase para asegurar que la lectura de la colección 'courses' está permitida.";
+    } else {
+        error = "No se pudieron cargar los cursos. Por favor, verifica tu conexión y asegúrate de que la configuración de Firebase en el archivo .env sea correcta y que la colección 'courses' exista en Firestore.";
+    }
   }
 
   return (
