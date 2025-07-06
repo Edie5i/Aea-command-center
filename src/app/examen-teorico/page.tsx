@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, CheckCircle, XCircle, User, Phone, Send } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, User, Phone, Send, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -345,9 +345,12 @@ export default function ExamenTeoricoPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
-        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-          Auto Escuela Americana
-        </Link>
+        <Button asChild variant="outline" className="mb-4">
+          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <Globe className="mr-2 h-4 w-4" />
+            www.autoescuelaamericana.com
+          </a>
+        </Button>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Examen Teórico de Manejo
         </h1>

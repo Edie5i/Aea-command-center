@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, Banknote, Landmark, User, MessageSquare, Send, CheckCircle } from 'lucide-react';
+import { ArrowLeft, FileText, Banknote, Landmark, User, MessageSquare, Send, CheckCircle, Globe } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -76,9 +76,12 @@ export default function TerminosPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
-        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-          Auto Escuela Americana
-        </Link>
+        <Button asChild variant="outline" className="mb-4">
+          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <Globe className="mr-2 h-4 w-4" />
+            www.autoescuelaamericana.com
+          </a>
+        </Button>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Términos y Condiciones
         </h1>

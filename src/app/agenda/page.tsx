@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, CreditCard, List, Info, Hourglass } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, List, Info, Hourglass, Globe } from 'lucide-react';
 import { es } from 'date-fns/locale';
 import { ScheduleForm } from '@/components/schedule-form';
 import { Separator } from '@/components/ui/separator';
@@ -50,9 +50,12 @@ export default function AgendaPage() {
           data-ai-hint="calendar schedule"
         />
         <div className="relative z-10 flex flex-col items-center text-center px-4">
-          <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-            Auto Escuela Americana
-          </Link>
+          <Button asChild variant="outline" className="mb-4 bg-background/80 backdrop-blur-sm hover:bg-background">
+            <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+              <Globe className="mr-2 h-4 w-4" />
+              www.autoescuelaamericana.com
+            </a>
+          </Button>
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
             Agenda tu Curso
           </h1>

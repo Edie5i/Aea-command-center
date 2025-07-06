@@ -13,7 +13,8 @@ import {
   Smile, 
   Star,
   FileText,
-  Bot
+  Bot,
+  Globe
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import jsPDF from "jspdf";
@@ -134,9 +135,12 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
-        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-          Auto Escuela Americana
-        </Link>
+        <Button asChild variant="outline" className="mb-4">
+          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <Globe className="mr-2 h-4 w-4" />
+            www.autoescuelaamericana.com
+          </a>
+        </Button>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
           Auto Escuela Americana
         </h1>

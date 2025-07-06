@@ -4,12 +4,18 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Globe } from 'lucide-react';
 
 export default function AdminPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
+        <Button asChild variant="outline" className="mb-4">
+          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <Globe className="mr-2 h-4 w-4" />
+            www.autoescuelaamericana.com
+          </a>
+        </Button>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Panel de Administrador
         </h1>

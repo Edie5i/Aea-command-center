@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Lightbulb, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Lightbulb, BarChart3, Globe } from 'lucide-react';
 
 type Question = {
   id: string;
@@ -147,9 +147,12 @@ export default function EvaluacionPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
-        <Link href="/" className="mb-4 text-sm text-primary hover:underline">
-          Auto Escuela Americana
-        </Link>
+        <Button asChild variant="outline" className="mb-4">
+          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <Globe className="mr-2 h-4 w-4" />
+            www.autoescuelaamericana.com
+          </a>
+        </Button>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Evalúa tus Habilidades
         </h1>
