@@ -194,5 +194,49 @@ export const programData = [
                 "No tomes alcohol si vas a manejar."
             ]
         }]
+    },
+    {
+        title: "14. Verificación, Seguro y Mantenimiento Básico",
+        content: [
+            {
+                heading: "Verificación Vehicular (CDMX)",
+                points: [
+                    "La verificación es un programa obligatorio para controlar las emisiones contaminantes.",
+                    "Se realiza dos veces al año según el engomado y último dígito de la placa.",
+                    "Calendario: Amarillo (5-6) Ene-Feb/Jul-Ago; Rosa (7-8) Feb-Mar/Ago-Sep; Rojo (3-4) Mar-Abr/Sep-Oct; Verde (1-2) Abr-May/Oct-Nov; Azul (9-0) May-Jun/Nov-Dic.",
+                    "Es un requisito indispensable para poder circular en la CDMX y área metropolitana."
+                ]
+            },
+            {
+                heading: "Seguro de Automóvil",
+                points: [
+                    "Es obligatorio contar con un seguro de Responsabilidad Civil para circular en la CDMX y en carreteras federales.",
+                    "Cobertura Amplia: Cubre daños a tu auto, robo total, y daños a terceros (personas y bienes).",
+                    "Cobertura Limitada: Cubre robo total y daños a terceros. No cubre los daños a tu propio vehículo.",
+                    "Responsabilidad Civil (Básica): Solo cubre los daños que ocasiones a otras personas o a sus bienes.",
+                    "Siempre lleva tu póliza de seguro (física o digital) en el vehículo."
+                ]
+            },
+            {
+                heading: "Mecánica Básica y Revisiones Clave",
+                points: [
+                    "Nivel de aceite: Revísalo cada mes con el motor frío. Un nivel bajo puede dañar gravemente el motor.",
+                    "Presión de llantas: Verifica la presión una vez al mes. La presión correcta (indicada en el manual o en la puerta del conductor) mejora la seguridad y ahorra combustible.",
+                    "Líquido de frenos: Debe revisarse en cada servicio. Un nivel bajo puede indicar fugas o desgaste de pastillas.",
+                    "Anticongelante/Refrigerante: Mantiene la temperatura del motor estable. Revisa el nivel regularmente.",
+                    "Luces: Pide a alguien que te ayude a verificar que todas las luces (altas, bajas, direccionales, freno, reversa) funcionen correctamente.",
+                    "Batería: Revisa que los postes no tengan corrosión (polvo blanco o verdoso). La mayoría de las baterías modernas no requieren mantenimiento, pero duran entre 3 y 5 años."
+                ]
+            },
+            {
+                heading: "Funciones Esenciales del Vehículo",
+                points: [
+                    "Luces Intermitentes / de Emergencia: Se usan para advertir a otros conductores de un peligro o si tu vehículo está detenido en un lugar riesgoso.",
+                    "Limpiaparabrisas: Familiarízate con las diferentes velocidades y con la función de lanzar líquido limpiador.",
+                    "Desempañador (Defroster): El delantero usa aire (frío o caliente) dirigido al parabrisas. El trasero es una resistencia eléctrica en el cristal. Son cruciales para la visibilidad en lluvia o frío.",
+                    "Freno de Mano / Estacionamiento: Asegura el vehículo al estacionar, especialmente en pendientes. Puede ser una palanca, un pedal o un botón electrónico."
+                ]
+            }
+        ]
     }
 ];
