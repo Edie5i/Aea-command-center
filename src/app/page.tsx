@@ -109,7 +109,7 @@ export default function Home() {
     }
 
     const whatsAppNumber = "525634433212"; // Admin number
-    const message = `*Solicitud de Entrevista para Instructor*\n\n` +
+    const message = `*Información de Aspirante a Instructor*\n\n` +
                     `*Nombre:* ${instructorName.trim()}\n` +
                     `*Teléfono:* ${instructorPhone.trim()}\n` +
                     `*Dirección:* ${instructorAddress.trim()}`;
@@ -202,7 +202,7 @@ export default function Home() {
       <div className="w-full max-w-3xl mb-8 flex justify-center">
         <Button onClick={() => setIsInstructorDialogOpen(true)} variant="outline">
             <User className="mr-2 h-4 w-4" />
-            Solicitar Entrevista
+            Instructores
         </Button>
       </div>
 
@@ -359,9 +359,9 @@ export default function Home() {
       <Dialog open={isInstructorDialogOpen} onOpenChange={setIsInstructorDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Solicitar Entrevista para Instructor</DialogTitle>
+            <DialogTitle>Información para Instructores</DialogTitle>
             <DialogDescription>
-              Ingresa tus datos y nos pondremos en contacto contigo para agendar una entrevista. La información será enviada por WhatsApp.
+              Si estás interesado en unirte a nuestro equipo, completa el formulario y nos pondremos en contacto contigo. La información será enviada por WhatsApp.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -407,7 +407,7 @@ export default function Home() {
               onClick={handleInstructorSubmit}
               disabled={!instructorName.trim() || !instructorPhone.trim() || !instructorAddress.trim()}
             >
-              Solicitar Entrevista
+              Enviar Información
             </Button>
           </DialogFooter>
         </DialogContent>
