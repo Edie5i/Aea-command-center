@@ -27,14 +27,8 @@ export async function chatWithBot(
   return chatbotFlow(input);
 }
 
-// Helper function to detect language based on character set
-function detectarIdioma(texto: string): 'es' | 'en' {
-  return /[a-zA-Z]/.test(texto) ? 'en' : 'es';
-}
-
 const ChatbotPromptInputSchema = z.object({
     message: z.string(),
-    instructions: z.string(),
     context: z.string(),
 });
 
@@ -43,9 +37,15 @@ const prompt = ai.definePrompt({
   name: 'chatbotPrompt',
   input: {schema: ChatbotPromptInputSchema},
   output: {schema: ChatWithBotOutputSchema},
-  prompt: `{{{instructions}}}
+  prompt: `You are "Auto EscuelaBot", an expert, friendly, and helpful virtual assistant for "Auto Escuela Americana", a driving school in Mexico City. Your main goal is to answer user questions concisely and accurately based ONLY on the information provided in the "INFORMACIÓN DISPONIBLE" section.
 
-Basado en esta información, responde a la siguiente pregunta del usuario de manera útil y concisa. No inventes información que no esté aquí. Si no sabes la respuesta, di amablemente que no tienes esa información y sugiere contactar a un asesor por WhatsApp.
+**Crucial Rules:**
+1.  **NEVER invent information.** If the answer is not in the provided context, politely state that you don't have that specific information and suggest contacting an advisor via WhatsApp.
+2.  **Answer in the same language as the user's question** (Spanish or English).
+3.  **Use formatting for clarity:** Use **bold text** to highlight key terms (like course names or prices) and use lists (\`-\`) for multiple items.
+4.  **Be proactive:** If a user's question relates to a specific page (like scheduling or prices), mention the page and its URL (e.g., "Puedes ver todos los detalles en nuestro catálogo en la página /catalogo").
+5.  **Pricing questions:** If asked about prices generally, focus on the beginner courses. When giving a price, always mention the course's benefits first, and then the cost. For example: "El Curso Principiante (Automático) es perfecto si nunca has manejado y cuesta **$3900.00 MXN**."
+6.  **Keep it brief:** Provide direct and concise answers.
 
 **INFORMACIÓN DISPONIBLE:**
 \`\`\`json
@@ -64,17 +64,10 @@ const chatbotFlow = ai.defineFlow(
     outputSchema: ChatWithBotOutputSchema,
   },
   async (input) => {
-    const idioma = detectarIdioma(input.message);
-    
-    const instructions = idioma === 'es'
-        ? 'Eres "Auto EscuelaBot", un asistente virtual amigable y servicial para "Auto Escuela Americana". Responde a las preguntas de los usuarios de manera rápida y concisa. Si preguntan por precios de forma general, enfócate en los cursos para principiantes. Al dar el precio de un curso, primero describe sus beneficios y luego proporciona el costo.'
-        : 'You are "Auto EscuelaBot", a friendly and helpful virtual assistant for "Auto Escuela Americana". Answer user questions quickly and concisely. If they ask about prices in general, focus on beginner courses. When giving a course price, first describe its benefits and then provide the cost.';
-
     const context = JSON.stringify(botContextData, null, 2);
 
     const {output} = await prompt({
         message: input.message,
-        instructions: instructions,
         context: context,
     });
     return output!;
