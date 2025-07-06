@@ -169,7 +169,7 @@ export default function Home() {
         </Button>
         <Button onClick={() => handleDocumentSelect('constancia')} className="w-full">
             <FileText className="mr-2 h-4 w-4" />
-            Constancia
+            Constancias
         </Button>
       </div>
 
@@ -280,7 +280,7 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>Generar Constancia de Menor de Edad</DialogTitle>
             <DialogDescription>
-              Ingresa los datos para generar la constancia y notificar por WhatsApp.
+              Ingresa los datos para generar la constancia. Se notificará por WhatsApp. Recuerda que también se necesita una foto digital del alumno con fondo blanco, a la altura de los hombros, que deberás solicitar por separado.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
