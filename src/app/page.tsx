@@ -24,7 +24,6 @@ import { InstructionsDisplay } from "@/components/instructions-display";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +41,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [key, setKey] = useState(0);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
-  const [documentToGenerate, setDocumentToGenerate] = useState<"constancia" | "laboral" | "diploma" | null>(null);
+  const [documentToGenerate, setDocumentToGenerate] = useState<'constancia' | null>(null);
   const [studentName, setStudentName] = useState('');
   const [curp, setCurp] = useState('');
 
@@ -69,33 +68,7 @@ export default function Home() {
     doc.save(`Constancia_Menor_Edad_${alumno.replace(/\s+/g, '_')}.pdf`);
   };
 
-  const generateCartaLaboral = (alumno: string) => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Carta Laboral de Curso Aprobado', 105, 20, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('A quien corresponda:', 20, 40);
-    doc.text(`Por medio de la presente, se hace constar que ${alumno}`, 20, 50);
-    doc.text('ha aprobado el curso de manejo impartido por Auto Escuela Americana,', 20, 57);
-    doc.text('demostrando las habilidades necesarias para una conducción segura.', 20, 64);
-    doc.save(`Carta_Laboral_${alumno.replace(/\s+/g, '_')}.pdf`);
-  };
-
-  const generateDiploma = (alumno: string) => {
-    const doc = new jsPDF();
-    doc.setFontSize(22);
-    doc.text('Diploma de Conducción', 105, 40, { align: 'center' });
-    doc.setFontSize(16);
-    doc.text('Otorgado a:', 105, 60, { align: 'center' });
-    doc.setFontSize(20);
-    doc.text(alumno, 105, 80, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('Por haber completado exitosamente el curso de manejo.', 105, 100, { align: 'center' });
-    doc.text('Auto Escuela Americana', 105, 120, { align: 'center' });
-    doc.save(`Diploma_${alumno.replace(/\s+/g, '_')}.pdf`);
-  };
-
-  const handleDocumentSelect = (docType: 'constancia' | 'laboral' | 'diploma') => {
+  const handleDocumentSelect = (docType: 'constancia') => {
     setDocumentToGenerate(docType);
     setStudentName('');
     setCurp('');
@@ -103,26 +76,16 @@ export default function Home() {
   };
 
   const handleGenerateDocument = () => {
-    if (!documentToGenerate || !studentName.trim()) return;
-
-    let docTitle = '';
-    let whatsAppMessageDetails = `*Para el alumno:* ${studentName.trim()}`;
-
-    if (documentToGenerate === 'constancia') {
-      if (curp.trim().length !== 18) {
-        return;
-      }
-      generateConstanciaMenor(studentName.trim(), curp.trim().toUpperCase());
-      docTitle = 'Constancia de Menor de Edad';
-      whatsAppMessageDetails += `\n*CURP:* ${curp.trim().toUpperCase()}`;
-    } else if (documentToGenerate === 'laboral') {
-      generateCartaLaboral(studentName.trim());
-      docTitle = 'Carta Laboral de Curso Aprobado';
-    } else if (documentToGenerate === 'diploma') {
-      generateDiploma(studentName.trim());
-      docTitle = 'Diploma';
+    if (!studentName.trim() || curp.trim().length !== 18) {
+      return;
     }
+
+    generateConstanciaMenor(studentName.trim(), curp.trim().toUpperCase());
     
+    const docTitle = 'Constancia de Menor de Edad';
+    let whatsAppMessageDetails = `*Para el alumno:* ${studentName.trim()}`;
+    whatsAppMessageDetails += `\n*CURP:* ${curp.trim().toUpperCase()}`;
+
     const whatsAppNumber = "525634433212";
     const message = `Se ha generado el siguiente documento:\n\n*Tipo:* ${docTitle}\n${whatsAppMessageDetails}`;
     const encodedMessage = encodeURIComponent(message);
@@ -130,6 +93,9 @@ export default function Home() {
     window.open(whatsappUrl, '_blank');
 
     setIsGeneratorOpen(false);
+    setDocumentToGenerate(null);
+    setStudentName('');
+    setCurp('');
   };
 
 
@@ -201,19 +167,10 @@ export default function Home() {
                 Pagos
             </Link>
         </Button>
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button className="w-full">
-                    <FileText className="mr-2 h-4 w-4" />
-                    Documentos
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleDocumentSelect('constancia')}>Constancia de Menor de Edad</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDocumentSelect('laboral')}>Carta Laboral de Curso Aprobado</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDocumentSelect('diploma')}>Diploma</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <Button onClick={() => handleDocumentSelect('constancia')} className="w-full">
+            <FileText className="mr-2 h-4 w-4" />
+            Constancia
+        </Button>
       </div>
 
       <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
@@ -321,9 +278,9 @@ export default function Home() {
       <Dialog open={isGeneratorOpen} onOpenChange={setIsGeneratorOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Generar Documento</DialogTitle>
+            <DialogTitle>Generar Constancia de Menor de Edad</DialogTitle>
             <DialogDescription>
-              Ingresa los datos para generar el documento y notificar por WhatsApp.
+              Ingresa los datos para generar la constancia y notificar por WhatsApp.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
