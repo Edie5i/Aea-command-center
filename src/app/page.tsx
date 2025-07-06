@@ -15,7 +15,8 @@ import {
   Star,
   FileText,
   Bot,
-  Globe
+  Globe,
+  User
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import jsPDF from "jspdf";
@@ -44,6 +45,10 @@ export default function Home() {
   const [documentToGenerate, setDocumentToGenerate] = useState<'constancia' | null>(null);
   const [studentName, setStudentName] = useState('');
   const [curp, setCurp] = useState('');
+  const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
+  const [instructorName, setInstructorName] = useState('');
+  const [instructorPhone, setInstructorPhone] = useState('');
+  const [instructorAddress, setInstructorAddress] = useState('');
 
   const handleTipsGenerated = (generatedTips: string[]) => {
     setTips(generatedTips);
@@ -96,6 +101,27 @@ export default function Home() {
     setDocumentToGenerate(null);
     setStudentName('');
     setCurp('');
+  };
+  
+  const handleInstructorSubmit = () => {
+    if (!instructorName.trim() || !instructorPhone.trim() || !instructorAddress.trim()) {
+        return;
+    }
+
+    const whatsAppNumber = "525634433212"; // Admin number
+    const message = `*Nuevo Registro de Instructor*\n\n` +
+                    `*Nombre:* ${instructorName.trim()}\n` +
+                    `*Teléfono:* ${instructorPhone.trim()}\n` +
+                    `*Dirección:* ${instructorAddress.trim()}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+
+    setIsInstructorDialogOpen(false);
+    setInstructorName('');
+    setInstructorPhone('');
+    setInstructorAddress('');
   };
 
 
@@ -170,6 +196,13 @@ export default function Home() {
         <Button onClick={() => handleDocumentSelect('constancia')} className="w-full">
             <FileText className="mr-2 h-4 w-4" />
             Constancias
+        </Button>
+      </div>
+
+      <div className="w-full max-w-3xl mb-8 flex justify-center">
+        <Button onClick={() => setIsInstructorDialogOpen(true)} variant="outline">
+            <User className="mr-2 h-4 w-4" />
+            Instructores
         </Button>
       </div>
 
@@ -318,6 +351,63 @@ export default function Home() {
               disabled={!studentName.trim() || (documentToGenerate === 'constancia' && curp.trim().length !== 18)}
             >
               Generar y Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isInstructorDialogOpen} onOpenChange={setIsInstructorDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Registro de Instructor</DialogTitle>
+            <DialogDescription>
+              Ingresa los datos del instructor. La información será enviada por WhatsApp para su registro.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="instructor-name" className="text-right">
+                Nombre
+              </Label>
+              <Input
+                id="instructor-name"
+                value={instructorName}
+                onChange={(e) => setInstructorName(e.target.value)}
+                className="col-span-3"
+                placeholder="Nombre completo del instructor"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="instructor-phone" className="text-right">
+                Teléfono
+              </Label>
+              <Input
+                id="instructor-phone"
+                value={instructorPhone}
+                onChange={(e) => setInstructorPhone(e.target.value)}
+                className="col-span-3"
+                placeholder="Número de WhatsApp"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="instructor-address" className="text-right">
+                Dirección
+              </Label>
+              <Input
+                id="instructor-address"
+                value={instructorAddress}
+                onChange={(e) => setInstructorAddress(e.target.value)}
+                className="col-span-3"
+                placeholder="Dirección completa"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={handleInstructorSubmit}
+              disabled={!instructorName.trim() || !instructorPhone.trim() || !instructorAddress.trim()}
+            >
+              Registrar y Notificar
             </Button>
           </DialogFooter>
         </DialogContent>
