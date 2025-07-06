@@ -3,13 +3,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, FileQuestion, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, User, Phone, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 type Question = {
   id: number;
@@ -251,15 +256,30 @@ type Result = {
   incorrectAnswers: number;
 };
 
+const examSchema = z.object({
+  studentName: z.string().min(2, { message: 'Por favor, ingresa tu nombre completo.' }),
+  phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
+});
+
+type ExamFormValues = z.infer<typeof examSchema>;
+
 export default function ExamenTeoricoPage() {
   const [answers, setAnswers] = useState<Answers>({});
   const [result, setResult] = useState<Result | null>(null);
+
+  const form = useForm<ExamFormValues>({
+    resolver: zodResolver(examSchema),
+    defaultValues: {
+        studentName: '',
+        phone: '',
+    },
+  });
 
   const handleAnswerChange = (questionId: number, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
-  const calculateResult = () => {
+  function onSubmit(data: ExamFormValues) {
     let correctCount = 0;
     examQuestions.forEach(question => {
       if (answers[question.id] === question.correctAnswer) {
@@ -268,17 +288,41 @@ export default function ExamenTeoricoPage() {
     });
 
     const totalQuestions = examQuestions.length;
-    const score = (correctCount / totalQuestions) * 100;
+    const score = Math.round((correctCount / totalQuestions) * 100);
+    
     setResult({
-      score: Math.round(score),
-      correctAnswers: correctCount,
-      incorrectAnswers: totalQuestions - correctCount,
+        score: score,
+        correctAnswers: correctCount,
+        incorrectAnswers: totalQuestions - correctCount,
     });
+
+    let recommendation = '';
+    if (score >= 80) {
+        recommendation = 'Te recomendamos un *Curso Avanzado o de Perfeccionamiento* para pulir tus habilidades.';
+    } else if (score >= 60) {
+        recommendation = 'Te recomendamos nuestro *Curso Intermedio* para afianzar tus conocimientos y ganar más confianza.';
+    } else {
+        recommendation = 'Te recomendamos nuestro *Curso de Principiante* para construir una base sólida desde cero.';
+    }
+
+    const whatsAppNumber = "525634433212";
+    const message = `📝 *Resultado del Examen Teórico*\n\n` +
+                    `*Alumno:* ${data.studentName}\n` +
+                    `*Teléfono:* ${data.phone}\n` +
+                    `*Calificación:* ${score}/100\n` +
+                    `*Respuestas Correctas:* ${correctCount} de ${totalQuestions}\n\n` +
+                    `*Recomendación:* ${recommendation}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
   };
   
   const resetExam = () => {
     setAnswers({});
     setResult(null);
+    form.reset();
   };
 
   const isExamComplete = Object.keys(answers).length === examQuestions.length;
@@ -297,7 +341,6 @@ export default function ExamenTeoricoPage() {
     }
     return '';
   };
-
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
@@ -324,68 +367,111 @@ export default function ExamenTeoricoPage() {
         </div>
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
-          <CardHeader>
-            <CardTitle>Cuestionario</CardTitle>
-            <CardDescription>
-              Selecciona la respuesta que consideres correcta para cada pregunta.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-8 pt-6">
-            {result && (
-                <Alert variant={result.score >= 80 ? 'default' : 'destructive'} className={cn(result.score >= 80 && 'bg-green-100 dark:bg-green-900/30 border-green-500')}>
-                    <AlertTitle className="text-xl font-bold">
-                        {result.score >= 80 ? `¡Felicidades! Has Aprobado` : `Necesitas Repasar`}
-                    </AlertTitle>
-                    <AlertDescription className="mt-2 text-base">
-                        Tu calificación es: <strong>{result.score}/100</strong>.
-                        <br />
-                        Respuestas correctas: {result.correctAnswers} | Respuestas incorrectas: {result.incorrectAnswers}
-                    </AlertDescription>
-                </Alert>
-            )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardHeader>
+                <CardTitle>Cuestionario</CardTitle>
+                <CardDescription>
+                  Ingresa tus datos, selecciona tus respuestas y envía el resultado para obtener una recomendación.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8 pt-6">
+                {result && (
+                    <Alert variant={result.score >= 80 ? 'default' : 'destructive'} className={cn(result.score >= 80 && 'bg-green-100 dark:bg-green-900/30 border-green-500')}>
+                        <AlertTitle className="text-xl font-bold">
+                            {result.score >= 80 ? `¡Felicidades! Has Aprobado` : `Necesitas Repasar`}
+                        </AlertTitle>
+                        <AlertDescription className="mt-2 text-base">
+                            Tu calificación es: <strong>{result.score}/100</strong>.
+                            <br />
+                            Respuestas correctas: {result.correctAnswers} | Respuestas incorrectas: {result.incorrectAnswers}
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-            {examQuestions.map((question, index) => (
-              <div key={question.id}>
-                <p className="font-semibold mb-3 flex items-start gap-2">
-                    <span>{index + 1}. {question.text}</span>
-                    {result && (
-                        answers[question.id] === question.correctAnswer ? 
-                        <CheckCircle className="h-5 w-5 text-green-500 shrink-0" /> :
-                        <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                    )}
-                </p>
-                <RadioGroup
-                  onValueChange={(value) => handleAnswerChange(question.id, value)}
-                  value={answers[question.id]}
-                  className="space-y-2"
-                  disabled={!!result}
-                >
-                  {question.options.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-3">
-                      <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
-                      <Label 
-                        htmlFor={`${question.id}-${option.value}`} 
-                        className={cn("font-normal cursor-pointer", getOptionLabelClass(question, option.value))}
-                      >
-                        {option.label}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-            ))}
-          </CardContent>
-          <CardFooter className="flex justify-end gap-4">
-             {result ? (
-                <Button onClick={resetExam}>
-                    Intentar de Nuevo
-                </Button>
-             ) : (
-                <Button onClick={calculateResult} disabled={!isExamComplete}>
-                  Calificar Examen
-                </Button>
-             )}
-          </CardFooter>
+                {!result && (
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="studentName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label>Tu Nombre</Label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <FormControl>
+                                <Input placeholder="Nombre completo" {...field} className="pl-10" />
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label>Tu Teléfono</Label>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <FormControl>
+                                <Input placeholder="Número de WhatsApp" {...field} className="pl-10" />
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                   </div>
+                )}
+
+
+                {examQuestions.map((question, index) => (
+                  <div key={question.id}>
+                    <p className="font-semibold mb-3 flex items-start gap-2">
+                        <span>{index + 1}. {question.text}</span>
+                        {result && (
+                            answers[question.id] === question.correctAnswer ? 
+                            <CheckCircle className="h-5 w-5 text-green-500 shrink-0" /> :
+                            <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+                        )}
+                    </p>
+                    <RadioGroup
+                      onValueChange={(value) => handleAnswerChange(question.id, value)}
+                      value={answers[question.id]}
+                      className="space-y-2"
+                      disabled={!!result}
+                    >
+                      {question.options.map((option) => (
+                        <div key={option.value} className="flex items-center space-x-3">
+                          <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
+                          <Label 
+                            htmlFor={`${question.id}-${option.value}`} 
+                            className={cn("font-normal cursor-pointer", getOptionLabelClass(question, option.value))}
+                          >
+                            {option.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                ))}
+              </CardContent>
+              <CardFooter className="flex justify-end gap-4">
+                 {result ? (
+                    <Button type="button" onClick={resetExam}>
+                        Intentar de Nuevo
+                    </Button>
+                 ) : (
+                    <Button type="submit" disabled={!isExamComplete || form.formState.isSubmitting}>
+                       <Send className="mr-2 h-4 w-4" />
+                      Calificar y Enviar por WhatsApp
+                    </Button>
+                 )}
+              </CardFooter>
+            </form>
+          </Form>
         </Card>
       </div>
 
@@ -407,3 +493,5 @@ export default function ExamenTeoricoPage() {
     </main>
   );
 }
+
+    
