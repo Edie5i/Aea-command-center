@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -135,12 +136,20 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8">
-        <Button asChild variant="outline" className="mb-4">
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
-            <Globe className="mr-2 h-4 w-4" />
-            www.autoescuelaamericana.com
-          </a>
-        </Button>
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          <Button asChild variant="outline">
+            <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+              <Globe className="mr-2 h-4 w-4" />
+              www.autoescuelaamericana.com
+            </a>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/terminos">
+                <FileText className="mr-2 h-4 w-4" />
+                Términos y Condiciones
+            </Link>
+          </Button>
+        </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
           Auto Escuela Americana
         </h1>

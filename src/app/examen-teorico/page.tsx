@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, CheckCircle, XCircle, User, Phone, Send, Globe } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, User, Phone, Send, Globe, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -345,12 +345,20 @@ export default function ExamenTeoricoPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
-        <Button asChild variant="outline" className="mb-4">
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
-            <Globe className="mr-2 h-4 w-4" />
-            www.autoescuelaamericana.com
-          </a>
-        </Button>
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          <Button asChild variant="outline">
+            <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+              <Globe className="mr-2 h-4 w-4" />
+              www.autoescuelaamericana.com
+            </a>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/terminos">
+                <FileText className="mr-2 h-4 w-4" />
+                Términos y Condiciones
+            </Link>
+          </Button>
+        </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Examen Teórico de Manejo
         </h1>
