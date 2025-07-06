@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -43,7 +44,7 @@ function Calendar({
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+          "bg-green-600 text-primary-foreground hover:bg-green-600/90 focus:bg-green-600 focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground",
         day_outside:
           "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
