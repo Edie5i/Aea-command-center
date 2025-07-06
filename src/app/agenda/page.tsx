@@ -172,7 +172,7 @@ export default function AgendaPage() {
                         />
                     ) : (
                         <div className="p-3">
-                            <div className="h-[290px] w-[280px] bg-muted rounded-md animate-pulse"></div>
+                            <div className="h-[370px] w-[340px] bg-muted rounded-md animate-pulse"></div>
                         </div>
                     )}
                     <Alert variant="default" className="bg-primary/10 border-primary/50 w-full max-w-md">
