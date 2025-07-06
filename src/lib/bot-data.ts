@@ -151,6 +151,18 @@ export const botContextData = {
     {
       pregunta: "¿Qué tipo de coches usan? / ¿Tienen automáticos o estándar?",
       respuesta: "Contamos con vehículos de transmisión automática y estándar para que puedas aprender en el que prefieras. Ambos están equipados con doble control por seguridad."
+    },
+    {
+      pregunta: "¿Cuánto cuestan los cursos? / ¿Cuáles son los precios?",
+      respuesta: "Tenemos varios cursos para adaptarnos a tus necesidades. Por ejemplo, el Curso Principiante Estándar cuesta $3400 MXN. Te recomiendo ver todos nuestros cursos y precios actualizados en nuestro catálogo en la página /catalogo."
+    },
+    {
+      pregunta: "¿Dónde están ubicados? / ¿Cuál es su dirección?",
+      respuesta: "Nuestra sucursal principal está en Torreón #49, Roma Sur, en la Ciudad de México. Sin embargo, ofrecemos servicio a domicilio en gran parte de CDMX, ¡así que podemos ir a donde tú estés! Puedes ver un mapa en nuestra página principal."
+    },
+    {
+      pregunta: "¿Tienen espacio disponible? / ¿Cómo sé si hay lugar?",
+      respuesta: "Sí, constantemente tenemos espacios disponibles. Nuestros horarios principales para iniciar son a las 7am, 10am, 13pm, 16pm y 19pm. La mejor forma de ver la disponibilidad y solicitar tu lugar es a través de nuestra página de agenda en /agenda. Ahí puedes seleccionar los días que te interesan."
     }
   ]
 };
