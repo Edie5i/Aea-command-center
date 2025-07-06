@@ -109,7 +109,7 @@ export default function Home() {
     }
 
     const whatsAppNumber = "525634433212"; // Admin number
-    const message = `*Nuevo Registro de Instructor*\n\n` +
+    const message = `*Solicitud de Entrevista para Instructor*\n\n` +
                     `*Nombre:* ${instructorName.trim()}\n` +
                     `*Teléfono:* ${instructorPhone.trim()}\n` +
                     `*Dirección:* ${instructorAddress.trim()}`;
@@ -202,7 +202,7 @@ export default function Home() {
       <div className="w-full max-w-3xl mb-8 flex justify-center">
         <Button onClick={() => setIsInstructorDialogOpen(true)} variant="outline">
             <User className="mr-2 h-4 w-4" />
-            Instructores
+            Solicitar Entrevista
         </Button>
       </div>
 
@@ -359,9 +359,9 @@ export default function Home() {
       <Dialog open={isInstructorDialogOpen} onOpenChange={setIsInstructorDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Registro de Instructor</DialogTitle>
+            <DialogTitle>Solicitar Entrevista para Instructor</DialogTitle>
             <DialogDescription>
-              Ingresa los datos del instructor. La información será enviada por WhatsApp para su registro.
+              Ingresa tus datos y nos pondremos en contacto contigo para agendar una entrevista. La información será enviada por WhatsApp.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -374,7 +374,7 @@ export default function Home() {
                 value={instructorName}
                 onChange={(e) => setInstructorName(e.target.value)}
                 className="col-span-3"
-                placeholder="Nombre completo del instructor"
+                placeholder="Tu nombre completo"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -386,7 +386,7 @@ export default function Home() {
                 value={instructorPhone}
                 onChange={(e) => setInstructorPhone(e.target.value)}
                 className="col-span-3"
-                placeholder="Número de WhatsApp"
+                placeholder="Tu número de WhatsApp"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -398,7 +398,7 @@ export default function Home() {
                 value={instructorAddress}
                 onChange={(e) => setInstructorAddress(e.target.value)}
                 className="col-span-3"
-                placeholder="Dirección completa"
+                placeholder="Tu dirección completa"
               />
             </div>
           </div>
@@ -407,7 +407,7 @@ export default function Home() {
               onClick={handleInstructorSubmit}
               disabled={!instructorName.trim() || !instructorPhone.trim() || !instructorAddress.trim()}
             >
-              Registrar y Notificar
+              Solicitar Entrevista
             </Button>
           </DialogFooter>
         </DialogContent>
