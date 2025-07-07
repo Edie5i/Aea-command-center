@@ -6,7 +6,7 @@ import { FloatingWhatsappButton } from "@/components/floating-whatsapp-button";
 
 export const metadata: Metadata = {
   title: "AEA - Autoescuela Americana",
-  description: "Plataforma para instructores y alumnos de la Autoescuela Americana. Genera consejos de manejo personalizados, gestiona tu agenda y más.",
+  description: "App de Auto Escuela Americana. Portal para instructores y alumnos para generar planes de lecciones, gestionar agendas y más.",
 };
 
 export default function RootLayout({

@@ -115,7 +115,7 @@ export default function Home() {
           Auto Escuela Americana
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-          Plataforma de gestión para instructores y alumnos. Genera planes de lecciones y consejos de manejo personalizados.
+          Bienvenido a la app de Auto Escuela Americana. Utiliza este portal para generar planes de lecciones, gestionar tu agenda y más.
         </p>
       </div>
 
