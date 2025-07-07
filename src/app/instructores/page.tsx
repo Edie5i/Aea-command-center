@@ -21,11 +21,13 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const instructorSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   address: z.string().min(10, { message: 'Por favor, ingresa una dirección más detallada.' }),
+  interviewTime: z.string({ required_error: 'Por favor, selecciona un horario para la entrevista.' }),
 });
 
 type InstructorFormValues = z.infer<typeof instructorSchema>;
@@ -39,16 +41,18 @@ export default function InstructoresPage() {
             name: '',
             phone: '',
             address: '',
+            interviewTime: '',
         }
     });
 
     function onSubmit(values: InstructorFormValues) {
         const whatsAppNumber = "525634433212"; // Admin number
         
-        let message = `*Solicitud de Información para Instructor*\n\n`;
+        let message = `*Solicitud de Entrevista para Instructor*\n\n`;
         message += `*Nombre del Aspirante:* ${values.name}\n`;
         message += `*Teléfono de Contacto:* ${values.phone}\n`;
-        message += `*Dirección:* ${values.address}\n\n`;
+        message += `*Dirección:* ${values.address}\n`;
+        message += `*Horario Solicitado para Entrevista:* ${values.interviewTime} hrs\n\n`;
         message += `¡Gracias!`;
 
         const encodedMessage = encodeURIComponent(message);
@@ -58,7 +62,7 @@ export default function InstructoresPage() {
 
         toast({
             title: '¡Solicitud Lista para Enviar!',
-            description: `Se abrirá WhatsApp para que puedas enviar tu información.`,
+            description: `Se abrirá WhatsApp para que puedas enviar tu solicitud de entrevista.`,
         });
         
         setSubmitted(true);
@@ -83,10 +87,10 @@ export default function InstructoresPage() {
           </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Únete a Nuestro Equipo
+          Solicita una Entrevista
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Si eres un instructor de manejo apasionado y con ganas de enseñar, nos encantaría conocerte.
+          Si eres un instructor apasionado y quieres unirte a nuestro equipo, completa el formulario para agendar una entrevista.
         </p>
       </div>
 
@@ -105,9 +109,9 @@ export default function InstructoresPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardHeader>
-                  <CardTitle>Información para Aspirantes a Instructor</CardTitle>
+                  <CardTitle>Formulario de Solicitud de Entrevista</CardTitle>
                   <CardDescription>
-                    Completa el siguiente formulario para que podamos contactarte. La información se enviará por WhatsApp.
+                    Completa tus datos y selecciona un horario para que podamos contactarte. La información se enviará por WhatsApp.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -159,11 +163,37 @@ export default function InstructoresPage() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="interviewTime"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <Label>Horario Preferido para Entrevista</Label>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-wrap gap-x-6 gap-y-2"
+                          >
+                            {['10:00', '12:00', '14:00', '16:00', '18:00'].map(time => (
+                              <FormItem key={time} className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value={time} id={`time-${time}`} />
+                                </FormControl>
+                                <Label htmlFor={`time-${time}`} className="font-normal cursor-pointer">{time} hrs</Label>
+                              </FormItem>
+                            ))}
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Button type="submit" disabled={form.formState.isSubmitting}>
                     <Send className="mr-2 h-4 w-4" />
-                    Enviar Información
+                    Solicitar Entrevista
                   </Button>
                 </CardFooter>
               </form>
@@ -173,10 +203,10 @@ export default function InstructoresPage() {
               <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                      ¡Información Enviada!
+                      ¡Solicitud Enviada!
                   </AlertTitle>
                   <AlertDescription className="text-foreground mt-2">
-                     Gracias por tu interés. Se abrirá WhatsApp para que completes el envío. Nos pondremos en contacto contigo pronto.
+                     Gracias por tu interés. Se abrirá WhatsApp para que completes el envío de tu solicitud de entrevista.
                   </AlertDescription>
               </Alert>
                <Button onClick={() => setSubmitted(false)} className="mt-6">

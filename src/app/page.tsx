@@ -178,7 +178,7 @@ export default function Home() {
         <Button asChild variant="outline">
             <Link href="/instructores">
                 <User className="mr-2 h-4 w-4" />
-                Instructores
+                Únete al Equipo
             </Link>
         </Button>
       </div>
