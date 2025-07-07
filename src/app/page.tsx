@@ -110,12 +110,6 @@ export default function Home() {
               www.autoescuelaamericana.com
             </a>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
-            </Link>
-          </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-primary">
           Auto Escuela Americana
@@ -125,7 +119,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="w-full max-w-5xl mb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="w-full max-w-5xl mb-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
         <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
           <Link href="/chatbot">
             <Bot className="mr-2 h-4 w-4" />
@@ -171,6 +165,12 @@ export default function Home() {
         <Button onClick={() => handleDocumentSelect('constancia')} className="w-full">
             <FileText className="mr-2 h-4 w-4" />
             Constancias
+        </Button>
+        <Button asChild variant="secondary" className="w-full">
+          <Link href="/terminos">
+            <FileText className="mr-2 h-4 w-4" />
+            Términos
+          </Link>
         </Button>
       </div>
 

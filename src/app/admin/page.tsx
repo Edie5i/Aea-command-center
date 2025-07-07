@@ -17,12 +17,6 @@ export default function AdminPage() {
               www.autoescuelaamericana.com
             </a>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
-            </Link>
-          </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Panel de Administrador
@@ -33,11 +27,17 @@ export default function AdminPage() {
       </div>
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4">
+        <div className="w-full max-w-3xl mb-4 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al Inicio
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/terminos">
+                <FileText className="mr-2 h-4 w-4" />
+                Términos y Condiciones
             </Link>
           </Button>
         </div>

@@ -57,12 +57,6 @@ export default function AgendaPage() {
                 www.autoescuelaamericana.com
               </a>
             </Button>
-            <Button asChild variant="outline" className="bg-background/80 backdrop-blur-sm hover:bg-background">
-              <Link href="/terminos">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Términos y Condiciones
-              </Link>
-            </Button>
           </div>
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
             Agenda tu Curso
@@ -90,6 +84,12 @@ export default function AgendaPage() {
             <Link href="/catalogo">
                 <List className="mr-2 h-4 w-4" />
                 Ver Catálogo y Precios
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/terminos">
+                <FileText className="mr-2 h-4 w-4" />
+                Términos y Condiciones
             </Link>
           </Button>
         </div>

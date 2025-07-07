@@ -154,12 +154,6 @@ export default function EvaluacionPage() {
               www.autoescuelaamericana.com
             </a>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
-            </Link>
-          </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
           Evalúa tus Habilidades
@@ -175,6 +169,12 @@ export default function EvaluacionPage() {
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al Inicio
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/terminos">
+                <FileText className="mr-2 h-4 w-4" />
+                Términos y Condiciones
             </Link>
           </Button>
         </div>
