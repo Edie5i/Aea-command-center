@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -120,10 +121,10 @@ export default function Home() {
             </div>
           </div>
           <h2 className="text-foreground tracking-tight text-[28px] font-bold text-center px-4 pt-5 pb-3">
-            Bienvenido a Auto Escuela Americana
+            Bienvenido a la App de Auto Escuela Americana
           </h2>
           <p className="text-muted-foreground text-base font-normal text-center px-4 pt-1 pb-3">
-            Aprende a conducir con confianza y seguridad en la Ciudad de México.
+            Tu portal para aprender a conducir con confianza y seguridad en la Ciudad de México.
           </p>
         </div>
         <div>
