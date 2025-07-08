@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -22,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { AppFooter } from '@/components/footer';
 
 const refundSchema = z.object({
   studentName: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -284,21 +284,7 @@ export default function TerminosPage() {
         </Card>
       </div>
 
-      <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
-        <p>
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-            www.autoescuelaamericana.com
-          </a>
-        </p>
-        <p className="mt-2">
-          <Link href="/terminos" className="hover:underline">
-            Términos y Condiciones
-          </Link>
-        </p>
-        <p className="mt-2">
-          Powered by Next.js and Genkit.
-        </p>
-      </footer>
+      <AppFooter />
     </main>
   );
 }

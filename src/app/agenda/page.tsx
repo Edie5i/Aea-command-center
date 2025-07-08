@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { AppFooter } from '@/components/footer';
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
@@ -211,21 +211,7 @@ export default function AgendaPage() {
         </div>
 
       </div>
-       <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
-        <p>
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-            www.autoescuelaamericana.com
-          </a>
-        </p>
-        <p className="mt-2">
-          <Link href="/terminos" className="hover:underline">
-            Términos y Condiciones
-          </Link>
-        </p>
-        <p className="mt-2">
-          Powered by Next.js and Genkit.
-        </p>
-      </footer>
+       <AppFooter />
     </main>
   );
 }

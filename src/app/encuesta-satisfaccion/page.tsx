@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -16,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ArrowLeft, Smile, Send, CheckCircle, Star, Globe, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormItem } from '@/components/ui/form';
+import { AppFooter } from '@/components/footer';
 
 const surveySchema = z.object({
   studentName: z.string().optional(),
@@ -273,21 +273,7 @@ export default function EncuestaSatisfaccionPage() {
         </Card>
       </div>
 
-       <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
-        <p>
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-            www.autoescuelaamericana.com
-          </a>
-        </p>
-        <p className="mt-2">
-          <Link href="/terminos" className="hover:underline">
-            Términos y Condiciones
-          </Link>
-        </p>
-        <p className="mt-2">
-          Powered by Next.js and Genkit.
-        </p>
-      </footer>
+       <AppFooter />
     </main>
   );
 }

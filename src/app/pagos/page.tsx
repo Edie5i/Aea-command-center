@@ -1,8 +1,8 @@
-
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CalendarDays, List, Globe, FileText } from 'lucide-react';
 import { PaymentDetails } from '@/components/payment-details';
+import { AppFooter } from '@/components/footer';
 
 export default function PagosPage() {
   return (
@@ -55,21 +55,7 @@ export default function PagosPage() {
         <PaymentDetails />
       </div>
       
-      <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
-        <p>
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-            www.autoescuelaamericana.com
-          </a>
-        </p>
-        <p className="mt-2">
-          <Link href="/terminos" className="hover:underline">
-            Términos y Condiciones
-          </Link>
-        </p>
-        <p className="mt-2">
-          Powered by Next.js and Genkit.
-        </p>
-      </footer>
+      <AppFooter />
     </main>
   );
 }

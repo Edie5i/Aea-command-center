@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AppFooter } from '@/components/footer';
 
 export default function CatalogoPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -105,21 +105,7 @@ export default function CatalogoPage() {
         </div>
       </div>
       
-      <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
-        <p>
-          <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-            www.autoescuelaamericana.com
-          </a>
-        </p>
-        <p className="mt-2">
-          <Link href="/terminos" className="hover:underline">
-            Términos y Condiciones
-          </Link>
-        </p>
-        <p className="mt-2">
-          Powered by Next.js and Genkit.
-        </p>
-      </footer>
+      <AppFooter />
     </main>
   );
 }
