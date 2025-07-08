@@ -223,7 +223,7 @@ export default function Home() {
           </Button>
           <Button onClick={handleMaintenanceGuide} variant="secondary" className="w-full">
             <Download className="mr-2 h-4 w-4" />
-            Guía Mantenimiento
+            Fundamentos
           </Button>
           <Button asChild className="w-full">
               <Link href="/pagos">
@@ -253,6 +253,9 @@ export default function Home() {
         </div>
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
+          <CardHeader className="text-center">
+             <h2 className="text-2xl font-bold tracking-tight text-foreground">Generador de Consejos AI</h2>
+          </CardHeader>
           <CardContent className="p-6 md:p-8">
             <AnimatePresence mode="wait">
               <motion.div
