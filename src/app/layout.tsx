@@ -12,14 +12,6 @@ export const metadata: Metadata = {
     description: "Portal para aprender a conducir, agendar clases y más.",
     url: "https://autoescuela-americana.com",
     siteName: "Auto Escuela Americana",
-    images: [
-      {
-        url: "https://placehold.co/1200x630.png",
-        width: 1200,
-        height: 630,
-        alt: "Auto Escuela Americana - Escuela de Manejo en CDMX",
-      },
-    ],
     locale: "es_MX",
     type: "website",
   },
@@ -27,7 +19,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AEA - Autoescuela Americana",
     description: "Portal para aprender a conducir, agendar clases y más.",
-    images: ["https://placehold.co/1200x630.png"],
   },
 };
 
