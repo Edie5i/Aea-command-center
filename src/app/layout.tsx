@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { FloatingWhatsappButton } from "@/components/floating-whatsapp-button";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "AEA - Autoescuela Americana",
@@ -33,6 +34,7 @@ export default function RootLayout({
         {children}
         <Toaster />
         <FloatingWhatsappButton />
+        <Script src="//code.tidio.co/eqlxaq6u3e6jdbcqtoo2saunntgiip04.js" async />
       </body>
     </html>
   );
