@@ -109,7 +109,7 @@ export default function ChatbotPage() {
           </Button>
         </div>
 
-        <Card className="w-full max-w-4xl shadow-lg rounded-xl h-[calc(100vh-280px)] flex flex-col">
+        <Card className="w-full max-w-4xl shadow-lg rounded-xl h-[70vh] flex flex-col">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2">
               <Bot className="text-primary" />
@@ -139,7 +139,7 @@ export default function ChatbotPage() {
                     )}
                     <div
                       className={cn(
-                        'max-w-[75%] rounded-xl p-3 text-sm shadow-md',
+                        'max-w-[85%] rounded-xl p-3 text-sm shadow-md',
                         message.role === 'user'
                           ? 'bg-primary text-primary-foreground rounded-br-none'
                           : 'bg-muted rounded-bl-none'
