@@ -28,13 +28,13 @@ export function FloatingWhatsappButton() {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-[#25D366] shadow-lg transition-transform hover:scale-110"
+            className="fixed bottom-6 left-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-[#25D366] shadow-lg transition-transform hover:scale-110"
             aria-label="Contactar por WhatsApp"
           >
             <WhatsAppIcon />
           </Link>
         </TooltipTrigger>
-        <TooltipContent side="left">
+        <TooltipContent side="right">
           <p>Contáctanos por WhatsApp</p>
         </TooltipContent>
       </Tooltip>
