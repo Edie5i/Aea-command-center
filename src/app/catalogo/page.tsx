@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowLeft, 
@@ -77,14 +76,6 @@ export default function CatalogoPage() {
             <div className="flex flex-col gap-4">
               {courses.map((course) => (
                 <div key={course.id} className="flex items-center gap-4 p-3 border rounded-xl shadow-sm hover:bg-muted/50 transition-colors">
-                  <Image
-                      src={course.imageUrl || `https://placehold.co/100x100.png`}
-                      alt={course.title}
-                      width={80}
-                      height={80}
-                      className="rounded-lg object-cover aspect-square"
-                      data-ai-hint="driving course"
-                  />
                   <div className="flex-grow overflow-hidden">
                       <h3 className="font-bold text-lg leading-tight truncate">{course.title}</h3>
                       <p className="text-sm text-muted-foreground truncate">{course.description}</p>

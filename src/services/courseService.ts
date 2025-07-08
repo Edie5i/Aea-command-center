@@ -1,4 +1,3 @@
-
 'use server';
 
 import { botContextData } from '@/lib/bot-data';
@@ -22,7 +21,6 @@ export async function getCourses(): Promise<Course[]> {
     description: c.descripcion,
     price: c.precioMXN.toString(),
     order: index,
-    imageUrl: `https://placehold.co/100x100.png`,
   }));
 
   courses.sort((a, b) => (a.order ?? 99) - (b.order ?? 99));

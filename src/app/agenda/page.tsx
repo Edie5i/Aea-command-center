@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -42,13 +41,6 @@ export default function AgendaPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background">
       <section className="relative w-full bg-muted py-12">
-        <Image
-          src="https://placehold.co/1920x480.png"
-          alt="Banner de calendario de manejo"
-          fill
-          className="absolute inset-0 z-0 object-cover opacity-10"
-          data-ai-hint="calendar schedule"
-        />
         <div className="relative z-10 flex flex-col items-center text-center px-4">
           <div className="flex flex-wrap justify-center gap-2 mb-4">
             <Button asChild variant="outline" className="bg-background/80 backdrop-blur-sm hover:bg-background">
