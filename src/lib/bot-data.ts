@@ -1,3 +1,5 @@
+import { programData } from './course-data';
+
 export const botContextData = {
   informacionGeneral: {
     nombre: "Auto Escuela Americana",
@@ -164,5 +166,6 @@ export const botContextData = {
       pregunta: "¿Tienen espacio disponible? / ¿Cómo sé si hay lugar?",
       respuesta: "Sí, constantemente tenemos espacios disponibles. Nuestros horarios principales para iniciar son a las 7am, 10am, 13pm, 16pm y 19pm. La mejor forma de ver la disponibilidad y solicitar tu lugar es a través de nuestra página de agenda en /agenda. Ahí puedes seleccionar los días que te interesan."
     }
-  ]
+  ],
+  programaDelCurso: programData,
 };
