@@ -15,7 +15,8 @@ import {
   Star,
   FileText,
   Bot,
-  User
+  User,
+  Download
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import jsPDF from "jspdf";
@@ -35,6 +36,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppFooter } from "@/components/footer";
+import { programData } from "@/lib/course-data";
 
 
 export default function Home() {
@@ -103,6 +105,46 @@ export default function Home() {
     setDocumentToGenerate(null);
     setStudentName('');
     setCurp('');
+  };
+
+  const handleMaintenanceGuide = () => {
+    const doc = new jsPDF();
+    const sectionData = programData.find(section => section.title.startsWith("14."));
+
+    if (!sectionData) return;
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(sectionData.title, 105, 20, { align: 'center' });
+    let y = 40;
+
+    sectionData.content.forEach(contentBlock => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      if (contentBlock.heading) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(contentBlock.heading, 15, y);
+        y += 10;
+      }
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      contentBlock.points.forEach(point => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        const lines = doc.splitTextToSize(`• ${point}`, 175);
+        doc.text(lines, 20, y);
+        y += (lines.length * 6);
+      });
+      y += 8;
+    });
+
+    doc.save('Guia_Verificacion_y_Mantenimiento.pdf');
   };
 
 
@@ -179,17 +221,21 @@ export default function Home() {
                   Programa
               </Link>
           </Button>
-          <Button asChild variant="secondary" className="w-full">
+          <Button onClick={handleMaintenanceGuide} variant="secondary" className="w-full">
+            <Download className="mr-2 h-4 w-4" />
+            Guía Mantenimiento
+          </Button>
+          <Button asChild className="w-full">
               <Link href="/pagos">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Pagos
               </Link>
           </Button>
-          <Button onClick={() => handleDocumentSelect('constancia')} className="w-full">
+          <Button onClick={() => handleDocumentSelect('constancia')} variant="secondary" className="w-full">
               <FileText className="mr-2 h-4 w-4" />
               Constancias
           </Button>
-          <Button asChild variant="secondary" className="w-full">
+          <Button asChild className="w-full">
             <Link href="/terminos">
               <FileText className="mr-2 h-4 w-4" />
               Términos
