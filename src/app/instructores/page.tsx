@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, User, Phone, Home, Send, CheckCircle, Globe } from 'lucide-react';
+import { ArrowLeft, FileText, User, Phone, Home, Send, CheckCircle, Globe, Briefcase, HeartHandshake, Check } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -81,11 +81,36 @@ export default function InstructoresPage() {
           </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Solicita una Entrevista
+          ¡Conviértete en Instructor de Manejo en CDMX!
         </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Si eres un instructor apasionado y quieres unirte a nuestro equipo, completa el formulario para agendar una entrevista.
+        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+          ¿Eres un conductor con experiencia y te apasiona la seguridad vial? En Auto Escuela Americana te formamos como instructor certificado, ¡no importa si no tienes experiencia enseñando!
         </p>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl text-left">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Briefcase className="text-primary"/>Te Ofrecemos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span><span className="font-semibold">Formación completa</span> y profesional.</span></div>
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span>Oportunidades de <span className="font-semibold">desarrollo</span>.</span></div>
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span><span className="font-semibold">Horarios flexibles</span>.</span></div>
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span><span className="font-semibold">Ingresos atractivos</span> y contribución a la seguridad vial.</span></div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><HeartHandshake className="text-primary"/>Buscamos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span>Licencia de conducir vigente.</span></div>
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span>Amplio conocimiento del <span className="font-semibold">Reglamento de Tránsito CDMX</span>.</span></div>
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span>Paciencia, responsabilidad y buena comunicación.</span></div>
+                    <div className="flex items-start gap-3"><Check className="text-green-500 mt-1 h-5 w-5 shrink-0" /><span>¡Ganas de enseñar y formar conductores seguros!</span></div>
+                </CardContent>
+            </Card>
+        </div>
       </div>
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
@@ -109,9 +134,9 @@ export default function InstructoresPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardHeader>
-                  <CardTitle>Formulario de Solicitud de Entrevista</CardTitle>
+                  <CardTitle>Invierte en tu Futuro: Solicita una Entrevista</CardTitle>
                   <CardDescription>
-                    Completa tus datos y selecciona un horario para que podamos contactarte. La información se enviará por WhatsApp.
+                    Completa tus datos y selecciona un horario. Un miembro de nuestro equipo te contactará para agendar tu entrevista.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
