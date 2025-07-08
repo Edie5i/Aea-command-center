@@ -196,8 +196,18 @@ export const programData = [
         }]
     },
     {
-        title: "14. Verificación, Seguro y Mantenimiento Básico",
+        title: "14. Trámites, Verificación y Mantenimiento",
         content: [
+            {
+                heading: "Trámite de Licencia Tipo 'A' (CDMX)",
+                points: [
+                    "Paso 1: Genera tu línea de captura para el pago de derechos en la página de la Secretaría de Finanzas de la CDMX.",
+                    "Paso 2: Realiza el pago en centros autorizados y conserva el comprobante.",
+                    "Paso 3: Agenda una cita en un Módulo de Control Vehicular y Licencias de SEMOVI.",
+                    "Paso 4: Acude a tu cita con la documentación completa: identificación oficial, comprobante de domicilio y el comprobante de pago de derechos.",
+                    "Para detalles oficiales y generar tu pago, visita: finanzas.cdmx.gob.mx."
+                ]
+            },
             {
                 heading: "Verificación Vehicular (CDMX)",
                 points: [
