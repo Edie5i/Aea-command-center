@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Sparkles, Car } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { getDrivingTipsAction } from '@/app/actions';
 
@@ -63,13 +62,12 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps
 
   return (
     <div className="space-y-6">
-      <Alert>
-        <Car className="h-4 w-4" />
-        <AlertTitle>Generador de Consejos AI</AlertTitle>
-        <AlertDescription>
-          Describe un tema o área de enfoque y nuestra IA creará una lista de consejos de manejo.
-        </AlertDescription>
-      </Alert>
+      <div className="text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Generador de Consejos AI</h2>
+        <p className="text-muted-foreground">
+          Describe un tema o área de enfoque y la IA creará una lista de consejos de manejo.
+        </p>
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -81,7 +79,6 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps
                 <FormControl>
                   <Input
                     placeholder="ej. estacionamiento en paralelo, manejo en carretera"
-                    className="bg-muted/50"
                     {...field}
                   />
                 </FormControl>

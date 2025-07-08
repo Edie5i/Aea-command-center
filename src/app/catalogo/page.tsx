@@ -68,13 +68,11 @@ export default function CatalogoPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : courses.length === 0 ? (
-            <Alert className="mt-4">
-                <Info className="h-4 w-4" />
-                <AlertTitle>No se encontraron cursos</AlertTitle>
-                <AlertDescription>
-                    No hay cursos configurados. Por favor, verifica la fuente de datos.
-                </AlertDescription>
-            </Alert>
+            <div className="text-center text-muted-foreground pt-10">
+                <Info className="h-6 w-6 mx-auto mb-2" />
+                <h3 className="text-lg font-semibold text-foreground">No se encontraron cursos</h3>
+                <p>No hay cursos configurados actualmente.</p>
+            </div>
           ) : (
             <div className="flex flex-col gap-4">
               {courses.map((course) => (

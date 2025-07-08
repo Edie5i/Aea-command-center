@@ -31,7 +31,7 @@ export function PaymentDetails() {
       <CardContent className="space-y-6 pt-6">
         <div>
             <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><CreditCard className="h-5 w-5 text-primary" />Pago con Tarjeta (Crédito/Débito)</h3>
-            <div className="rounded-lg border p-4 space-y-3 bg-muted/20">
+            <div className="rounded-lg border p-4 space-y-3">
                 <p className="text-sm text-muted-foreground">Aceptamos todas las tarjetas. El pago se procesa de forma segura a través de <strong>Openpay</strong>.</p>
                 <Separator />
                 <ul className="list-disc list-inside text-sm space-y-2 pl-2">
@@ -44,7 +44,7 @@ export function PaymentDetails() {
 
         <div>
             <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><Landmark className="h-5 w-5 text-primary" />Transferencia Bancaria</h3>
-            <div className="rounded-lg border p-4 space-y-4 bg-muted/20">
+            <div className="rounded-lg border p-4 space-y-4">
                 <p className="text-sm text-muted-foreground">Beneficiario: <strong>Eduardo W. Czaplewski (Cuenta PYME BBVA)</strong></p>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -66,7 +66,7 @@ export function PaymentDetails() {
 
         <div>
             <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><Banknote className="h-5 w-5 text-primary" />Depósito en Efectivo</h3>
-             <div className="rounded-lg border p-4 space-y-4 bg-muted/20">
+             <div className="rounded-lg border p-4 space-y-4">
                 <p className="text-sm text-muted-foreground">Disponible en: <strong>Walmart, Sanborns, OXXO, 7-Eleven</strong>.</p>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -81,7 +81,7 @@ export function PaymentDetails() {
 
         <div>
             <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><MessageSquare className="h-5 w-5 text-primary" />Envía tu Comprobante</h3>
-            <div className="rounded-lg border p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 bg-muted/20">
+            <div className="rounded-lg border p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4">
               <div className="text-center sm:text-left max-w-sm">
                 <p className="text-sm text-muted-foreground">Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmar tu curso y agilizar el proceso.</p>
                 <p className="text-sm font-semibold mt-2 text-primary">¡Escanea el código QR para abrir el chat!</p>

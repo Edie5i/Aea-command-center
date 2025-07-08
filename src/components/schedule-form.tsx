@@ -571,7 +571,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
           control={form.control}
           name="requiereConstancia"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm bg-muted/50">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
               <FormControl>
                 <Checkbox
                   checked={field.value}
