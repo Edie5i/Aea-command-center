@@ -1,12 +1,15 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Globe, FileText } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Download } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Accordion,
@@ -16,8 +19,49 @@ import {
 } from '@/components/ui/accordion';
 import { programData } from '@/lib/course-data';
 import { AppFooter } from '@/components/footer';
+import jsPDF from 'jspdf';
 
 export default function ProgramaPage() {
+  const handleGeneratePdf = () => {
+    const doc = new jsPDF();
+    const sectionData = programData.find(section => section.title.startsWith("14."));
+
+    if (!sectionData) return;
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(sectionData.title, 105, 20, { align: 'center' });
+    let y = 40;
+
+    sectionData.content.forEach(contentBlock => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      if (contentBlock.heading) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(contentBlock.heading, 15, y);
+        y += 10;
+      }
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      contentBlock.points.forEach(point => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        const lines = doc.splitTextToSize(`• ${point}`, 175);
+        doc.text(lines, 20, y);
+        y += (lines.length * 6);
+      });
+      y += 8;
+    });
+
+    doc.save('Guia_Verificacion_y_Mantenimiento.pdf');
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
@@ -85,6 +129,12 @@ export default function ProgramaPage() {
               ))}
             </Accordion>
           </CardContent>
+          <CardFooter className="flex justify-center bg-muted/50 p-4 border-t">
+              <Button onClick={handleGeneratePdf}>
+                <Download className="mr-2 h-4 w-4" />
+                Descargar Guía de Verificación y Mantenimiento
+              </Button>
+          </CardFooter>
         </Card>
       </div>
       
