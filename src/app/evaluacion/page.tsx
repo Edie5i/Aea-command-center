@@ -63,24 +63,6 @@ const questions: Question[] = [
       { label: 'Lo manejo con confianza y seguridad', value: 'confident', score: 2 },
     ],
   },
-  {
-    id: 'highway',
-    text: '¿Tienes experiencia manejando en carretera?',
-    options: [
-      { label: 'No, nunca he manejado en carretera', value: 'no', score: 0 },
-      { label: 'Sí, pero solo en tramos cortos y con poco tráfico', value: 'some', score: 1 },
-      { label: 'Sí, me siento seguro en viajes por carretera', value: 'yes', score: 2 },
-    ],
-  },
-   {
-    id: 'vehicle_knowledge',
-    text: '¿Conoces los procedimientos básicos de mantenimiento del vehículo (revisar aceite, llantas, etc.)?',
-    options: [
-      { label: 'No, no tengo idea', value: 'no', score: 0 },
-      { label: 'Tengo una idea, pero no estoy seguro', value: 'some', score: 1 },
-      { label: 'Sí, sé cómo realizar las revisiones básicas', value: 'yes', score: 2 },
-    ],
-  },
 ];
 
 type Answers = {
@@ -125,9 +107,9 @@ export default function EvaluacionPage() {
       }
     }
 
-    if (totalScore <= 5) {
+    if (totalScore <= 4) {
       setResult(beginnerResult);
-    } else if (totalScore <= 11) {
+    } else if (totalScore <= 8) {
       setResult({
         level: 'Intermedio',
         description: 'Ya tienes algo de experiencia, pero hay áreas clave en las que puedes mejorar para sentirte más seguro.',
