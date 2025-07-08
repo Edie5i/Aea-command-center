@@ -75,11 +75,11 @@ export default function CatalogoPage() {
           ) : (
             <div className="flex flex-col gap-4">
               {courses.map((course) => (
-                <div key={course.id} className="flex items-center gap-4 p-3 border rounded-xl shadow-sm hover:bg-muted/50 transition-colors">
-                  <div className="flex-grow overflow-hidden">
-                      <h3 className="font-bold text-lg leading-tight truncate">{course.title}</h3>
-                      <p className="text-sm text-muted-foreground truncate">{course.description}</p>
-                      <p className="text-lg font-semibold text-primary mt-1">${course.price} MXN</p>
+                <div key={course.id} className="flex items-start gap-4 p-4 border rounded-xl shadow-sm hover:bg-muted/50 transition-colors">
+                  <div className="flex-grow">
+                      <h3 className="font-bold text-lg leading-tight">{course.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{course.description}</p>
+                      <p className="text-lg font-semibold text-primary mt-2">${course.price} MXN</p>
                   </div>
                   <Button asChild size="icon" className="rounded-full flex-shrink-0">
                       <Link href="/#contact-form">
