@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -51,10 +52,10 @@ export default function TerminosPage() {
   function onSubmit(values: RefundFormValues) {
     const whatsAppNumber = "525634433212";
     
-    let message = `🚨 *Solicitud de Reembolso* 🚨\n\n`;
+    let message = `🚨 *Solicitud de Cancelación y Devolución* 🚨\n\n`;
     message += `*Nombre del Alumno:* ${values.studentName}\n`;
     message += `*Motivo de la Solicitud:*\n${values.reason}\n\n`;
-    message += `*Datos Bancarios para Reembolso:*\n`;
+    message += `*Datos Bancarios para Devolución:*\n`;
     message += `*Banco:* ${values.bankName}\n`;
     message += `*Titular de la Cuenta:* ${values.accountHolder}\n`;
     message += `*CLABE Interbancaria:* ${values.clabe}`;
@@ -111,46 +112,73 @@ export default function TerminosPage() {
           </CardHeader>
           <CardContent className="space-y-4 pt-4 text-sm text-muted-foreground">
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">1. Objeto del Contrato</h3>
+              <h3 className="font-semibold text-foreground">1. Reserva del curso</h3>
               <p>
-                AEA se compromete a impartir un curso de manejo práctico y teórico al alumno, de acuerdo al paquete contratado. El objetivo es proporcionar las herramientas y conocimientos necesarios para una conducción segura y responsable.
+                Para reservar el curso, el alumno deberá realizar un anticipo mínimo del 20% del valor total.
               </p>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">2. Requisitos del Alumno</h3>
+              <h3 className="font-semibold text-foreground">2. Pago total del curso</h3>
               <p>
-                El alumno debe ser mayor de 16 años. Para menores de edad, se requiere autorización por escrito de un padre o tutor. Es responsabilidad del alumno presentar cualquier documentación requerida, como identificación oficial o permiso de conducir provisional si aplica.
+                El pago total deberá liquidarse al finalizar la primera clase. Si no se realiza dicho pago, se considerará que el alumno no desea continuar con el curso y se perderá el anticipo.
               </p>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">3. Pagos y Vigencia</h3>
+              <h3 className="font-semibold text-foreground">3. Cambios de horario y transmisión</h3>
               <p>
-                El pago del curso debe realizarse en su totalidad antes de la primera clase programada. Los paquetes de cursos tienen una vigencia de 3 meses a partir de la fecha de pago para ser completados. No hay reembolsos por cursos no tomados o cancelaciones fuera del plazo estipulado.
+                El horario previamente acordado con la Escuela, la transmisión y el domicilio, no podrán ser modificados por parte del alumno, salvo en casos de fuerza mayor debidamente justificados. En caso de un cambio sin justificación, se aplicará una penalización de $700 MXN o se contará la clase como impartida (clase por vista).
               </p>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">4. Programación y Cancelación de Clases</h3>
+              <h3 className="font-semibold text-foreground">4. Acuerdos adicionales con el instructor</h3>
               <p>
-                Las clases deben ser agendadas según la disponibilidad de la escuela y los instructores. Se requiere un aviso de al menos 24 horas de anticipación para cancelar o reprogramar una clase. Las cancelaciones con menos de 24 horas de antelación o la inasistencia resultarán en la pérdida de dicha clase sin derecho a reposición o reembolso.
+                Autoescuela Americana no se hace responsable por acuerdos entre instructor y alumno en temas de horarios, lugares de encuentro, rutas, traslados, etc. El alumno acepta que solo los acuerdos comunicados por escrito al instructor y confirmados por la Escuela tendrán validez.
               </p>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">5. Responsabilidades</h3>
+              <h3 className="font-semibold text-foreground">5. Conducta durante las clases</h3>
               <p>
-                La escuela proporcionará un vehículo en buen estado y un instructor certificado. El alumno se compromete a seguir todas las indicaciones del instructor y a no presentarse a las clases bajo la influencia de alcohol o sustancias que alteren su capacidad de conducción. Cualquier daño al vehículo causado por negligencia del alumno será su responsabilidad.
+                Está estrictamente prohibido tomar la clase bajo el influjo de alcohol, drogas o cualquier sustancia que altere la conciencia o reflejos. En caso de sospecha, el instructor podrá suspender la clase sin derecho a reembolso.
               </p>
             </div>
              <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">6. Aceptación de Términos</h3>
+              <h3 className="font-semibold text-foreground">6. Servicio a domicilio</h3>
               <p>
-                Al realizar el pago y agendar la primera clase, el alumno y/o su tutor aceptan en su totalidad los términos y condiciones aquí descritos.
+                El servicio a domicilio solo aplica en las áreas de cobertura de la Escuela. Se tomarán en cuenta factores como: la distancia, condiciones de enseñanza y seguridad de la zona, entre otros. El servicio a domicilio solo cubre el descrito en la confirmación, cualquier otra ruta debe cotizarse por separado, solicitándolo con su asesor. No estarán permitidos los traslados. Las clases deberán empezar y terminar en el mismo lugar.
+              </p>
+            </div>
+             <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">7. Modificaciones por parte de la Escuela</h3>
+              <p>
+                Autoescuela Americana puede modificar horarios por rutas, contingencias, tráfico y cierres viales, comunicándoselo al alumno. Los mismos no generan cargo para el alumno y la Escuela se compromete a buscar espacios para la reposición del tiempo perdido.
               </p>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">7. Confidencialidad y Protección de Datos</h3>
+              <h3 className="font-semibold text-foreground">8. Reporte de Anomalías</h3>
               <p>
-                Los datos personales proporcionados por el alumno (nombre, teléfono, domicilio) así como los datos del instructor asignado, son estrictamente confidenciales. AEA se compromete a no compartir, vender o divulgar esta información a terceros bajo ninguna circunstancia, salvo requerimiento legal. Los datos se utilizan únicamente para la coordinación y logística del curso contratado.
+                El Alumno deberá reportar de inmediato cualquier anomalía con el horario o con el instructor a Autoescuela Americana. En caso contrario Autoescuela Americana no se hace responsable si no se da aviso de inmediato.
               </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">9. Asignación de Instructor</h3>
+              <p>
+                Autoescuela Americana asigna a sus instructores de acuerdo a sus zona. La Escuela se reserva el derecho al cambio de instructor. Esto no afecta el plan de trabajo y/o la continuidad de sus clases.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">10. Puntualidad</h3>
+              <p>
+                El instructor puede esperar un máximo de quince (15) minutos al alumno, dicho tiempo será tomado a cuenta de clase. En caso de no presentarse en este tiempo la clase se dará por vista.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">11. Política de cancelación y devoluciones</h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>El alumno podrá solicitar la devolución de pagos solo si han transcurrido al menos 30 días naturales desde la fecha de pago.</li>
+                  <li>Para ello, deberá llenar un formulario de cancelación, exponer los motivos y enviarlo por correo electrónico.</li>
+                  <li>La solicitud será evaluada en un plazo máximo de 10 días hábiles y, si procede, se efectuará la devolución correspondiente menos el anticipo, que no es reembolsable.</li>
+                  <li>No se harán devoluciones si el alumno ya ha tomado más del 30% del curso o si incumple con cualquiera de los términos establecidos en este documento.</li>
+                </ul>
             </div>
           </CardContent>
 
@@ -159,7 +187,7 @@ export default function TerminosPage() {
                 <AccordionTrigger className="hover:no-underline font-semibold text-base">
                     <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                         <Banknote className="h-5 w-5" />
-                        <span>¿Necesitas solicitar un reembolso?</span>
+                        <span>Solicitud de Cancelación y Devolución</span>
                     </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-4">
@@ -167,7 +195,7 @@ export default function TerminosPage() {
                         <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
                             <CardDescription className="mb-6 text-sm">
-                                De acuerdo con la cláusula 3 y 4 de los términos, puedes solicitar un reembolso aquí. Tu solicitud será revisada por un administrador.
+                                De acuerdo con la cláusula 11, puedes iniciar tu solicitud de cancelación llenando este formulario. La solicitud será evaluada por un administrador. Recuerda que el anticipo no es reembolsable.
                             </CardDescription>
                             <div className="space-y-6">
                             <FormField
@@ -193,14 +221,14 @@ export default function TerminosPage() {
                                 <FormItem>
                                     <Label>Motivo de la Solicitud</Label>
                                     <FormControl>
-                                    <Textarea placeholder="Describe detalladamente por qué solicitas el reembolso..." {...field} />
+                                    <Textarea placeholder="Describe detalladamente por qué solicitas la cancelación..." {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}
                             />
                             <div className="space-y-2">
-                                <Label className="font-semibold">Datos Bancarios para Transferencia</Label>
+                                <Label className="font-semibold">Datos Bancarios para Devolución (si aplica)</Label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
