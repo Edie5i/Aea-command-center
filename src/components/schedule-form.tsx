@@ -576,32 +576,29 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
                   <FormDescription>
                     Empieza a escribir y selecciona tu dirección de la lista.
                   </FormDescription>
-                  <div className="relative">
-                    <Home className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                    <FormControl>
-                      {isLoaded ? (
-                        <Autocomplete
-                          onLoad={onLoad}
-                          onPlaceChanged={onPlaceChanged}
-                          options={{
-                            types: ['address'],
-                            componentRestrictions: { country: 'mx' },
-                            bounds: {
-                              north: 19.59,
-                              south: 19.16,
-                              east: -98.94,
-                              west: -99.36,
-                            },
-                            strictBounds: false,
-                          }}
-                        >
-                          <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} className="pl-10" />
-                        </Autocomplete>
-                      ) : (
-                        <Input placeholder="Cargando autocompletado..." {...field} value={field.value ?? ''} className="pl-10" disabled />
-                      )}
-                    </FormControl>
-                  </div>
+                  <FormControl>
+                    {isLoaded ? (
+                      <Autocomplete
+                        onLoad={onLoad}
+                        onPlaceChanged={onPlaceChanged}
+                        options={{
+                          types: ['address'],
+                          componentRestrictions: { country: 'mx' },
+                          bounds: {
+                            north: 19.59,
+                            south: 19.16,
+                            east: -98.94,
+                            west: -99.36,
+                          },
+                          strictBounds: false,
+                        }}
+                      >
+                        <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} />
+                      </Autocomplete>
+                    ) : (
+                      <Input placeholder="Cargando autocompletado..." {...field} value={field.value ?? ''} disabled />
+                    )}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
