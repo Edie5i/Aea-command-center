@@ -32,7 +32,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useLoadScript, Autocomplete } from '@react-google-maps/api';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -84,6 +85,8 @@ const availableTimes = [
   '19:00',
 ];
 
+const libraries: "places"[] = ['places'];
+
 export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -100,6 +103,25 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       requiereConstancia: false,
     },
   });
+  
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
+  
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    autocompleteRef.current = autocomplete;
+  };
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      const address = place.formatted_address || '';
+      form.setValue('address', address, { shouldValidate: true });
+    }
+  };
 
   useEffect(() => {
     const newSchedule = selectedDates.reduce((acc, date) => {
@@ -527,7 +549,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         )}
 
         {meetingPoint === 'Domicilio del alumno' && (
-          <FormField
+           <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
@@ -536,7 +558,20 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
                 <div className="relative">
                   <Home className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <FormControl>
-                    <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} className="pl-10" />
+                    {isLoaded ? (
+                      <Autocomplete
+                        onLoad={onLoad}
+                        onPlaceChanged={onPlaceChanged}
+                        options={{
+                          types: ['address'],
+                          componentRestrictions: { country: 'mx' },
+                        }}
+                      >
+                        <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} className="pl-10" />
+                      </Autocomplete>
+                    ) : (
+                      <Input placeholder="Calle, número, colonia, C.P. (Cargando autocompletado...)" {...field} value={field.value ?? ''} className="pl-10" disabled />
+                    )}
                   </FormControl>
                 </div>
                 <FormMessage />
