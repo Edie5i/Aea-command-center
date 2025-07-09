@@ -190,7 +190,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     y = 45;
 
     // --- Helper for drawing a section ---
-    const drawSection = (title: string, content: { label: string; value: string }[]) => {
+    const drawSection = (title: string, content: { label: string; value: string; link?: string }[]) => {
       if (y > pageHeight - 60) {
         doc.addPage();
         y = 20;
@@ -219,20 +219,39 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(textColor);
+        
         const valueLines = doc.splitTextToSize(item.value, pageWidth - 95);
-        doc.text(valueLines, 75, y);
+
+        if (item.link) {
+          doc.setTextColor('#0000EE'); // Standard link blue
+          doc.textWithLink(valueLines[0], 75, y, { url: item.link });
+          doc.setTextColor(textColor); // Reset color
+          if (valueLines.length > 1) {
+            // Draw remaining lines without link
+            doc.text(valueLines.slice(1), 75, y + 6);
+          }
+        } else {
+          doc.setTextColor(textColor);
+          doc.text(valueLines, 75, y);
+        }
+
         y += (valueLines.length * 6) + 6;
       });
       y += 5;
     };
     
     // --- Alumno & Curso Section ---
-    let puntoDeEncuentroMsgFull = values.meetingPoint;
+    const puntoDeEncuentroItem: { label: string; value: string; link?: string } = {
+        label: 'Punto de Encuentro:',
+        value: values.meetingPoint || '',
+    };
+
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
-        puntoDeEncuentroMsgFull = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
+        puntoDeEncuentroItem.value = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
     } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
-        puntoDeEncuentroMsgFull = `Domicilio del alumno: ${values.address}`;
+        puntoDeEncuentroItem.label = 'Domicilio (clic para ver mapa):';
+        puntoDeEncuentroItem.value = values.address;
+        puntoDeEncuentroItem.link = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}`;
     }
 
     drawSection('DATOS DEL ALUMNO', [
@@ -242,7 +261,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
 
     drawSection('DETALLES DEL CURSO', [
         { label: 'Tipo de Transmisión:', value: values.transmission },
-        { label: 'Punto de Encuentro:', value: puntoDeEncuentroMsgFull },
+        puntoDeEncuentroItem,
     ]);
     
     // --- Schedule Section ---
