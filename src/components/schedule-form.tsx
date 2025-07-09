@@ -33,7 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useEffect, useState, useRef } from 'react';
-import { useLoadScript, Autocomplete } from '@react-google-maps/api';
+import { useLoadScript, Autocomplete, GoogleMap, MarkerF } from '@react-google-maps/api';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -109,6 +109,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     libraries,
   });
   
+  const [mapCenter, setMapCenter] = useState({ lat: 19.4326, lng: -99.1332 });
+  const [markerPosition, setMarkerPosition] = useState<google.maps.LatLngLiteral | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
@@ -120,8 +122,23 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       const place = autocompleteRef.current.getPlace();
       const address = place.formatted_address || '';
       form.setValue('address', address, { shouldValidate: true });
+      if (place.geometry && place.geometry.location) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const newPos = { lat, lng };
+        setMapCenter(newPos);
+        setMarkerPosition(newPos);
+      }
     }
   };
+
+  const addressValue = form.watch('address');
+  useEffect(() => {
+    if (!addressValue) {
+        setMarkerPosition(null);
+    }
+  }, [addressValue]);
+
 
   useEffect(() => {
     const newSchedule = selectedDates.reduce((acc, date) => {
@@ -549,35 +566,65 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         )}
 
         {meetingPoint === 'Domicilio del alumno' && (
-           <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Domicilio del Alumno</FormLabel>
-                <div className="relative">
-                  <Home className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <FormControl>
-                    {isLoaded ? (
-                      <Autocomplete
-                        onLoad={onLoad}
-                        onPlaceChanged={onPlaceChanged}
-                        options={{
-                          types: ['address'],
-                          componentRestrictions: { country: 'mx' },
-                        }}
-                      >
-                        <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} className="pl-10" />
-                      </Autocomplete>
-                    ) : (
-                      <Input placeholder="Calle, número, colonia, C.P. (Cargando autocompletado...)" {...field} value={field.value ?? ''} className="pl-10" disabled />
-                    )}
-                  </FormControl>
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Domicilio del Alumno</FormLabel>
+                  <FormDescription>
+                    Empieza a escribir y selecciona tu dirección de la lista.
+                  </FormDescription>
+                  <div className="relative">
+                    <Home className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <FormControl>
+                      {isLoaded ? (
+                        <Autocomplete
+                          onLoad={onLoad}
+                          onPlaceChanged={onPlaceChanged}
+                          options={{
+                            types: ['address'],
+                            componentRestrictions: { country: 'mx' },
+                            bounds: {
+                              north: 19.59,
+                              south: 19.16,
+                              east: -98.94,
+                              west: -99.36,
+                            },
+                            strictBounds: false,
+                          }}
+                        >
+                          <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} className="pl-10" />
+                        </Autocomplete>
+                      ) : (
+                        <Input placeholder="Cargando autocompletado..." {...field} value={field.value ?? ''} className="pl-10" disabled />
+                      )}
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {isLoaded && markerPosition && (
+              <div>
+                <Label>Verifica la ubicación en el mapa</Label>
+                <div className="mt-2 h-64 w-full rounded-md overflow-hidden border">
+                  <GoogleMap
+                    mapContainerStyle={{ width: '100%', height: '100%' }}
+                    center={mapCenter}
+                    zoom={17}
+                    options={{
+                        disableDefaultUI: true,
+                        zoomControl: true,
+                    }}
+                  >
+                    <MarkerF position={markerPosition} />
+                  </GoogleMap>
                 </div>
-                <FormMessage />
-              </FormItem>
+              </div>
             )}
-          />
+          </div>
         )}
         
         <FormField
