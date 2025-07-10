@@ -150,13 +150,13 @@ export default function EvaluacionPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>
@@ -191,7 +191,7 @@ export default function EvaluacionPage() {
               </CardContent>
               <CardFooter className="flex justify-end">
                 <Button onClick={calculateResult} disabled={!isFormComplete}>
-                  Ver mi recomendación
+                  Ver Recomendación
                 </Button>
               </CardFooter>
             </>
@@ -211,11 +211,11 @@ export default function EvaluacionPage() {
                  <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
                      <Button onClick={() => { setResult(null); setAnswers({}); }}>
                         <BarChart3 className="mr-2 h-4 w-4" />
-                        Realizar de nuevo
+                        Hacer de Nuevo
                     </Button>
                     <Button asChild variant="secondary">
                        <Link href="/#contact-form">
-                           Solicitar Información
+                           Solicitar Info
                        </Link>
                     </Button>
                  </div>

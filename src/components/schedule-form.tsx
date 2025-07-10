@@ -249,8 +249,9 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
         puntoDeEncuentroItem.value = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
     } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
-        puntoDeEncuentroItem.label = 'Domicilio:';
+        puntoDeEncuentroItem.label = 'Domicilio (clic para ver mapa):';
         puntoDeEncuentroItem.value = values.address;
+        puntoDeEncuentroItem.link = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}`;
     }
 
     drawSection('DATOS DEL ALUMNO', [
@@ -526,15 +527,13 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         )}
 
         {meetingPoint === 'Domicilio del alumno' && (
-          <FormField
+           <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Domicilio del Alumno</FormLabel>
-                <FormControl>
-                  <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} />
-                </FormControl>
+                 <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} />
                 <FormMessage />
               </FormItem>
             )}
@@ -643,7 +642,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         <div className="flex justify-end">
           <Button type="submit">
             <Download className="mr-2 h-4 w-4" />
-            Enviar y Descargar Ficha
+            Enviar y Descargar
           </Button>
         </div>
       </form>

@@ -35,7 +35,7 @@ export function InstructionsDisplay({ tips, onReset }: TipsDisplayProps) {
       <div className="flex justify-end mt-6">
         <Button onClick={onReset} variant="outline">
           <RotateCw className="mr-2 h-4 w-4" />
-          Generar Más Consejos
+          Generar de Nuevo
         </Button>
       </div>
     </div>

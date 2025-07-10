@@ -97,11 +97,11 @@ export default function CatalogoPage() {
                       <Button asChild className="w-full">
                           <Link href="/#contact-form">
                               <Plus className="mr-2 h-4 w-4" />
-                              Solicitar Información
+                              Solicitar Info
                           </Link>
                       </Button>
                   </CardFooter>
-                </div>
+                </Card>
               ))}
             </div>
           )}

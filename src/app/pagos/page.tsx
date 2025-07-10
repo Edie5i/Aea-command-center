@@ -29,25 +29,25 @@ export default function PagosPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
            <Button asChild variant="outline">
               <Link href="/agenda">
                   <CalendarDays className="mr-2 h-4 w-4" />
-                  Ver Agenda
+                  Agenda
               </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/catalogo">
                 <List className="mr-2 h-4 w-4" />
-                Ver Catálogo y Precios
+                Catálogo
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>

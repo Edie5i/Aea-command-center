@@ -136,13 +136,13 @@ export default function EncuestaSatisfaccionPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>
@@ -236,7 +236,7 @@ export default function EncuestaSatisfaccionPage() {
                 <CardFooter className="flex justify-end">
                   <Button type="submit" disabled={form.formState.isSubmitting}>
                      <Send className="mr-2 h-4 w-4" />
-                    Enviar Encuesta por WhatsApp
+                    Enviar por WhatsApp
                   </Button>
                 </CardFooter>
               </form>
@@ -255,7 +255,7 @@ export default function EncuestaSatisfaccionPage() {
                 <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
                     <Button onClick={() => setSubmitted(false)} variant="secondary">
                         <Smile className="mr-2 h-4 w-4" />
-                        Responder de nuevo
+                        Responder Otra Vez
                     </Button>
                     <Button asChild>
                         <a
@@ -264,7 +264,7 @@ export default function EncuestaSatisfaccionPage() {
                             rel="noopener noreferrer"
                         >
                             <Star className="mr-2 h-4 w-4 fill-current" />
-                            Dejar una reseña en Google
+                            Reseña en Google
                         </a>
                     </Button>
                 </div>

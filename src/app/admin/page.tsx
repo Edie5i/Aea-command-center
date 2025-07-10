@@ -31,13 +31,13 @@ export default function AdminPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>

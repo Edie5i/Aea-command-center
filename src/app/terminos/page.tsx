@@ -98,7 +98,7 @@ export default function TerminosPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
         </div>
@@ -284,7 +284,7 @@ export default function TerminosPage() {
                             <div className="flex justify-end pt-6">
                             <Button type="submit" disabled={form.formState.isSubmitting}>
                                 <Send className="mr-2 h-4 w-4" />
-                                Enviar Solicitud por WhatsApp
+                                Enviar por WhatsApp
                             </Button>
                             </div>
                         </form>
@@ -301,7 +301,7 @@ export default function TerminosPage() {
                             </AlertDescription>
                         </Alert>
                         <Button onClick={() => setSubmitted(false)} className="mt-6">
-                            Realizar otra solicitud
+                            Hacer Otra Solicitud
                         </Button>
                         </div>
                     )}

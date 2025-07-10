@@ -367,13 +367,13 @@ export default function ExamenTeoricoPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>
@@ -473,12 +473,12 @@ export default function ExamenTeoricoPage() {
               <CardFooter className="flex justify-end gap-4">
                  {result ? (
                     <Button type="button" onClick={resetExam}>
-                        Intentar de Nuevo
+                        Reintentar
                     </Button>
                  ) : (
                     <Button type="submit" disabled={!isExamComplete || form.formState.isSubmitting}>
                        <Send className="mr-2 h-4 w-4" />
-                      Calificar y Enviar por WhatsApp
+                      Calificar y Enviar
                     </Button>
                  )}
               </CardFooter>

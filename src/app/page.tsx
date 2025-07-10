@@ -198,19 +198,19 @@ export default function Home() {
                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
                     <Link href="/catalogo">
                         <List className="h-6 w-6" />
-                        Catálogo de Cursos
+                        Catálogo
                     </Link>
                 </Button>
                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1">
                     <Link href="/agenda">
                         <CalendarDays className="h-6 w-6" />
-                        Agendar Curso
+                        Agendar
                     </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary" className="h-24 text-base flex-col gap-1">
                     <Link href="/evaluacion">
                         <BarChart3 className="h-6 w-6" />
-                        Evaluar mi Nivel
+                        Evaluar Nivel
                     </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary" className="h-24 text-base flex-col gap-1">
@@ -228,19 +228,19 @@ export default function Home() {
                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
                     <Link href="/programa">
                         <BookOpen className="h-6 w-6" />
-                        Programa del Curso
+                        Programa
                     </Link>
                 </Button>
                  <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
                     <Link href="/pagos">
                         <CreditCard className="h-6 w-6" />
-                        Métodos de Pago
+                        Pagos
                     </Link>
                 </Button>
                  <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
                     <Link href="/terminos">
                         <FileText className="h-6 w-6" />
-                        Términos y Condiciones
+                        Términos
                     </Link>
                 </Button>
             </div>
@@ -356,7 +356,7 @@ export default function Home() {
             <Button asChild size="lg" variant="outline" className="mt-4 md:mt-0 shrink-0">
                 <Link href="/instructores">
                     <User className="mr-2 h-5 w-5" />
-                    Conviértete en Instructor
+                    Ser Instructor
                 </Link>
             </Button>
         </div>

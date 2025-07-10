@@ -63,25 +63,25 @@ export default function AgendaPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/pagos">
               <CreditCard className="mr-2 h-4 w-4" />
-              Ver Métodos de Pago
+              Pagos
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/catalogo">
                 <List className="mr-2 h-4 w-4" />
-                Ver Catálogo y Precios
+                Catálogo
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>
@@ -148,10 +148,10 @@ export default function AgendaPage() {
               </CardContent>
               <CardFooter className="flex-col sm:flex-row justify-center gap-4">
                 <Button onClick={resetForm}>
-                  Agendar otro curso
+                  Agendar Otro
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/">Volver al Inicio</Link>
+                  <Link href="/">Inicio</Link>
                 </Button>
               </CardFooter>
             </Card>

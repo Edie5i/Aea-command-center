@@ -86,13 +86,13 @@ export default function ProgramaPage() {
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al Inicio
+              Inicio
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/terminos">
                 <FileText className="mr-2 h-4 w-4" />
-                Términos y Condiciones
+                Términos
             </Link>
           </Button>
         </div>
@@ -132,7 +132,7 @@ export default function ProgramaPage() {
           <CardFooter className="flex justify-center bg-muted/50 p-4 border-t">
               <Button onClick={handleGeneratePdf}>
                 <Download className="mr-2 h-4 w-4" />
-                Descargar Guía de Verificación y Mantenimiento
+                Descargar Guía
               </Button>
           </CardFooter>
         </Card>
