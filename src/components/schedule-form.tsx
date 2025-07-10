@@ -4,7 +4,7 @@
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Phone, User, Clock, Home, MapPin, MessageSquare, StickyNote, Download, FileText } from 'lucide-react';
+import { Phone, User, MapPin, MessageSquare, StickyNote, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -32,8 +32,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useEffect, useState, useRef } from 'react';
-import { useLoadScript, Autocomplete, GoogleMap, MarkerF } from '@react-google-maps/api';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -85,8 +84,6 @@ const availableTimes = [
   '19:00',
 ];
 
-const libraries: "places"[] = ['places'];
-
 export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -103,42 +100,6 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       requiereConstancia: false,
     },
   });
-  
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries,
-  });
-  
-  const [mapCenter, setMapCenter] = useState({ lat: 19.4326, lng: -99.1332 });
-  const [markerPosition, setMarkerPosition] = useState<google.maps.LatLngLiteral | null>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-
-  const onLoad = (autocomplete: google.maps.places.Autocomplete) => {
-    autocompleteRef.current = autocomplete;
-  };
-
-  const onPlaceChanged = () => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      const address = place.formatted_address || '';
-      form.setValue('address', address, { shouldValidate: true });
-      if (place.geometry && place.geometry.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        const newPos = { lat, lng };
-        setMapCenter(newPos);
-        setMarkerPosition(newPos);
-      }
-    }
-  };
-
-  const addressValue = form.watch('address');
-  useEffect(() => {
-    if (!addressValue) {
-        setMarkerPosition(null);
-    }
-  }, [addressValue]);
-
 
   useEffect(() => {
     const newSchedule = selectedDates.reduce((acc, date) => {
@@ -288,9 +249,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
         puntoDeEncuentroItem.value = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
     } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
-        puntoDeEncuentroItem.label = 'Domicilio (clic para ver mapa):';
+        puntoDeEncuentroItem.label = 'Domicilio:';
         puntoDeEncuentroItem.value = values.address;
-        puntoDeEncuentroItem.link = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}`;
     }
 
     drawSection('DATOS DEL ALUMNO', [
@@ -566,62 +526,19 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         )}
 
         {meetingPoint === 'Domicilio del alumno' && (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Domicilio del Alumno</FormLabel>
-                  <FormDescription>
-                    Empieza a escribir y selecciona tu dirección de la lista.
-                  </FormDescription>
-                  <FormControl>
-                    {isLoaded ? (
-                      <Autocomplete
-                        onLoad={onLoad}
-                        onPlaceChanged={onPlaceChanged}
-                        options={{
-                          types: ['address'],
-                          componentRestrictions: { country: 'mx' },
-                          bounds: {
-                            north: 19.59,
-                            south: 19.16,
-                            east: -98.94,
-                            west: -99.36,
-                          },
-                          strictBounds: false,
-                        }}
-                      >
-                        <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} />
-                      </Autocomplete>
-                    ) : (
-                      <Input placeholder="Cargando autocompletado..." {...field} value={field.value ?? ''} disabled />
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {isLoaded && markerPosition && (
-              <div>
-                <Label>Verifica la ubicación en el mapa</Label>
-                <div className="mt-2 h-64 w-full rounded-md overflow-hidden border">
-                  <GoogleMap
-                    mapContainerStyle={{ width: '100%', height: '100%' }}
-                    center={mapCenter}
-                    zoom={17}
-                    options={{
-                        disableDefaultUI: true,
-                        zoomControl: true,
-                    }}
-                  >
-                    <MarkerF position={markerPosition} />
-                  </GoogleMap>
-                </div>
-              </div>
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Domicilio del Alumno</FormLabel>
+                <FormControl>
+                  <Input placeholder="Calle, número, colonia, C.P." {...field} value={field.value ?? ''} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
         )}
         
         <FormField
