@@ -155,12 +155,12 @@ export default function Home() {
           <div className="@container">
             <div className="@[480px]:p-4">
               <div
-                className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center"
+                className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
                 style={{
                   backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuATDYn_-lIbqYSXnv6mW7DKFPH7T90teDEaszaH2_MLpLz5Oe3KPctwAB-fUwZ1oZfXtW27nUvdxNr7Q6S90U35h55kUh-Gm0lHnTMeVizuudEOdVz784e6IWedtCv6iQV2YWboiB1r_InPJosF3I3Dl8-T9NFsURJM0oqBpo0Bg-2p6WkFcC6pxCrSUNY-PIgucran0WN1EC2RnPLHUq_POOnR9BaJ5KqgzC7hahkxeTyWCFKKcu7NZJlz2r0KXmyN8mXVvhsbiVA")',
                 }}
               >
-                <div className="bg-black/50 p-8 rounded-lg text-center">
+                <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
                    <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center">
                       Aprende a Conducir con los Expertos de la CDMX
                     </h2>
@@ -187,31 +187,63 @@ export default function Home() {
       </div>
       
       <div ref={mainContentRef} className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-5xl mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Button asChild size="lg" className="h-20 text-base flex-col gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link href="/catalogo">
-              <List className="h-6 w-6" />
-              Catálogo
-            </Link>
-          </Button>
-          <Button asChild size="lg" className="h-20 text-base flex-col gap-1">
-              <Link href="/agenda">
-                  <CalendarDays className="h-6 w-6" />
-                  Agendar
-              </Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary" className="h-20 text-base flex-col gap-1">
-              <Link href="/evaluacion">
-                  <BarChart3 className="h-6 w-6" />
-                  Evaluar Nivel
-              </Link>
-          </Button>
-          <Button asChild size="lg" className="h-20 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
-            <Link href="/chatbot">
-              <Bot className="h-6 w-6" />
-              Asistente IA
-            </Link>
-          </Button>
+         <div className="w-full max-w-5xl mb-12">
+            <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold tracking-tight">Portal del Alumno</h2>
+                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+                    Todas nuestras herramientas y recursos a tu alcance.
+                </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
+                    <Link href="/catalogo">
+                        <List className="h-6 w-6" />
+                        Catálogo de Cursos
+                    </Link>
+                </Button>
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1">
+                    <Link href="/agenda">
+                        <CalendarDays className="h-6 w-6" />
+                        Agendar Curso
+                    </Link>
+                </Button>
+                <Button asChild size="lg" variant="secondary" className="h-24 text-base flex-col gap-1">
+                    <Link href="/evaluacion">
+                        <BarChart3 className="h-6 w-6" />
+                        Evaluar mi Nivel
+                    </Link>
+                </Button>
+                <Button asChild size="lg" variant="secondary" className="h-24 text-base flex-col gap-1">
+                    <Link href="/examen-teorico">
+                        <FileQuestion className="h-6 w-6" />
+                        Examen Teórico
+                    </Link>
+                </Button>
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                    <Link href="/chatbot">
+                        <Bot className="h-6 w-6" />
+                        Asistente IA
+                    </Link>
+                </Button>
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                    <Link href="/programa">
+                        <BookOpen className="h-6 w-6" />
+                        Programa del Curso
+                    </Link>
+                </Button>
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                    <Link href="/pagos">
+                        <CreditCard className="h-6 w-6" />
+                        Métodos de Pago
+                    </Link>
+                </Button>
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                    <Link href="/terminos">
+                        <FileText className="h-6 w-6" />
+                        Términos y Condiciones
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden mt-8">
@@ -329,29 +361,6 @@ export default function Home() {
             </Button>
         </div>
         
-        <div className="w-full max-w-5xl mb-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-center">
-            <Button asChild variant="link">
-              <Link href="/examen-teorico">
-                  Examen Teórico
-              </Link>
-          </Button>
-           <Button asChild variant="link">
-              <Link href="/programa">
-                  Programa del Curso
-              </Link>
-          </Button>
-          <Button asChild variant="link">
-              <Link href="/pagos">
-                  Métodos de Pago
-              </Link>
-          </Button>
-           <Button asChild variant="link">
-              <Link href="/terminos">
-                Términos y Condiciones
-              </Link>
-          </Button>
-        </div>
-
 
         <Dialog open={isGeneratorOpen} onOpenChange={setIsGeneratorOpen}>
           <DialogContent className="sm:max-w-[425px]">
