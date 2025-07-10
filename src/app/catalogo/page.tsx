@@ -9,10 +9,12 @@ import {
   AlertCircle, 
   Plus,
   Loader2,
+  List,
 } from 'lucide-react';
 import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AppFooter } from '@/components/footer';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function CatalogoPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -38,7 +40,7 @@ export default function CatalogoPage() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col bg-background">
+    <main className="flex min-h-screen flex-col bg-secondary">
       <header className="sticky top-0 z-10 w-full border-b bg-background/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
@@ -52,9 +54,17 @@ export default function CatalogoPage() {
           </div>
         </div>
       </header>
-
+      
       <div className="container flex-grow p-4 sm:p-6 md:p-8 flex justify-center">
         <div className="w-full max-w-4xl">
+          <div className="text-center mb-12">
+            <List className="mx-auto h-12 w-12 text-primary" />
+            <h2 className="text-3xl font-bold tracking-tight mt-4">Nuestros Cursos</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              Diseñados para cada nivel de experiencia. Encuentra el curso perfecto para ti y comienza a conducir con confianza.
+            </p>
+          </div>
+          
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 text-muted-foreground pt-10">
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -73,20 +83,24 @@ export default function CatalogoPage() {
                 <p>No hay cursos configurados actualmente.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {courses.map((course) => (
-                <div key={course.id} className="flex items-start gap-4 p-4 border rounded-xl shadow-sm hover:bg-muted/50 transition-colors">
-                  <div className="flex-grow">
-                      <h3 className="font-bold text-lg leading-tight">{course.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{course.description}</p>
-                      <p className="text-lg font-semibold text-primary mt-2">${course.price} MXN</p>
-                  </div>
-                  <Button asChild size="icon" className="rounded-full flex-shrink-0">
-                      <Link href="/#contact-form">
-                          <Plus className="h-5 w-5" />
-                          <span className="sr-only">Solicitar Información</span>
-                      </Link>
-                  </Button>
+                <Card key={course.id} className="flex flex-col shadow-lg rounded-xl hover:shadow-xl transition-shadow duration-300">
+                  <CardHeader>
+                      <CardTitle className="leading-tight text-xl">{course.title}</CardTitle>
+                      <CardDescription className="text-primary font-semibold text-2xl pt-2">${course.price} MXN</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                      <p className="text-sm text-muted-foreground">{course.description}</p>
+                  </CardContent>
+                  <CardFooter>
+                      <Button asChild className="w-full">
+                          <Link href="/#contact-form">
+                              <Plus className="mr-2 h-4 w-4" />
+                              Solicitar Información
+                          </Link>
+                      </Button>
+                  </CardFooter>
                 </div>
               ))}
             </div>

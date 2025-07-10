@@ -22,7 +22,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import jsPDF from "jspdf";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
 import {
@@ -155,28 +155,31 @@ export default function Home() {
           <div className="@container">
             <div className="@[480px]:p-4">
               <div
-                className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh]"
+                className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center"
                 style={{
                   backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuATDYn_-lIbqYSXnv6mW7DKFPH7T90teDEaszaH2_MLpLz5Oe3KPctwAB-fUwZ1oZfXtW27nUvdxNr7Q6S90U35h55kUh-Gm0lHnTMeVizuudEOdVz784e6IWedtCv6iQV2YWboiB1r_InPJosF3I3Dl8-T9NFsURJM0oqBpo0Bg-2p6WkFcC6pxCrSUNY-PIgucran0WN1EC2RnPLHUq_POOnR9BaJ5KqgzC7hahkxeTyWCFKKcu7NZJlz2r0KXmyN8mXVvhsbiVA")',
                 }}
-              ></div>
+              >
+                <div className="bg-black/50 p-8 rounded-lg text-center">
+                   <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center">
+                      Aprende a Conducir con los Expertos de la CDMX
+                    </h2>
+                    <p className="text-white/80 text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
+                      Cursos personalizados, instructores certificados y la confianza que necesitas para dominar el volante.
+                    </p>
+                </div>
+              </div>
             </div>
           </div>
-          <h2 className="text-foreground tracking-tight text-[28px] font-bold text-center px-4 pt-5 pb-3">
-            Bienvenido a la App de Auto Escuela Americana
-          </h2>
-          <p className="text-muted-foreground text-base font-normal text-center px-4 pt-1 pb-3">
-            Tu portal para aprender a conducir con confianza y seguridad en la Ciudad de México.
-          </p>
         </div>
         <div>
           <div className="flex px-4 py-3">
             <Button
               onClick={handleGetStartedClick}
-              className="h-12 px-5 flex-1 rounded-full font-bold text-base max-w-md mx-auto"
+              className="h-14 px-8 flex-1 rounded-full font-bold text-lg max-w-md mx-auto shadow-lg"
               size="lg"
             >
-              <span className="truncate">Comenzar</span>
+              <span className="truncate">¡Quiero Empezar!</span>
             </Button>
           </div>
           <div className="h-5"></div>
@@ -184,75 +187,34 @@ export default function Home() {
       </div>
       
       <div ref={mainContentRef} className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-5xl mb-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
-            <Link href="/chatbot">
-              <Bot className="mr-2 h-4 w-4" />
-              IA Bot
+        <div className="w-full max-w-5xl mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Button asChild size="lg" className="h-20 text-base flex-col gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
+            <Link href="/catalogo">
+              <List className="h-6 w-6" />
+              Catálogo
             </Link>
           </Button>
-          <Button asChild className="w-full">
-              <Link href="/catalogo">
-                  <List className="mr-2 h-4 w-4" />
-                  Catálogo
-              </Link>
-          </Button>
-          <Button asChild variant="secondary" className="w-full">
+          <Button asChild size="lg" className="h-20 text-base flex-col gap-1">
               <Link href="/agenda">
-                  <CalendarDays className="mr-2 h-4 w-4" />
+                  <CalendarDays className="h-6 w-6" />
                   Agendar
               </Link>
           </Button>
-          <Button asChild className="w-full">
+          <Button asChild size="lg" variant="secondary" className="h-20 text-base flex-col gap-1">
               <Link href="/evaluacion">
-                  <BarChart3 className="mr-2 h-4 w-4" />
+                  <BarChart3 className="h-6 w-6" />
                   Evaluar Nivel
               </Link>
           </Button>
-          <Button asChild variant="secondary" className="w-full">
-              <Link href="/examen-teorico">
-                  <FileQuestion className="mr-2 h-4 w-4" />
-                  Examen
-              </Link>
-          </Button>
-          <Button asChild className="w-full">
-              <Link href="/programa">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Programa
-              </Link>
-          </Button>
-          <Button onClick={handleMaintenanceGuide} variant="secondary" className="w-full">
-            <Download className="mr-2 h-4 w-4" />
-            Fundamentos
-          </Button>
-          <Button asChild className="w-full">
-              <Link href="/pagos">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Pagos
-              </Link>
-          </Button>
-          <Button onClick={() => handleDocumentSelect('constancia')} variant="secondary" className="w-full">
-              <FileText className="mr-2 h-4 w-4" />
-              Constancias
-          </Button>
-          <Button asChild className="w-full">
-            <Link href="/terminos">
-              <FileText className="mr-2 h-4 w-4" />
-              Términos
+          <Button asChild size="lg" className="h-20 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+            <Link href="/chatbot">
+              <Bot className="h-6 w-6" />
+              Asistente IA
             </Link>
           </Button>
         </div>
 
-        <div className="w-full max-w-3xl mb-8 flex justify-center">
-          <Button asChild variant="outline">
-              <Link href="/instructores">
-                  <User className="mr-2 h-4 w-4" />
-                  Únete al Equipo
-              </Link>
-          </Button>
-        </div>
-
-        <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden">
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden mt-8">
           <CardContent className="p-6 md:p-8">
             <AnimatePresence mode="wait">
               <motion.div
@@ -282,20 +244,20 @@ export default function Home() {
         <ContactForm />
 
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-          <Card className="shadow-lg rounded-xl h-full flex flex-col">
+          <Card className="shadow-lg rounded-xl h-full flex flex-col border-accent/50 bg-accent/10">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2">
-                <Smile className="h-6 w-6 text-accent" />
-                Encuesta
+                <Smile className="h-6 w-6 text-accent-foreground" />
+                Encuesta de Satisfacción
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-grow text-center">
               <p className="text-muted-foreground">
-                ¿Ya tomaste un curso? Tu opinión es muy valiosa para nosotros.
+                ¿Ya tomaste un curso? Tu opinión es muy valiosa para nosotros y nos ayuda a mejorar.
               </p>
             </CardContent>
             <CardFooter className="flex justify-center">
-              <Button asChild>
+              <Button asChild variant="outline">
                 <Link href="/encuesta-satisfaccion">
                   <Smile className="mr-2 h-4 w-4" />
                   Responder Encuesta
@@ -308,14 +270,14 @@ export default function Home() {
             <CardHeader className="text-center">
               <CardTitle className="flex items-center gap-2 justify-center">
                 <MapPin className="h-6 w-6 text-primary" />
-                Ubicación
+                Nuestra Ubicación
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
               <p className="text-center text-muted-foreground mb-4">
-                  Torreón #49, Roma Sur, CDMX.
+                  Torreón #49, Roma Sur, CDMX. ¡Te esperamos!
               </p>
-                <div className="aspect-square w-full overflow-hidden rounded-lg border">
+                <div className="aspect-video w-full overflow-hidden rounded-lg border">
                   <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.910334861842!2d-99.1650399256956!3d19.41584284067989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff394a4f8999%3A0x89223c21a3295b9c!2sTorre%C3%B3n%2049%2C%20Roma%20Sur%2C%20Cuauht%C3%A9moc%2C%2006760%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1sen!2smx!4v1719524940549!5m2!1sen!2smx"
                     width="100%"
@@ -329,16 +291,16 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
-
-        <Card className="w-full max-w-3xl mt-8 bg-primary/10 border-primary/20">
+        
+        <Card className="w-full max-w-3xl mt-8 bg-secondary">
           <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-center text-center sm:text-left sm:justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="bg-white p-3 rounded-full shadow-md">
-                <Star className="h-8 w-8 text-yellow-500 fill-yellow-400" />
+                <Star className="h-8 w-8 text-yellow-400 fill-yellow-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-foreground">Nuestros Casos de Éxito</h3>
-                <p className="text-muted-foreground mt-1">Descubre por qué nuestros alumnos nos califican con 5 estrellas en Google.</p>
+                <h3 className="text-lg font-bold text-foreground">Calificación de 5 Estrellas</h3>
+                <p className="text-muted-foreground mt-1">Descubre por qué nuestros alumnos nos recomiendan en Google.</p>
               </div>
             </div>
             <Button asChild className="shrink-0 mt-4 sm:mt-0">
@@ -348,11 +310,48 @@ export default function Home() {
                 rel="noopener noreferrer"
               >
                 <Star className="mr-2 h-4 w-4 fill-current" />
-                Leer Reseñas en Google
+                Leer Reseñas
               </a>
             </Button>
           </CardContent>
         </Card>
+
+        <div className="w-full max-w-3xl my-8 p-6 bg-muted rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div>
+                <h3 className="text-xl font-bold text-foreground">¿Quieres formar parte de nuestro equipo?</h3>
+                <p className="text-muted-foreground mt-1">Buscamos instructores apasionados por la seguridad vial. ¡Únete a nosotros!</p>
+            </div>
+            <Button asChild size="lg" variant="outline" className="mt-4 md:mt-0 shrink-0">
+                <Link href="/instructores">
+                    <User className="mr-2 h-5 w-5" />
+                    Conviértete en Instructor
+                </Link>
+            </Button>
+        </div>
+        
+        <div className="w-full max-w-5xl mb-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-center">
+            <Button asChild variant="link">
+              <Link href="/examen-teorico">
+                  Examen Teórico
+              </Link>
+          </Button>
+           <Button asChild variant="link">
+              <Link href="/programa">
+                  Programa del Curso
+              </Link>
+          </Button>
+          <Button asChild variant="link">
+              <Link href="/pagos">
+                  Métodos de Pago
+              </Link>
+          </Button>
+           <Button asChild variant="link">
+              <Link href="/terminos">
+                Términos y Condiciones
+              </Link>
+          </Button>
+        </div>
+
 
         <Dialog open={isGeneratorOpen} onOpenChange={setIsGeneratorOpen}>
           <DialogContent className="sm:max-w-[425px]">
