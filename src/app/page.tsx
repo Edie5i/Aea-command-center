@@ -161,7 +161,10 @@ export default function Home() {
                 }}
               >
                 <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
-                   <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center">
+                    <h1 className="text-xl font-semibold text-accent tracking-widest uppercase">
+                      Auto Escuela Americana
+                    </h1>
+                   <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
                       Aprende a Conducir con los Expertos de la CDMX
                     </h2>
                     <p className="text-white/80 text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
@@ -222,7 +225,7 @@ export default function Home() {
                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
                     <Link href="/chatbot">
                         <Bot className="h-6 w-6" />
-                        Asistente IA
+                        Asistente
                     </Link>
                 </Button>
                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
@@ -292,7 +295,7 @@ export default function Home() {
               <Button asChild variant="outline">
                 <Link href="/encuesta-satisfaccion">
                   <Smile className="mr-2 h-4 w-4" />
-                  Responder Encuesta
+                  Responder
                 </Link>
               </Button>
             </CardFooter>

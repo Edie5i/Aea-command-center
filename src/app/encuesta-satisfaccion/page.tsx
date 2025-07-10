@@ -166,7 +166,7 @@ export default function EncuestaSatisfaccionPage() {
                             </FormControl>
                         </FormItem>
                          <FormItem>
-                            <Label htmlFor="instructorName">Nombre de tu Instructor (Opcional)</Label>
+                            <Label htmlFor="instructorName">Instructor (Opcional)</Label>
                             <FormControl>
                                 <Input id="instructorName" placeholder="Eduardo" {...form.register('instructorName')} />
                             </FormControl>
@@ -236,7 +236,7 @@ export default function EncuestaSatisfaccionPage() {
                 <CardFooter className="flex justify-end">
                   <Button type="submit" disabled={form.formState.isSubmitting}>
                      <Send className="mr-2 h-4 w-4" />
-                    Enviar por WhatsApp
+                    Enviar
                   </Button>
                 </CardFooter>
               </form>
