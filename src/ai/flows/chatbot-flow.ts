@@ -15,9 +15,6 @@ import { reglamentoTransitoCompleto } from '@/lib/reglamento-transito-data';
 
 const ChatWithBotInputSchema = z.object({
   message: z.string().describe("The user's message to the chatbot."),
-  // We add a flag to determine which context to use.
-  // WhatsApp will use the simple context for speed.
-  isWhatsApp: z.boolean().optional().describe("Flag to indicate if the chat is from WhatsApp."),
 });
 export type ChatWithBotInput = z.infer<typeof ChatWithBotInputSchema>;
 
@@ -74,12 +71,8 @@ const chatbotFlow = ai.defineFlow(
     // Convert the base school data to a JSON string.
     const schoolContextJSON = JSON.stringify(botContextData, null, 2);
 
-    // Determine the final context based on the source (WhatsApp vs. Web App).
-    // The web app gets the full context including traffic regulations.
-    // WhatsApp gets a simpler context for faster responses.
-    const finalContext = input.isWhatsApp
-      ? schoolContextJSON
-      : `${schoolContextJSON}\n\nREGLAMENTO DE TRÁNSITO DE LA CDMX (EXTRACTO):\n${reglamentoTransitoCompleto}`;
+    // Use the full context for all channels.
+    const finalContext = `${schoolContextJSON}\n\nREGLAMENTO DE TRÁNSITO DE LA CDMX (EXTRACTO):\n${reglamentoTransitoCompleto}`;
 
     const {output} = await prompt({
         message: input.message,

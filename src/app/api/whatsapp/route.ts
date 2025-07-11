@@ -97,8 +97,7 @@ async function processWhatsappMessage(body: any, accessToken: string, phoneNumbe
                     console.log(`Processing message from ${from}: "${textMessage}"`);
 
                     try {
-                        // Call the bot with the WhatsApp flag for a faster response
-                        const aiResult = await chatWithBot({ message: textMessage, isWhatsApp: true });
+                        const aiResult = await chatWithBot({ message: textMessage });
                         if (aiResult && aiResult.response) {
                             replyText = aiResult.response;
                         } else {
