@@ -6,23 +6,24 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
 
-const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
-const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-const WHATSAPP_API_URL = `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-
 const chatsCollection = collection(db, 'whatsappChats');
 
 /**
  * Handles the webhook verification GET request from Meta.
  */
 export async function GET(request: NextRequest) {
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+  if (!verifyToken) {
+    console.error("WHATSAPP_VERIFY_TOKEN is not set in environment variables.");
+    return new NextResponse("Configuration error: Verify token not set.", { status: 500 });
+  }
+  
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get('hub.mode');
   const token = searchParams.get('hub.verify_token');
   const challenge = searchParams.get('hub.challenge');
 
-  if (mode === 'subscribe' && token === WHATSAPP_VERIFY_TOKEN) {
+  if (mode === 'subscribe' && token === verifyToken) {
     console.log('WEBHOOK_VERIFIED');
     return new NextResponse(challenge, { status: 200 });
   } else {
@@ -40,7 +41,18 @@ export async function POST(request: NextRequest) {
 
   // It's crucial to respond 200 OK quickly to avoid re-delivery.
   // We process the message asynchronously after responding.
-  processWhatsappMessage(body).catch(error => {
+  
+  // Read environment variables here to pass them down
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!accessToken || !phoneNumberId) {
+      console.error("WhatsApp environment variables (ACCESS_TOKEN or PHONE_NUMBER_ID) are missing!");
+      // We still return 200 OK to Meta to prevent webhook disabling.
+      return new NextResponse('EVENT_RECEIVED_BUT_CONFIGURATION_ERROR', { status: 200 });
+  }
+
+  processWhatsappMessage(body, accessToken, phoneNumberId).catch(error => {
     console.error("Error processing WhatsApp message asynchronously:", error);
   });
 
@@ -48,7 +60,7 @@ export async function POST(request: NextRequest) {
 }
 
 
-async function processWhatsappMessage(body: any) {
+async function processWhatsappMessage(body: any, accessToken: string, phoneNumberId: string) {
     if (body.object !== 'whatsapp_business_account') {
         console.log('Not a WhatsApp Business Account event.');
         return;
@@ -105,7 +117,7 @@ async function processWhatsappMessage(body: any) {
 
                 // 4. Send the reply via WhatsApp API
                 if (replyText) {
-                    await sendWhatsappMessage(from, replyText);
+                    await sendWhatsappMessage(from, replyText, accessToken, phoneNumberId);
                 }
             } else {
                 // Log other types of events for debugging (e.g., delivery receipts)
@@ -115,14 +127,11 @@ async function processWhatsappMessage(body: any) {
     }
 }
 
-async function sendWhatsappMessage(to: string, text: string) {
-    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-        console.error("WhatsApp environment variables are not set. Cannot send message.");
-        return;
-    }
-
+async function sendWhatsappMessage(to: string, text: string, accessToken: string, phoneNumberId: string) {
+    const whatsappApiUrl = `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`;
+    
     try {
-        const response = await axios.post(WHATSAPP_API_URL, {
+        const response = await axios.post(whatsappApiUrl, {
             messaging_product: 'whatsapp',
             to: to,
             type: 'text',
@@ -131,7 +140,7 @@ async function sendWhatsappMessage(to: string, text: string) {
             }
         }, {
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -141,7 +150,7 @@ async function sendWhatsappMessage(to: string, text: string) {
 
         // 5. Save outgoing message to Firestore
         await addDoc(chatsCollection, {
-            from: WHATSAPP_PHONE_NUMBER_ID,
+            from: phoneNumberId,
             to: to,
             type: 'text',
             timestamp: serverTimestamp(),
