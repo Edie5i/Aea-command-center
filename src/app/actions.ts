@@ -33,7 +33,8 @@ const chatbotInputSchema = z.object({
 export async function getChatbotResponseAction(message: string) {
   try {
     const validatedInput = chatbotInputSchema.parse({ message });
-    const result = await chatWithBot({ message: validatedInput.message });
+    // For the web chatbot, we set isWhatsApp to false to get the full context
+    const result = await chatWithBot({ message: validatedInput.message, isWhatsApp: false });
     if (!result.response) {
       return { response: null, error: 'No se pudo obtener una respuesta. El modelo de IA podría no estar disponible.' };
     }

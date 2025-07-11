@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
+  console.log('Incoming webhook body:', JSON.stringify(body, null, 2));
 
   // It's crucial to respond 200 OK quickly to avoid re-delivery.
   // We process the message asynchronously after responding.
@@ -84,7 +85,8 @@ async function processWhatsappMessage(body: any) {
                     console.log(`Processing message from ${from}: "${textMessage}"`);
 
                     try {
-                        const aiResult = await chatWithBot({ message: textMessage });
+                        // Call the bot with the WhatsApp flag for a faster response
+                        const aiResult = await chatWithBot({ message: textMessage, isWhatsApp: true });
                         if (aiResult && aiResult.response) {
                             replyText = aiResult.response;
                         } else {
@@ -107,7 +109,7 @@ async function processWhatsappMessage(body: any) {
                 }
             } else {
                 // Log other types of events for debugging (e.g., delivery receipts)
-                console.log("Received a non-message event:", change.field);
+                console.log("Received a non-message event:", change.field, change.value);
             }
         }
     }
