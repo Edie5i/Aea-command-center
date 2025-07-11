@@ -1,3 +1,4 @@
+'use server';
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { db } from '@/lib/firebase';
@@ -34,8 +35,6 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  // console.log('Webhook received:', JSON.stringify(body, null, 2)); // Uncomment for debugging
-
   // It's crucial to respond 200 OK quickly to avoid re-delivery.
   // We process the message asynchronously after responding.
   processWhatsappMessage(body).catch(error => {
