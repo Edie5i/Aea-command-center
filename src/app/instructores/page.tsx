@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, User, Phone, Home, Send, CheckCircle, Globe, Briefcase, HeartHandshake, Check } from 'lucide-react';
+import { ArrowLeft, FileText, User, Phone, Send, CheckCircle, Globe, Briefcase, HeartHandshake, Check, MapPin, Car, BookUser } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -22,12 +23,21 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AppFooter } from '@/components/footer';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const alcaldias = [
+  "Álvaro Obregón", "Azcapotzalco", "Benito Juárez", "Coyoacán", 
+  "Cuajimalpa de Morelos", "Cuauhtémoc", "Gustavo A. Madero", 
+  "Iztacalco", "Iztapalapa", "La Magdalena Contreras", "Miguel Hidalgo",
+  "Milpa Alta", "Tláhuac", "Tlalpan", "Venustiano Carranza", "Xochimilco"
+];
 
 const instructorSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
-  address: z.string().min(10, { message: 'Por favor, ingresa una dirección más detallada.' }),
-  interviewTime: z.string({ required_error: 'Por favor, selecciona un horario para la entrevista.' }),
+  alcaldia: z.string({ required_error: 'Por favor, selecciona tu alcaldía.' }),
+  hasOwnCar: z.string({ required_error: 'Por favor, selecciona si tienes coche propio.' }),
+  hasTeachingExperience: z.string({ required_error: 'Por favor, selecciona si tienes experiencia enseñando.' }),
 });
 
 type InstructorFormValues = z.infer<typeof instructorSchema>;
@@ -40,20 +50,22 @@ export default function InstructoresPage() {
         defaultValues: {
             name: '',
             phone: '',
-            address: '',
-            interviewTime: '',
+            alcaldia: '',
+            hasOwnCar: '',
+            hasTeachingExperience: '',
         }
     });
 
     function onSubmit(values: InstructorFormValues) {
         const whatsAppNumber = "525634433212"; // Admin number
         
-        let message = `*Solicitud de Entrevista para Instructor*\n\n`;
+        let message = `*Solicitud de Información para ser Instructor*\n\n`;
         message += `*Nombre del Aspirante:* ${values.name}\n`;
         message += `*Teléfono de Contacto:* ${values.phone}\n`;
-        message += `*Dirección:* ${values.address}\n`;
-        message += `*Horario Solicitado para Entrevista:* ${values.interviewTime} hrs\n\n`;
-        message += `¡Gracias!`;
+        message += `*Alcaldía:* ${values.alcaldia}\n`;
+        message += `*¿Tiene coche propio?:* ${values.hasOwnCar}\n`;
+        message += `*¿Tiene experiencia enseñando?:* ${values.hasTeachingExperience}\n\n`;
+        message += `¡Gracias! Quedo en espera de más información.`;
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
@@ -62,7 +74,7 @@ export default function InstructoresPage() {
 
         toast({
             title: '¡Solicitud Lista para Enviar!',
-            description: `Se abrirá WhatsApp para que puedas enviar tu solicitud de entrevista.`,
+            description: `Se abrirá WhatsApp para que puedas enviar tu solicitud.`,
         });
         
         setSubmitted(true);
@@ -81,7 +93,7 @@ export default function InstructoresPage() {
           </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          ¡Conviértete en Instructor de Manejo en CDMX!
+          Únete a Nuestro Equipo de Instructores
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
           ¿Eres un conductor con experiencia y te apasiona la seguridad vial? En Auto Escuela Americana te formamos como instructor certificado, ¡no importa si no tienes experiencia enseñando!
@@ -128,97 +140,136 @@ export default function InstructoresPage() {
             </Link>
           </Button>
         </div>
+
+        <Alert className="w-full max-w-3xl mb-8 border-primary/50 bg-primary/10">
+          <FileText className="h-4 w-4" />
+          <AlertTitle className="font-bold">¡Prepara tus Documentos!</AlertTitle>
+          <AlertDescription>
+            Después de enviar este formulario, te pediremos que compartas tu <strong>CV</strong> y tu <strong>Licencia de Conducir</strong> vigente por WhatsApp para agilizar el proceso.
+          </AlertDescription>
+        </Alert>
         
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           {!submitted ? (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardHeader>
-                  <CardTitle>Invierte en tu Futuro: Solicita una Entrevista</CardTitle>
+                  <CardTitle>Solicitud de Información</CardTitle>
                   <CardDescription>
-                    Completa tus datos y selecciona un horario. Un miembro de nuestro equipo te contactará para agendar tu entrevista.
+                    Completa tus datos para iniciar el proceso de selección. Un miembro de nuestro equipo te contactará por WhatsApp.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label>Nombre</Label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <FormControl>
+                                <Input placeholder="Tu nombre" {...field} className="pl-10" />
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Label>Teléfono</Label>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <FormControl>
+                                <Input placeholder="Tu WhatsApp" {...field} className="pl-10" />
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                  </div>
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="alcaldia"
                     render={({ field }) => (
-                      <FormItem>
-                        <Label>Nombre Completo</Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <FormControl>
-                            <Input placeholder="Tu nombre completo" {...field} className="pl-10" />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
+                        <FormItem>
+                            <Label>Alcaldía</Label>
+                             <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger className="pl-10">
+                                        <SelectValue placeholder="Selecciona tu alcaldía" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {alcaldias.map((alcaldia) => (
+                                        <SelectItem key={alcaldia} value={alcaldia}>{alcaldia}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Label>Teléfono de Contacto</Label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <FormControl>
-                            <Input placeholder="Tu número de WhatsApp" {...field} className="pl-10" />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Label>Dirección</Label>
-                        <div className="relative">
-                            <Home className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="hasOwnCar"
+                        render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <Label className="flex items-center gap-2"><Car />¿Tienes coche propio?</Label>
                             <FormControl>
-                                <Input placeholder="Tu dirección completa" {...field} className="pl-10" />
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-x-6">
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl><RadioGroupItem value="Sí" id="car-yes" /></FormControl>
+                                    <Label htmlFor="car-yes" className="font-normal cursor-pointer">Sí</Label>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl><RadioGroupItem value="No" id="car-no" /></FormControl>
+                                    <Label htmlFor="car-no" className="font-normal cursor-pointer">No</Label>
+                                </FormItem>
+                            </RadioGroup>
                             </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="interviewTime"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <Label>Horario Preferido para Entrevista</Label>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-wrap gap-x-6 gap-y-2"
-                          >
-                            {['10:00', '12:00', '14:00', '16:00', '18:00'].map(time => (
-                              <FormItem key={time} className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value={time} id={`time-${time}`} />
-                                </FormControl>
-                                <Label htmlFor={`time-${time}`} className="font-normal cursor-pointer">{time} hrs</Label>
-                              </FormItem>
-                            ))}
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="hasTeachingExperience"
+                        render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <Label className="flex items-center gap-2"><BookUser />¿Tienes experiencia enseñando?</Label>
+                            <FormControl>
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-x-6">
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl><RadioGroupItem value="Sí" id="exp-yes" /></FormControl>
+                                    <Label htmlFor="exp-yes" className="font-normal cursor-pointer">Sí</Label>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl><RadioGroupItem value="No" id="exp-no" /></FormControl>
+                                    <Label htmlFor="exp-no" className="font-normal cursor-pointer">No</Label>
+                                </FormItem>
+                            </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Button type="submit" disabled={form.formState.isSubmitting}>
                     <Send className="mr-2 h-4 w-4" />
-                    Solicitar Entrevista
+                    Enviar Solicitud
                   </Button>
                 </CardFooter>
               </form>
@@ -231,7 +282,7 @@ export default function InstructoresPage() {
                       ¡Solicitud Enviada!
                   </AlertTitle>
                   <AlertDescription className="text-foreground mt-2">
-                     Gracias por tu interés. Se abrirá WhatsApp para que completes el envío de tu solicitud de entrevista.
+                     Gracias por tu interés. Se abrirá WhatsApp para que completes el envío de tu solicitud.
                   </AlertDescription>
               </Alert>
                <Button onClick={() => setSubmitted(false)} className="mt-6">
