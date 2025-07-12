@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Globe, FileText, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, CheckCircle, Clock, Star } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -332,11 +332,11 @@ export default function EnglishCoursePage() {
             </Card>
         </div>
 
-        <Alert variant="default" className="w-full max-w-3xl mb-8 bg-green-100 dark:bg-green-900/30 border-green-500">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <AlertTitle className="font-bold text-green-700">Ready to Start?</AlertTitle>
+        <Alert variant="default" className="w-full max-w-3xl mb-8 bg-primary/10 border-primary/50">
+            <Star className="h-5 w-5 text-primary" />
+            <AlertTitle className="font-bold text-primary">Trusted by Students Worldwide</AlertTitle>
             <AlertDescription className="text-foreground">
-                Our course includes both automatic and standard transmission vehicles. <Link href="/agenda" className="font-semibold underline">Go to the scheduling page</Link> to book your classes now!
+                We have extensive experience teaching students from all over the world. Our patient, certified instructors ensure you feel confident on the road. Check out our 5-star reviews on Google Maps! <Link href="/agenda" className="font-semibold underline">Go to the scheduling page</Link> to book your classes.
             </AlertDescription>
         </Alert>
         
@@ -379,4 +379,3 @@ export default function EnglishCoursePage() {
     </main>
   );
 }
-
