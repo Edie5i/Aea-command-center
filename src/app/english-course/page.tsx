@@ -373,6 +373,75 @@ export default function EnglishCoursePage() {
             </Accordion>
           </CardContent>
         </Card>
+
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
+            <CardHeader>
+                <CardTitle>Terms & Conditions</CardTitle>
+                <CardDescription>
+                Effective from July 1, 2024.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="terms">
+                        <AccordionTrigger className="text-lg font-semibold">View Service Agreement</AccordionTrigger>
+                        <AccordionContent>
+                            <div className="space-y-4 text-muted-foreground text-sm">
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">1. Course Reservation</h3>
+                                    <p>To book the course, the student must make a minimum down payment of 20% of the total value.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">2. Full Payment</h3>
+                                    <p>The total payment must be settled at the end of the first class. If this payment is not made, it will be considered that the student does not wish to continue the course, and the down payment will be forfeited.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">3. Changes to Schedule and Transmission</h3>
+                                    <p>The schedule, transmission type, and address previously agreed upon with the School cannot be modified by the student, except in cases of duly justified force majeure. In case of a change without justification, a penalty of $700 MXN will be applied, or the class will be counted as taught.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">4. Additional Agreements with the Instructor</h3>
+                                    <p>Autoescuela Americana is not responsible for agreements made between the instructor and the student regarding schedules, meeting points, routes, transfers, etc. The student accepts that only agreements communicated in writing to the instructor and confirmed by the School will be valid.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">5. Conduct During Classes</h3>
+                                    <p>It is strictly forbidden to take the class under the influence of alcohol, drugs, or any substance that alters consciousness or reflexes. In case of suspicion, the instructor may suspend the class without the right to a refund.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">6. Home Service</h3>
+                                    <p>The home service only applies in the School's coverage areas. Factors such as distance, teaching conditions, and safety of the area will be taken into account. The home service only covers what is described in the confirmation; any other route must be quoted separately. Transfers are not permitted. Classes must start and end at the same location.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">7. Modifications by the School</h3>
+                                    <p>Autoescuela Americana may modify schedules due to routes, contingencies, traffic, and road closures, communicating this to the student. These changes do not generate a charge for the student, and the School commits to finding slots to make up for the lost time.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">8. Reporting Anomalies</h3>
+                                    <p>The student must immediately report any anomaly with the schedule or the instructor to Autoescuela Americana. Otherwise, Autoescuela Americana is not responsible if notice is not given immediately.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">9. Instructor Assignment</h3>
+                                    <p>Autoescuela Americana assigns its instructors according to their zone. The School reserves the right to change the instructor. This does not affect the work plan or the continuity of the classes.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">10. Punctuality</h3>
+                                    <p>The instructor can wait a maximum of fifteen (15) minutes for the student; this time will be deducted from the class time. If the student does not show up within this time, the class will be considered as taught.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-foreground">11. Cancellation and Refund Policy</h3>
+                                    <ul className="list-disc pl-5 space-y-1">
+                                        <li>The student may request a refund of payments only if at least 30 calendar days have passed since the payment date.</li>
+                                        <li>To do so, they must fill out a cancellation form, state the reasons, and send it by email.</li>
+                                        <li>The request will be evaluated within a maximum period of 10 business days and, if applicable, the corresponding refund will be made, minus the non-refundable down payment.</li>
+                                        <li>No refunds will be made if the student has already taken more than 30% of the course or fails to comply with any of the terms established in this document.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </CardContent>
+        </Card>
       </div>
       
       <AppFooter />
