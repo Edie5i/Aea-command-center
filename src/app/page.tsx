@@ -19,7 +19,6 @@ import {
   Download
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import jsPDF from "jspdf";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,17 +35,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppFooter } from "@/components/footer";
-import { programData } from "@/lib/course-data";
-
 
 export default function Home() {
   const [tips, setTips] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [key, setKey] = useState(0);
-  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
-  const [documentToGenerate, setDocumentToGenerate] = useState<'constancia' | null>(null);
-  const [studentName, setStudentName] = useState('');
-  const [curp, setCurp] = useState('');
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
@@ -64,89 +57,6 @@ export default function Home() {
     setTips(null);
     setKey(prevKey => prevKey + 1);
   };
-
-  const generateConstanciaMenor = (alumno: string, curp: string) => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Constancia para Menor de Edad', 105, 20, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text(`Este documento certifica que ${alumno}, con CURP ${curp},`, 20, 40);
-    doc.text('ha completado satisfactoriamente el curso de manejo requerido para el trámite', 20, 47);
-    doc.text('de su permiso de conducir para menor de edad.', 20, 54);
-    doc.text('Auto Escuela Americana', 20, 70);
-    doc.save(`Constancia_Menor_Edad_${alumno.replace(/\s+/g, '_')}.pdf`);
-  };
-
-  const handleDocumentSelect = (docType: 'constancia') => {
-    setDocumentToGenerate(docType);
-    setStudentName('');
-    setCurp('');
-    setIsGeneratorOpen(true);
-  };
-
-  const handleGenerateDocument = () => {
-    if (!studentName.trim() || curp.trim().length !== 18) {
-      return;
-    }
-
-    generateConstanciaMenor(studentName.trim(), curp.trim().toUpperCase());
-    
-    const docTitle = 'Constancia de Menor de Edad';
-    let whatsAppMessageDetails = `*Para el alumno:* ${studentName.trim()}`;
-    whatsAppMessageDetails += `\n*CURP:* ${curp.trim().toUpperCase()}`;
-
-    const whatsAppNumber = "525634433212";
-    const message = `Se ha generado el siguiente documento:\n\n*Tipo:* ${docTitle}\n${whatsAppMessageDetails}`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-
-    setIsGeneratorOpen(false);
-    setDocumentToGenerate(null);
-    setStudentName('');
-    setCurp('');
-  };
-
-  const handleMaintenanceGuide = () => {
-    const doc = new jsPDF();
-    const sectionData = programData.find(section => section.title.startsWith("14."));
-
-    if (!sectionData) return;
-
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text(sectionData.title, 105, 20, { align: 'center' });
-    let y = 40;
-
-    sectionData.content.forEach(contentBlock => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-      if (contentBlock.heading) {
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text(contentBlock.heading, 15, y);
-        y += 10;
-      }
-
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      contentBlock.points.forEach(point => {
-        if (y > 280) {
-          doc.addPage();
-          y = 20;
-        }
-        const lines = doc.splitTextToSize(`• ${point}`, 175);
-        doc.text(lines, 20, y);
-        y += (lines.length * 6);
-      });
-      y += 8;
-    });
-
-    doc.save('Guia_Verificacion_y_Mantenimiento.pdf');
-  };
-
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background">
@@ -363,55 +273,6 @@ export default function Home() {
                 </Link>
             </Button>
         </div>
-        
-
-        <Dialog open={isGeneratorOpen} onOpenChange={setIsGeneratorOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Generar Constancia de Menor de Edad</DialogTitle>
-              <DialogDescription>
-                Ingresa los datos para generar la constancia. Se notificará por WhatsApp. Recuerda que también se necesita una foto digital del alumno con fondo blanco, a la altura de los hombros, que deberás solicitar por separado.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Nombre
-                </Label>
-                <Input
-                  id="name"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Nombre completo del alumno"
-                />
-              </div>
-              {documentToGenerate === 'constancia' && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="curp" className="text-right">
-                    CURP
-                  </Label>
-                  <Input
-                    id="curp"
-                    value={curp}
-                    onChange={(e) => setCurp(e.target.value.toUpperCase())}
-                    className="col-span-3"
-                    placeholder="CURP del alumno (18 caracteres)"
-                    maxLength={18}
-                  />
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={handleGenerateDocument}
-                disabled={!studentName.trim() || (documentToGenerate === 'constancia' && curp.trim().length !== 18)}
-              >
-                Generar y Enviar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <AppFooter />
