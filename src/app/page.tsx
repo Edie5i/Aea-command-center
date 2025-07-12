@@ -17,13 +17,13 @@ import {
   Bot,
   User,
   MessageSquare,
+  Languages,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
 import { InstructionsDisplay } from "@/components/instructions-display";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ContactForm } from "@/components/contact-form";
 import { AppFooter } from "@/components/footer";
 
 export default function Home() {
@@ -122,10 +122,10 @@ export default function Home() {
                         Examen Teórico
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
-                    <Link href="/chatbot">
-                        <Bot className="h-6 w-6" />
-                        Asistente
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                    <Link href="/english-course">
+                        <Languages className="h-6 w-6" />
+                        English Course
                     </Link>
                 </Button>
                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
@@ -141,9 +141,9 @@ export default function Home() {
                     </Link>
                 </Button>
                  <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
-                    <Link href="/terminos">
-                        <FileText className="h-6 w-6" />
-                        Términos
+                    <Link href="/chatbot">
+                        <Bot className="h-6 w-6" />
+                        Asistente
                     </Link>
                 </Button>
             </div>
@@ -176,7 +176,27 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <ContactForm />
+        <Card id="contact-form" className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-6 w-6 text-primary" />
+                    Request More Information
+                </CardTitle>
+                <CardDescription>
+                    Complete the form and an advisor will contact you via WhatsApp to provide all the information you need.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center">
+                  <Button asChild size="lg">
+                    <Link href="/#contact-form">
+                      <MessageSquare className="mr-2 h-5 w-5" />
+                      Request Info via WhatsApp
+                    </Link>
+                  </Button>
+              </div>
+            </CardContent>
+        </Card>
 
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <Card className="shadow-lg rounded-xl h-full flex flex-col border-accent/50 bg-accent/10">
@@ -269,5 +289,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
