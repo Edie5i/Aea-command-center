@@ -16,7 +16,7 @@ import {
   FileText,
   Bot,
   User,
-  Download
+  MessageSquare,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ConfigForm } from "@/components/config-form";
@@ -24,16 +24,6 @@ import { InstructionsDisplay } from "@/components/instructions-display";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AppFooter } from "@/components/footer";
 
 export default function Home() {
@@ -279,3 +269,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
