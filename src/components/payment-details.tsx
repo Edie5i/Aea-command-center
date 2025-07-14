@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/card';
 import { CopyButton } from './copy-button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Info, Banknote, Landmark, MessageSquare, CreditCard } from 'lucide-react';
+import { Info, Banknote, Landmark, MessageSquare, CreditCard, AlertCircle } from 'lucide-react';
 import { Separator } from './ui/separator';
 import Image from 'next/image';
 
@@ -38,6 +38,13 @@ export function PaymentDetails() {
                     <li><strong>Meses Sin Intereses (MSI):</strong> Disponibles exclusivamente con tarjetas American Express y BBVA.</li>
                     <li><strong>Pagos Diferidos:</strong> Opción disponible para tarjetas de otros bancos a través de Openpay.</li>
                 </ul>
+                <Alert variant="destructive" className="bg-yellow-100/80 border-yellow-500/50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-500/60">
+                  <AlertCircle className="h-4 w-4 text-yellow-800 dark:text-yellow-200" />
+                  <AlertTitle className="font-bold">Aviso Importante sobre Openpay</AlertTitle>
+                  <AlertDescription>
+                    Los enlaces de pago de Openpay se generan únicamente de <strong>lunes a jueves</strong>. Para evitar penalizaciones, debes notificar que deseas usar este método <strong>antes de que se genere tu ficha de inscripción.</strong>
+                  </AlertDescription>
+                </Alert>
                 <p className="text-xs text-muted-foreground pt-2">Contacta a un asesor para generar tu enlace de pago personalizado.</p>
             </div>
         </div>
