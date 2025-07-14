@@ -13,13 +13,13 @@ export const checkAvailability = ai.defineTool(
         startTime: z.string().datetime({ message: "Start time must be a valid ISO 8601 date-time string." }).describe("The start of the time range to check, in ISO 8601 format."),
         endTime: z.string().datetime({ message: "End time must be a valid ISO 8601 date-time string." }).describe("The end of the time range to check, in ISO 8601 format."),
     }),
-    outputSchema: z.enum(['FREE', 'BUSY', 'ERROR']),
+    outputSchema: z.enum(['FREE', 'BUSY', 'ERROR']).describe("Returns 'FREE' if the slot is available, 'BUSY' if there's a conflict, or 'ERROR' if the calendar cannot be accessed."),
   },
   async (input) => {
     try {
         const calendar = await getAuthenticatedCalendarClient();
         if (!calendar) {
-            console.error('Google Calendar client is not authenticated. User needs to log in.');
+            console.error('Google Calendar client is not authenticated. User needs to log in via /admin.');
             return 'ERROR';
         }
 
