@@ -12,6 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { botContextData } from '@/lib/bot-data';
 import { reglamentoTransitoCompleto } from '@/lib/reglamento-transito-data';
+import { checkAvailability } from '@/ai/tools/google-calendar';
 
 const ChatWithBotInputSchema = z.object({
   message: z.string().describe("The user's message to the chatbot."),
@@ -39,6 +40,7 @@ const prompt = ai.definePrompt({
   name: 'chatbotPrompt',
   input: {schema: ChatbotPromptInputSchema},
   output: {schema: ChatWithBotOutputSchema},
+  tools: [checkAvailability],
   prompt: `You are "Auto EscuelaBot", an expert, friendly, and helpful virtual assistant for "Auto Escuela Americana", a driving school in Mexico City. Your main goal is to answer user questions concisely and accurately based ONLY on the information provided in the "INFORMACIÓN DISPONIBLE" section. This includes general information, course catalog, scheduling, payments, policies, FAQs, the detailed driving program in 'programaDelCurso', and the official traffic regulations (if provided).
 
 **Crucial Rules:**
@@ -50,6 +52,7 @@ const prompt = ai.definePrompt({
 6.  **Pricing questions:** If asked about prices generally, focus on the beginner courses. When giving a price, siempre mention the course's benefits first, and then the cost. For example: "El Curso Principiante (Automático) es perfecto si nunca has manejado y cuesta **$3900.00 MXN**."
 7.  **Keep it brief:** Provide direct and concise answers, unless a detailed explanation from the regulations is required.
 8.  **Curriculum questions:** When asked what is taught, what the program includes, or about specific driving techniques (like parking, highway driving, etc.), use the detailed information found in the \`programaDelCurso\` section to give specific and helpful answers.
+9.  **Scheduling & Availability:** If the user asks about availability for a specific date or time, you MUST use the \`checkAvailability\` tool to check the Google Calendar. Base your answer on the tool's output. If the tool says "BUSY", inform the user that time is not available and suggest other times. If it says "FREE", confirm the availability. Assume today's date is ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}.
 
 **INFORMACIÓN DISPONIBLE:**
 \`\`\`

@@ -3,10 +3,22 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, UserCheck, LogIn } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
+import { useEffect, useState } from 'react';
+import { cookies } from 'next/dist/client/components/hooks-server';
+import { GOOGLE_AUTH_TOKEN_COOKIE_KEY } from '@/lib/google-auth';
 
 export default function AdminPage() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+    // We can't check cookies on the server in a client component,
+    // so we'll check them on the client side.
+    useEffect(() => {
+        const hasAuthCookie = document.cookie.includes(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
+        setIsAuthenticated(hasAuthCookie);
+    }, []);
+
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
@@ -44,13 +56,28 @@ export default function AdminPage() {
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
-            <CardTitle>Integraciones</CardTitle>
+            <CardTitle>Integración con Google Workspace</CardTitle>
             <CardDescription>
-              Actualmente no hay integraciones externas configuradas.
+              Conecta tu cuenta de Google para permitir que la IA acceda a tu Calendario y pueda verificar la disponibilidad en tiempo real.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center items-center pt-6">
-              <p className="text-muted-foreground">Esta página está reservada para futuras integraciones.</p>
+          <CardContent className="flex flex-col justify-center items-center pt-6 space-y-4">
+              {isAuthenticated ? (
+                 <div className="flex items-center gap-2 text-green-600 p-3 bg-green-100 rounded-md">
+                    <UserCheck className="h-5 w-5" />
+                    <p className="font-semibold">Cuenta de Google conectada exitosamente.</p>
+                 </div>
+              ) : (
+                <Button asChild>
+                    <Link href="/api/auth/google">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Conectar con Google
+                    </Link>
+                </Button>
+              )}
+               <p className="text-xs text-muted-foreground text-center max-w-md">
+                Al conectar tu cuenta, otorgas permiso a esta aplicación para leer la información de disponibilidad (libre/ocupado) de tu calendario principal. No almacenaremos tus eventos, solo consultaremos la disponibilidad para responder preguntas sobre horarios.
+              </p>
           </CardContent>
         </Card>
       </div>
