@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useEffect } from 'react';
+import { addAppointmentToSheet } from '@/app/actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -115,9 +116,46 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
   const requiereConstancia = form.watch('requiereConstancia');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const whatsAppNumber = "525634433212";
+    // --- 1. Prepare data for all integrations ---
+    const timestamp = new Date().toISOString();
+    
+    const scheduleForSheet = Object.entries(values.schedule).map(([date, times]) => {
+      const formattedDate = format(new Date(date + 'T12:00:00Z'), "d MMM yyyy", { locale: es });
+      return `${formattedDate}: ${times.sort().join(', ')}`;
+    }).join('; ');
 
-    // Schedule formatting for WhatsApp
+    const meetingPointDetails = values.meetingPoint === 'Domicilio del alumno' 
+      ? values.address || 'N/A' 
+      : values.meetingPoint === 'Punto de encuentro' 
+      ? values.suggestedMeetingPoint || 'N/A'
+      : 'Sucursal';
+    
+    // --- 2. Send data to Google Sheets ---
+    try {
+        await addAppointmentToSheet({
+            timestamp,
+            name: values.name,
+            phone: values.phone,
+            transmission: values.transmission,
+            meetingPoint: values.meetingPoint,
+            details: meetingPointDetails,
+            requiresCertificate: values.requiereConstancia ? 'Sí' : 'No',
+            observations: values.observaciones || '',
+            schedule: scheduleForSheet,
+        });
+        toast({
+            title: 'Registro guardado',
+            description: 'La solicitud ha sido enviada a nuestro registro interno.',
+        });
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Error al guardar en registro',
+            description: 'No se pudo guardar la información en Google Sheets. Por favor, contacta a soporte.',
+        });
+    }
+
+    // --- 3. Open WhatsApp with pre-filled message ---
     const scheduleDetailsWhatsApp = Object.entries(values.schedule).map(([dateStr, times]) => {
       const date = new Date(dateStr + 'T12:00:00Z');
       const formattedDate = format(date, "EEEE d 'de' MMMM", { locale: es });
@@ -132,7 +170,6 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       return `- *${formattedDate}:* ${formattedTimes}`;
     }).join('\n');
     
-    // Meeting point formatting
     let puntoDeEncuentroMsg = values.meetingPoint;
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
       puntoDeEncuentroMsg = `Punto de encuentro (sugerencia: ${values.suggestedMeetingPoint})`;
@@ -140,7 +177,6 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       puntoDeEncuentroMsg = `Domicilio del alumno: ${values.address}`;
     }
     
-    // Message construction for WhatsApp
     let message = `*FICHA DE INSCRIPCIÓN*\n`;
     message += `*Auto Escuela Americana*\n\n`;
     message += `*CURSO:* Manejo de Vehículos\n\n`;
@@ -163,24 +199,23 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         message += `*NOTA:*\n${values.nota}`;
     }
 
+    const whatsAppNumber = "525634433212";
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
-
     window.open(whatsappUrl, '_blank');
 
-    // PDF Generation
+    // --- 4. Generate and download PDF ---
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 0;
 
-    const primaryColor = '#1D4ED8'; // Darker Blue
-    const secondaryColor = '#374151'; // Dark Gray
-    const lightGrayColor = '#F3F4F6'; // Background Gray
+    const primaryColor = '#1D4ED8';
+    const secondaryColor = '#374151';
+    const lightGrayColor = '#F3F4F6';
     const whiteColor = '#FFFFFF';
     const textColor = '#1F2937';
     
-    // --- Header ---
     doc.setFillColor(primaryColor);
     doc.rect(0, 0, pageWidth, 30, 'F');
     doc.setFontSize(22);
@@ -189,63 +224,43 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     doc.text('FICHA DE INSCRIPCIÓN', pageWidth / 2, 20, { align: 'center' });
     y = 45;
 
-    // --- Helper for drawing a section ---
     const drawSection = (title: string, content: { label: string; value: string; link?: string }[]) => {
-      if (y > pageHeight - 60) {
-        doc.addPage();
-        y = 20;
-      }
-      
-      // Section Title Background
+      if (y > pageHeight - 60) { doc.addPage(); y = 20; }
       doc.setFillColor(lightGrayColor);
       doc.setDrawColor(lightGrayColor);
       doc.rect(15, y - 5, pageWidth - 30, 10, 'FD');
-
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(primaryColor);
       doc.text(title, 20, y + 2);
       y += 15;
-
       content.forEach(item => {
-        if (y > pageHeight - 25) {
-          doc.addPage();
-          y = 20;
-        }
+        if (y > pageHeight - 25) { doc.addPage(); y = 20; }
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(secondaryColor);
         doc.text(item.label, 20, y);
-        
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        
         const valueLines = doc.splitTextToSize(item.value, pageWidth - 95);
-
         if (item.link) {
-          doc.setTextColor('#0000EE'); // Standard link blue
+          doc.setTextColor('#0000EE');
           doc.textWithLink(valueLines[0], 75, y, { url: item.link });
-          doc.setTextColor(textColor); // Reset color
-          if (valueLines.length > 1) {
-            // Draw remaining lines without link
-            doc.text(valueLines.slice(1), 75, y + 6);
-          }
+          doc.setTextColor(textColor);
+          if (valueLines.length > 1) { doc.text(valueLines.slice(1), 75, y + 6); }
         } else {
           doc.setTextColor(textColor);
           doc.text(valueLines, 75, y);
         }
-
         y += (valueLines.length * 6) + 6;
       });
       y += 5;
     };
     
-    // --- Alumno & Curso Section ---
     const puntoDeEncuentroItem: { label: string; value: string; link?: string } = {
         label: 'Punto de Encuentro:',
         value: values.meetingPoint || '',
     };
-
     if (values.meetingPoint === 'Punto de encuentro' && values.suggestedMeetingPoint) {
         puntoDeEncuentroItem.value = `Punto de encuentro (Sugerencia: ${values.suggestedMeetingPoint})`;
     } else if (values.meetingPoint === 'Domicilio del alumno' && values.address) {
@@ -253,22 +268,16 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         puntoDeEncuentroItem.value = values.address;
         puntoDeEncuentroItem.link = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}`;
     }
-
     drawSection('DATOS DEL ALUMNO', [
         { label: 'Nombre Completo:', value: values.name },
         { label: 'Número de Teléfono:', value: values.phone },
     ]);
-
     drawSection('DETALLES DEL CURSO', [
         { label: 'Tipo de Transmisión:', value: values.transmission },
         puntoDeEncuentroItem,
     ]);
     
-    // --- Schedule Section ---
-    if (y > pageHeight - 80) {
-        doc.addPage();
-        y = 20;
-    }
+    if (y > pageHeight - 80) { doc.addPage(); y = 20; }
     doc.setFillColor(lightGrayColor);
     doc.setDrawColor(lightGrayColor);
     doc.rect(15, y - 5, pageWidth - 30, 10, 'FD');
@@ -277,22 +286,15 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     doc.setTextColor(primaryColor);
     doc.text('FECHAS Y HORARIOS SOLICITADOS', 20, y + 2);
     y += 15;
-    
     Object.entries(values.schedule).forEach(([dateStr, times]) => {
       const date = new Date(dateStr + 'T12:00:00Z');
       const formattedDate = format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
       const formattedTimes = times.sort().join(', ');
-
-       if (y > pageHeight - 25) {
-          doc.addPage();
-          y = 20;
-       }
-      
+       if (y > pageHeight - 25) { doc.addPage(); y = 20; }
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(secondaryColor);
       doc.text(formattedDate, 20, y);
-      
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textColor);
@@ -301,11 +303,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     });
     y += 5;
 
-    // --- Optional Sections ---
     if (values.requiereConstancia) {
-        drawSection('TRÁMITE ADICIONAL', [
-            { label: 'Solicitud SEMOVI:', value: 'Sí, se requiere constancia para permiso de conducir.'},
-        ]);
+        drawSection('TRÁMITE ADICIONAL', [{ label: 'Solicitud SEMOVI:', value: 'Sí, se requiere constancia para permiso de conducir.'}]);
     }
     if (values.observaciones?.trim()) {
         drawSection('OBSERVACIONES GENERALES', [{ label: '', value: values.observaciones }]);
@@ -314,22 +313,15 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
         drawSection('NOTA PARA INSTRUCTOR', [{ label: '', value: values.nota }]);
     }
     
-    // --- Footer ---
     doc.setFillColor(primaryColor);
     doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
     doc.setFontSize(9);
     doc.setTextColor(whiteColor);
-    doc.text(`Ficha generada el ${format(new Date(), "d/MM/yyyy")}. Sujeto a confirmación. | www.autoescuelaamericana.com`,
-      pageWidth / 2, pageHeight - 8, { align: 'center' });
-
+    doc.text(`Ficha generada el ${format(new Date(), "d/MM/yyyy")}. Sujeto a confirmación. | www.autoescuelaamericana.com`, pageWidth / 2, pageHeight - 8, { align: 'center' });
     doc.save(`Ficha_Inscripcion_${values.name.replace(/\s/g, '_')}.pdf`);
-
-    // --- User Feedback ---
-    toast({
-      title: '¡Ficha Generada!',
-      description: 'Se abrirá WhatsApp y se descargará la ficha en formato PDF.',
-    });
+    toast({ title: '¡Ficha Generada!', description: 'Se abrirá WhatsApp y se descargará la ficha en formato PDF.' });
     
+    // --- 5. Finalize form submission ---
     onCourseScheduled();
     form.reset();
   }

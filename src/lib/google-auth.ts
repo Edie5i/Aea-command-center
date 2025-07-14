@@ -47,6 +47,7 @@ export async function getAuthenticatedSheetsClient() {
     const tokenCookie = cookieStore.get(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
 
     if (!tokenCookie) {
+        console.error('Google Sheets client is not authenticated. User needs to log in via /admin.');
         return null;
     }
 
@@ -55,7 +56,8 @@ export async function getAuthenticatedSheetsClient() {
         const oauth2Client = getOAuth2Client();
         oauth2Client.setCredentials(tokens);
         
-        await oauth2Client.getAccessToken(); // Ensure token is valid/refreshed
+        // This ensures the token is valid/refreshed before returning the client
+        await oauth2Client.getAccessToken(); 
 
         return google.sheets({ version: 'v4', auth: oauth2Client });
     } catch (error) {
