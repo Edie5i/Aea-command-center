@@ -33,7 +33,6 @@ import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useEffect } from 'react';
-import { addAppointmentToSheet } from '@/app/actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -116,47 +115,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
   const requiereConstancia = form.watch('requiereConstancia');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // --- 1. Prepare data for all integrations ---
-    const timestamp = new Date().toISOString();
     
-    const scheduleForSheet = Object.entries(values.schedule).map(([date, times]) => {
-      const formattedDate = format(new Date(date + 'T12:00:00Z'), "d MMM yyyy", { locale: es });
-      return `${formattedDate}: ${times.sort().join(', ')}`;
-    }).join('; ');
-
-    const meetingPointDetails = values.meetingPoint === 'Domicilio del alumno' 
-      ? values.address || 'N/A' 
-      : values.meetingPoint === 'Punto de encuentro' 
-      ? values.suggestedMeetingPoint || 'N/A'
-      : 'Sucursal';
-    
-    // --- 2. Send data to Google Sheets (asynchronously, don't wait for it) ---
-    addAppointmentToSheet({
-        timestamp,
-        name: values.name,
-        phone: values.phone,
-        transmission: values.transmission,
-        meetingPoint: values.meetingPoint || '',
-        details: meetingPointDetails,
-        requiresCertificate: values.requiereConstancia ? 'Sí' : 'No',
-        observations: values.observaciones || '',
-        schedule: scheduleForSheet,
-    }).then(result => {
-        if (result.success) {
-            toast({
-                title: 'Registro guardado',
-                description: 'La solicitud ha sido enviada a nuestro registro interno.',
-            });
-        } else {
-             toast({
-                variant: 'destructive',
-                title: 'Error al guardar en registro',
-                description: `No se pudo guardar en Sheets. Razón: ${result.error}`,
-            });
-        }
-    });
-
-    // --- 3. Open WhatsApp with pre-filled message ---
+    // --- 1. Open WhatsApp with pre-filled message ---
     const scheduleDetailsWhatsApp = Object.entries(values.schedule).map(([dateStr, times]) => {
       const date = new Date(dateStr + 'T12:00:00Z');
       const formattedDate = format(date, "EEEE d 'de' MMMM", { locale: es });
@@ -205,7 +165,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 
-    // --- 4. Generate and download PDF ---
+    // --- 2. Generate and download PDF ---
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -322,7 +282,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     doc.save(`Ficha_Inscripcion_${values.name.replace(/\s/g, '_')}.pdf`);
     toast({ title: '¡Ficha Generada!', description: 'Se abrirá WhatsApp y se descargará la ficha en formato PDF.' });
     
-    // --- 5. Finalize form submission ---
+    // --- 3. Finalize form submission ---
     onCourseScheduled();
     form.reset();
   }

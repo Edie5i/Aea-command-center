@@ -41,28 +41,3 @@ export async function getAuthenticatedCalendarClient() {
     return null;
   }
 }
-
-export async function getAuthenticatedSheetsClient() {
-    const cookieStore = cookies();
-    const tokenCookie = cookieStore.get(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
-
-    if (!tokenCookie) {
-        console.error('Google Sheets client is not authenticated. User needs to log in via /admin.');
-        return null;
-    }
-
-    try {
-        const tokens = JSON.parse(tokenCookie.value);
-        const oauth2Client = getOAuth2Client();
-        oauth2Client.setCredentials(tokens);
-        
-        // This ensures the token is valid/refreshed before returning the client
-        await oauth2Client.getAccessToken(); 
-
-        return google.sheets({ version: 'v4', auth: oauth2Client });
-    } catch (error) {
-        console.error('Error getting authenticated sheets client:', error);
-        cookieStore.delete(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
-        return null;
-    }
-}

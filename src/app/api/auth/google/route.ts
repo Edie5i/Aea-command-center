@@ -8,7 +8,6 @@ export async function GET() {
   const scopes = [
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/calendar.readonly',
-    'https://www.googleapis.com/auth/spreadsheets' // Changed from .readonly to allow writing
   ];
 
   const url = oauth2Client.generateAuthUrl({
