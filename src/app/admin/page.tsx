@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -6,15 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ArrowLeft, Globe, FileText, UserCheck, LogIn } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { useEffect, useState } from 'react';
-import { cookies } from 'next/dist/client/components/hooks-server';
 import { GOOGLE_AUTH_TOKEN_COOKIE_KEY } from '@/lib/google-auth';
 
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isClient, setIsClient] = useState(false);
   
     // We can't check cookies on the server in a client component,
-    // so we'll check them on the client side.
+    // so we'll check them on the client side after the component mounts.
     useEffect(() => {
+        setIsClient(true);
         const hasAuthCookie = document.cookie.includes(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
         setIsAuthenticated(hasAuthCookie);
     }, []);
@@ -34,7 +36,7 @@ export default function AdminPage() {
           Panel de Administrador
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Gestiona las conexiones e integraciones de la aplicación.
+          Gestiona las conexiones y las integraciones de la aplicación con servicios en la nube.
         </p>
       </div>
 
@@ -62,10 +64,12 @@ export default function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col justify-center items-center pt-6 space-y-4">
-              {isAuthenticated ? (
-                 <div className="flex items-center gap-2 text-green-600 p-3 bg-green-100 rounded-md">
+              {!isClient ? (
+                <div className="h-10 bg-muted rounded-md w-48 animate-pulse"></div>
+              ) : isAuthenticated ? (
+                 <div className="flex items-center gap-2 text-green-600 p-3 bg-green-100 rounded-md dark:bg-green-900/30 dark:text-green-300">
                     <UserCheck className="h-5 w-5" />
-                    <p className="font-semibold">Cuenta de Google conectada exitosamente.</p>
+                    <p className="font-semibold">Cuenta de Google conectada.</p>
                  </div>
               ) : (
                 <Button asChild>

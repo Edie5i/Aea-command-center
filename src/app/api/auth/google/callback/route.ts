@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
        });
     }
 
-    const redirectUrl = new URL('/agenda', process.env.NEXT_PUBLIC_APP_URL);
+    const redirectUrl = new URL('/admin', process.env.NEXT_PUBLIC_APP_URL);
     return NextResponse.redirect(redirectUrl.toString());
   } catch (error) {
     console.error('Error exchanging code for tokens', error);
