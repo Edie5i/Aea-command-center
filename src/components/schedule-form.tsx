@@ -130,30 +130,31 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
       ? values.suggestedMeetingPoint || 'N/A'
       : 'Sucursal';
     
-    // --- 2. Send data to Google Sheets ---
-    try {
-        await addAppointmentToSheet({
-            timestamp,
-            name: values.name,
-            phone: values.phone,
-            transmission: values.transmission,
-            meetingPoint: values.meetingPoint,
-            details: meetingPointDetails,
-            requiresCertificate: values.requiereConstancia ? 'Sí' : 'No',
-            observations: values.observaciones || '',
-            schedule: scheduleForSheet,
-        });
-        toast({
-            title: 'Registro guardado',
-            description: 'La solicitud ha sido enviada a nuestro registro interno.',
-        });
-    } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Error al guardar en registro',
-            description: 'No se pudo guardar la información en Google Sheets. Por favor, contacta a soporte.',
-        });
-    }
+    // --- 2. Send data to Google Sheets (asynchronously, don't wait for it) ---
+    addAppointmentToSheet({
+        timestamp,
+        name: values.name,
+        phone: values.phone,
+        transmission: values.transmission,
+        meetingPoint: values.meetingPoint || '',
+        details: meetingPointDetails,
+        requiresCertificate: values.requiereConstancia ? 'Sí' : 'No',
+        observations: values.observaciones || '',
+        schedule: scheduleForSheet,
+    }).then(result => {
+        if (result.success) {
+            toast({
+                title: 'Registro guardado',
+                description: 'La solicitud ha sido enviada a nuestro registro interno.',
+            });
+        } else {
+             toast({
+                variant: 'destructive',
+                title: 'Error al guardar en registro',
+                description: `No se pudo guardar en Sheets. Razón: ${result.error}`,
+            });
+        }
+    });
 
     // --- 3. Open WhatsApp with pre-filled message ---
     const scheduleDetailsWhatsApp = Object.entries(values.schedule).map(([dateStr, times]) => {
