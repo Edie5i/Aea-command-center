@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Globe, FileText, Download } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Download, Loader2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,14 +19,22 @@ import {
 } from '@/components/ui/accordion';
 import { programData } from '@/lib/course-data';
 import { AppFooter } from '@/components/footer';
-import jsPDF from 'jspdf';
+import { useState } from 'react';
 
 export default function ProgramaPage() {
-  const handleGeneratePdf = () => {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleGeneratePdf = async () => {
+    setIsGeneratingPdf(true);
+    const { default: jsPDF } = await import('jspdf');
+    
     const doc = new jsPDF();
     const sectionData = programData.find(section => section.title.startsWith("14."));
 
-    if (!sectionData) return;
+    if (!sectionData) {
+      setIsGeneratingPdf(false);
+      return;
+    }
 
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
@@ -60,6 +68,7 @@ export default function ProgramaPage() {
     });
 
     doc.save('Guia_Verificacion_y_Mantenimiento.pdf');
+    setIsGeneratingPdf(false);
   };
 
   return (
@@ -130,9 +139,13 @@ export default function ProgramaPage() {
             </Accordion>
           </CardContent>
           <CardFooter className="flex justify-center bg-muted/50 p-4 border-t">
-              <Button onClick={handleGeneratePdf}>
-                <Download className="mr-2 h-4 w-4" />
-                Descargar Guía
+              <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf}>
+                {isGeneratingPdf ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                {isGeneratingPdf ? 'Generando...' : 'Descargar Guía'}
               </Button>
           </CardFooter>
         </Card>

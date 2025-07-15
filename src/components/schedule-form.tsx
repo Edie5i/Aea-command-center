@@ -30,9 +30,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import jsPDF from 'jspdf';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -86,6 +85,7 @@ const availableTimes = [
 
 export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormProps) {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -115,6 +115,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
   const requiereConstancia = form.watch('requiereConstancia');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     
     // --- 1. Open WhatsApp with pre-filled message ---
     const scheduleDetailsWhatsApp = Object.entries(values.schedule).map(([dateStr, times]) => {
@@ -166,6 +167,8 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     window.open(whatsappUrl, '_blank');
 
     // --- 2. Generate and download PDF ---
+    const { default: jsPDF } = await import('jspdf');
+
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -285,6 +288,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
     // --- 3. Finalize form submission ---
     onCourseScheduled();
     form.reset();
+    setIsSubmitting(false);
   }
 
   return (
@@ -593,7 +597,7 @@ export function ScheduleForm({ selectedDates, onCourseScheduled }: ScheduleFormP
           )}
         />
         <div className="flex justify-end">
-          <Button type="submit">
+          <Button type="submit" disabled={isSubmitting}>
             <Download className="mr-2 h-4 w-4" />
             Enviar y Descargar
           </Button>

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, CreditCard, List, Info, Hourglass, Globe, FileText } from 'lucide-react';
 import { es } from 'date-fns/locale';
@@ -13,6 +12,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { AppFooter } from '@/components/footer';
+
+const Calendar = lazy(() => import('@/components/ui/calendar').then(mod => ({ default: mod.Calendar })));
+
+function CalendarSkeleton() {
+    return (
+        <div className="p-3">
+            <div className="h-[370px] w-[340px] bg-muted rounded-md animate-pulse"></div>
+        </div>
+    );
+}
 
 export default function AgendaPage() {
   const [dates, setDates] = useState<Date[] | undefined>([]);
@@ -163,20 +172,20 @@ export default function AgendaPage() {
                 </CardHeader>
                 <CardContent className="p-2 flex flex-col items-center gap-4">
                     {isClient ? (
-                        <Calendar
-                            mode="multiple"
-                            min={1}
-                            max={6}
-                            selected={dates}
-                            onSelect={setDates}
-                            className="rounded-md"
-                            locale={es}
-                            disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
-                        />
+                        <Suspense fallback={<CalendarSkeleton />}>
+                            <Calendar
+                                mode="multiple"
+                                min={1}
+                                max={6}
+                                selected={dates}
+                                onSelect={setDates}
+                                className="rounded-md"
+                                locale={es}
+                                disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
+                            />
+                        </Suspense>
                     ) : (
-                        <div className="p-3">
-                            <div className="h-[370px] w-[340px] bg-muted rounded-md animate-pulse"></div>
-                        </div>
+                        <CalendarSkeleton />
                     )}
                     <Alert variant="default" className="bg-primary/10 border-primary/50 w-full max-w-md">
                         <Info className="h-4 w-4 text-primary" />
