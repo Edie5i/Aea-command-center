@@ -61,7 +61,7 @@ export default function Home() {
                 }}
               >
                 <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
-                    <h1 className="text-xl font-semibold text-accent tracking-widest uppercase">
+                    <h1 className="text-xl font-semibold text-primary tracking-widest uppercase">
                       Auto Escuela Americana
                     </h1>
                    <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
@@ -176,27 +176,17 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card id="contact-form" className="w-full max-w-3xl shadow-lg rounded-xl mt-8">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-6 w-6 text-primary" />
-                    Request More Information
-                </CardTitle>
-                <CardDescription>
-                    Complete the form and an advisor will contact you via WhatsApp to provide all the information you need.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center">
-                  <Button asChild size="lg">
-                    <Link href="/#contact-form">
-                      <MessageSquare className="mr-2 h-5 w-5" />
-                      Request Info via WhatsApp
-                    </Link>
-                  </Button>
-              </div>
-            </CardContent>
-        </Card>
+        <div className="w-full max-w-3xl pt-8" id="contact-form">
+            <div className="flex justify-center">
+                <Button asChild size="lg">
+                    <a href="https://wa.me/525634433212?text=¡Hola!%20Me%20gustaría%20más%20información%20sobre%20los%20cursos%20de%20manejo." target="_blank" rel="noopener noreferrer">
+                    <MessageSquare className="mr-2 h-5 w-5" />
+                    Solicitar Info por WhatsApp
+                    </a>
+                </Button>
+            </div>
+        </div>
+
 
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <Card className="shadow-lg rounded-xl h-full flex flex-col border-accent/50 bg-accent/10">
