@@ -61,7 +61,7 @@ export default function Home() {
                 }}
               >
                 <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
-                    <h1 className="text-xl font-semibold text-primary tracking-widest uppercase">
+                    <h1 className="text-2xl font-semibold text-primary tracking-widest uppercase">
                       Auto Escuela Americana
                     </h1>
                    <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
