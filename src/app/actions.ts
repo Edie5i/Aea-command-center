@@ -4,6 +4,8 @@
 import { z } from 'zod';
 import { generateDrivingTips } from '@/ai/flows/generate-integration-instructions';
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
+import { GOOGLE_AUTH_TOKEN_COOKIE_KEY } from '@/lib/google-auth';
+import { cookies } from 'next/headers';
 
 const inputSchema = z.object({
   topic: z.string().min(3, { message: 'El tema debe tener al menos 3 caracteres.' }),
@@ -45,4 +47,13 @@ export async function getChatbotResponseAction(message: string) {
     console.error('Error al obtener respuesta del chatbot:', error);
     return { response: null, error: 'Ocurrió un error inesperado. Por favor, revisa los registros del servidor.' };
   }
+}
+
+/**
+ * Server Action to check if the Google authentication cookie exists.
+ * This is safe to call from client components.
+ */
+export async function checkGoogleAuthState(): Promise<boolean> {
+  const cookieStore = cookies();
+  return cookieStore.has(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
 }

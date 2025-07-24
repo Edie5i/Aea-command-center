@@ -4,21 +4,28 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText, UserCheck, LogIn } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, UserCheck, LogIn, Loader2 } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { useEffect, useState } from 'react';
-import { GOOGLE_AUTH_TOKEN_COOKIE_KEY } from '@/lib/google-auth';
+import { checkGoogleAuthState } from '@/app/actions';
 
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isClient, setIsClient] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
   
-    // We can't check cookies on the server in a client component,
-    // so we'll check them on the client side after the component mounts.
     useEffect(() => {
-        setIsClient(true);
-        const hasAuthCookie = document.cookie.includes(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
-        setIsAuthenticated(hasAuthCookie);
+        async function verifyAuth() {
+            try {
+                const authStatus = await checkGoogleAuthState();
+                setIsAuthenticated(authStatus);
+            } catch (error) {
+                console.error("Error checking auth status:", error);
+                setIsAuthenticated(false);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        verifyAuth();
     }, []);
 
   return (
@@ -64,8 +71,11 @@ export default function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col justify-center items-center pt-6 space-y-4">
-              {!isClient ? (
-                <div className="h-10 bg-muted rounded-md w-48 animate-pulse"></div>
+              {isLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground p-3">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <p className="font-semibold">Verificando estado...</p>
+                 </div>
               ) : isAuthenticated ? (
                  <div className="flex items-center gap-2 text-green-600 p-3 bg-green-100 rounded-md dark:bg-green-900/30 dark:text-green-300">
                     <UserCheck className="h-5 w-5" />
