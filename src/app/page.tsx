@@ -57,8 +57,9 @@ export default function Home() {
               <div
                 className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
                 style={{
-                  backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuATDYn_-lIbqYSXnv6mW7DKFPH7T90teDEaszaH2_MLpLz5Oe3KPctwAB-fUwZ1oZfXtW27nUvdxNr7Q6S90U35h55kUh-Gm0lHnTMeVizuudEOdVz784e6IWedtCv6iQV2YWboiB1r_InPJosF3I3Dl8-T9NFsURJM0oqBpo0Bg-2p6WkFcC6pxCrSUNY-PIgucran0WN1EC2RnPLHUq_POOnR9BaJ5KqgzC7hahkxeTyWCFKKcu7NZJlz2r0KXmyN8mXVvhsbiVA")',
+                  backgroundImage: 'url("https://placehold.co/1200x800.png")',
                 }}
+                data-ai-hint="driving lesson"
               >
                 <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
                     <h1 
