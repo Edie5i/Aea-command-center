@@ -19,7 +19,7 @@ export async function getAuthenticatedCalendarClient() {
   const cookieStore = cookies();
   const tokenCookie = cookieStore.get(GOOGLE_AUTH_TOKEN_COOKIE_KEY);
 
-  if (!tokenCookie) {
+  if (!tokenCookie || !tokenCookie.value) {
     return null;
   }
 
@@ -41,3 +41,4 @@ export async function getAuthenticatedCalendarClient() {
     return null;
   }
 }
+

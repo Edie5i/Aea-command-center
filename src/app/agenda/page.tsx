@@ -18,12 +18,9 @@ export default function AgendaPage() {
   const [courseScheduled, setCourseScheduled] = useState(false);
 
   const handleSelectDates = (dates: Date[] | undefined) => {
-    if (!dates) {
-        setSelectedDates([]);
-        return;
-    }
+    const newDates = dates || [];
     // Filter out past dates and limit selection to 6
-    const validDates = dates.filter(date => !isPast(date) || format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
+    const validDates = newDates.filter(date => !isPast(date) || format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
     setSelectedDates(validDates.slice(0, 6));
   };
 
