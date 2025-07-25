@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
-import { addDays, format, isPast } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle } from 'lucide-react';
@@ -17,24 +17,14 @@ export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
 
-  const handleSelectDate = (date: Date | undefined) => {
-    if (!date) return;
-
-    // Prevent selecting past dates
-    if (isPast(date) && format(date, 'yyyy-MM-dd') !== format(new Date(), 'yyyy-MM-dd')) {
+  const handleSelectDates = (dates: Date[] | undefined) => {
+    if (!dates) {
+        setSelectedDates([]);
         return;
     }
-
-    const dateString = format(date, 'yyyy-MM-dd');
-    const isSelected = selectedDates.some(d => format(d, 'yyyy-MM-dd') === dateString);
-
-    if (isSelected) {
-      setSelectedDates(prev => prev.filter(d => format(d, 'yyyy-MM-dd') !== dateString));
-    } else {
-      if (selectedDates.length < 6) {
-        setSelectedDates(prev => [...prev, date].sort((a, b) => a.getTime() - b.getTime()));
-      }
-    }
+    // Filter out past dates and limit selection to 6
+    const validDates = dates.filter(date => !isPast(date) || format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
+    setSelectedDates(validDates.slice(0, 6));
   };
 
   const handleClearSelection = () => {
@@ -141,7 +131,7 @@ export default function AgendaPage() {
                         <Calendar
                             mode="multiple"
                             selected={selectedDates}
-                            onSelect={(days) => setSelectedDates(days || [])}
+                            onSelect={handleSelectDates}
                             locale={es}
                             numberOfMonths={1}
                             disabled={{ before: new Date() }}
@@ -152,13 +142,14 @@ export default function AgendaPage() {
                                 selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
                             }}
                             footer={
-                                selectedDates.length > 0 && (
-                                <div className="text-center pt-2">
-                                    <Button variant="ghost" size="sm" onClick={handleClearSelection}>
-                                    Limpiar selección
-                                    </Button>
+                                <div className="text-center pt-2 text-sm text-muted-foreground">
+                                    {selectedDates.length} de 6 días seleccionados.
+                                    {selectedDates.length > 0 && (
+                                        <Button variant="ghost" size="sm" onClick={handleClearSelection} className="ml-2">
+                                            Limpiar
+                                        </Button>
+                                    )}
                                 </div>
-                                )
                             }
                         />
                     </div>
