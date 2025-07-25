@@ -84,10 +84,19 @@ export default function AgendaPage() {
     const headerBlue = '#1D4ED8';
     doc.setFillColor(headerBlue);
     doc.rect(0, 0, 210, 30, 'F');
+    
     doc.setFontSize(18);
-    doc.setTextColor('#FFFFFF');
     doc.setFont('helvetica', 'bold');
-    doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center' });
+    
+    // Set text style for silver border effect
+    doc.setDrawColor('#C0C0C0'); // Silver color for the stroke
+    doc.setLineWidth(0.2); // Thin border
+    doc.setTextColor('#FFFFFF'); // White fill color
+
+    doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { 
+        align: 'center',
+        renderingMode: 'FillThenStroke' // Apply fill then stroke
+    });
 
     let y = 45;
     const leftMargin = 20;
@@ -430,5 +439,3 @@ export default function AgendaPage() {
     </main>
   );
 }
-
-    
