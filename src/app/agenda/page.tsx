@@ -80,47 +80,105 @@ export default function AgendaPage() {
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
-    let y = 20;
-    doc.setFontSize(18);
-    doc.text('Ficha de Inscripción - Auto Escuela Americana', 105, y, { align: 'center' });
-    y += 20;
+    // Header
+    const primaryColor = '#1D4ED8';
+    const headerBlue = '#0052cc'; // A strong blue color
+    doc.setFillColor(headerBlue);
+    doc.rect(0, 0, 210, 25, 'F');
+    doc.setFontSize(16);
+    doc.setTextColor('#FFFFFF');
+    doc.setFont('helvetica', 'bold');
+    doc.text('FICHA DE INSCRIPCIÓN', 105, 15, { align: 'center' });
 
+    let y = 40;
+    const leftMargin = 20;
+    const valueMargin = 70;
+
+    // --- Datos del Alumno ---
     doc.setFontSize(12);
-    doc.text(`Nombre del Alumno: ${values.name}`, 20, y); y += 10;
-    if (values.isMinor) {
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DATOS DEL ALUMNO', leftMargin, y);
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setTextColor('#666666');
+    doc.setFont('helvetica', 'normal');
+    doc.text('Nombre Completo:', leftMargin, y);
+    doc.setTextColor('#000000');
+    doc.text(values.name, valueMargin, y);
+    y += 7;
+
+    doc.setTextColor('#666666');
+    doc.text('Número de Teléfono:', leftMargin, y);
+    doc.setTextColor(primaryColor);
+    doc.text(values.phone, valueMargin, y);
+    y += 12;
+
+    // --- Detalles del Curso ---
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DETALLES DEL CURSO', leftMargin, y);
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setTextColor('#666666');
+    doc.setFont('helvetica', 'normal');
+    doc.text('Tipo de Transmisión:', leftMargin, y);
+    doc.setTextColor('#000000');
+    doc.text(values.transmission, valueMargin, y);
+    y += 7;
+
+    doc.setTextColor('#666666');
+    doc.text('Domicilio (clic para ver mapa):', leftMargin, y);
+    doc.setTextColor(primaryColor);
+    doc.textWithLink(values.address, valueMargin, y, { url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}` });
+    y += 12;
+
+     if (values.isMinor) {
+        doc.setTextColor(primaryColor);
         doc.setFont('helvetica', 'bold');
-        doc.text(`** CURSO PARA MENOR DE EDAD **`, 20, y); y += 10;
+        doc.text('** CURSO PARA MENOR DE EDAD **', leftMargin, y); y += 10;
         doc.setFont('helvetica', 'normal');
     }
-    doc.text(`Teléfono: ${values.phone}`, 20, y); y += 10;
-    doc.text(`Dirección de Encuentro: ${values.address}`, 20, y); y += 10;
-    doc.text(`Transmisión: ${values.transmission}`, 20, y); y += 10;
-    doc.text(`Horario Preferido: ${values.time}`, 20, y); y += 15;
 
-    doc.setFontSize(14);
-    doc.text('Fechas Solicitadas:', 20, y); y += 10;
-    doc.setFontSize(12);
+    // --- Fechas y Horarios ---
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FECHAS Y HORARIOS SOLICITADOS', leftMargin, y);
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setTextColor('#000000');
     selectedDates.forEach(date => {
-        doc.text(`- ${format(date, "EEEE, d 'de' MMMM", { locale: es })}`, 25, y);
-        y += 7;
-        if (y > 280) { doc.addPage(); y = 20; }
+        doc.text(format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es }), leftMargin, y);
+        y += 6;
+        doc.text(values.time, leftMargin, y);
+        y += 8;
+        if (y > 260) { doc.addPage(); y = 20; }
     });
-
+    
+    // --- Notas Adicionales ---
     if (values.notes) {
         y += 5;
-        doc.setFontSize(14);
-        doc.text('Notas Adicionales:', 20, y); y += 10;
-        doc.setFontSize(12);
+        doc.setTextColor(primaryColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text('NOTAS ADICIONALES', leftMargin, y);
+        y += 8;
+
+        doc.setFontSize(11);
+        doc.setTextColor('#000000');
         const noteLines = doc.splitTextToSize(values.notes, 170);
-        doc.text(noteLines, 20, y);
+        doc.text(noteLines, leftMargin, y);
         y += noteLines.length * 7;
     }
     
-    y += 10;
-    if (y > 270) { doc.addPage(); y = 20; }
-    doc.setFontSize(10);
-    doc.setTextColor(150);
-    doc.text('Un asesor se pondrá en contacto para confirmar la disponibilidad de fechas y horarios.', 105, y, { align: 'center' });
+    // Footer
+    doc.setFillColor(headerBlue);
+    doc.rect(0, 282, 210, 15, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor('#FFFFFF');
+    doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación. | www.autoescuelaamericana.com`, 105, 292, { align: 'center' });
 
     doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
