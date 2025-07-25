@@ -80,105 +80,107 @@ export default function AgendaPage() {
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
-    // Header
-    const primaryColor = '#1D4ED8';
-    const headerBlue = '#0052cc'; // A strong blue color
+    // --- Header ---
+    const headerBlue = '#1D4ED8';
     doc.setFillColor(headerBlue);
-    doc.rect(0, 0, 210, 25, 'F');
-    doc.setFontSize(16);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setFontSize(18);
     doc.setTextColor('#FFFFFF');
     doc.setFont('helvetica', 'bold');
-    doc.text('FICHA DE INSCRIPCIÓN', 105, 15, { align: 'center' });
+    doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center' });
 
-    let y = 40;
+    let y = 45;
     const leftMargin = 20;
-    const valueMargin = 70;
+    const valueMargin = 75;
+    const sectionSpacing = 15;
+    const itemSpacing = 8;
+    
+    // Helper function for styling text
+    const addDataRow = (label: string, value: string, isLink: boolean = false, linkUrl: string = '', isBlue: boolean = false) => {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor('#666666');
+        doc.text(label, leftMargin, y);
+        
+        doc.setTextColor(isBlue ? headerBlue : '#000000');
+        if (isLink) {
+            doc.textWithLink(value, valueMargin, y, { url: linkUrl });
+        } else {
+            doc.text(value, valueMargin, y);
+        }
+        y += itemSpacing;
+    };
 
     // --- Datos del Alumno ---
     doc.setFontSize(12);
-    doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(headerBlue);
     doc.text('DATOS DEL ALUMNO', leftMargin, y);
-    y += 8;
+    y += 10;
+    addDataRow('Nombre Completo:', values.name);
+    addDataRow('Número de Teléfono:', values.phone, false, '', true);
+    y += sectionSpacing - itemSpacing;
 
-    doc.setFontSize(11);
-    doc.setTextColor('#666666');
-    doc.setFont('helvetica', 'normal');
-    doc.text('Nombre Completo:', leftMargin, y);
-    doc.setTextColor('#000000');
-    doc.text(values.name, valueMargin, y);
-    y += 7;
-
-    doc.setTextColor('#666666');
-    doc.text('Número de Teléfono:', leftMargin, y);
-    doc.setTextColor(primaryColor);
-    doc.text(values.phone, valueMargin, y);
-    y += 12;
 
     // --- Detalles del Curso ---
-    doc.setTextColor(primaryColor);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(headerBlue);
     doc.text('DETALLES DEL CURSO', leftMargin, y);
-    y += 8;
-
-    doc.setFontSize(11);
-    doc.setTextColor('#666666');
-    doc.setFont('helvetica', 'normal');
-    doc.text('Tipo de Transmisión:', leftMargin, y);
-    doc.setTextColor('#000000');
-    doc.text(values.transmission, valueMargin, y);
-    y += 7;
-
-    doc.setTextColor('#666666');
-    doc.text('Domicilio (clic para ver mapa):', leftMargin, y);
-    doc.setTextColor(primaryColor);
-    doc.textWithLink(values.address, valueMargin, y, { url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}` });
-    y += 12;
-
-     if (values.isMinor) {
-        doc.setTextColor(primaryColor);
+    y += 10;
+    addDataRow('Tipo de Transmisión:', values.transmission);
+    addDataRow('Domicilio (clic para ver mapa):', values.address, true, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}`, true);
+    
+    if (values.isMinor) {
+        y += 5;
+        doc.setTextColor('#D9534F');
         doc.setFont('helvetica', 'bold');
-        doc.text('** CURSO PARA MENOR DE EDAD **', leftMargin, y); y += 10;
-        doc.setFont('helvetica', 'normal');
+        doc.text('** CURSO PARA MENOR DE EDAD **', leftMargin, y); y += 5;
     }
+    y += sectionSpacing - itemSpacing;
 
     // --- Fechas y Horarios ---
-    doc.setTextColor(primaryColor);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(headerBlue);
     doc.text('FECHAS Y HORARIOS SOLICITADOS', leftMargin, y);
-    y += 8;
+    y += 10;
 
     doc.setFontSize(11);
     doc.setTextColor('#000000');
+    doc.setFont('helvetica', 'normal');
     selectedDates.forEach(date => {
-        doc.text(format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es }), leftMargin, y);
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.text(`${format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}`, leftMargin, y);
         y += 6;
         doc.text(values.time, leftMargin, y);
         y += 8;
-        if (y > 260) { doc.addPage(); y = 20; }
     });
-    
+
     // --- Notas Adicionales ---
     if (values.notes) {
-        y += 5;
-        doc.setTextColor(primaryColor);
+        y += sectionSpacing - 8;
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(headerBlue);
         doc.text('NOTAS ADICIONALES', leftMargin, y);
-        y += 8;
+        y += 10;
 
         doc.setFontSize(11);
         doc.setTextColor('#000000');
+        doc.setFont('helvetica', 'normal');
         const noteLines = doc.splitTextToSize(values.notes, 170);
         doc.text(noteLines, leftMargin, y);
         y += noteLines.length * 7;
     }
     
-    // Footer
+    // --- Footer ---
     doc.setFillColor(headerBlue);
     doc.rect(0, 282, 210, 15, 'F');
     doc.setFontSize(9);
     doc.setTextColor('#FFFFFF');
-    doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación. | www.autoescuelaamericana.com`, 105, 292, { align: 'center' });
+    doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación. | www.autoescuelaamericana.com`, 105, 288, { align: 'center' });
 
     doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
@@ -428,3 +430,5 @@ export default function AgendaPage() {
     </main>
   );
 }
+
+    
