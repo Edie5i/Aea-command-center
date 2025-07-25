@@ -29,7 +29,6 @@ const scheduleSchema = z.object({
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   address: z.string().min(10, { message: 'Por favor, introduce una dirección válida (mínimo 10 caracteres).' }),
   transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
-  time: z.string({ required_error: 'Debes seleccionar un horario.' }),
   isMinor: z.boolean().default(false).optional(),
   notes: z.string().optional(),
   terms: z.boolean().refine((value) => value === true, {
@@ -39,10 +38,15 @@ const scheduleSchema = z.object({
 
 type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 
+type DateWithTime = {
+    date: Date;
+    time?: string;
+};
+
 const timeSlots = ["7:00 AM", "10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"];
 
 export default function AgendaPage() {
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
   const { toast } = useToast();
   
@@ -53,7 +57,6 @@ export default function AgendaPage() {
       phone: '',
       address: '',
       transmission: '',
-      time: '',
       isMinor: false,
       notes: '',
       terms: false,
@@ -63,7 +66,14 @@ export default function AgendaPage() {
   const handleSelectDates = (dates: Date[] | undefined) => {
     const newDates = dates || [];
     const validDates = newDates.filter(date => !isPast(date) || format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
-    setSelectedDates(validDates.slice(0, 6));
+    const dateWithTimeObjects = validDates.slice(0, 6).map(date => ({ date }));
+    setSelectedDates(dateWithTimeObjects);
+  };
+  
+  const handleTimeChange = (dateIndex: number, time: string) => {
+    const updatedDates = [...selectedDates];
+    updatedDates[dateIndex].time = time;
+    setSelectedDates(updatedDates);
   };
 
   const handleClearSelection = () => {
@@ -77,6 +87,19 @@ export default function AgendaPage() {
   };
 
   async function onSubmit(values: ScheduleFormValues) {
+    // Fill in any empty time slots with the first selected time
+    const firstTime = selectedDates.find(d => d.time)?.time;
+    const finalDates = selectedDates.map(d => ({...d, time: d.time || firstTime}));
+
+    if (finalDates.some(d => !d.time)) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Horario',
+            description: 'Por favor, selecciona un horario para al menos uno de los días.',
+        });
+        return;
+    }
+
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
@@ -158,11 +181,9 @@ export default function AgendaPage() {
     doc.setFontSize(11);
     doc.setTextColor('#000000');
     doc.setFont('helvetica', 'normal');
-    selectedDates.forEach(date => {
+    finalDates.forEach(item => {
         if (y > 250) { doc.addPage(); y = 20; }
-        doc.text(`${format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}`, leftMargin, y);
-        y += 6;
-        doc.text(values.time, leftMargin, y);
+        doc.text(`${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
         y += 8;
     });
 
@@ -198,11 +219,10 @@ export default function AgendaPage() {
     if (values.isMinor) { message += `*Nota:* El curso es para un MENOR DE EDAD.\n`; }
     message += `*Teléfono:* ${values.phone}\n`;
     message += `*Dirección de Encuentro:* ${values.address}\n`;
-    message += `*Transmisión:* ${values.transmission}\n`;
-    message += `*Horario Preferido:* ${values.time}\n\n`;
-    message += `*Fechas solicitadas:*\n`;
-    selectedDates.forEach(date => {
-        message += `- ${format(date, "EEEE, d 'de' MMMM", { locale: es })}\n`;
+    message += `*Transmisión:* ${values.transmission}\n\n`;
+    message += `*Fechas y Horarios solicitados:*\n`;
+    finalDates.forEach(item => {
+        message += `- ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
     });
      if (values.notes) {
         message += `\n*Notas Adicionales:*\n${values.notes}\n`;
@@ -307,7 +327,7 @@ export default function AgendaPage() {
                     <div className="w-full md:w-auto flex justify-center">
                         <Calendar
                             mode="multiple"
-                            selected={selectedDates}
+                            selected={selectedDates.map(d => d.date)}
                             onSelect={handleSelectDates}
                             locale={es}
                             numberOfMonths={1}
@@ -333,8 +353,31 @@ export default function AgendaPage() {
                                     Llena este breve formulario para crear tu ficha.
                                   </CardDescription>
                                </CardHeader>
+
+                                {/* Time Selection for each date */}
+                                <div className="space-y-4">
+                                    <Label className="font-semibold text-base">Paso 3: Selecciona los Horarios</Label>
+                                    {selectedDates.map((item, index) => (
+                                        <div key={item.date.toISOString()} className="flex items-center justify-between gap-4 p-2 border rounded-md">
+                                            <p className="text-sm font-medium">
+                                                {format(item.date, "EEEE, d 'de' MMMM", { locale: es })}
+                                            </p>
+                                            <Select onValueChange={(value) => handleTimeChange(index, value)} defaultValue={item.time}>
+                                                <SelectTrigger className="w-[180px]">
+                                                    <SelectValue placeholder="Selecciona horario" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    ))}
+                                    <p className="text-xs text-muted-foreground">Si no seleccionas un horario para un día, se usará el primer horario que hayas elegido.</p>
+                                </div>
+
+
                                 <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                           <FormField control={form.control} name="name" render={({ field }) => (
                                               <FormItem>
@@ -358,34 +401,20 @@ export default function AgendaPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}/>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <FormField control={form.control} name="transmission" render={({ field }) => (
-                                                <FormItem className="space-y-2">
-                                                    <FormLabel>Transmisión</FormLabel>
-                                                    <FormControl>
-                                                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4 pt-2">
-                                                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Automático" id="auto"/></FormControl><Label htmlFor="auto" className="font-normal cursor-pointer">Automático</Label></FormItem>
-                                                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Estándar" id="std"/></FormControl><Label htmlFor="std" className="font-normal cursor-pointer">Estándar</Label></FormItem>
-                                                        </RadioGroup>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}/>
-                                            <FormField control={form.control} name="time" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Horario de Inicio</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger><SelectValue placeholder="Selecciona un horario" /></SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}/>
-                                        </div>
+                                        
+                                        <FormField control={form.control} name="transmission" render={({ field }) => (
+                                            <FormItem className="space-y-2">
+                                                <FormLabel>Transmisión</FormLabel>
+                                                <FormControl>
+                                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4 pt-2">
+                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Automático" id="auto"/></FormControl><Label htmlFor="auto" className="font-normal cursor-pointer">Automático</Label></FormItem>
+                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Estándar" id="std"/></FormControl><Label htmlFor="std" className="font-normal cursor-pointer">Estándar</Label></FormItem>
+                                                    </RadioGroup>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}/>
+                                        
                                         <FormField control={form.control} name="notes" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Notas Adicionales (Opcional)</FormLabel>
