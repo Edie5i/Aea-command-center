@@ -61,7 +61,10 @@ export default function Home() {
                 }}
               >
                 <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
-                    <h1 className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase">
+                    <h1 
+                      className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
+                      style={{ textShadow: '0px 0px 1px #C0C0C0, 0px 0px 1px #C0C0C0' }}
+                    >
                       Auto Escuela Americana
                     </h1>
                    <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
