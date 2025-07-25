@@ -11,7 +11,7 @@ import * as z from 'zod';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, Clock, MessageSquare, UserCheck } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -21,18 +21,25 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   address: z.string().min(10, { message: 'Por favor, introduce una dirección válida (mínimo 10 caracteres).' }),
   transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
+  time: z.string({ required_error: 'Debes seleccionar un horario.' }),
+  isMinor: z.boolean().default(false).optional(),
+  notes: z.string().optional(),
   terms: z.boolean().refine((value) => value === true, {
     message: 'Debes aceptar los términos y condiciones.',
   }),
 });
 
 type ScheduleFormValues = z.infer<typeof scheduleSchema>;
+
+const timeSlots = ["7:00 AM", "10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"];
 
 export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -46,6 +53,9 @@ export default function AgendaPage() {
       phone: '',
       address: '',
       transmission: '',
+      time: '',
+      isMinor: false,
+      notes: '',
       terms: false,
     },
   });
@@ -77,9 +87,15 @@ export default function AgendaPage() {
 
     doc.setFontSize(12);
     doc.text(`Nombre del Alumno: ${values.name}`, 20, y); y += 10;
+    if (values.isMinor) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(`** CURSO PARA MENOR DE EDAD **`, 20, y); y += 10;
+        doc.setFont('helvetica', 'normal');
+    }
     doc.text(`Teléfono: ${values.phone}`, 20, y); y += 10;
     doc.text(`Dirección de Encuentro: ${values.address}`, 20, y); y += 10;
-    doc.text(`Transmisión: ${values.transmission}`, 20, y); y += 15;
+    doc.text(`Transmisión: ${values.transmission}`, 20, y); y += 10;
+    doc.text(`Horario Preferido: ${values.time}`, 20, y); y += 15;
 
     doc.setFontSize(14);
     doc.text('Fechas Solicitadas:', 20, y); y += 10;
@@ -87,23 +103,41 @@ export default function AgendaPage() {
     selectedDates.forEach(date => {
         doc.text(`- ${format(date, "EEEE, d 'de' MMMM", { locale: es })}`, 25, y);
         y += 7;
-        if (y > 280) {
-            doc.addPage();
-            y = 20;
-        }
+        if (y > 280) { doc.addPage(); y = 20; }
     });
+
+    if (values.notes) {
+        y += 5;
+        doc.setFontSize(14);
+        doc.text('Notas Adicionales:', 20, y); y += 10;
+        doc.setFontSize(12);
+        const noteLines = doc.splitTextToSize(values.notes, 170);
+        doc.text(noteLines, 20, y);
+        y += noteLines.length * 7;
+    }
+    
+    y += 10;
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('Un asesor se pondrá en contacto para confirmar la disponibilidad de fechas y horarios.', 105, y, { align: 'center' });
 
     doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
     let message = `*¡Hola! Quiero inscribirme.*\n\n`;
     message += `*Nombre:* ${values.name}\n`;
+    if (values.isMinor) { message += `*Nota:* El curso es para un MENOR DE EDAD.\n`; }
     message += `*Teléfono:* ${values.phone}\n`;
     message += `*Dirección de Encuentro:* ${values.address}\n`;
-    message += `*Transmisión:* ${values.transmission}\n\n`;
+    message += `*Transmisión:* ${values.transmission}\n`;
+    message += `*Horario Preferido:* ${values.time}\n\n`;
     message += `*Fechas solicitadas:*\n`;
     selectedDates.forEach(date => {
         message += `- ${format(date, "EEEE, d 'de' MMMM", { locale: es })}\n`;
     });
+     if (values.notes) {
+        message += `\n*Notas Adicionales:*\n${values.notes}\n`;
+    }
     message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
 
     const whatsAppNumber = "525634433212";
@@ -255,27 +289,60 @@ export default function AgendaPage() {
                                                 <FormMessage />
                                             </FormItem>
                                         )}/>
-                                        <FormField control={form.control} name="transmission" render={({ field }) => (
-                                            <FormItem className="space-y-2">
-                                                <FormLabel>Transmisión del Vehículo</FormLabel>
-                                                <FormControl>
-                                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4">
-                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Automático" id="auto"/></FormControl><Label htmlFor="auto" className="font-normal cursor-pointer">Automático</Label></FormItem>
-                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Estándar" id="std"/></FormControl><Label htmlFor="std" className="font-normal cursor-pointer">Estándar</Label></FormItem>
-                                                    </RadioGroup>
-                                                </FormControl>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <FormField control={form.control} name="transmission" render={({ field }) => (
+                                                <FormItem className="space-y-2">
+                                                    <FormLabel>Transmisión</FormLabel>
+                                                    <FormControl>
+                                                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4 pt-2">
+                                                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Automático" id="auto"/></FormControl><Label htmlFor="auto" className="font-normal cursor-pointer">Automático</Label></FormItem>
+                                                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Estándar" id="std"/></FormControl><Label htmlFor="std" className="font-normal cursor-pointer">Estándar</Label></FormItem>
+                                                        </RadioGroup>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}/>
+                                            <FormField control={form.control} name="time" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Horario de Inicio</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger><SelectValue placeholder="Selecciona un horario" /></SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}/>
+                                        </div>
+                                        <FormField control={form.control} name="notes" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Notas Adicionales (Opcional)</FormLabel>
+                                                <div className="relative"><MessageSquare className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><FormControl><Textarea placeholder="Ej: Me da miedo incorporarme a vías rápidas" {...field} className="pl-10" /></FormControl></div>
                                                 <FormMessage />
                                             </FormItem>
                                         )}/>
-                                        <FormField control={form.control} name="terms" render={({ field }) => (
-                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                <div className="space-y-1 leading-none">
-                                                    <FormLabel>Acepto los <Link href="/terminos" target="_blank" className="text-primary hover:underline">Términos y Condiciones</Link>.</FormLabel>
-                                                    <FormMessage />
-                                                </div>
-                                            </FormItem>
-                                        )}/>
+
+                                        <div className="space-y-4">
+                                            <FormField control={form.control} name="isMinor" render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                    <Label htmlFor="isMinor" className="font-normal flex items-center gap-2 cursor-pointer"><UserCheck className="h-4 w-4"/>Este curso es para un menor de edad</Label>
+                                                </FormItem>
+                                            )}/>
+                                            <FormField control={form.control} name="terms" render={({ field }) => (
+                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                    <div className="space-y-1 leading-none">
+                                                        <FormLabel>Acepto los <Link href="/terminos" target="_blank" className="text-primary hover:underline">Términos y Condiciones</Link>.</FormLabel>
+                                                        <FormMessage />
+                                                    </div>
+                                                </FormItem>
+                                            )}/>
+                                        </div>
+                                        
                                         <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
                                             <Download className="mr-2 h-4 w-4" />
                                             Enviar y Crear Ficha
