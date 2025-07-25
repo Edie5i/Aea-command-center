@@ -5,21 +5,50 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
 import { format, isPast } from 'date-fns';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Calendar } from '@/components/ui/calendar';
-import { ScheduleForm } from '@/components/schedule-form';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
+
+const scheduleSchema = z.object({
+  name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
+  phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
+  transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
+  terms: z.boolean().refine((value) => value === true, {
+    message: 'Debes aceptar los términos y condiciones.',
+  }),
+});
+
+type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 
 export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
+  const { toast } = useToast();
+  
+  const form = useForm<ScheduleFormValues>({
+    resolver: zodResolver(scheduleSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      transmission: '',
+      terms: false,
+    },
+  });
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const newDates = dates || [];
-    // Filter out past dates and limit selection to 6
     const validDates = newDates.filter(date => !isPast(date) || format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
     setSelectedDates(validDates.slice(0, 6));
   };
@@ -28,15 +57,61 @@ export default function AgendaPage() {
     setSelectedDates([]);
   };
 
-  const handleCourseScheduled = () => {
-    setCourseScheduled(true);
-  };
-  
   const handleNewSchedule = () => {
     setCourseScheduled(false);
     setSelectedDates([]);
+    form.reset();
   };
 
+  async function onSubmit(values: ScheduleFormValues) {
+    // 1. Generate and Download PDF
+    const { default: jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+    
+    let y = 20;
+    doc.setFontSize(18);
+    doc.text('Ficha de Inscripción - Auto Escuela Americana', 105, y, { align: 'center' });
+    y += 20;
+
+    doc.setFontSize(12);
+    doc.text(`Nombre del Alumno: ${values.name}`, 20, y); y += 10;
+    doc.text(`Teléfono: ${values.phone}`, 20, y); y += 10;
+    doc.text(`Transmisión: ${values.transmission}`, 20, y); y += 15;
+
+    doc.setFontSize(14);
+    doc.text('Fechas Solicitadas:', 20, y); y += 10;
+    doc.setFontSize(12);
+    selectedDates.forEach(date => {
+        doc.text(`- ${format(date, "EEEE, d 'de' MMMM", { locale: es })}`, 25, y);
+        y += 7;
+        if (y > 280) {
+            doc.addPage();
+            y = 20;
+        }
+    });
+
+    doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
+
+    // 2. Open WhatsApp
+    let message = `*¡Hola! Quiero inscribirme.*\n\n`;
+    message += `*Nombre:* ${values.name}\n`;
+    message += `*Teléfono:* ${values.phone}\n`;
+    message += `*Transmisión:* ${values.transmission}\n\n`;
+    message += `*Fechas solicitadas:*\n`;
+    selectedDates.forEach(date => {
+        message += `- ${format(date, "EEEE, d 'de' MMMM", { locale: es })}\n`;
+    });
+    message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+
+    const whatsAppNumber = "525634433212";
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+
+    // 3. Update UI
+    setCourseScheduled(true);
+    toast({ title: '¡Ficha Generada!', description: 'Se ha descargado tu ficha y se abrirá WhatsApp para que envíes tu solicitud.' });
+  }
 
   return (
     <main className="flex min-h-screen flex-col bg-background">
@@ -53,7 +128,7 @@ export default function AgendaPage() {
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
             Agenda tu Curso
           </h1>
-           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
+          <p className="mt-2 max-w-xl text-lg text-muted-foreground">
             {courseScheduled ? '¡Tu ficha ha sido generada con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
           </p>
         </div>
@@ -90,13 +165,13 @@ export default function AgendaPage() {
            <Card className="w-full shadow-lg rounded-xl mb-8">
              {courseScheduled ? (
                 <CardContent className="p-6 text-center">
-                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
+                    <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
                             ¡Ficha de Inscripción Generada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu ficha se ha descargado en formato PDF y se ha preparado un mensaje en WhatsApp para que lo envíes. Un asesor confirmará la disponibilidad de los horarios solicitados a la brevedad.
+                            Tu ficha se ha descargado y se ha preparado un mensaje en WhatsApp para que lo envíes. Un asesor confirmará los horarios a la brevedad.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
@@ -117,10 +192,10 @@ export default function AgendaPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <CalendarIcon className="h-6 w-6 text-primary" />
-                        Selecciona tus Días de Clase
+                        Paso 1: Selecciona tus Días de Clase
                     </CardTitle>
                     <CardDescription>
-                       Elige hasta 6 fechas en el calendario para tu curso. Las clases se confirmarán según disponibilidad.
+                       Elige hasta 6 fechas. Un asesor confirmará los horarios por WhatsApp.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col md:flex-row gap-8 items-start">
@@ -132,12 +207,6 @@ export default function AgendaPage() {
                             locale={es}
                             numberOfMonths={1}
                             disabled={{ before: new Date() }}
-                            modifiers={{
-                                selected: selectedDates,
-                            }}
-                            modifiersClassNames={{
-                                selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
-                            }}
                             footer={
                                 <div className="text-center pt-2 text-sm text-muted-foreground">
                                     {selectedDates.length} de 6 días seleccionados.
@@ -152,13 +221,63 @@ export default function AgendaPage() {
                     </div>
                     <div className="flex-grow w-full">
                         {selectedDates.length > 0 ? (
-                           <ScheduleForm selectedDates={selectedDates} onCourseScheduled={handleCourseScheduled} />
+                            <div className="space-y-4">
+                               <CardHeader className="p-0 mb-4">
+                                  <CardTitle>Paso 2: Completa tus Datos</CardTitle>
+                                  <CardDescription>
+                                    Llena este breve formulario para crear tu ficha.
+                                  </CardDescription>
+                               </CardHeader>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                        <FormField control={form.control} name="name" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Nombre Completo</FormLabel>
+                                                <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="Tu nombre" {...field} className="pl-10" /></FormControl></div>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name="phone" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Teléfono de WhatsApp</FormLabel>
+                                                <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="55 1234 5678" {...field} className="pl-10" /></FormControl></div>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name="transmission" render={({ field }) => (
+                                            <FormItem className="space-y-2">
+                                                <FormLabel>Transmisión del Vehículo</FormLabel>
+                                                <FormControl>
+                                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4">
+                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Automático" id="auto"/></FormControl><Label htmlFor="auto" className="font-normal cursor-pointer">Automático</Label></FormItem>
+                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Estándar" id="std"/></FormControl><Label htmlFor="std" className="font-normal cursor-pointer">Estándar</Label></FormItem>
+                                                    </RadioGroup>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name="terms" render={({ field }) => (
+                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                <div className="space-y-1 leading-none">
+                                                    <FormLabel>Acepto los <Link href="/terminos" target="_blank" className="text-primary hover:underline">Términos y Condiciones</Link>.</FormLabel>
+                                                    <FormMessage />
+                                                </div>
+                                            </FormItem>
+                                        )}/>
+                                        <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Enviar y Crear Ficha
+                                        </Button>
+                                    </form>
+                                </Form>
+                            </div>
                         ) : (
                              <Alert>
                                 <CalendarCheck className="h-4 w-4" />
                                 <AlertTitle>Esperando selección...</AlertTitle>
                                 <AlertDescription>
-                                Por favor, selecciona al menos un día en el calendario para ver el formulario de inscripción.
+                                Por favor, selecciona al menos un día en el calendario para ver el formulario.
                                 </AlertDescription>
                             </Alert>
                         )}
