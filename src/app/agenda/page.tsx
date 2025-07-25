@@ -11,7 +11,7 @@ import * as z from 'zod';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label';
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
+  address: z.string().min(10, { message: 'Por favor, introduce una dirección válida (mínimo 10 caracteres).' }),
   transmission: z.string({ required_error: 'Debes seleccionar el tipo de transmisión.' }),
   terms: z.boolean().refine((value) => value === true, {
     message: 'Debes aceptar los términos y condiciones.',
@@ -43,6 +44,7 @@ export default function AgendaPage() {
     defaultValues: {
       name: '',
       phone: '',
+      address: '',
       transmission: '',
       terms: false,
     },
@@ -65,7 +67,6 @@ export default function AgendaPage() {
   };
 
   async function onSubmit(values: ScheduleFormValues) {
-    // 1. Generate and Download PDF
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
@@ -77,6 +78,7 @@ export default function AgendaPage() {
     doc.setFontSize(12);
     doc.text(`Nombre del Alumno: ${values.name}`, 20, y); y += 10;
     doc.text(`Teléfono: ${values.phone}`, 20, y); y += 10;
+    doc.text(`Dirección de Encuentro: ${values.address}`, 20, y); y += 10;
     doc.text(`Transmisión: ${values.transmission}`, 20, y); y += 15;
 
     doc.setFontSize(14);
@@ -93,10 +95,10 @@ export default function AgendaPage() {
 
     doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
-    // 2. Open WhatsApp
     let message = `*¡Hola! Quiero inscribirme.*\n\n`;
     message += `*Nombre:* ${values.name}\n`;
     message += `*Teléfono:* ${values.phone}\n`;
+    message += `*Dirección de Encuentro:* ${values.address}\n`;
     message += `*Transmisión:* ${values.transmission}\n\n`;
     message += `*Fechas solicitadas:*\n`;
     selectedDates.forEach(date => {
@@ -109,7 +111,6 @@ export default function AgendaPage() {
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
 
-    // 3. Update UI
     setCourseScheduled(true);
     toast({ title: '¡Ficha Generada!', description: 'Se ha descargado tu ficha y se abrirá WhatsApp para que envíes tu solicitud.' });
   }
@@ -231,17 +232,26 @@ export default function AgendaPage() {
                                </CardHeader>
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                        <FormField control={form.control} name="name" render={({ field }) => (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                          <FormField control={form.control} name="name" render={({ field }) => (
+                                              <FormItem>
+                                                  <FormLabel>Nombre Completo</FormLabel>
+                                                  <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="Tu nombre" {...field} className="pl-10" /></FormControl></div>
+                                                  <FormMessage />
+                                              </FormItem>
+                                          )}/>
+                                          <FormField control={form.control} name="phone" render={({ field }) => (
+                                              <FormItem>
+                                                  <FormLabel>Teléfono de WhatsApp</FormLabel>
+                                                  <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="55 1234 5678" {...field} className="pl-10" /></FormControl></div>
+                                                  <FormMessage />
+                                              </FormItem>
+                                          )}/>
+                                        </div>
+                                        <FormField control={form.control} name="address" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Nombre Completo</FormLabel>
-                                                <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="Tu nombre" {...field} className="pl-10" /></FormControl></div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}/>
-                                        <FormField control={form.control} name="phone" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Teléfono de WhatsApp</FormLabel>
-                                                <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="55 1234 5678" {...field} className="pl-10" /></FormControl></div>
+                                                <FormLabel>Dirección / Punto de encuentro</FormLabel>
+                                                <div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="Calle, número, colonia, etc." {...field} className="pl-10" /></FormControl></div>
                                                 <FormMessage />
                                             </FormItem>
                                         )}/>
