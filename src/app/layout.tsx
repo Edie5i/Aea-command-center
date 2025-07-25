@@ -8,6 +8,8 @@ import { lexend, noto_sans } from "@/lib/fonts";
 export const metadata: Metadata = {
   title: "AEA - Autoescuela Americana",
   description: "App de Auto Escuela Americana. Portal para instructores y alumnos para generar planes de lecciones, gestionar agendas y más.",
+  manifest: "/manifest.json",
+  themeColor: "#1D4ED8",
 };
 
 export default function RootLayout({

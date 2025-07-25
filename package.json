@@ -59,7 +59,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@tailwindcss/container-queries": "^0.1.1",
+    "@ducanh2912/next-pwa": "^10.2.7",
     "@types/cookie": "^0.6.0",
     "@types/node": "^20",
     "@types/react": "^18",
