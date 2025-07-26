@@ -33,7 +33,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Send, CheckCircle, User, Phone, Mail, Bank, CreditCard } from 'lucide-react';
+import { Send, CheckCircle, User, Phone, Mail, Bank, CreditCard, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const banks = [
@@ -101,7 +101,7 @@ export function OpenpayForm() {
         </CardDescription>
       </CardHeader>
       {submitted ? (
-        <CardContent className="text-center">
+        <CardContent className="text-center pt-6">
             <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
@@ -118,7 +118,7 @@ export function OpenpayForm() {
       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <FormField
                 control={form.control}
                 name="cardholderName"
