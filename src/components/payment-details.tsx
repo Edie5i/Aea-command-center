@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -15,7 +17,7 @@ export function PaymentDetails() {
   const accountNumber = '0484695739';
   const clabe = '012180004846957399';
   const debitCard = '4152314404288527';
-  const officialQrUrl = 'https://i.ibb.co/6yv7yv1/whats-App-Image-2024-07-28-at-12-16-16-PM.jpg';
+  const officialQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/525634433212?text=¡Hola!%20Aquí%20envío%20mi%20comprobante%20de%20pago.';
   
   return (
     <Card className="w-full max-w-3xl shadow-lg rounded-xl">
