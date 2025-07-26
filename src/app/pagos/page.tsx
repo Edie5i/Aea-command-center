@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CalendarDays, List, Globe, FileText } from 'lucide-react';
 import { PaymentDetails } from '@/components/payment-details';
 import { AppFooter } from '@/components/footer';
+import { OpenpayForm } from '@/components/openpay-form';
+import { Separator } from '@/components/ui/separator';
 
 export default function PagosPage() {
   return (
@@ -53,6 +55,11 @@ export default function PagosPage() {
         </div>
         
         <PaymentDetails />
+
+        <Separator className="my-8" />
+        
+        <OpenpayForm />
+
       </div>
       
       <AppFooter />
