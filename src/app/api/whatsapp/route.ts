@@ -127,7 +127,7 @@ async function processWhatsappMessage(body: any, accessToken: string, phoneNumbe
 }
 
 async function sendWhatsappMessage(to: string, text: string, accessToken: string, phoneNumberId: string) {
-    const whatsappApiUrl = `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`;
+    const whatsappApiUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
     
     try {
         const response = await axios.post(whatsappApiUrl, {
