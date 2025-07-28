@@ -47,13 +47,6 @@ export default function InstructoresPage() {
     const { toast } = useToast();
     const form = useForm<InstructorFormValues>({
         resolver: zodResolver(instructorSchema),
-        defaultValues: {
-            name: '',
-            phone: '',
-            alcaldia: '',
-            hasOwnCar: '',
-            hasTeachingExperience: '',
-        }
     });
 
     function onSubmit(values: InstructorFormValues) {
