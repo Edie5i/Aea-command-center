@@ -93,7 +93,7 @@ export default function Home() {
         </div>
       </div>
       
-      <div ref={mainContentRef} className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
+      <div ref={mainContentRef} id="main-content" className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
          <div className="w-full max-w-5xl mb-12">
             <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold tracking-tight">Portal del Alumno</h2>
@@ -180,7 +180,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="w-full max-w-3xl pt-8" id="contact-form">
+        <div className="w-full max-w-3xl pt-8" id="contact-button-section">
             <div className="flex justify-center">
                 <Button asChild size="lg">
                     <a href="https://wa.me/525634433212?text=¡Hola!%20Me%20gustaría%20más%20información%20sobre%20los%20cursos%20de%20manejo." target="_blank" rel="noopener noreferrer">
