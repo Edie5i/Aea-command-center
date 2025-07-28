@@ -214,7 +214,7 @@ export default function EvaluacionPage() {
                         Hacer de Nuevo
                     </Button>
                     <Button asChild variant="secondary">
-                       <Link href="/#contact-form">
+                       <Link href="/#contact-button-section">
                            Solicitar Info
                        </Link>
                     </Button>

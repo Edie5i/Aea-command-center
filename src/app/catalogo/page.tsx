@@ -95,7 +95,7 @@ export default function CatalogoPage() {
                   </CardContent>
                   <CardFooter>
                       <Button asChild className="w-full">
-                          <Link href="/#contact-form">
+                          <Link href="/#contact-button-section">
                               <Plus className="mr-2 h-4 w-4" />
                               Solicitar Info
                           </Link>
