@@ -9,8 +9,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        body: ['var(--font-lexend)', 'var(--font-noto-sans)', 'sans-serif'],
-        headline: ['var(--font-lexend)', 'var(--font-noto-sans)', 'sans-serif'],
+        body: ['var(--font-noto-sans)', 'sans-serif'],
+        headline: ['var(--font-lexend)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
