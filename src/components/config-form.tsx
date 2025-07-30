@@ -96,7 +96,7 @@ export function ConfigForm({ onGenerated, setLoading, isLoading }: TipsFormProps
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
               )}
-              {isLoading ? 'Generando...' : 'Generar'}
+              {isLoading ? 'Generando...' : 'Generar Consejos'}
             </Button>
           </div>
         </form>

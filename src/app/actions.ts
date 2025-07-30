@@ -2,16 +2,16 @@
 'use server';
 
 import { z } from 'zod';
-import { generateDrivingTips } from '@/ai/flows/generate-integration-instructions';
+import { generateDrivingTips } from '@/ai/flows/generate-driving-tips';
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
 
-const inputSchema = z.object({
+const tipsInputSchema = z.object({
   topic: z.string().min(3, { message: 'El tema debe tener al menos 3 caracteres.' }),
 });
 
 export async function getDrivingTipsAction(topic: string) {
   try {
-    const validatedInput = inputSchema.parse({ topic });
+    const validatedInput = tipsInputSchema.parse({ topic });
     const result = await generateDrivingTips({ topic: validatedInput.topic });
     if (!result.tips || result.tips.length === 0) {
       return { tips: null, error: 'No se pudieron generar consejos. El modelo de IA podría no estar disponible.' };
