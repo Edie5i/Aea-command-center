@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Calendar, LogIn } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -48,15 +48,24 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle>Integraciones</CardTitle>
             <CardDescription>
-              Actualmente no hay integraciones activas.
+              Conecta servicios externos para habilitar nuevas funcionalidades.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Alert>
-              <AlertTitle>No hay configuraciones disponibles</AlertTitle>
+              <Calendar className="h-4 w-4" />
+              <AlertTitle>Integración con Google Calendar</AlertTitle>
               <AlertDescription>
-                En el futuro, aquí podrás conectar servicios como Google Calendar para mejorar las funciones de la aplicación.
+                Conecta tu cuenta de Google para permitir que el Asistente de IA verifique la disponibilidad de horarios en tiempo real directamente desde tu calendario principal.
               </AlertDescription>
+              <div className="mt-4">
+                <Button asChild>
+                    <Link href="/api/auth/google">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Conectar con Google Calendar
+                    </Link>
+                </Button>
+              </div>
             </Alert>
           </CardContent>
         </Card>
