@@ -26,49 +26,55 @@ export default function ProgramaPage() {
 
   const handleGeneratePdf = async () => {
     setIsGeneratingPdf(true);
-    const { default: jsPDF } = await import('jspdf');
-    
-    const doc = new jsPDF();
-    const sectionData = programData.find(section => section.title.startsWith("14."));
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF();
+      const sectionData = programData.find(section => section.title.startsWith("14."));
 
-    if (!sectionData) {
-      setIsGeneratingPdf(false);
-      return;
-    }
-
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text(sectionData.title, 105, 20, { align: 'center' });
-    let y = 40;
-
-    sectionData.content.forEach(contentBlock => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-      if (contentBlock.heading) {
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text(contentBlock.heading, 15, y);
-        y += 10;
+      if (!sectionData) {
+        console.error("PDF generation failed: Section data not found.");
+        setIsGeneratingPdf(false);
+        return;
       }
 
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      contentBlock.points.forEach(point => {
-        if (y > 280) {
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(sectionData.title, 105, 20, { align: 'center' });
+      let y = 40;
+
+      sectionData.content.forEach(contentBlock => {
+        if (y > 270) {
           doc.addPage();
           y = 20;
         }
-        const lines = doc.splitTextToSize(`• ${point}`, 175);
-        doc.text(lines, 20, y);
-        y += (lines.length * 6);
-      });
-      y += 8;
-    });
+        if (contentBlock.heading) {
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'bold');
+          doc.text(contentBlock.heading, 15, y);
+          y += 10;
+        }
 
-    doc.save('Guia_Verificacion_y_Mantenimiento.pdf');
-    setIsGeneratingPdf(false);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        contentBlock.points.forEach(point => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          const lines = doc.splitTextToSize(`• ${point}`, 175);
+          doc.text(lines, 20, y);
+          y += (lines.length * 6);
+        });
+        y += 8;
+      });
+
+      doc.save('Guia_Verificacion_y_Mantenimiento.pdf');
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+    } finally {
+        setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -145,7 +151,7 @@ export default function ProgramaPage() {
                 ) : (
                   <Download className="mr-2 h-4 w-4" />
                 )}
-                {isGeneratingPdf ? 'Generando...' : 'Descargar Guía'}
+                {isGeneratingPdf ? 'Generando...' : 'Descargar Guía de Mantenimiento'}
               </Button>
           </CardFooter>
         </Card>

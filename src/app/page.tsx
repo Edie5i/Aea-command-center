@@ -57,7 +57,7 @@ export default function Home() {
               <div
                 className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
                 style={{
-                  backgroundImage: 'url("https://placehold.co/1200x800.png")',
+                  backgroundImage: 'url("https://i.ibb.co/b2g7y6Q/drivingschool-hero.png")',
                 }}
                 data-ai-hint="driving lesson"
               >
