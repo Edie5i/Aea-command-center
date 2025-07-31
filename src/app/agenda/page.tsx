@@ -56,7 +56,7 @@ export default function AgendaPage() {
       name: '',
       phone: '',
       address: '',
-      transmission: '',
+      transmission: undefined,
       isMinor: false,
       notes: '',
       terms: false,
