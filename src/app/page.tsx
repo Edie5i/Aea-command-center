@@ -55,10 +55,7 @@ export default function Home() {
           <div className="@container">
             <div className="@[480px]:p-4">
               <div
-                className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
-                style={{
-                  backgroundImage: 'url("https://i.ibb.co/wzV3w1t/drivingschool-hero-dark.png")',
-                }}
+                className="w-full bg-gradient-to-br from-gray-900 to-black rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
                 data-ai-hint="driving lesson car interior"
               >
                 <div className="p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
