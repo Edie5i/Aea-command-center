@@ -78,6 +78,7 @@ export const botContextData = {
   metodosPago: {
     transferencia: "Transferencia Bancaria a la cuenta de Eduardo W. Czaplewski (BBVA).",
     deposito: "Depósito en Efectivo en Walmart, Sanborns, OXXO, 7-Eleven.",
+    tarjeta: "Pago con tarjeta de crédito. Se debe solicitar un enlace de pago por WhatsApp para recibirlo por correo. Existe la opción de 3 meses sin intereses con tarjetas BBVA y American Express.",
     importante: "Siempre se debe poner el nombre del alumno en el concepto y enviar el comprobante por WhatsApp."
   },
   politicas: {

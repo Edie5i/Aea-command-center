@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { CopyButton } from './copy-button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Info, Banknote, Landmark, MessageSquare } from 'lucide-react';
+import { Info, Banknote, Landmark, MessageSquare, CreditCard } from 'lucide-react';
 import { Separator } from './ui/separator';
 import Image from 'next/image';
 
@@ -67,6 +67,18 @@ export function PaymentDetails() {
                     </div>
                     <CopyButton textToCopy={debitCard} />
                 </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><CreditCard className="h-5 w-5 text-primary" />Pago con Tarjeta a Meses</h3>
+             <div className="rounded-lg border p-4 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                    Aceptamos pagos con tarjeta de crédito. Solicita tu enlace de pago por WhatsApp y recibe las instrucciones por correo electrónico.
+                </p>
+                <p className="text-sm font-bold text-primary">
+                    ¡Pregunta por la opción de 3 meses sin intereses con tarjetas BBVA y American Express!
+                </p>
             </div>
         </div>
 
