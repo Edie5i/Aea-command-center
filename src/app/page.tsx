@@ -57,11 +57,11 @@ export default function Home() {
               <div
                 className="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
                 style={{
-                  backgroundImage: 'url("https://i.ibb.co/b2g7y6Q/drivingschool-hero.png")',
+                  backgroundImage: 'url("https://i.ibb.co/wzV3w1t/drivingschool-hero-dark.png")',
                 }}
-                data-ai-hint="driving lesson"
+                data-ai-hint="driving lesson car interior"
               >
-                <div className="bg-black/60 p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
+                <div className="p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
                     <h1 
                       className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
                       style={{ textShadow: '0px 0px 1px #C0C0C0, 0px 0px 1px #C0C0C0' }}
@@ -71,7 +71,7 @@ export default function Home() {
                    <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
                       Aprende a Conducir con los Expertos de la CDMX
                     </h2>
-                    <p className="text-white/80 text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
+                    <p className="text-white text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
                       Cursos personalizados, instructores certificados y la confianza que necesitas para dominar el volante.
                     </p>
                 </div>
