@@ -94,7 +94,7 @@ export function OpenpayForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="h-6 w-6 text-primary" />
-          Solicitar Enlace de Pago Openpay
+          Solicitar Enlace de Pago
         </CardTitle>
         <CardDescription>
           Llena este formulario para que un asesor te envíe un enlace de pago seguro a tu correo electrónico.
