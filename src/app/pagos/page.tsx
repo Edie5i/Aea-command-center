@@ -25,7 +25,7 @@ export default function PagosPage() {
           Información de Pago
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Elige tu método de pago preferido. Aceptamos transferencias y pagos con tarjeta.
+          Aceptamos transferencias y depósitos en efectivo.
         </p>
       </div>
       
@@ -58,27 +58,6 @@ export default function PagosPage() {
         </div>
         
         <PaymentDetails />
-
-        <Separator className="my-8" />
-        
-         <Card className="w-full max-w-3xl shadow-lg rounded-xl bg-secondary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-6 w-6 text-primary" />
-              Pagar con Tarjeta (Crédito/Débito)
-            </CardTitle>
-            <CardDescription>
-              Usa nuestro portal seguro de Openpay para pagar con tarjeta. Ofrecemos meses sin intereses con tarjetas participantes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-             <Button asChild size="lg">
-                <Link href="/pagos/openpay">
-                    Ir al Portal de Pago con Tarjeta
-                </Link>
-            </Button>
-          </CardContent>
-        </Card>
 
       </div>
       

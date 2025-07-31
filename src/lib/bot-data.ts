@@ -1,3 +1,4 @@
+
 import { programData } from './course-data';
 
 export const botContextData = {
@@ -77,7 +78,6 @@ export const botContextData = {
   metodosPago: {
     transferencia: "Transferencia Bancaria a la cuenta de Eduardo W. Czaplewski (BBVA).",
     deposito: "Depósito en Efectivo en Walmart, Sanborns, OXXO, 7-Eleven.",
-    tarjeta: "Pago con Tarjeta (Crédito/Débito) a través de un enlace de Openpay con opción a Meses Sin Intereses.",
     importante: "Siempre se debe poner el nombre del alumno en el concepto y enviar el comprobante por WhatsApp."
   },
   politicas: {
@@ -116,7 +116,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Puedo pagar el curso en partes?",
-      respuesta: "El pago del curso se debe realizar en su totalidad antes de la primera clase. Sin embargo, si pagas con tarjeta de crédito, tienes opciones de financiamiento como Meses Sin Intereses con tarjetas American Express y BBVA, o pagos diferidos con otros bancos a través de Openpay."
+      respuesta: "El pago del curso se debe realizar en su totalidad antes de la primera clase."
     },
     {
       pregunta: "¿El coche para las prácticas lo ponen ustedes?",
