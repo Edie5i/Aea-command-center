@@ -42,7 +42,6 @@
     "cookie": "^0.6.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
-    "firebase": "^10.12.3",
     "framer-motion": "^11.3.12",
     "genkit": "^1.8.0",
     "googleapis": "^140.0.1",
