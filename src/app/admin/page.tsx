@@ -57,7 +57,7 @@ export default function AdminPage() {
               <AlertTitle>Gestión de Fichas</AlertTitle>
               <AlertDescription>
                 Sube y visualiza las fichas de inscripción de los alumnos en un calendario centralizado.
-              </AlertDescription>
+              </Aler_description>
               <div className="mt-4">
                 <Button asChild>
                     <Link href="/admin/fichas">
