@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText, Calendar, LogIn } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Calendar, LogIn, FileUp } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -43,10 +43,36 @@ export default function AdminPage() {
             </Link>
           </Button>
         </div>
+        
+        <Card className="w-full max-w-3xl mb-8 shadow-lg rounded-xl">
+          <CardHeader>
+            <CardTitle>Gestión Interna</CardTitle>
+            <CardDescription>
+              Herramientas para la administración de la escuela.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+             <Alert>
+              <FileUp className="h-4 w-4" />
+              <AlertTitle>Gestión de Fichas</AlertTitle>
+              <AlertDescription>
+                Sube y visualiza las fichas de inscripción de los alumnos en un calendario centralizado.
+              </AlertDescription>
+              <div className="mt-4">
+                <Button asChild>
+                    <Link href="/admin/fichas">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Ir a Gestión de Fichas
+                    </Link>
+                </Button>
+              </div>
+            </Alert>
+          </CardContent>
+        </Card>
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
-            <CardTitle>Integraciones</CardTitle>
+            <CardTitle>Integraciones Externas</CardTitle>
             <CardDescription>
               Conecta servicios externos para habilitar nuevas funcionalidades.
             </CardDescription>
