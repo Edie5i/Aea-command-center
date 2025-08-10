@@ -4,6 +4,7 @@
 import { ai } from '@/ai/genkit';
 import { getAuthenticatedCalendarClient } from '@/lib/google-auth';
 import { z } from 'zod';
+import { google } from 'googleapis';
 
 export const checkAvailability = ai.defineTool(
   {
@@ -17,11 +18,13 @@ export const checkAvailability = ai.defineTool(
   },
   async (input) => {
     try {
-        const calendar = await getAuthenticatedCalendarClient();
-        if (!calendar) {
+        const oauth2Client = await getAuthenticatedCalendarClient();
+        if (!oauth2Client) {
             console.error('Google Calendar client is not authenticated. User needs to log in via /admin.');
             return 'ERROR';
         }
+        
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
         console.log(`Checking calendar availability from ${input.startTime} to ${input.endTime}`);
 

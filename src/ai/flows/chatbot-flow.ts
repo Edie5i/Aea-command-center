@@ -33,6 +33,7 @@ export async function chatWithBot(
 const ChatbotPromptInputSchema = z.object({
     message: z.string(),
     context: z.string(),
+    currentDate: z.string(),
 });
 
 
@@ -60,7 +61,7 @@ const prompt = ai.definePrompt({
         *   If 'FREE', respond: "¡Sí, parece que tenemos espacio en ese horario! Puedes confirmarlo y agendar tu clase en /agenda."
         *   If 'BUSY', respond: "Lo siento, ese horario ya no está disponible. ¿Te gustaría que verifique otro?"
         *   If 'ERROR', respond: "No pude verificar la disponibilidad en este momento, pero puedes solicitar el horario en la página /agenda y un asesor te confirmará por WhatsApp."
-    *   Assume today's date is ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}.
+    *   Assume today's date is {{{currentDate}}}.
 
 **INFORMACIÓN DISPONIBLE:**
 \`\`\`
@@ -84,10 +85,13 @@ const chatbotFlow = ai.defineFlow(
 
     // Use the full context for all channels.
     const finalContext = `${schoolContextJSON}\n\nREGLAMENTO DE TRÁNSITO DE LA CDMX (EXTRACTO):\n${reglamentoTransitoCompleto}`;
+    
+    const currentDate = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
 
     const {output} = await prompt({
         message: input.message,
         context: finalContext,
+        currentDate: currentDate,
     });
     return output!;
   }
