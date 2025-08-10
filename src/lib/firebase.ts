@@ -1,4 +1,6 @@
 
+'use client';
+
 import { initializeApp, getApps, getApp, App } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -25,26 +27,30 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // --- Admin (Server-Side) Firebase Initialization ---
+
+// Check if the service account key is available in environment variables
 const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-let serviceAccount: admin.ServiceAccount;
 
-try {
-  if (!serviceAccountKey) {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set.');
+// Only initialize admin if it hasn't been initialized yet and the key is available
+if (!admin.apps.length && serviceAccountKey) {
+  try {
+    const serviceAccount = JSON.parse(
+      // The key is expected to be a Base64 encoded string.
+      Buffer.from(serviceAccountKey, 'base64').toString('utf-8')
+    );
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    });
+  } catch (error) {
+    console.error('Error initializing Firebase Admin SDK:', error);
   }
-  serviceAccount = JSON.parse(Buffer.from(serviceAccountKey, 'base64').toString('utf-8'));
-} catch (e) {
-  console.error("Failed to parse Firebase service account key. Make sure it's a valid base64 encoded JSON.", e);
-  // We throw here to prevent the app from starting with a misconfigured admin SDK
-  throw new Error("Invalid Firebase service account key.");
+} else if (process.env.NODE_ENV !== 'production' && !admin.apps.length) {
+    // This allows for local development without the base64 encoded key
+    // You would typically use a local service account file here.
+    console.warn("Firebase Admin SDK not initialized. FIREBASE_SERVICE_ACCOUNT_KEY is missing. This is expected for client-side rendering, but will fail for server-side actions.");
 }
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  });
-}
 
 export const adminDb = admin.firestore();
 export const adminStorage = admin.storage();

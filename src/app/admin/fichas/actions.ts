@@ -43,7 +43,8 @@ export async function uploadFichaAction(prevState: any, formData: FormData) {
       },
     });
 
-    await fileRef.makePublic(); // Make file publicly readable
+    // Make file publicly readable
+    await fileRef.makePublic();
     const publicUrl = fileRef.publicUrl();
 
     await adminDb.collection('fichas').add({
