@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText, Calendar, LogIn } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Calendar, LogIn, UploadCloud } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -28,8 +28,8 @@ export default function AdminPage() {
         </p>
       </div>
 
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4 flex flex-wrap justify-center gap-2">
+      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
+        <div className="w-full max-w-3xl flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -43,6 +43,32 @@ export default function AdminPage() {
             </Link>
           </Button>
         </div>
+
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl">
+          <CardHeader>
+            <CardTitle>Gestión Interna</CardTitle>
+            <CardDescription>
+              Herramientas para la administración de la escuela.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert>
+              <UploadCloud className="h-4 w-4" />
+              <AlertTitle>Gestión de Fichas de Inscripción</AlertTitle>
+              <AlertDescription>
+                Sube y visualiza las fichas de inscripción de los alumnos en un solo lugar. Los archivos se guardan de forma segura.
+              </AlertDescription>
+              <div className="mt-4">
+                <Button asChild>
+                    <Link href="/admin/fichas">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Ir a Gestión de Fichas
+                    </Link>
+                </Button>
+              </div>
+            </Alert>
+          </CardContent>
+        </Card>
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
