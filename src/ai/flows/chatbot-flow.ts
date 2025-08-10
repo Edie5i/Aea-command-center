@@ -12,7 +12,6 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { botContextData } from '@/lib/bot-data';
 import { reglamentoTransitoCompleto } from '@/lib/reglamento-transito-data';
-import { checkAvailability } from '../tools/google-calendar';
 
 const ChatWithBotInputSchema = z.object({
   message: z.string().describe("The user's message to the chatbot."),
@@ -41,7 +40,6 @@ const prompt = ai.definePrompt({
   name: 'chatbotPrompt',
   input: {schema: ChatbotPromptInputSchema},
   output: {schema: ChatWithBotOutputSchema},
-  tools: [checkAvailability],
   prompt: `You are "Auto EscuelaBot", an expert, friendly, and helpful virtual assistant for "Auto Escuela Americana", a driving school in Mexico City. Your main goal is to answer user questions concisely and accurately based ONLY on the information provided in the "INFORMACIÓN DISPONIBLE" section. This includes general information, course catalog, scheduling, payments, policies, FAQs, the detailed driving program in 'programaDelCurso', and the official traffic regulations (if provided).
 
 **Crucial Rules:**
@@ -54,14 +52,8 @@ const prompt = ai.definePrompt({
 7.  **Keep it brief:** Provide direct and concise answers, unless a detailed explanation from the regulations is required.
 8.  **Curriculum questions:** When asked what is taught, what the program includes, or about specific driving techniques (like parking, highway driving, etc.), use the detailed information found in the \`programaDelCurso\` section to give specific and helpful answers.
 9.  **Scheduling & Availability:**
-    *   If a user asks about general availability or multiple dates, state that an advisor must confirm the schedule manually and direct them to the agenda page (/agenda).
-    *   **However, if the user asks about a SPECIFIC date and time** (e.g., "Is there space tomorrow at 10am?", "Do you have availability on July 25th at 4pm?"), you MUST use the \`checkAvailability\` tool to check the calendar.
-    *   When using the tool, assume class duration is 2.5 hours to calculate the end time.
-    *   Based on the tool's response:
-        *   If 'FREE', respond: "¡Sí, parece que tenemos espacio en ese horario! Puedes confirmarlo y agendar tu clase en /agenda."
-        *   If 'BUSY', respond: "Lo siento, ese horario ya no está disponible. ¿Te gustaría que verifique otro?"
-        *   If 'ERROR', respond: "No pude verificar la disponibilidad en este momento, pero puedes solicitar el horario en la página /agenda y un asesor te confirmará por WhatsApp."
-    *   Assume today's date is {{{currentDate}}}.
+    *   You CANNOT check the calendar in real-time.
+    *   If a user asks about availability, specific dates, or schedules, your response should ALWAYS be to direct them to the agenda page to see available days and send their request. For example: "No puedo ver la disponibilidad en tiempo real, pero puedes solicitar las fechas que te interesan en nuestra página de agenda (/agenda) y un asesor te confirmará por WhatsApp."
 
 **INFORMACIÓN DISPONIBLE:**
 \`\`\`
