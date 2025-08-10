@@ -2,25 +2,13 @@
 'use server';
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
+import { adminApp } from '@/lib/firebase-admin';
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const chatsCollection = collection(db, 'whatsappChats');
+// Initialize Firestore using the admin app
+const db = getFirestore(adminApp);
+const chatsCollection = db.collection('whatsappChats');
 
 /**
  * Handles the webhook verification GET request from Meta.
@@ -56,7 +44,6 @@ export async function POST(request: NextRequest) {
   // It's crucial to respond 200 OK quickly to avoid re-delivery.
   // We process the message asynchronously after responding.
   
-  // Read environment variables here to pass them down
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
@@ -93,11 +80,11 @@ async function processWhatsappMessage(body: any, accessToken: string, phoneNumbe
                 const messageType = messageData.type;
 
                 // 1. Save incoming message to Firestore
-                await addDoc(chatsCollection, {
+                await chatsCollection.add({
                     from: from,
                     type: messageType,
                     messageId: messageData.id,
-                    timestamp: serverTimestamp(),
+                    timestamp: Timestamp.now(),
                     direction: 'inbound',
                     status: 'received',
                     body: messageType === 'text' ? messageData.text.body : messageData,
@@ -162,11 +149,11 @@ async function sendWhatsappMessage(to: string, text: string, accessToken: string
         console.log(`Reply sent successfully to ${to}. Message ID: ${messageId}`);
 
         // 5. Save outgoing message to Firestore
-        await addDoc(chatsCollection, {
+        await chatsCollection.add({
             from: phoneNumberId,
             to: to,
             type: 'text',
-            timestamp: serverTimestamp(),
+            timestamp: Timestamp.now(),
             direction: 'outbound',
             status: 'sent',
             body: text,
