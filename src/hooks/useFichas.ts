@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 
 export interface Ficha {
   id: string;
