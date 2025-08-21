@@ -1,7 +1,6 @@
 
 'use server';
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
 import { adminApp } from '@/lib/firebase-admin';
@@ -131,21 +130,29 @@ async function sendWhatsappMessage(to: string, text: string, accessToken: string
     const whatsappApiUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
     
     try {
-        const response = await axios.post(whatsappApiUrl, {
-            messaging_product: 'whatsapp',
-            to: to,
-            type: 'text',
-            text: {
-                body: text
-            }
-        }, {
+        const response = await fetch(whatsappApiUrl, {
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'text',
+                text: {
+                    body: text
+                }
+            })
         });
 
-        const messageId = response.data?.messages?.[0]?.id;
+        const responseData = await response.json();
+
+        if (!response.ok) {
+             throw new Error(`Failed to send message: ${JSON.stringify(responseData)}`);
+        }
+
+        const messageId = responseData?.messages?.[0]?.id;
         console.log(`Reply sent successfully to ${to}. Message ID: ${messageId}`);
 
         // 5. Save outgoing message to Firestore
@@ -162,6 +169,6 @@ async function sendWhatsappMessage(to: string, text: string, accessToken: string
         }).catch(error => console.error("Error saving outbound message to Firestore:", error));
 
     } catch (error: any) {
-        console.error('Error sending WhatsApp message:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        console.error('Error sending WhatsApp message:', error.message);
     }
 }
