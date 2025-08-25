@@ -24,9 +24,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { adminApp } from '@/lib/firebase-admin';
+import { app } from '@/lib/firebase-client';
 
-const db = getFirestore(adminApp);
+const db = getFirestore(app);
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
