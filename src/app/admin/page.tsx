@@ -45,18 +45,13 @@ export default function AdminPage() {
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
-            <CardTitle>Gestión de Cursos</CardTitle>
+            <CardTitle>Herramientas de Administración</CardTitle>
             <CardDescription>
-              Herramientas para visualizar y organizar los cursos agendados.
+              Aquí encontrarás herramientas para gestionar la aplicación. Actualmente no hay herramientas activas.
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <Button asChild>
-                <Link href="/admin/calendario">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Ver Calendario Semanal
-                </Link>
-             </Button>
+             <p className="text-sm text-muted-foreground italic">No hay herramientas de gestión disponibles en este momento.</p>
           </CardContent>
         </Card>
       </div>

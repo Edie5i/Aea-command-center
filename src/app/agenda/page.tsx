@@ -8,7 +8,6 @@ import { format, isPast, isToday } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,9 +23,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { app } from '@/lib/firebase-client';
-
-const db = getFirestore(app);
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -90,34 +86,6 @@ export default function AgendaPage() {
     form.reset();
   };
 
-  const saveScheduleToFirestore = async (values: ScheduleFormValues, dates: DateWithTime[]) => {
-    try {
-      const schedulePromises = dates.map(item => {
-        return addDoc(collection(db, "scheduledCourses"), {
-            studentName: values.name,
-            phone: values.phone,
-            address: values.address,
-            transmission: values.transmission,
-            isMinor: values.isMinor,
-            notes: values.notes,
-            classDate: format(item.date, 'yyyy-MM-dd'),
-            time: item.time,
-            createdAt: serverTimestamp()
-        });
-      });
-      await Promise.all(schedulePromises);
-      console.log("Schedule successfully saved to Firestore.");
-    } catch (error) {
-      console.error("Error writing document: ", error);
-      toast({
-        variant: 'destructive',
-        title: 'Error de base de datos',
-        description: 'No se pudo guardar la agenda en nuestra base de datos. Por favor, contacta a un asesor.',
-      });
-    }
-  };
-
-
   async function onSubmit(values: ScheduleFormValues) {
     const finalDates = [...selectedDates];
     for (let i = 1; i < finalDates.length; i++) {
@@ -136,8 +104,6 @@ export default function AgendaPage() {
     }
 
     try {
-      await saveScheduleToFirestore(values, finalDates);
-
       const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
