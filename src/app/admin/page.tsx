@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Calendar } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 
 export default function AdminPage() {
@@ -45,13 +45,18 @@ export default function AdminPage() {
 
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
-            <CardTitle>Administración</CardTitle>
+            <CardTitle>Gestión de Cursos</CardTitle>
             <CardDescription>
-              Esta sección es para futuras integraciones.
+              Herramientas para visualizar y organizar los cursos agendados.
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <p className="text-sm text-muted-foreground">Actualmente no hay configuraciones disponibles.</p>
+             <Button asChild>
+                <Link href="/admin/calendario">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Ver Calendario Semanal
+                </Link>
+             </Button>
           </CardContent>
         </Card>
       </div>

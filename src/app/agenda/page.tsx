@@ -8,10 +8,11 @@ import { format, isPast, isToday } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, Clock, MessageSquare, UserCheck } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, Clock, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -23,6 +24,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { adminApp } from '@/lib/firebase-admin';
+
+const db = getFirestore(adminApp);
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -65,7 +69,6 @@ export default function AgendaPage() {
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const newDates = dates || [];
-    // Filter out past dates, but allow today
     const validDates = newDates.filter(date => isToday(date) || !isPast(date));
     const dateWithTimeObjects = validDates.slice(0, 6).map(date => ({ date }));
     setSelectedDates(dateWithTimeObjects);
@@ -87,11 +90,38 @@ export default function AgendaPage() {
     form.reset();
   };
 
+  const saveScheduleToFirestore = async (values: ScheduleFormValues, dates: DateWithTime[]) => {
+    try {
+      const schedulePromises = dates.map(item => {
+        return addDoc(collection(db, "scheduledCourses"), {
+            studentName: values.name,
+            phone: values.phone,
+            address: values.address,
+            transmission: values.transmission,
+            isMinor: values.isMinor,
+            notes: values.notes,
+            classDate: format(item.date, 'yyyy-MM-dd'),
+            time: item.time,
+            createdAt: serverTimestamp()
+        });
+      });
+      await Promise.all(schedulePromises);
+      console.log("Schedule successfully saved to Firestore.");
+    } catch (error) {
+      console.error("Error writing document: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error de base de datos',
+        description: 'No se pudo guardar la agenda en nuestra base de datos. Por favor, contacta a un asesor.',
+      });
+    }
+  };
+
+
   async function onSubmit(values: ScheduleFormValues) {
-    // Fill in any empty time slots with the previous day's time
     const finalDates = [...selectedDates];
-    for (let i = 0; i < finalDates.length; i++) {
-        if (!finalDates[i].time && i > 0) {
+    for (let i = 1; i < finalDates.length; i++) {
+        if (!finalDates[i].time) {
             finalDates[i].time = finalDates[i-1].time;
         }
     }
@@ -105,114 +135,116 @@ export default function AgendaPage() {
         return;
     }
 
-    const { default: jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
-    
-    // --- Header ---
-    const headerBlue = '#1D4ED8';
-    doc.setFillColor(headerBlue);
-    doc.rect(0, 0, 210, 30, 'F');
-    
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.setDrawColor('#C0C0C0');
-    doc.setLineWidth(0.2);
-    doc.setTextColor('#FFFFFF');
-    doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center', renderingMode: 'FillThenStroke' });
+    try {
+      await saveScheduleToFirestore(values, finalDates);
 
-    let y = 45;
-    const leftMargin = 20;
-    const rightMargin = 115;
-    const sectionSpacing = 15;
-    const itemSpacing = 8;
-    
-    const addSectionTitle = (title: string) => {
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(headerBlue);
-        doc.text(title, leftMargin, y);
-        y += 10;
-    };
-    
-    const addDataRow = (label: string, value: string) => {
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor('#666666');
-        doc.text(label, leftMargin, y);
-        
-        doc.setTextColor('#000000');
-        doc.text(value, rightMargin, y);
-        y += itemSpacing;
-    };
+      const { default: jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      const headerBlue = '#1D4ED8';
+      doc.setFillColor(headerBlue);
+      doc.rect(0, 0, 210, 30, 'F');
+      
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor('#FFFFFF');
+      doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center' });
 
-    // --- Student & Course Data ---
-    addSectionTitle('DATOS DEL ALUMNO Y CURSO');
-    addDataRow('Nombre Completo:', values.name);
-    addDataRow('Teléfono de Contacto:', values.phone);
-    addDataRow('Tipo de Transmisión:', values.transmission);
-    if (values.isMinor) {
-        addDataRow('Modalidad:', 'Menor de Edad');
+      let y = 45;
+      const leftMargin = 20;
+      const rightColumn = 115;
+      
+      const addSectionTitle = (title: string, newY: number) => {
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(headerBlue);
+          doc.text(title, leftMargin, newY);
+          return newY + 8;
+      };
+      
+      const addDataRow = (label: string, value: string, currentY: number) => {
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor('#666666');
+          doc.text(label, leftMargin, currentY);
+          
+          doc.setTextColor('#000000');
+          doc.text(value, rightColumn, currentY, { align: 'left' });
+          return currentY + 7;
+      };
+
+      y = addSectionTitle('DATOS DEL ALUMNO Y CURSO', y);
+      y = addDataRow('Nombre Completo:', values.name, y);
+      y = addDataRow('Teléfono de Contacto:', values.phone, y);
+      y = addDataRow('Tipo de Transmisión:', values.transmission, y);
+      if (values.isMinor) {
+          y = addDataRow('Modalidad:', 'Menor de Edad', y);
+      }
+      y += 5;
+
+      y = addSectionTitle('PUNTO DE ENCUENTRO', y);
+      doc.setFontSize(10);
+      doc.setTextColor('#000000');
+      const addressLines = doc.splitTextToSize(values.address, 170);
+      doc.text(addressLines, leftMargin, y);
+      y += (addressLines.length * 5) + 5;
+
+      y = addSectionTitle('FECHAS Y HORARIOS SOLICITADOS', y);
+      doc.setFontSize(10);
+      doc.setTextColor('#000000');
+      finalDates.forEach(item => {
+          if (y > 260) { doc.addPage(); y = 20; }
+          doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
+          y += 6;
+      });
+      y += 5;
+
+      if (values.notes) {
+          y = addSectionTitle('NOTAS ADICIONALES', y);
+          doc.setFontSize(10);
+          const noteLines = doc.splitTextToSize(values.notes, 170);
+          doc.text(noteLines, leftMargin, y);
+      }
+      
+      doc.setFillColor(headerBlue);
+      doc.rect(0, 282, 210, 15, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor('#FFFFFF');
+      doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | www.autoescuelaamericana.com`, 105, 288, { align: 'center' });
+
+      doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
+
+      let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
+      message += `*Nombre:* ${values.name}\n`;
+      if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
+      message += `*Teléfono:* ${values.phone}\n`;
+      message += `*Punto de Encuentro:* ${values.address}\n`;
+      message += `*Transmisión:* ${values.transmission}\n\n`;
+      message += `*Fechas y Horarios solicitados:*\n`;
+      finalDates.forEach(item => {
+          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
+      });
+      if (values.notes) {
+          message += `\n*Notas Adicionales:*\n${values.notes}\n`;
+      }
+      message += `\nAdjunto mi ficha de inscripción. Un asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+
+      const whatsAppNumber = "525634433212";
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
+
+      setCourseScheduled(true);
+      toast({ title: '¡Ficha Generada!', description: 'Se ha descargado tu ficha y se abrirá WhatsApp para que envíes tu solicitud.' });
+    
+    } catch (e) {
+      console.error("PDF Generation or WhatsApp link failed: ", e);
+      toast({
+        variant: 'destructive',
+        title: 'Error Inesperado',
+        description: 'No se pudo generar el PDF o abrir WhatsApp. Por favor, inténtalo de nuevo.',
+      });
     }
-    y += itemSpacing;
-
-    addSectionTitle('PUNTO DE ENCUENTRO');
-    doc.setFontSize(11);
-    doc.setTextColor('#000000');
-    const addressLines = doc.splitTextToSize(values.address, 170);
-    doc.text(addressLines, leftMargin, y);
-    y += (addressLines.length * 6) + 5;
-
-    // --- Dates & Times ---
-    addSectionTitle('FECHAS Y HORARIOS SOLICITADOS');
-    doc.setFontSize(11);
-    doc.setTextColor('#000000');
-    finalDates.forEach(item => {
-        if (y > 250) { doc.addPage(); y = 20; }
-        doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
-        y += 7;
-    });
-    y += 5;
-
-    // --- Additional Notes ---
-    if (values.notes) {
-        addSectionTitle('NOTAS ADICIONALES');
-        doc.setFontSize(11);
-        const noteLines = doc.splitTextToSize(values.notes, 170);
-        doc.text(noteLines, leftMargin, y);
-        y += noteLines.length * 7;
-    }
-    
-    // --- Footer ---
-    doc.setFillColor(headerBlue);
-    doc.rect(0, 282, 210, 15, 'F');
-    doc.setFontSize(9);
-    doc.setTextColor('#FFFFFF');
-    doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | www.autoescuelaamericana.com`, 105, 288, { align: 'center' });
-
-    doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
-
-    let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
-    message += `*Nombre:* ${values.name}\n`;
-    if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
-    message += `*Teléfono:* ${values.phone}\n`;
-    message += `*Punto de Encuentro:* ${values.address}\n`;
-    message += `*Transmisión:* ${values.transmission}\n\n`;
-    message += `*Fechas y Horarios solicitados:*\n`;
-    finalDates.forEach(item => {
-        message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
-    });
-     if (values.notes) {
-        message += `\n*Notas Adicionales:*\n${values.notes}\n`;
-    }
-    message += `\nAdjunto mi ficha de inscripción. Un asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
-
-    const whatsAppNumber = "525634433212";
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-
-    setCourseScheduled(true);
-    toast({ title: '¡Ficha Generada!', description: 'Se ha descargado tu ficha y se abrirá WhatsApp para que envíes tu solicitud.' });
   }
 
   return (
@@ -419,8 +451,8 @@ export default function AgendaPage() {
                                         </div>
                                         
                                         <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Enviar y Crear Ficha
+                                            {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                                            {form.formState.isSubmitting ? 'Procesando...' : 'Enviar y Crear Ficha'}
                                         </Button>
                                     </form>
                                 </Form>
