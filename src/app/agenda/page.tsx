@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
-import { format, isPast } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -65,7 +65,8 @@ export default function AgendaPage() {
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const newDates = dates || [];
-    const validDates = newDates.filter(date => !isPast(date) || format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
+    // Filter out past dates, but allow today
+    const validDates = newDates.filter(date => isToday(date) || !isPast(date));
     const dateWithTimeObjects = validDates.slice(0, 6).map(date => ({ date }));
     setSelectedDates(dateWithTimeObjects);
   };
@@ -87,15 +88,19 @@ export default function AgendaPage() {
   };
 
   async function onSubmit(values: ScheduleFormValues) {
-    // Fill in any empty time slots with the first selected time
-    const firstTime = selectedDates.find(d => d.time)?.time;
-    const finalDates = selectedDates.map(d => ({...d, time: d.time || firstTime}));
-
+    // Fill in any empty time slots with the previous day's time
+    const finalDates = [...selectedDates];
+    for (let i = 0; i < finalDates.length; i++) {
+        if (!finalDates[i].time && i > 0) {
+            finalDates[i].time = finalDates[i-1].time;
+        }
+    }
+    
     if (finalDates.some(d => !d.time)) {
         toast({
             variant: 'destructive',
             title: 'Error de Horario',
-            description: 'Por favor, selecciona un horario para al menos uno de los días.',
+            description: 'Por favor, selecciona un horario para al menos el primer día.',
         });
         return;
     }
@@ -110,96 +115,68 @@ export default function AgendaPage() {
     
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    
-    // Set text style for silver border effect
-    doc.setDrawColor('#C0C0C0'); // Silver color for the stroke
-    doc.setLineWidth(0.2); // Thin border
-    doc.setTextColor('#FFFFFF'); // White fill color
-
-    doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { 
-        align: 'center',
-        renderingMode: 'FillThenStroke' // Apply fill then stroke
-    });
+    doc.setDrawColor('#C0C0C0');
+    doc.setLineWidth(0.2);
+    doc.setTextColor('#FFFFFF');
+    doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center', renderingMode: 'FillThenStroke' });
 
     let y = 45;
     const leftMargin = 20;
-    const valueMargin = 75;
+    const rightMargin = 115;
     const sectionSpacing = 15;
     const itemSpacing = 8;
     
-    // Helper function for styling text
-    const addDataRow = (label: string, value: string, isLink: boolean = false, linkUrl: string = '', isBlue: boolean = false) => {
+    const addSectionTitle = (title: string) => {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(headerBlue);
+        doc.text(title, leftMargin, y);
+        y += 10;
+    };
+    
+    const addDataRow = (label: string, value: string) => {
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor('#666666');
         doc.text(label, leftMargin, y);
         
-        doc.setTextColor(isBlue ? headerBlue : '#000000');
-        if (isLink) {
-            doc.textWithLink(value, valueMargin, y, { url: linkUrl });
-        } else {
-            doc.text(value, valueMargin, y);
-        }
+        doc.setTextColor('#000000');
+        doc.text(value, rightMargin, y);
         y += itemSpacing;
     };
 
-    // --- Datos del Alumno ---
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(headerBlue);
-    doc.text('DATOS DEL ALUMNO', leftMargin, y);
-    y += 10;
+    // --- Student & Course Data ---
+    addSectionTitle('DATOS DEL ALUMNO Y CURSO');
     addDataRow('Nombre Completo:', values.name);
-    addDataRow('Número de Teléfono:', values.phone, false, '', true);
-    y += sectionSpacing - itemSpacing;
-
-
-    // --- Detalles del Curso ---
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(headerBlue);
-    doc.text('DETALLES DEL CURSO', leftMargin, y);
-    y += 10;
+    addDataRow('Teléfono de Contacto:', values.phone);
     addDataRow('Tipo de Transmisión:', values.transmission);
-    addDataRow('Domicilio (clic para ver mapa):', values.address, true, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(values.address)}`, true);
-    
     if (values.isMinor) {
-        y += 5;
-        doc.setTextColor('#D9534F');
-        doc.setFont('helvetica', 'bold');
-        doc.text('** CURSO PARA MENOR DE EDAD **', leftMargin, y); y += 5;
+        addDataRow('Modalidad:', 'Menor de Edad');
     }
-    y += sectionSpacing - itemSpacing;
+    y += itemSpacing;
 
-    // --- Fechas y Horarios ---
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(headerBlue);
-    doc.text('FECHAS Y HORARIOS SOLICITADOS', leftMargin, y);
-    y += 10;
-
+    addSectionTitle('PUNTO DE ENCUENTRO');
     doc.setFontSize(11);
     doc.setTextColor('#000000');
-    doc.setFont('helvetica', 'normal');
+    const addressLines = doc.splitTextToSize(values.address, 170);
+    doc.text(addressLines, leftMargin, y);
+    y += (addressLines.length * 6) + 5;
+
+    // --- Dates & Times ---
+    addSectionTitle('FECHAS Y HORARIOS SOLICITADOS');
+    doc.setFontSize(11);
+    doc.setTextColor('#000000');
     finalDates.forEach(item => {
         if (y > 250) { doc.addPage(); y = 20; }
-        doc.text(`${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
-        y += 8;
+        doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
+        y += 7;
     });
+    y += 5;
 
-    // --- Notas Adicionales ---
+    // --- Additional Notes ---
     if (values.notes) {
-        y += sectionSpacing - 8;
-        if (y > 250) { doc.addPage(); y = 20; }
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(headerBlue);
-        doc.text('NOTAS ADICIONALES', leftMargin, y);
-        y += 10;
-
+        addSectionTitle('NOTAS ADICIONALES');
         doc.setFontSize(11);
-        doc.setTextColor('#000000');
-        doc.setFont('helvetica', 'normal');
         const noteLines = doc.splitTextToSize(values.notes, 170);
         doc.text(noteLines, leftMargin, y);
         y += noteLines.length * 7;
@@ -210,24 +187,24 @@ export default function AgendaPage() {
     doc.rect(0, 282, 210, 15, 'F');
     doc.setFontSize(9);
     doc.setTextColor('#FFFFFF');
-    doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación. | www.autoescuelaamericana.com`, 105, 288, { align: 'center' });
+    doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | www.autoescuelaamericana.com`, 105, 288, { align: 'center' });
 
     doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
-    let message = `*¡Hola! Quiero inscribirme.*\n\n`;
+    let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
     message += `*Nombre:* ${values.name}\n`;
-    if (values.isMinor) { message += `*Nota:* El curso es para un MENOR DE EDAD.\n`; }
+    if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
     message += `*Teléfono:* ${values.phone}\n`;
-    message += `*Dirección de Encuentro:* ${values.address}\n`;
+    message += `*Punto de Encuentro:* ${values.address}\n`;
     message += `*Transmisión:* ${values.transmission}\n\n`;
     message += `*Fechas y Horarios solicitados:*\n`;
     finalDates.forEach(item => {
-        message += `- ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
+        message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
     });
      if (values.notes) {
         message += `\n*Notas Adicionales:*\n${values.notes}\n`;
     }
-    message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+    message += `\nAdjunto mi ficha de inscripción. Un asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
 
     const whatsAppNumber = "525634433212";
     const encodedMessage = encodeURIComponent(message);
@@ -296,7 +273,7 @@ export default function AgendaPage() {
                             ¡Ficha de Inscripción Generada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu ficha se ha descargado y se ha preparado un mensaje en WhatsApp para que lo envíes. Un asesor confirmará los horarios a la brevedad.
+                            Tu ficha se ha descargado y se ha preparado un mensaje en WhatsApp para que lo envíes junto con el PDF. Un asesor confirmará los horarios a la brevedad.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
@@ -331,7 +308,7 @@ export default function AgendaPage() {
                             onSelect={handleSelectDates}
                             locale={es}
                             numberOfMonths={1}
-                            disabled={{ before: new Date() }}
+                            disabled={(date) => isPast(date) && !isToday(date)}
                             footer={
                                 <div className="text-center pt-2 text-sm text-muted-foreground">
                                     {selectedDates.length} de 6 días seleccionados.
@@ -348,36 +325,36 @@ export default function AgendaPage() {
                         {selectedDates.length > 0 ? (
                             <div className="space-y-4">
                                <CardHeader className="p-0 mb-4">
-                                  <CardTitle>Paso 2: Completa tus Datos</CardTitle>
-                                  <CardDescription>
-                                    Llena este breve formulario para crear tu ficha.
+                                  <CardTitle>Paso 2: Selecciona los Horarios</CardTitle>
+                                   <CardDescription>
+                                    Elige un horario para cada día. Si dejas uno vacío, se usará el del día anterior.
                                   </CardDescription>
                                </CardHeader>
-
-                                {/* Time Selection for each date */}
-                                <div className="space-y-4">
-                                    <Label className="font-semibold text-base">Paso 3: Selecciona los Horarios</Label>
-                                    {selectedDates.map((item, index) => (
-                                        <div key={item.date.toISOString()} className="flex items-center justify-between gap-4 p-2 border rounded-md">
-                                            <p className="text-sm font-medium">
-                                                {format(item.date, "EEEE, d 'de' MMMM", { locale: es })}
-                                            </p>
-                                            <Select onValueChange={(value) => handleTimeChange(index, value)} defaultValue={item.time}>
-                                                <SelectTrigger className="w-[180px]">
-                                                    <SelectValue placeholder="Selecciona horario" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    ))}
-                                    <p className="text-xs text-muted-foreground">Si no seleccionas un horario para un día, se usará el primer horario que hayas elegido.</p>
+                               <div className="space-y-3">
+                                {selectedDates.map((item, index) => (
+                                    <div key={item.date.toISOString()} className="flex items-center justify-between gap-4 p-2 border rounded-md">
+                                        <p className="text-sm font-medium">
+                                            {format(item.date, "EEEE, d 'de' MMMM", { locale: es })}
+                                        </p>
+                                        <Select onValueChange={(value) => handleTimeChange(index, value)} defaultValue={item.time}>
+                                            <SelectTrigger className="w-[180px]">
+                                                <SelectValue placeholder="Selecciona horario" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                ))}
                                 </div>
-
-
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+                                        <CardHeader className="p-0">
+                                            <CardTitle>Paso 3: Completa tus Datos</CardTitle>
+                                            <CardDescription>
+                                                Llena este breve formulario para crear tu ficha.
+                                            </CardDescription>
+                                        </CardHeader>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                           <FormField control={form.control} name="name" render={({ field }) => (
                                               <FormItem>
