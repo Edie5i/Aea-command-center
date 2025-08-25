@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Globe, FileText, Calendar } from 'lucide-react';
+import { ArrowLeft, Globe, FileText } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 
 export default function AdminPage() {
