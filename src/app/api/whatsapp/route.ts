@@ -1,13 +1,7 @@
 
 'use server';
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
-import { adminApp } from '@/lib/firebase-admin';
-
-// Initialize Firestore using the admin app
-const db = getFirestore(adminApp);
-const chatsCollection = db.collection('whatsappChats');
 
 /**
  * Handles the webhook verification GET request from Meta.
@@ -78,17 +72,6 @@ async function processWhatsappMessage(body: any, accessToken: string, phoneNumbe
                 const from = messageData.from; // Sender's phone number
                 const messageType = messageData.type;
 
-                // 1. Save incoming message to Firestore
-                await chatsCollection.add({
-                    from: from,
-                    type: messageType,
-                    messageId: messageData.id,
-                    timestamp: Timestamp.now(),
-                    direction: 'inbound',
-                    status: 'received',
-                    body: messageType === 'text' ? messageData.text.body : messageData,
-                }).catch(error => console.error("Error saving inbound message to Firestore:", error));
-
                 let replyText = '';
 
                 // 2. Process message with Genkit AI if it's a text message
@@ -155,18 +138,6 @@ async function sendWhatsappMessage(to: string, text: string, accessToken: string
         const messageId = responseData?.messages?.[0]?.id;
         console.log(`Reply sent successfully to ${to}. Message ID: ${messageId}`);
 
-        // 5. Save outgoing message to Firestore
-        await chatsCollection.add({
-            from: phoneNumberId,
-            to: to,
-            type: 'text',
-            timestamp: Timestamp.now(),
-            direction: 'outbound',
-            status: 'sent',
-            body: text,
-            isAutomated: true,
-            outboundMessageId: messageId || 'N/A'
-        }).catch(error => console.error("Error saving outbound message to Firestore:", error));
 
     } catch (error: any) {
         console.error('Error sending WhatsApp message:', error.message);

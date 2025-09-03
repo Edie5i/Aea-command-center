@@ -4,14 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
 import { format, isPast, isToday } from 'date-fns';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, Clock, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -23,7 +22,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { db as clientDb } from '@/lib/firebase-client';
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -105,22 +103,6 @@ export default function AgendaPage() {
     }
 
     try {
-      // Save course to Firestore
-      for (const item of finalDates) {
-        await addDoc(collection(clientDb, 'scheduledCourses'), {
-            studentName: values.name,
-            phone: values.phone,
-            address: values.address,
-            transmission: values.transmission,
-            isMinor: values.isMinor,
-            notes: values.notes,
-            classDate: format(item.date, "yyyy-MM-dd"),
-            time: item.time,
-            status: "solicitado",
-            createdAt: new Date(),
-        });
-      }
-
       const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
@@ -221,7 +203,7 @@ export default function AgendaPage() {
       toast({ title: '¡Ficha Generada!', description: 'Se ha descargado tu ficha y se abrirá WhatsApp para que envíes tu solicitud.' });
     
     } catch (e) {
-      console.error("PDF Generation, Firestore write, or WhatsApp link failed: ", e);
+      console.error("PDF Generation or WhatsApp link failed: ", e);
       toast({
         variant: 'destructive',
         title: 'Error Inesperado',
