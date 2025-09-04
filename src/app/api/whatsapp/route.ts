@@ -1,7 +1,7 @@
-
 'use server';
 import { NextRequest, NextResponse } from 'next/server';
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
+import axios from 'axios';
 
 /**
  * Handles the webhook verification GET request from Meta.
@@ -113,33 +113,24 @@ async function sendWhatsappMessage(to: string, text: string, accessToken: string
     const whatsappApiUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
     
     try {
-        const response = await fetch(whatsappApiUrl, {
-            method: 'POST',
+        const response = await axios.post(whatsappApiUrl, {
+            messaging_product: 'whatsapp',
+            to: to,
+            type: 'text',
+            text: {
+                body: text
+            }
+        }, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                messaging_product: 'whatsapp',
-                to: to,
-                type: 'text',
-                text: {
-                    body: text
-                }
-            })
+            }
         });
 
-        const responseData = await response.json();
-
-        if (!response.ok) {
-             throw new Error(`Failed to send message: ${JSON.stringify(responseData)}`);
-        }
-
-        const messageId = responseData?.messages?.[0]?.id;
+        const messageId = response.data?.messages?.[0]?.id;
         console.log(`Reply sent successfully to ${to}. Message ID: ${messageId}`);
 
-
     } catch (error: any) {
-        console.error('Error sending WhatsApp message:', error.message);
+        console.error('Error sending WhatsApp message:', error.response ? error.response.data : error.message);
     }
 }

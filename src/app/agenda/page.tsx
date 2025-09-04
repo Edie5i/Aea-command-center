@@ -7,6 +7,7 @@ import { format, isPast, isToday } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { addDoc, collection } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { db } from '@/lib/firebase-client';
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -103,6 +105,25 @@ export default function AgendaPage() {
     }
 
     try {
+      // 1. Save each class to Firestore
+      for (const item of finalDates) {
+        if (item.date && item.time) {
+          await addDoc(collection(db, "scheduledCourses"), {
+            studentName: values.name,
+            phone: values.phone,
+            address: values.address,
+            transmission: values.transmission,
+            isMinor: values.isMinor,
+            notes: values.notes,
+            classDate: format(item.date, 'yyyy-MM-dd'),
+            time: item.time,
+            status: 'solicitado', // Mark as requested, admin to confirm
+            createdAt: new Date(),
+          });
+        }
+      }
+
+      // 2. Generate PDF
       const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
@@ -179,6 +200,7 @@ export default function AgendaPage() {
 
       doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
+      // 3. Prepare WhatsApp message
       let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
       message += `*Nombre:* ${values.name}\n`;
       if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
@@ -200,14 +222,14 @@ export default function AgendaPage() {
       window.open(whatsappUrl, '_blank');
 
       setCourseScheduled(true);
-      toast({ title: '¡Ficha Generada!', description: 'Se ha descargado tu ficha y se abrirá WhatsApp para que envíes tu solicitud.' });
+      toast({ title: '¡Ficha Generada!', description: 'Tu solicitud fue registrada. Se descargó tu ficha y se abrirá WhatsApp para que la envíes.' });
     
     } catch (e) {
-      console.error("PDF Generation or WhatsApp link failed: ", e);
+      console.error("Operation failed: ", e);
       toast({
         variant: 'destructive',
         title: 'Error Inesperado',
-        description: 'No se pudo generar el PDF o abrir WhatsApp. Por favor, inténtalo de nuevo.',
+        description: 'No se pudo registrar la solicitud o generar el PDF. Por favor, inténtalo de nuevo.',
       });
     }
   }
@@ -228,7 +250,7 @@ export default function AgendaPage() {
             Agenda tu Curso
           </h1>
           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tu ficha ha sido generada con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
+            {courseScheduled ? '¡Tu solicitud ha sido registrada con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
           </p>
         </div>
       </section>
@@ -267,7 +289,7 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Ficha de Inscripción Generada!
+                            ¡Solicitud de Inscripción Enviada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
                             Tu ficha se ha descargado y se ha preparado un mensaje en WhatsApp para que lo envíes junto con el PDF. Un asesor confirmará los horarios a la brevedad.

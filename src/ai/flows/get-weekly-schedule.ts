@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow to get and organize weekly scheduled courses.
@@ -9,7 +8,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, collection, getDocs } from 'firebase/admin/firestore';
+import { getFirestore, collection, getDocs } from 'firebase-admin/firestore';
 import { adminApp } from '@/lib/firebase-admin';
 
 const db = getFirestore(adminApp);
