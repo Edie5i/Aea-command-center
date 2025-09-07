@@ -86,25 +86,25 @@ export default function AgendaPage() {
   };
 
   async function onSubmit(values: ScheduleFormValues) {
-    if (selectedDates.length === 0 || !selectedDates[0].time) {
+    if (selectedDates.length === 0) {
         toast({
             variant: 'destructive',
             title: 'Error de Horario',
-            description: 'Por favor, selecciona al menos un día y un horario para continuar.',
+            description: 'Por favor, selecciona al menos un día para continuar.',
         });
         return;
     }
 
-    const finalDates = selectedDates.map((d, index, arr) => {
-        if (d.time) return d;
-        // Find the last valid time from previous dates
-        for (let i = index - 1; i >= 0; i--) {
-            if (arr[i].time) {
-                return { ...d, time: arr[i].time };
-            }
-        }
-        return d; // Should not happen if first date has time
-    });
+    // New, robust validation: Ensure every selected date has a time.
+    const allDatesHaveTime = selectedDates.every(d => !!d.time);
+    if (!allDatesHaveTime) {
+         toast({
+            variant: 'destructive',
+            title: 'Error de Horario',
+            description: 'Por favor, asegúrate de seleccionar un horario para cada día de clase.',
+        });
+        return;
+    }
 
     try {
       // 1. Generate PDF
@@ -162,7 +162,7 @@ export default function AgendaPage() {
       y = addSectionTitle('FECHAS Y HORARIOS SOLICITADOS', y);
       doc.setFontSize(10);
       doc.setTextColor('#000000');
-      finalDates.forEach(item => {
+      selectedDates.forEach(item => {
           if (y > 260) { doc.addPage(); y = 20; }
           doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
           y += 6;
@@ -192,7 +192,7 @@ export default function AgendaPage() {
       message += `*Punto de Encuentro:* ${values.address}\n`;
       message += `*Transmisión:* ${values.transmission}\n\n`;
       message += `*Fechas y Horarios solicitados:*\n`;
-      finalDates.forEach(item => {
+      selectedDates.forEach(item => {
           message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
       });
       if (values.notes) {
@@ -330,7 +330,7 @@ export default function AgendaPage() {
                                <CardHeader className="p-0 mb-4">
                                   <CardTitle>Paso 2: Selecciona los Horarios</CardTitle>
                                    <CardDescription>
-                                    Elige un horario para cada día. Si dejas uno vacío, se usará el del día anterior.
+                                    Elige un horario para cada día.
                                   </CardDescription>
                                </CardHeader>
                                <div className="space-y-3">
