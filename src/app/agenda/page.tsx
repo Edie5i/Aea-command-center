@@ -7,7 +7,6 @@ import { format, isPast, isToday } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { addDoc, collection } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { db } from '@/lib/firebase-client';
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -88,42 +86,28 @@ export default function AgendaPage() {
   };
 
   async function onSubmit(values: ScheduleFormValues) {
-    const finalDates = [...selectedDates];
-    for (let i = 1; i < finalDates.length; i++) {
-        if (!finalDates[i].time) {
-            finalDates[i].time = finalDates[i-1].time;
-        }
-    }
-    
-    if (finalDates.some(d => !d.time)) {
+    if (selectedDates.length === 0 || !selectedDates[0].time) {
         toast({
             variant: 'destructive',
             title: 'Error de Horario',
-            description: 'Por favor, selecciona un horario para al menos el primer día.',
+            description: 'Por favor, selecciona al menos un día y un horario para continuar.',
         });
         return;
     }
 
-    try {
-      // 1. Save each class to Firestore
-      for (const item of finalDates) {
-        if (item.date && item.time) {
-          await addDoc(collection(db, "scheduledCourses"), {
-            studentName: values.name,
-            phone: values.phone,
-            address: values.address,
-            transmission: values.transmission,
-            isMinor: values.isMinor,
-            notes: values.notes,
-            classDate: format(item.date, 'yyyy-MM-dd'),
-            time: item.time,
-            status: 'solicitado', // Mark as requested, admin to confirm
-            createdAt: new Date(),
-          });
+    const finalDates = selectedDates.map((d, index, arr) => {
+        if (d.time) return d;
+        // Find the last valid time from previous dates
+        for (let i = index - 1; i >= 0; i--) {
+            if (arr[i].time) {
+                return { ...d, time: arr[i].time };
+            }
         }
-      }
+        return d; // Should not happen if first date has time
+    });
 
-      // 2. Generate PDF
+    try {
+      // 1. Generate PDF
       const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
@@ -200,7 +184,7 @@ export default function AgendaPage() {
 
       doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
-      // 3. Prepare WhatsApp message
+      // 2. Prepare WhatsApp message
       let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
       message += `*Nombre:* ${values.name}\n`;
       if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
