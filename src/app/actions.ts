@@ -4,6 +4,8 @@
 import { z } from 'zod';
 import { generateDrivingTips } from '@/ai/flows/generate-driving-tips';
 import { chatWithBot } from '@/ai/flows/chatbot-flow';
+import { createCalendarEvent } from '@/ai/flows/create-calendar-event';
+import type { CreateEventInput } from '@/ai/flows/create-calendar-event';
 
 const tipsInputSchema = z.object({
   topic: z.string().min(3, { message: 'El tema debe tener al menos 3 caracteres.' }),
@@ -45,4 +47,18 @@ export async function getChatbotResponseAction(message: string) {
     console.error('Error al obtener respuesta del chatbot:', error);
     return { response: null, error: 'Ocurrió un error inesperado. Por favor, revisa los registros del servidor.' };
   }
+}
+
+export async function createCalendarEventAction(eventData: CreateEventInput) {
+    try {
+        const result = await createCalendarEvent(eventData);
+        if (result.success) {
+            return { success: true, link: result.link, error: null };
+        } else {
+            return { success: false, link: null, error: 'Failed to create calendar event.' };
+        }
+    } catch (error) {
+        console.error('Error creating calendar event:', error);
+        return { success: false, link: null, error: 'An unexpected error occurred while creating the calendar event.' };
+    }
 }

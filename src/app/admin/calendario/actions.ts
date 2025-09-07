@@ -10,6 +10,8 @@ export async function getWeeklySchedule() {
     return { schedule, error: null };
   } catch (error) {
     console.error('Error fetching weekly schedule:', error);
-    return { schedule: null, error: 'Hubo un problema al comunicarse con el servicio de calendario.' };
+    // Provide a more specific error message if possible
+    const errorMessage = error instanceof Error ? error.message : 'Hubo un problema al comunicarse con el servicio de calendario.';
+    return { schedule: null, error: errorMessage };
   }
 }

@@ -38,6 +38,7 @@ export default function CalendarioSemanalPage() {
 
   const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEndDate = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekRange = `Semana del ${format(weekStartDate, "d 'de' MMMM", { locale: es })} al ${format(weekEndDate, "d 'de' MMMM 'de' yyyy", { locale: es })}`;
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-secondary p-4 sm:p-6 md:p-8">
@@ -46,8 +47,9 @@ export default function CalendarioSemanalPage() {
           Calendario Semanal de Cursos
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Vista de los cursos agendados para la semana actual: <br />
-          <span className="font-semibold">{format(weekStartDate, "d 'de' MMMM", { locale: es })} - {format(weekEndDate, "d 'de' MMMM 'de' yyyy", { locale: es })}</span>
+          Vista en tiempo real de los cursos agendados en Google Calendar.
+          <br />
+          <span className="font-semibold">{weekRange}</span>
         </p>
       </div>
 
@@ -61,7 +63,7 @@ export default function CalendarioSemanalPage() {
           </Button>
         </div>
 
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-7xl">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 text-muted-foreground py-10">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -69,11 +71,15 @@ export default function CalendarioSemanalPage() {
             </div>
           ) : error ? (
             <Alert variant="destructive">
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertTitle>Error de Configuración</AlertTitle>
+              <AlertDescription>
+                No se pudo cargar el calendario. Por favor, asegúrate de que la variable de entorno `GOOGLE_CALENDAR_ID` esté configurada correctamente y que la cuenta de servicio tenga permisos para acceder al calendario.
+                <br />
+                <code className="text-xs bg-muted p-1 rounded-sm mt-2 block">{error}</code>
+              </AlertDescription>
             </Alert>
           ) : schedule ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
               {Object.entries(schedule).map(([day, courses]) => (
                 <Card key={day} className="flex flex-col">
                   <CardHeader>

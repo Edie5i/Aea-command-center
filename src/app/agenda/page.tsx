@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
-import { format, isPast, isToday } from 'date-fns';
+import { format, isPast, isToday, parse } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { createCalendarEventAction } from '@/app/actions';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ type DateWithTime = {
     time?: string;
 };
 
-const timeSlots = ["7:00 AM", "10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"];
+const timeSlots = ["07:00", "10:00", "13:00", "16:00", "19:00"];
 
 export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
@@ -95,7 +96,6 @@ export default function AgendaPage() {
         return;
     }
 
-    // New, robust validation: Ensure every selected date has a time.
     const allDatesHaveTime = selectedDates.every(d => !!d.time);
     if (!allDatesHaveTime) {
          toast({
@@ -164,7 +164,8 @@ export default function AgendaPage() {
       doc.setTextColor('#000000');
       selectedDates.forEach(item => {
           if (y > 260) { doc.addPage(); y = 20; }
-          doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${item.time}`, leftMargin, y);
+          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${formattedTime}`, leftMargin, y);
           y += 6;
       });
       y += 5;
@@ -184,7 +185,30 @@ export default function AgendaPage() {
 
       doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
-      // 2. Prepare WhatsApp message
+      // 2. Create Calendar Event
+      const eventCreationResult = await createCalendarEventAction({
+        studentName: values.name,
+        phone: values.phone,
+        address: values.address,
+        transmission: values.transmission,
+        isMinor: values.isMinor,
+        notes: values.notes,
+        classDates: selectedDates.map(d => ({
+            date: format(d.date, 'yyyy-MM-dd'),
+            time: d.time!
+        }))
+      });
+
+      if (!eventCreationResult.success) {
+          toast({
+              variant: 'destructive',
+              title: 'Error de Calendario',
+              description: eventCreationResult.error || 'No se pudo crear el evento en Google Calendar.',
+          });
+      }
+
+
+      // 3. Prepare WhatsApp message
       let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
       message += `*Nombre:* ${values.name}\n`;
       if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
@@ -193,7 +217,8 @@ export default function AgendaPage() {
       message += `*Transmisión:* ${values.transmission}\n\n`;
       message += `*Fechas y Horarios solicitados:*\n`;
       selectedDates.forEach(item => {
-          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${item.time}\n`;
+          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
       });
       if (values.notes) {
           message += `\n*Notas Adicionales:*\n${values.notes}\n`;
@@ -344,7 +369,7 @@ export default function AgendaPage() {
                                                 <SelectValue placeholder="Selecciona horario" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
+                                                {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{format(parse(slot, 'HH:mm', new Date()), 'h:mm a')}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
