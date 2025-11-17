@@ -29,16 +29,9 @@ export async function chatWithBot(
   return chatbotFlow(input);
 }
 
-const ChatbotPromptInputSchema = z.object({
-    message: z.string(),
-    context: z.string(),
-    currentDate: z.string(),
-});
-
-
 const prompt = ai.definePrompt({
   name: 'chatbotPrompt',
-  input: {schema: ChatbotPromptInputSchema},
+  input: {schema: z.object({ message: z.string(), context: z.string(), currentDate: z.string() }) },
   output: {schema: ChatWithBotOutputSchema},
   prompt: `You are "Auto EscuelaBot", an expert, friendly, and helpful virtual assistant for "Auto Escuela Americana", a driving school in Mexico City. Your main goal is to answer user questions concisely and accurately based ONLY on the information provided in the "INFORMACIÓN DISPONIBLE" section. This includes general information, course catalog, scheduling, payments, policies, FAQs, the detailed driving program in 'programaDelCurso', and the official traffic regulations (if provided).
 
