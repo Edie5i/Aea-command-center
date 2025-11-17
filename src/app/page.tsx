@@ -99,49 +99,49 @@ export default function Home() {
                 </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white">
                     <Link href="/catalogo">
                         <List className="h-6 w-6" />
                         Catálogo
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
                     <Link href="/agenda">
                         <CalendarDays className="h-6 w-6" />
                         Agendar
                     </Link>
                 </Button>
-                <Button asChild size="lg" variant="secondary" className="h-24 text-base flex-col gap-1">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
                     <Link href="/evaluacion">
                         <BarChart3 className="h-6 w-6" />
                         Evaluar Nivel
                     </Link>
                 </Button>
-                <Button asChild size="lg" variant="secondary" className="h-24 text-base flex-col gap-1">
+                <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
                     <Link href="/examen-teorico">
                         <FileQuestion className="h-6 w-6" />
                         Examen Teórico
                     </Link>
                 </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white">
                     <Link href="/english-course">
                         <Languages className="h-6 w-6" />
                         English Course
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
                     <Link href="/programa">
                         <BookOpen className="h-6 w-6" />
                         Programa
                     </Link>
                 </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
                     <Link href="/pagos">
                         <CreditCard className="h-6 w-6" />
                         Pagos
                     </Link>
                 </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-muted text-muted-foreground hover:bg-muted/80">
+                 <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
                     <Link href="/chatbot">
                         <Bot className="h-6 w-6" />
                         Asistente
