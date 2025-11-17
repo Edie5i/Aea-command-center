@@ -57,7 +57,6 @@ const chatbotFlow = ai.defineFlow(
 `,
       context: {
         index: SCHOOL_KNOWLEDGE_INDEX,
-        content: input.message
       }
     });
 
