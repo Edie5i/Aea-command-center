@@ -37,11 +37,8 @@ const chatbotFlow = ai.defineFlow(
     outputSchema: ChatWithBotOutputSchema,
   },
   async (input) => {
-    const history = await ai.getHistory();
-
     const { output } = await ai.generate({
       prompt: input.message,
-      history,
       system: `You are "Auto EscuelaBot", an expert, friendly, and helpful virtual assistant for "Auto Escuela Americana", a driving school in Mexico City. Your main goal is to answer user questions concisely and accurately based ONLY on the information provided in the context. This includes general information, course catalog, scheduling, payments, policies, FAQs, the detailed driving program, and the official traffic regulations.
 
 **Crucial Rules:**
