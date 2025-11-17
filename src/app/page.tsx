@@ -50,43 +50,38 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background">
-      <div className="relative w-full flex flex-col justify-between" style={{minHeight: '100vh'}}>
-        <div>
-          <div className="@container">
-            <div className="@[480px]:p-4">
-              <div
-                className="w-full bg-gradient-to-br from-gray-900 to-black rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
-                data-ai-hint="driving lesson car interior"
-              >
-                <div className="p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
-                    <h1 
-                      className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
-                      style={{ textShadow: '0px 0px 1px #C0C0C0, 0px 0px 1px #C0C0C0' }}
-                    >
-                      Auto Escuela Americana
-                    </h1>
-                   <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
-                      Aprende a Conducir con los Expertos de la CDMX
-                    </h2>
-                    <p className="text-white text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
-                      Cursos personalizados, instructores certificados y la confianza que necesitas para dominar el volante.
-                    </p>
-                </div>
+      <div className="relative w-full">
+        <div className="@container">
+          <div className="@[480px]:p-4">
+            <div
+              className="w-full bg-gradient-to-br from-gray-900 to-black rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
+              data-ai-hint="driving lesson car interior"
+            >
+              <div className="p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
+                  <h1 
+                    className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
+                    style={{ textShadow: '0px 0px 1px #C0C0C0, 0px 0px 1px #C0C0C0' }}
+                  >
+                    Auto Escuela Americana
+                  </h1>
+                 <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
+                    Aprende a Conducir con los Expertos de la CDMX
+                  </h2>
+                  <p className="text-white text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
+                    Cursos personalizados, instructores certificados y la confianza que necesitas para dominar el volante.
+                  </p>
               </div>
             </div>
           </div>
         </div>
-        <div>
-          <div className="flex px-4 py-3">
-            <Button
-              onClick={handleGetStartedClick}
-              className="h-14 px-8 flex-1 rounded-full font-bold text-lg max-w-md mx-auto shadow-lg"
-              size="lg"
-            >
-              <span className="truncate">¡Quiero Empezar!</span>
-            </Button>
-          </div>
-          <div className="h-5"></div>
+        <div className="flex px-4 py-6">
+          <Button
+            onClick={handleGetStartedClick}
+            className="h-14 px-8 flex-1 rounded-full font-bold text-lg max-w-md mx-auto shadow-lg"
+            size="lg"
+          >
+            <span className="truncate">¡Quiero Empezar!</span>
+          </Button>
         </div>
       </div>
       
@@ -99,49 +94,49 @@ export default function Home() {
                 </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
                     <Link href="/catalogo">
                         <List className="h-6 w-6" />
                         Catálogo
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
                     <Link href="/agenda">
                         <CalendarDays className="h-6 w-6" />
                         Agendar
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
                     <Link href="/evaluacion">
                         <BarChart3 className="h-6 w-6" />
                         Evaluar Nivel
                     </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
+                <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-700">
                     <Link href="/examen-teorico">
                         <FileQuestion className="h-6 w-6" />
                         Examen Teórico
                     </Link>
                 </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white">
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
                     <Link href="/english-course">
                         <Languages className="h-6 w-6" />
                         English Course
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
                     <Link href="/programa">
                         <BookOpen className="h-6 w-6" />
                         Programa
                     </Link>
                 </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
+                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
                     <Link href="/pagos">
                         <CreditCard className="h-6 w-6" />
                         Pagos
                     </Link>
                 </Button>
-                 <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
+                 <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-700">
                     <Link href="/chatbot">
                         <Bot className="h-6 w-6" />
                         Asistente
