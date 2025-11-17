@@ -60,7 +60,11 @@ export default function Home() {
               <div className="p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
                   <h1 
                     className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
-                    style={{ textShadow: '0px 0px 1px #C0C0C0, 0px 0px 1px #C0C0C0' }}
+                    style={{
+                      WebkitTextStroke: '2px #DC2626',
+                      textStroke: '2px #DC2626',
+                      paintOrder: 'stroke fill',
+                    }}
                   >
                     Auto Escuela Americana
                   </h1>
@@ -74,14 +78,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="flex px-4 py-6">
-          <Button
-            onClick={handleGetStartedClick}
-            className="h-14 px-8 flex-1 rounded-full font-bold text-lg max-w-md mx-auto shadow-lg"
-            size="lg"
-          >
-            <span className="truncate">¡Quiero Empezar!</span>
-          </Button>
+        <div className="w-full flex justify-center py-6 px-4">
+            <Button
+              onClick={handleGetStartedClick}
+              className="h-14 px-8 rounded-full font-bold text-lg max-w-md mx-auto shadow-lg"
+              size="lg"
+            >
+              ¡Quiero Empezar!
+            </Button>
         </div>
       </div>
       
@@ -100,7 +104,7 @@ export default function Home() {
                         Catálogo
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border border-gray-300">
                     <Link href="/agenda">
                         <CalendarDays className="h-6 w-6" />
                         Agendar
@@ -124,7 +128,7 @@ export default function Home() {
                         English Course
                     </Link>
                 </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border-gray-300">
+                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border border-gray-300">
                     <Link href="/programa">
                         <BookOpen className="h-6 w-6" />
                         Programa
