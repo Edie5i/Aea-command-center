@@ -33,20 +33,6 @@ export default function AdminPage() {
               </Button>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Bot className="text-primary"/> Asistente Virtual</CardTitle>
-              <CardDescription>Prueba el chatbot de la escuela.</CardDescription>
-            </CardHeader>
-            <CardContent>
-               <Button asChild>
-                <Link href="/chatbot">
-                  Chatear Ahora
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
           
            <Card>
             <CardHeader>
@@ -68,3 +54,5 @@ export default function AdminPage() {
     </main>
   );
 }
+
+    

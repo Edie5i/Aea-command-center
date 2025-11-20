@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useRef } from "react";
 import Link from "next/link";
 import { 
   CalendarDays, 
@@ -13,39 +12,20 @@ import {
   FileQuestion, 
   Smile, 
   Star,
-  FileText,
-  Bot,
   User,
   MessageSquare,
   Languages,
+  Lightbulb,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ConfigForm } from "@/components/config-form";
-import { InstructionsDisplay } from "@/components/instructions-display";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AppFooter } from "@/components/footer";
 
 export default function Home() {
-  const [tips, setTips] = useState<string[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [key, setKey] = useState(0);
-
-  const mainContentRef = useRef<HTMLDivElement>(null);
 
   const handleGetStartedClick = () => {
-    mainContentRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleTipsGenerated = (generatedTips: string[]) => {
-    setTips(generatedTips);
-    setIsLoading(false);
-    setKey(prevKey => prevKey + 1);
-  };
-
-  const handleReset = () => {
-    setTips(null);
-    setKey(prevKey => prevKey + 1);
+    const mainContent = document.getElementById('main-content');
+    mainContent?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -89,7 +69,7 @@ export default function Home() {
         </div>
       </div>
       
-      <div ref={mainContentRef} id="main-content" className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
+      <div id="main-content" className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
          <div className="w-full max-w-5xl mb-12">
             <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold tracking-tight">Portal del Alumno</h2>
@@ -141,39 +121,48 @@ export default function Home() {
                     </Link>
                 </Button>
                  <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-700">
-                    <Link href="/chatbot">
-                        <Bot className="h-6 w-6" />
-                        Asistente
-                    </Link>
+                    <a href="https://wa.me/525634433212?text=¡Hola!%20Me%20gustaría%20más%20información%20sobre%20los%20cursos%20de%20manejo." target="_blank" rel="noopener noreferrer">
+                        <MessageSquare className="h-6 w-6" />
+                        Contactar
+                    </a>
                 </Button>
             </div>
         </div>
 
-        <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden mt-8">
-          <CardContent className="p-6 md:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={key}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {!tips ? (
-                  <ConfigForm
-                    onGenerated={handleTipsGenerated}
-                    setLoading={setIsLoading}
-                    isLoading={isLoading}
-                  />
-                ) : (
-                  <InstructionsDisplay
-                    tips={tips}
-                    onReset={handleReset}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardContent>
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl overflow-hidden mt-8 bg-muted/30">
+            <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold tracking-tight">Consejos Destacados</CardTitle>
+                <CardDescription>Pequeños hábitos que hacen una gran diferencia en el camino.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 md:p-8 grid gap-6 sm:grid-cols-1">
+                <div className="flex items-start gap-4">
+                    <div className="bg-primary/10 text-primary p-3 rounded-full">
+                        <Lightbulb className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">Mantén tu Distancia</h3>
+                        <p className="text-sm text-muted-foreground">La "regla de los dos segundos" es tu mejor aliada. Asegúrate de que pasen al menos dos segundos entre que el coche de adelante pasa un punto y tú lo haces. Aumenta a 3 o 4 segundos si llueve.</p>
+                    </div>
+                </div>
+                 <div className="flex items-start gap-4">
+                    <div className="bg-primary/10 text-primary p-3 rounded-full">
+                        <Lightbulb className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">Usa tus Espejos Constantemente</h3>
+                        <p className="text-sm text-muted-foreground">No mires solo hacia adelante. Revisa tus espejos retrovisores y laterales cada 5-8 segundos. Saber qué pasa a tu alrededor te permite anticipar y reaccionar a tiempo.</p>
+                    </div>
+                </div>
+                 <div className="flex items-start gap-4">
+                    <div className="bg-primary/10 text-primary p-3 rounded-full">
+                        <Lightbulb className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">Anticipa tus Movimientos</h3>
+                        <p className="text-sm text-muted-foreground">Señaliza tus intenciones con las direccionales mucho antes de girar o cambiar de carril. Esto le da tiempo a los demás conductores para reaccionar a tus movimientos, creando un entorno más seguro para todos.</p>
+                    </div>
+                </div>
+            </CardContent>
         </Card>
 
         <div className="w-full max-w-3xl pt-8" id="contact-button-section">
@@ -279,3 +268,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
