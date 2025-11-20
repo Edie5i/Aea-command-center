@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
@@ -8,6 +8,9 @@ import { lexend, noto_sans } from "@/lib/fonts";
 export const metadata: Metadata = {
   title: "AEA - Autoescuela Americana",
   description: "App de Auto Escuela Americana. Portal para instructores y alumnos para generar planes de lecciones, gestionar agendas y más.",
+};
+
+export const viewport: Viewport = {
   themeColor: "#1D4ED8",
 };
 
