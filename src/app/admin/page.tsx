@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, Bot, BarChart3, FileQuestion, Users, MessageSquare } from 'lucide-react';
+import { Calendar, BarChart3, FileQuestion, Users, MessageSquare } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 
 export default function AdminPage() {
@@ -54,5 +54,3 @@ export default function AdminPage() {
     </main>
   );
 }
-
-    
