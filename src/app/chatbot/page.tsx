@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Send, ArrowLeft, Bot, User, Loader2, Globe, FileText } from 'lucide-react';
+import { Send, ArrowLeft, Bot, User, Loader2, Globe, FileText, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -19,14 +19,16 @@ type Message = {
   text: string;
 };
 
+const initialMessages: Message[] = [
+  {
+    id: 1,
+    role: 'bot',
+    text: '¡Hola! Soy Auto EscuelaBot. ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre cursos, precios, horarios o cómo agendar una clase.',
+  },
+];
+
 export default function ChatbotPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      role: 'bot',
-      text: '¡Hola! Soy un asistente virtual. ¿En qué puedo ayudarte hoy?',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -54,25 +56,45 @@ export default function ChatbotPage() {
     setInput('');
     setIsLoading(true);
 
-    const result = await getChatbotResponseAction(input);
-    setIsLoading(false);
-
-    if (result.error || !result.response) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: result.error || 'No se pudo obtener una respuesta del bot.',
-      });
-      // Optionally remove the user's message or add an error message to the chat
-    } else {
+    try {
+      const result = await getChatbotResponseAction(input);
+      
+      if (result.error || !result.response) {
+        throw new Error(result.error || 'No se pudo obtener una respuesta del bot.');
+      }
+      
       const botMessage: Message = {
         id: Date.now() + 1,
         role: 'bot',
         text: result.response,
       };
       setMessages((prev) => [...prev, botMessage]);
+
+    } catch (error: any) {
+       toast({
+        variant: 'destructive',
+        title: 'Error del Asistente',
+        description: error.message || 'Ocurrió un error inesperado.',
+      });
+      // Optionally add an error message to the chat
+       const errorMessage: Message = {
+        id: Date.now() + 1,
+        role: 'bot',
+        text: "Lo siento, estoy teniendo problemas para conectarme. Por favor, intenta de nuevo más tarde.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleResetChat = useCallback(() => {
+    setMessages(initialMessages);
+    toast({
+      title: 'Chat Reiniciado',
+      description: 'La conversación ha vuelto a empezar.',
+    });
+  }, [toast]);
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
@@ -110,14 +132,19 @@ export default function ChatbotPage() {
         </div>
 
         <Card className="w-full max-w-4xl shadow-lg rounded-xl h-[70vh] flex flex-col">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="text-primary" />
-              Auto EscuelaBot
-            </CardTitle>
-            <CardDescription>
-              Este es un asistente de IA. La información podría ser imprecisa.
-            </CardDescription>
+          <CardHeader className="border-b flex-row items-center justify-between">
+            <div>
+                <CardTitle className="flex items-center gap-2">
+                <Bot className="text-primary" />
+                Auto EscuelaBot
+                </CardTitle>
+                <CardDescription>
+                Este es un asistente de IA. La información podría ser imprecisa.
+                </CardDescription>
+            </div>
+             <Button variant="ghost" size="icon" onClick={handleResetChat} aria-label="Reiniciar chat">
+                <RefreshCw className="h-4 w-4" />
+            </Button>
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden p-0">
              <ScrollArea className="h-full p-6" ref={scrollAreaRef}>
