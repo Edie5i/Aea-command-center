@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { 
   CalendarDays, 
   MapPin, 
@@ -43,9 +44,17 @@ export default function Home() {
               }}
               data-ai-hint="driving lesson car interior"
             >
-              <div className="p-6 md:p-8 rounded-lg text-center bg-black/50 backdrop-blur-sm">
+              <div className="p-6 md:p-8 rounded-lg text-center bg-black/50 backdrop-blur-sm flex flex-col items-center">
+                  <Image 
+                    src="https://www.autoescuelaamericana.com/wp-content/uploads/2023/07/logo-AEA-300x300.png"
+                    alt="Auto Escuela Americana Logo"
+                    width={150}
+                    height={150}
+                    className="mb-4"
+                    data-ai-hint="logo"
+                  />
                   <h1 
-                    className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
+                    className="text-4xl md:text-5xl font-semibold text-primary tracking-widest uppercase"
                     style={{
                       WebkitTextStroke: '2px #DC2626',
                       textStroke: '2px #DC2626',
@@ -54,7 +63,7 @@ export default function Home() {
                   >
                     Auto Escuela Americana
                   </h1>
-                 <h2 className="text-white tracking-tight text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-2">
+                 <h2 className="text-white tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold text-center mt-2">
                     Aprende a Conducir con los Expertos de la CDMX
                   </h2>
                   <p className="text-white text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
