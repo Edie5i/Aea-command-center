@@ -69,7 +69,7 @@ export const schoolKnowledgeRetriever = ai.defineRetriever(
     name: 'schoolKnowledgeRetriever',
     description: 'Provides information about the driving school, including courses, prices, schedules, policies, and the driving program.',
   },
-  async (input) => {
+  async () => {
     return {
       // The `retrieve` function is called to get the most relevant documents for the input query.
       retrieve: async (query) => {
