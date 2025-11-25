@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText } from 'lucide-react';
+import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -20,13 +20,13 @@ const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
       <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-gradient-to-br from-white to-transparent pointer-events-none"></div>
 
       <div className="flex items-center justify-between w-full px-6 mb-2 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" className="text-black w-12 h-12 sm:w-16 sm:h-16 drop-shadow-lg" fill="currentColor" viewBox="0 0 512 512"><path d="M192 224h128v64H192zm-64-64H64v64h64zm192 0h-64v64h64zm64 0h-64v64h64zM288 32c-17.67 0-32 14.33-32 32s14.33 32 32 32 32-14.33 32-32-14.33-32-32-32zm-160 0c-17.67 0-32 14.33-32 32s14.33 32 32 32 32-14.33 32-32-14.33-32-32-32zM496 160H16C7.16 160 0 167.2 0 176v16c0 8.84 7.16 16 16 16h16v192c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V208h16c8.84 0 16-7.16 16-16v-16c0-8.8-7.16-16-16-16zM192 416H96v-64h96zm224 0h-96v-64h96zm0-128H96V224h320z"></path></svg>
+        <Bike className="text-black w-12 h-12 sm:w-16 sm:h-16 drop-shadow-lg" fill="currentColor" />
         <div className="flex flex-col items-center text-center">
           <h1 className="text-white font-black text-3xl sm:text-4xl leading-tight tracking-tight drop-shadow-md">
             AUTO<br />ESCUELA<br />AMERICANA
           </h1>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" className="text-black w-12 h-12 sm:w-16 sm:h-16 drop-shadow-lg" fill="currentColor" viewBox="0 0 640 512"><path d="M180.2,142.2L204,128.4c12.3-7.1,27.5-7.1,39.8,0l23.8,13.7c12.3,7.1,19.9,20,19.9,33.8v27.5c0,13.8-7.6,26.7-19.9,33.8l-23.8,13.7c-12.3,7.1-27.5,7.1-39.8,0l-23.8-13.7c-12.3-7.1-19.9-20-19.9-33.8v-27.5C160.3,162.2,167.9,149.3,180.2,142.2z M224,204c8.8,0,16,7.2,16,16s-7.2,16-16,16s-16-7.2-16-16S215.2,204,224,204z M459.8,142.2L436,128.4c-12.3-7.1-27.5-7.1-39.8,0l-23.8,13.7c-12.3,7.1-19.9,20-19.9,33.8v27.5c0,13.8,7.6,26.7,19.9,33.8l23.8,13.7c12.3,7.1,27.5,7.1,39.8,0l23.8-13.7c12.3-7.1,19.9-20,19.9-33.8v-27.5C479.7,162.2,472.1,149.3,459.8,142.2z M416,204c-8.8,0-16,7.2-16,16s7.2,16,16,16s16-7.2,16-16S424.8,204,416,204z M640,303.4c0-26-21.5-47.8-47.5-47.4c-1.3,0-2.6,0-3.9,0.1l-10.4,0.7c-36,2.6-70.3,13.5-100.2,30.6l0,0c-15.3,8.8-32,16.2-49.6,21.9c-28.9,9.4-59.4,14.6-90.4,14.6c-31,0-61.5-5.2-90.4-14.6c-17.6-5.7-34.3-13.1-49.6-21.9l0,0c-29.9-17.1-64.2-28-100.2-30.6l-10.4-0.7c-1.3-0.1-2.6-0.1-3.9-0.1C21.5,255.6,0,277.4,0,303.4v72.2c0,32.2,25.6,58.3,57.1,58.3c1.4,0,2.8,0,4.2-0.1l11.4-0.8c34.8-2.5,67.7-12.9,95.9-28.7l0,0c15.7-8.9,32.6-16.5,50.7-22.3c28.9-9.4,59.4-14.6,90.4-14.6s61.5,5.2,90.4,14.6c18.1,5.8,35,13.3,50.7,22.3l0,0c28.2,15.8,61.1,26.2,95.9,28.7l11.4,0.8c1.4,0.1,2.8,0.1,4.2,0.1c31.5,0,57.1-26.1,57.1-58.3V303.4z"></path></svg>
+        <Car className="text-black w-12 h-12 sm:w-16 sm:h-16 drop-shadow-lg" fill="currentColor" />
       </div>
 
       {/* Línea decorativa */}
@@ -54,7 +54,7 @@ export default function Home() {
           Auto Escuela Americana
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Portal de Alumnos e Instructores
+          Cursos de manejo para todos los niveles
         </p>
       </div>
 
