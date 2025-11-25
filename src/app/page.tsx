@@ -37,7 +37,7 @@ export default function Home() {
             <div
               className="w-full bg-gradient-to-br from-gray-900 to-black rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
               style={{
-                backgroundImage: "url('https://www.autoescuelaamericana.com/images/easy-landing/backgrounds/background-3.jpg')",
+                backgroundImage: "url('https://i.ibb.co/bX0v0rD/car-driving-in-city.jpg')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
