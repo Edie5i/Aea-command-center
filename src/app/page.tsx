@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike } from 'lucide-react';
+import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -56,6 +56,11 @@ export default function Home() {
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
           Cursos de manejo para todos los niveles
         </p>
+        <div className="mt-6">
+            <Button asChild size="lg">
+                <Link href="/agenda">Agendar Curso</Link>
+            </Button>
+        </div>
       </div>
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
@@ -123,6 +128,19 @@ export default function Home() {
             <div className="p-6 pt-0">
                <Button asChild className="w-full">
                 <Link href="/consejos">Generar Consejos</Link>
+              </Button>
+            </div>
+          </Card>
+          
+           <Card className="flex flex-col">
+            <CardContent className="p-6 flex-grow">
+              <CalendarCheck className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Agenda tu Curso</h3>
+              <p className="text-muted-foreground text-sm">Selecciona fechas y completa el formulario.</p>
+            </CardContent>
+            <div className="p-6 pt-0">
+              <Button asChild className="w-full">
+                <Link href="/agenda">Ir a la Agenda</Link>
               </Button>
             </div>
           </Card>
