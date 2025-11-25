@@ -1,11 +1,11 @@
+
 'use client';
 
 import React from 'react';
-import { Car, Bike, Info, Check, BookOpen } from 'lucide-react';
+import { Car, Bike, Info, BookOpen, Check, FileText, Bot, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Este componente recrea tu logo usando CSS puro para que sea escalable
 const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
@@ -92,6 +92,27 @@ export default function Home() {
               </div>
               <h3 className="font-bold text-lg mb-2">Programa del Curso</h3>
               <p className="text-slate-500 text-sm">Consulta el manual de conducción completo.</p>
+            </Link>
+             <Link href="/examen-teorico" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
+              <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
+                <FileText className="text-blue-500" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Examen Teórico</h3>
+              <p className="text-slate-500 text-sm">Pon a prueba tus conocimientos del reglamento.</p>
+            </Link>
+            <Link href="/evaluacion" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
+              <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
+                <BarChart3 className="text-blue-500" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
+              <p className="text-slate-500 text-sm">Descubre qué curso es el ideal para ti.</p>
+            </Link>
+            <Link href="/chatbot" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
+              <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
+                <Bot className="text-blue-500" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Asistente Virtual</h3>
+              <p className="text-slate-500 text-sm">Resuelve tus dudas al instante con nuestra IA.</p>
             </Link>
 
             {staticFeatures.map((item, i) => (
