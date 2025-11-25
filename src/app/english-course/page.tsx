@@ -300,10 +300,10 @@ export default function EnglishCoursePage() {
               Home
             </Link>
           </Button>
-           <Button asChild variant="outline">
-            <Link href="/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Terms
+           <Button asChild>
+            <Link href="/agenda">
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Schedule Now
             </Link>
           </Button>
         </div>
@@ -340,6 +340,42 @@ export default function EnglishCoursePage() {
             </AlertDescription>
         </Alert>
         
+        <Card className="w-full max-w-3xl shadow-lg rounded-xl mb-8">
+            <CardHeader>
+                <CardTitle>Payment Details</CardTitle>
+                <CardDescription>
+                You can pay for your course using the following methods.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4 text-sm text-muted-foreground">
+                 <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="payment">
+                        <AccordionTrigger className="text-lg font-semibold hover:no-underline">View Payment Information</AccordionTrigger>
+                        <AccordionContent>
+                             <div className="space-y-4 pt-4">
+                                <div>
+                                    <h3 className="font-semibold text-foreground">Bank Transfer</h3>
+                                    <p>Beneficiary: <strong>Eduardo W. Czaplewski (BBVA SME Account)</strong></p>
+                                    <p>Account: <strong>048 469 5739</strong></p>
+                                    <p>CLABE: <strong>012 180 00484695739 9</strong></p>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-foreground">Cash Deposit</h3>
+                                    <p>Available at: <strong>Walmart, Sanborns, OXXO, 7-Eleven</strong></p>
+                                    <p>BBVA Debit Card: <strong>4152 3144 0428 8527</strong></p>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-foreground">Credit Card Payments</h3>
+                                    <p>We accept credit card payments. Please request a payment link via WhatsApp to receive it by email. Ask about our 3-month interest-free installment plan with BBVA and American Express cards!</p>
+                                </div>
+                                <p className="font-bold text-primary">Important: When making your payment, please include the student's full name in the reference or concept line.</p>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                 </Accordion>
+            </CardContent>
+        </Card>
+
         <Card className="w-full max-w-3xl shadow-lg rounded-xl">
           <CardHeader>
             <CardTitle>Driving Program Guide</CardTitle>
@@ -384,9 +420,9 @@ export default function EnglishCoursePage() {
             <CardContent className="pt-4">
                 <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="terms">
-                        <AccordionTrigger className="text-lg font-semibold">View Service Agreement</AccordionTrigger>
+                        <AccordionTrigger className="text-lg font-semibold hover:no-underline">View Service Agreement</AccordionTrigger>
                         <AccordionContent>
-                            <div className="space-y-4 text-muted-foreground text-sm">
+                            <div className="space-y-4 text-muted-foreground text-sm pt-4">
                                 <div className="space-y-1">
                                     <h3 className="font-semibold text-foreground">1. Course Reservation</h3>
                                     <p>To book the course, the student must make a minimum down payment of 20% of the total value.</p>
