@@ -83,55 +83,79 @@ export default function Home() {
                     Todas nuestras herramientas y recursos a tu alcance.
                 </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
-                    <Link href="/catalogo">
-                        <List className="h-6 w-6" />
-                        Catálogo
-                    </Link>
-                </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border border-gray-300">
-                    <Link href="/agenda">
-                        <CalendarDays className="h-6 w-6" />
-                        Agendar
-                    </Link>
-                </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
-                    <Link href="/evaluacion">
-                        <BarChart3 className="h-6 w-6" />
-                        Evaluar Nivel
-                    </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-700">
-                    <Link href="/examen-teorico">
-                        <FileQuestion className="h-6 w-6" />
-                        Examen Teórico
-                    </Link>
-                </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-red-600 hover:bg-red-700 text-white">
-                    <Link href="/english-course">
-                        <Languages className="h-6 w-6" />
-                        English Course
-                    </Link>
-                </Button>
-                <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-white hover:bg-gray-100 text-black border border-gray-300">
-                    <Link href="/programa">
-                        <BookOpen className="h-6 w-6" />
-                        Programa
-                    </Link>
-                </Button>
-                 <Button asChild size="lg" className="h-24 text-base flex-col gap-1 bg-yellow-400 hover:bg-yellow-500 text-black">
-                    <Link href="/pagos">
-                        <CreditCard className="h-6 w-6" />
-                        Pagos
-                    </Link>
-                </Button>
-                 <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-700">
-                    <Link href="/chatbot">
-                        <Bot className="h-6 w-6" />
-                        Asistente
-                    </Link>
-                </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><List />Catálogo de Cursos</CardTitle>
+                        <CardDescription>Explora todos los cursos que ofrecemos.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/catalogo">Ver Cursos</Link></Button>
+                    </CardFooter>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><CalendarDays />Agendar Curso</CardTitle>
+                        <CardDescription>Elige tus fechas y completa tu inscripción.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild><Link href="/agenda">Agendar Ahora</Link></Button>
+                    </CardFooter>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><BarChart3 />Evalúa tu Nivel</CardTitle>
+                        <CardDescription>Descubre qué curso es el ideal para ti.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/evaluacion">Empezar Evaluación</Link></Button>
+                    </CardFooter>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><FileQuestion />Examen Teórico</CardTitle>
+                        <CardDescription>Pon a prueba tus conocimientos de tránsito.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/examen-teorico">Hacer Examen</Link></Button>
+                    </CardFooter>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><BookOpen />Programa del Curso</CardTitle>
+                        <CardDescription>Consulta nuestro manual de conducción.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/programa">Ver Programa</Link></Button>
+                    </CardFooter>
+                </Card>
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Bot />Asistente Virtual</CardTitle>
+                        <CardDescription>Resuelve tus dudas al instante con nuestra IA.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/chatbot">Chatear Ahora</Link></Button>
+                    </CardFooter>
+                </Card>
+                 <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Languages />English Course</CardTitle>
+                        <CardDescription>Driving lessons completely in English.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/english-course">View Course</Link></Button>
+                    </CardFooter>
+                </Card>
+                 <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><CreditCard />Métodos de Pago</CardTitle>
+                        <CardDescription>Conoce las opciones para pagar tu curso.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button asChild variant="outline"><Link href="/pagos">Ver Pagos</Link></Button>
+                    </CardFooter>
+                </Card>
             </div>
         </div>
 
