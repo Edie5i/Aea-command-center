@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -66,8 +65,7 @@ export default function Home() {
             <div className="text-center max-w-lg space-y-4">
               <h2 className="text-2xl font-bold text-slate-800">Bienvenido a tu nueva App</h2>
               <p className="text-slate-600">
-                He recreado tu logotipo digitalmente (arriba) para que se vea perfecto.
-                Esta es la vista principal de tu aplicación de producción.
+                Cursos de manejo para todos los niveles
               </p>
               <div className="flex gap-3 justify-center pt-4">
                   <Button asChild className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold transition-colors shadow-lg shadow-blue-700/20">
