@@ -1,5 +1,6 @@
 
 import { programData } from './course-data';
+import { reglamentoTransitoCompleto } from './reglamento-transito-data';
 
 export const botContextData = {
   informacionGeneral: {
@@ -169,4 +170,7 @@ export const botContextData = {
     }
   ],
   programaDelCurso: programData,
+  reglamentoTransito: reglamentoTransitoCompleto,
 };
+
+    

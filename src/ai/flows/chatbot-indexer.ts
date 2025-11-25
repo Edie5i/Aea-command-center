@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines the knowledge base indexer and retriever for the chatbot.
@@ -7,7 +8,6 @@
 
 import { ai } from '@/ai/genkit';
 import { botContextData } from '@/lib/bot-data';
-import { reglamentoTransitoCompleto } from '@/lib/reglamento-transito-data';
 import { Document, DocumentSource } from 'genkit';
 
 const SCHOOL_KNOWLEDGE_INDEX = 'schoolKnowledge';
@@ -22,6 +22,7 @@ function formatKnowledgeBase(): DocumentSource {
     politicas,
     preguntasFrecuentes,
     programaDelCurso,
+    reglamentoTransito,
   } = botContextData;
 
   // Combine all data into a single text block for indexing.
@@ -33,7 +34,7 @@ function formatKnowledgeBase(): DocumentSource {
     Políticas Importantes: ${JSON.stringify(politicas)}
     Preguntas Frecuentes: ${JSON.stringify(preguntasFrecuentes)}
     Programa del Curso: ${JSON.stringify(programaDelCurso)}
-    Reglamento de Tránsito (Extracto): ${reglamentoTransitoCompleto}
+    Reglamento de Tránsito: ${reglamentoTransito}
   `;
 
   return {
@@ -83,3 +84,5 @@ export const schoolKnowledgeRetriever = ai.defineRetriever(
     };
   }
 );
+
+    
