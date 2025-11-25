@@ -64,6 +64,24 @@ const questions: Question[] = [
       { label: 'Lo manejo con confianza y seguridad', value: 'confident', score: 2 },
     ],
   },
+  {
+    id: 'night_driving',
+    text: '¿Tienes experiencia conduciendo de noche en la ciudad?',
+    options: [
+        { label: 'No, me da miedo o lo evito', value: 'no', score: 0 },
+        { label: 'Muy poca, y me siento inseguro/a', value: 'some', score: 1 },
+        { label: 'Sí, conduzco de noche con regularidad', value: 'yes', score: 2 },
+    ],
+  },
+  {
+    id: 'rain_driving',
+    text: '¿Cómo reaccionas si empieza a llover fuerte mientras manejas?',
+    options: [
+        { label: 'Me pongo muy nervioso/a y preferiría detenerme', value: 'nervous', score: 0 },
+        { label: 'Reduzco la velocidad y aumento mi precaución, pero con nervios', value: 'cautious', score: 1 },
+        { label: 'Sé qué hacer: reduzco velocidad, enciendo luces y mantengo distancia', value: 'confident', score: 2 },
+    ],
+  },
 ];
 
 type Answers = {
@@ -108,9 +126,9 @@ export default function EvaluacionPage() {
       }
     }
 
-    if (totalScore <= 4) {
+    if (totalScore <= 6) {
       setResult(beginnerResult);
-    } else if (totalScore <= 8) {
+    } else if (totalScore <= 11) {
       setResult({
         level: 'Intermedio',
         description: 'Ya tienes algo de experiencia, pero hay áreas clave en las que puedes mejorar para sentirte más seguro.',
