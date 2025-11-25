@@ -245,6 +245,61 @@ const examQuestions: Question[] = [
     ],
     correctAnswer: 'c',
   },
+  {
+    id: 21,
+    text: '¿Para qué se deben usar las luces direccionales según el Art. 37?',
+    options: [
+      { label: 'Para saludar a otros conductores', value: 'a' },
+      { label: 'Solo si es de noche', value: 'b' },
+      { label: 'Para indicar giros o cambios de carril', value: 'c' },
+      { label: 'Para pedir que te dejen pasar más rápido', value: 'd' },
+    ],
+    correctAnswer: 'c',
+  },
+  {
+    id: 22,
+    text: '¿Qué prohibición aplica a todos los vehículos sobre las aceras (Art. 10)?',
+    options: [
+      { label: 'Estacionarse por menos de 5 minutos', value: 'a' },
+      { label: 'Circular o estacionarse sobre ellas', value: 'b' },
+      { label: 'Subir solo con dos llantas', value: 'c' },
+      { label: 'Usarlas como atajo si hay mucho tráfico', value: 'd' },
+    ],
+    correctAnswer: 'b',
+  },
+  {
+    id: 23,
+    text: 'Además de usar aditamentos luminosos en la noche, ¿qué otra obligación importante tienen los ciclistas (Art. 21)?',
+    options: [
+      { label: 'Llevar siempre una campana o timbre', value: 'a' },
+      { label: 'Circular lo más pegado a la derecha posible', value: 'b' },
+      { label: 'Usar casco protector', value: 'c' },
+      { label: 'Circular en sentido contrario en calles de un solo sentido', value: 'd' },
+    ],
+    correctAnswer: 'c',
+  },
+  {
+    id: 24,
+    text: 'Según el Art. 37, ¿cuándo es obligatorio usar las luces bajas?',
+    options: [
+      { label: 'Solo en túneles y pasos a desnivel', value: 'a' },
+      { label: 'Desde que anochece hasta que amanece y cuando la visibilidad es mala', value: 'b' },
+      { label: 'Solo en carreteras federales', value: 'c' },
+      { label: 'Únicamente cuando llueve', value: 'd' },
+    ],
+    correctAnswer: 'b',
+  },
+  {
+    id: 25,
+    text: 'Además de usar un carril completo, ¿qué otra acción es fundamental que los motociclistas realicen siempre (Art. 30)?',
+    options: [
+      { label: 'Llevar las luces encendidas en todo momento', value: 'a' },
+      { label: 'Rebasar por la derecha si hay espacio', value: 'b' },
+      { label: 'Llevar a un solo pasajero como máximo', value: 'c' },
+      { label: 'Usar el claxon constantemente para advertir su presencia', value: 'd' },
+    ],
+    correctAnswer: 'a',
+  },
 ];
 
 
