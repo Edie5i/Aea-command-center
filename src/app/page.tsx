@@ -46,11 +46,11 @@ export default function Home() {
             >
               <div className="p-6 md:p-8 rounded-lg text-center bg-black/50 backdrop-blur-sm flex flex-col items-center">
                   <Image 
-                    src="https://www.autoescuelaamericana.com/wp-content/uploads/2023/07/logo-AEA-300x300.png"
+                    src="https://i.ibb.co/p3wL1P6/logo-aea-blue.png"
                     alt="Auto Escuela Americana Logo"
                     width={150}
                     height={150}
-                    className="mb-4"
+                    className="mb-4 rounded-full"
                     data-ai-hint="logo"
                   />
                   <h1 
