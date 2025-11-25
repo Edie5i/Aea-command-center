@@ -6,7 +6,7 @@ import { Send, ArrowLeft, Bot, User, Loader2, Globe, FileText } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getChatbotResponseAction } from '@/app/actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -24,7 +24,7 @@ export default function ChatbotPage() {
     {
       id: 1,
       role: 'bot',
-      text: '¡Hola! Soy Auto EscuelaBot. ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre cursos, precios, horarios o cómo agendar una clase.',
+      text: '¡Hola! Soy un asistente virtual. ¿En qué puedo ayudarte hoy?',
     },
   ]);
   const [input, setInput] = useState('');

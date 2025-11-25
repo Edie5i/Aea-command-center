@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Languages,
   Lightbulb,
+  Bot,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,14 @@ export default function Home() {
           <div className="@[480px]:p-4">
             <div
               className="w-full bg-gradient-to-br from-gray-900 to-black rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
+              style={{
+                backgroundImage: "url('https://www.autoescuelaamericana.com/images/easy-landing/backgrounds/background-3.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
               data-ai-hint="driving lesson car interior"
             >
-              <div className="p-6 md:p-8 rounded-lg text-center backdrop-blur-sm">
+              <div className="p-6 md:p-8 rounded-lg text-center bg-black/50 backdrop-blur-sm">
                   <h1 
                     className="text-5xl md:text-6xl font-semibold text-primary tracking-widest uppercase"
                     style={{
@@ -121,10 +127,10 @@ export default function Home() {
                     </Link>
                 </Button>
                  <Button asChild size="lg" variant="outline" className="h-24 text-base flex-col gap-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-700">
-                    <a href="https://wa.me/525634433212?text=¡Hola!%20Me%20gustaría%20más%20información%20sobre%20los%20cursos%20de%20manejo." target="_blank" rel="noopener noreferrer">
-                        <MessageSquare className="h-6 w-6" />
-                        Contactar
-                    </a>
+                    <Link href="/chatbot">
+                        <Bot className="h-6 w-6" />
+                        Asistente
+                    </Link>
                 </Button>
             </div>
         </div>
@@ -268,5 +274,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
