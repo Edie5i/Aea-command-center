@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Car, Bike, Info, BookOpen, Check, FileText, Bot, BarChart3 } from 'lucide-react';
+import { Car, Bike, Info, BookOpen, Check, FileText, Bot, BarChart3, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -47,7 +47,6 @@ const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
 export default function Home() {
 
   const staticFeatures = [
-    { title: 'Práctica de Manejo', desc: 'Vehículos doble comando y seguros.', icon: <Car className="text-blue-500" /> },
     { title: 'Licencia', desc: 'Te ayudamos con el trámite oficial.', icon: <Check className="text-blue-500" /> }
   ];
 
@@ -113,6 +112,14 @@ export default function Home() {
               </div>
               <h3 className="font-bold text-lg mb-2">Asistente Virtual</h3>
               <p className="text-slate-500 text-sm">Resuelve tus dudas al instante con nuestra IA.</p>
+            </Link>
+
+            <Link href="/english-course" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
+              <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
+                <Globe className="text-blue-500" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">English Driving Course</h3>
+              <p className="text-slate-500 text-sm">Comprehensive course for English speakers.</p>
             </Link>
 
             {staticFeatures.map((item, i) => (
