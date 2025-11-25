@@ -46,7 +46,7 @@ export default function Home() {
             >
               <div className="p-6 md:p-8 rounded-lg text-center bg-black/50 backdrop-blur-sm flex flex-col items-center">
                   <Image 
-                    src="https://i.ibb.co/p3wL1P6/logo-aea-blue.png"
+                    src="https://www.autoescuelaamericana.com/img/logo-aea-blue.png"
                     alt="Auto Escuela Americana Logo"
                     width={150}
                     height={150}
@@ -307,3 +307,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
