@@ -2,10 +2,11 @@
 'use client';
 
 import React from 'react';
-import { Car, Bike, Info, BookOpen, Check, FileText, Globe, Lightbulb } from 'lucide-react';
+import { Car, Bike, Check, FileText, Globe, Lightbulb, BookOpen, Star, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
+import { Card, CardContent } from '@/components/ui/card';
 
 // Este componente recrea tu logo usando CSS puro para que sea escalable
 const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
@@ -45,11 +46,6 @@ const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
 };
 
 export default function Home() {
-
-  const staticFeatures = [
-    { title: 'Licencia', desc: 'Te ayudamos con el trámite oficial.', icon: <Check className="text-blue-500" /> }
-  ];
-
   return (
     <main className="min-h-screen bg-slate-50 font-sans text-slate-800">
       {/* Navegación Simple */}
@@ -122,15 +118,82 @@ export default function Home() {
               <p className="text-slate-500 text-sm">Comprehensive course for English speakers.</p>
             </Link>
 
-            {staticFeatures.map((item, i) => (
-              <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                 <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
-                  {item.icon}
+                  <Check className="text-blue-500" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                <p className="text-slate-500 text-sm">{item.desc}</p>
-              </div>
-            ))}
+                <h3 className="font-bold text-lg mb-2">Licencia</h3>
+                <p className="text-slate-500 text-sm">Te ayudamos con el trámite oficial.</p>
+            </div>
+          </div>
+
+          {/* Sección de Google Maps */}
+          <div className="mt-16 border-t border-slate-200 pt-10">
+            <h2 className="text-2xl font-bold text-center text-slate-800 mb-2 flex items-center justify-center gap-2"><MapPin className="text-blue-500" /> Dónde Encontrarnos</h2>
+            <p className="text-center text-slate-600 mb-6">Visítanos en nuestra sucursal de la Colonia Roma Sur.</p>
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="w-full aspect-video">
+                    <iframe
+                        className="w-full h-full"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.9649175317183!2d-99.16635672568777!3d19.41400644053912!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff3b16555555%3A0x1c80842f1f13380b!2sAuto%20Escuela%20Americana!5e0!3m2!1ses-419!2smx!4v1700000000000"
+                        style={{ border: 0 }}
+                        allowFullScreen={true}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title="Ubicación de Auto Escuela Americana"
+                    ></iframe>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="text-center mt-4">
+                 <Button asChild variant="link">
+                    <a href="https://maps.app.goo.gl/yYv8DqS3bApt2jQW7" target="_blank" rel="noopener noreferrer">
+                        Ver en Google Maps
+                    </a>
+                </Button>
+            </div>
+          </div>
+
+          {/* Sección de Testimonios */}
+          <div className="mt-16 border-t border-slate-200 pt-10">
+             <h2 className="text-2xl font-bold text-center text-slate-800 mb-6">Lo que dicen nuestros alumnos</h2>
+             <div className="grid md:grid-cols-3 gap-6">
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex gap-1 text-yellow-500 mb-3">
+                            <Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" />
+                        </div>
+                        <p className="text-slate-600 text-sm mb-4">"¡Excelente servicio! El instructor fue súper paciente y profesional. Aprendí muchísimo y ahora me siento con total confianza para manejar en la ciudad."</p>
+                        <p className="font-bold text-sm text-slate-800">- Sofía H.</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardContent className="p-6">
+                        <div className="flex gap-1 text-yellow-500 mb-3">
+                            <Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" />
+                        </div>
+                        <p className="text-slate-600 text-sm mb-4">"Recomendado al 100%. Me daba pánico manejar en Periférico, pero con las técnicas que me enseñaron, ahora lo hago sin problema. ¡Gracias!"</p>
+                        <p className="font-bold text-sm text-slate-800">- Carlos M.</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardContent className="p-6">
+                        <div className="flex gap-1 text-yellow-500 mb-3">
+                           <Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" /><Star className="fill-current" />
+                        </div>
+                        <p className="text-slate-600 text-sm mb-4">"Tomé el curso en inglés y fue una maravilla. El instructor hablaba perfecto y me ayudó a entender todas las reglas de tránsito de México."</p>
+                        <p className="font-bold text-sm text-slate-800">- John S.</p>
+                    </CardContent>
+                </Card>
+             </div>
+             <div className="text-center mt-6">
+                 <Button asChild variant="outline">
+                    <a href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
+                        Leer más reseñas en Google
+                    </a>
+                </Button>
+             </div>
           </div>
         </div>
       </div>
