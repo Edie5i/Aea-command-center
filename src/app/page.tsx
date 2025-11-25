@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Car, Bike, Info, BookOpen, Check, FileText, Bot, BarChart3, Globe } from 'lucide-react';
+import { Car, Bike, Info, BookOpen, Check, FileText, Globe, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -101,17 +101,17 @@ export default function Home() {
             </Link>
             <Link href="/evaluacion" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
               <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
-                <BarChart3 className="text-blue-500" />
+                <FileText className="text-blue-500" />
               </div>
               <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
               <p className="text-slate-500 text-sm">Descubre qué curso es el ideal para ti.</p>
             </Link>
-            <Link href="/chatbot" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
+            <Link href="/consejos" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
               <div className="mb-4 bg-blue-50 w-10 h-10 flex items-center justify-center rounded-lg">
-                <Bot className="text-blue-500" />
+                <Lightbulb className="text-blue-500" />
               </div>
-              <h3 className="font-bold text-lg mb-2">Asistente Virtual</h3>
-              <p className="text-slate-500 text-sm">Resuelve tus dudas al instante con nuestra IA.</p>
+              <h3 className="font-bold text-lg mb-2">Consejos de Manejo</h3>
+              <p className="text-slate-500 text-sm">Obtén tips de conducción de nuestra IA.</p>
             </Link>
 
             <Link href="/english-course" className="block bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all">
