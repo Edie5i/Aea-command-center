@@ -45,12 +45,12 @@ const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
   );
 };
 
-
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-secondary p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center text-center my-8 px-4">
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
+        <LogoDigital size="large" />
+        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground mt-8">
           Auto Escuela Americana
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
@@ -203,5 +203,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
