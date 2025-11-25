@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { createCalendarEvent } from '@/ai/flows/create-calendar-event';
 import type { CreateEventInput } from '@/ai/flows/create-calendar-event';
 import { simpleChat } from '@/ai/flows/chatbot-flow';
-import { generateDrivingTips } from '@/ai/flows/generate-driving-tips';
 
 export async function createCalendarEventAction(eventData: CreateEventInput) {
     try {
@@ -29,16 +28,5 @@ export async function getChatbotResponseAction(message: string) {
     console.error('Error getting chatbot response:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return { response: null, error: errorMessage };
-  }
-}
-
-export async function generateDrivingTipsAction(topic: string) {
-  try {
-    const result = await generateDrivingTips({ topic });
-    return { tips: result.tips, error: null };
-  } catch (error) {
-    console.error('Error generating driving tips:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    return { tips: null, error: errorMessage };
   }
 }

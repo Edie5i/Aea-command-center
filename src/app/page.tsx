@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck } from 'lucide-react';
+import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck, BookUser } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -121,13 +121,13 @@ export default function Home() {
 
            <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
-              <Lightbulb className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Consejos de Manejo</h3>
-              <p className="text-muted-foreground text-sm">Obtén tips de conducción de nuestra IA.</p>
+              <BookUser className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Notas de Alumno</h3>
+              <p className="text-muted-foreground text-sm">Crea y comparte el avance de un alumno.</p>
             </CardContent>
             <div className="p-6 pt-0">
                <Button asChild className="w-full">
-                <Link href="/consejos">Generar Consejos</Link>
+                <Link href="/notas-alumno">Crear Nota</Link>
               </Button>
             </div>
           </Card>
