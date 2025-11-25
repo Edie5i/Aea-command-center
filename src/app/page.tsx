@@ -32,57 +32,50 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-background">
-      <div className="relative w-full">
-        <div className="@container">
-          <div className="@[480px]:p-4">
-            <div
-              className="w-full bg-gradient-to-br from-gray-900 to-black rounded-xl min-h-[50vh] md:min-h-[65vh] flex items-center justify-center p-4"
+      
+      {/* Hero Section */}
+      <section
+        className="relative w-full h-[60vh] md:h-[70vh] bg-cover bg-center text-white flex items-center justify-center"
+        style={{ backgroundImage: "url('https://i.ibb.co/bX0v0rD/car-driving-in-city.jpg')" }}
+        data-ai-hint="driving lesson car interior"
+      >
+        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="relative z-10 text-center p-4 flex flex-col items-center">
+            <Image 
+              src="https://www.autoescuelaamericana.com/img/logo-aea-blue.png"
+              alt="Auto Escuela Americana Logo"
+              width={128}
+              height={128}
+              className="mb-4 rounded-full"
+              priority
+            />
+            <h1 
+              className="text-4xl md:text-5xl font-semibold text-primary tracking-widest uppercase"
               style={{
-                backgroundImage: "url('https://i.ibb.co/bX0v0rD/car-driving-in-city.jpg')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                WebkitTextStroke: '2px #DC2626',
+                textStroke: '2px #DC2626',
+                paintOrder: 'stroke fill',
               }}
-              data-ai-hint="driving lesson car interior"
             >
-              <div className="p-6 md:p-8 rounded-lg text-center bg-black/50 backdrop-blur-sm flex flex-col items-center">
-                  <Image 
-                    src="https://www.autoescuelaamericana.com/img/logo-aea-blue.png"
-                    alt="Auto Escuela Americana Logo"
-                    width={150}
-                    height={150}
-                    className="mb-4 rounded-full"
-                    data-ai-hint="logo"
-                  />
-                  <h1 
-                    className="text-4xl md:text-5xl font-semibold text-primary tracking-widest uppercase"
-                    style={{
-                      WebkitTextStroke: '2px #DC2626',
-                      textStroke: '2px #DC2626',
-                      paintOrder: 'stroke fill',
-                    }}
-                  >
-                    Auto Escuela Americana
-                  </h1>
-                 <h2 className="text-white tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold text-center mt-2">
-                    Aprende a Conducir con los Expertos de la CDMX
-                  </h2>
-                  <p className="text-white text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
-                    Cursos personalizados, instructores certificados y la confianza que necesitas para dominar el volante.
-                  </p>
-              </div>
+              Auto Escuela Americana
+            </h1>
+           <h2 className="tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold text-center mt-2">
+              Aprende a Conducir con los Expertos de la CDMX
+            </h2>
+            <p className="text-lg md:text-xl font-normal text-center mt-4 max-w-2xl">
+              Cursos personalizados, instructores certificados y la confianza que necesitas para dominar el volante.
+            </p>
+            <div className="mt-8">
+              <Button
+                onClick={handleGetStartedClick}
+                className="h-14 px-8 rounded-full font-bold text-lg shadow-lg"
+                size="lg"
+              >
+                ¡Quiero Empezar!
+              </Button>
             </div>
-          </div>
         </div>
-        <div className="w-full flex justify-center py-6 px-4">
-            <Button
-              onClick={handleGetStartedClick}
-              className="h-14 px-8 rounded-full font-bold text-lg max-w-md mx-auto shadow-lg"
-              size="lg"
-            >
-              ¡Quiero Empezar!
-            </Button>
-        </div>
-      </div>
+      </section>
       
       <div id="main-content" className="w-full flex flex-col items-center p-4 sm:p-6 md:p-8">
          <div className="w-full max-w-5xl mb-12">
@@ -307,5 +300,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
