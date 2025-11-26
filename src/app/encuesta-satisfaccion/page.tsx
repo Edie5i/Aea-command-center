@@ -260,7 +260,7 @@ export default function EncuestaSatisfaccionPage() {
                     </Button>
                     <Button asChild>
                         <a
-                            href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+                            href="https://www.google.com/search?q=Auto+Escuela+Americana&ludocid=2053648174540417035#lrd=0x85d1ff3b16555555:0x1c80842f1f13380b,1"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -278,5 +278,3 @@ export default function EncuestaSatisfaccionPage() {
     </main>
   );
 }
-
-    

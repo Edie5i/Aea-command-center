@@ -210,7 +210,7 @@ export default function Home() {
              </div>
              <div className="text-center mt-6">
                  <Button asChild variant="outline">
-                    <a href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.google.com/search?q=Auto+Escuela+Americana&ludocid=2053648174540417035#lrd=0x85d1ff3b16555555:0x1c80842f1f13380b,1" target="_blank" rel="noopener noreferrer">
                         Leer más reseñas en Google
                     </a>
                 </Button>
@@ -221,5 +221,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
