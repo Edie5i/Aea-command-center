@@ -47,206 +47,205 @@ const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col items-center text-center my-8 px-4">
-        <LogoDigital size="large" />
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground mt-8">
-          Auto Escuela Americana
-        </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Cursos de manejo para todos los niveles
-        </p>
-        <div className="mt-6">
-            <Button asChild size="lg">
-                <Link href="/agenda">Agendar Curso</Link>
-            </Button>
-        </div>
-      </div>
-
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
-        
-        <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <CalendarCheck className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Agenda tu Curso</h3>
-              <p className="text-muted-foreground text-sm">Selecciona fechas y completa el formulario.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/agenda">Ir a la Agenda</Link>
+    <main className="flex min-h-screen flex-col items-center">
+      <div className="w-full max-w-7xl mx-auto rounded-xl border-t border-l border-r border-border shadow-2xl">
+        <header className="flex flex-col items-center text-center my-8 px-4">
+          <LogoDigital size="large" />
+          <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground mt-8">
+            Auto Escuela Americana
+          </h1>
+          <p className="mt-2 max-w-xl text-lg text-muted-foreground">
+            Cursos de manejo para todos los niveles
+          </p>
+          <div className="mt-6">
+              <Button asChild size="lg">
+                  <Link href="/agenda">Agendar Curso</Link>
               </Button>
-            </div>
-          </Card>
+          </div>
+        </header>
 
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <Lightbulb className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
-              <p className="text-muted-foreground text-sm">Descubre qué curso es el ideal para ti.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/evaluacion">Empezar Evaluación</Link>
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <List className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
-              <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/catalogo">Ver Catálogo</Link>
-              </Button>
-            </div>
-          </Card>
+        <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
           
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <FileText className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Examen Teórico</h3>
-              <p className="text-muted-foreground text-sm">Pon a prueba tus conocimientos del reglamento.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/examen-teorico">Iniciar Examen</Link>
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <BookOpen className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Programa del Curso</h3>
-              <p className="text-muted-foreground text-sm">Consulta el manual de conducción completo.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/programa">Ver Programa</Link>
-              </Button>
-            </div>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <Globe className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">English Driving Course</h3>
-              <p className="text-muted-foreground text-sm">Comprehensive course for English speakers.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/english-course">View Course</Link>
-              </Button>
-            </div>
-          </Card>
-
-           <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <BookUser className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Notas de Alumno</h3>
-              <p className="text-muted-foreground text-sm">Crea y comparte el avance de un alumno.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-               <Button asChild className="w-full">
-                <Link href="/notas-alumno">Crear Nota</Link>
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <FileText className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Términos y Condiciones</h3>
-              <p className="text-muted-foreground text-sm">Revisa las políticas del servicio.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/terminos">Leer Términos</Link>
-              </Button>
-            </div>
-          </Card>
-
-        </div>
-      </div>
-
-        {/* Sección de Google Maps */}
-        <div className="w-full max-w-4xl mt-8">
-            <h2 className="text-2xl font-bold text-center text-foreground mb-2 flex items-center justify-center gap-2"><MapPin className="text-primary" /> Dónde Encontrarnos</h2>
-            <p className="text-center text-muted-foreground mb-6">
-                Torreón #49, Roma Sur, Alcaldía Cuauhtémoc, CDMX.
-            </p>
-            <Card className="overflow-hidden shadow-lg">
-              <CardContent className="p-0">
-                <div className="w-full aspect-video">
-                    <iframe
-                        className="w-full h-full"
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.9649175317183!2d-99.16635672568777!3d19.41400644053912!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff3b16555555%3A0x1c80842f1f13380b!2sAuto%20Escuela%20Americana!5e0!3m2!1ses-419!2smx!4v1722378951215!5m2!1ses-419!2smx"
-                        style={{ border: 0 }}
-                        allowFullScreen={true}
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        title="Ubicación de Auto Escuela Americana en Torreón #49"
-                    ></iframe>
-                </div>
+          <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <CalendarCheck className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Agenda tu Curso</h3>
+                <p className="text-muted-foreground text-sm">Selecciona fechas y completa el formulario.</p>
               </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/agenda">Ir a la Agenda</Link>
+                </Button>
+              </div>
             </Card>
-            <div className="text-center mt-4">
-                 <Button asChild variant="link">
-                    <a href="https://www.google.com/maps/search/?api=1&query=Auto+Escuela+Americana&query_place_id=ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
-                        Ver en Google Maps
-                    </a>
+
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <Lightbulb className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
+                <p className="text-muted-foreground text-sm">Descubre qué curso es el ideal para ti.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/evaluacion">Empezar Evaluación</Link>
                 </Button>
-            </div>
+              </div>
+            </Card>
+
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <FileText className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Examen Teórico</h3>
+                <p className="text-muted-foreground text-sm">Pon a prueba tus conocimientos del reglamento.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/examen-teorico">Iniciar Examen</Link>
+                </Button>
+              </div>
+            </Card>
+            
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <List className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
+                <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/catalogo">Ver Catálogo</Link>
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <BookOpen className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Programa del Curso</h3>
+                <p className="text-muted-foreground text-sm">Consulta el manual de conducción completo.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/programa">Ver Programa</Link>
+                </Button>
+              </div>
+            </Card>
+            
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <Globe className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">English Driving Course</h3>
+                <p className="text-muted-foreground text-sm">Comprehensive course for English speakers.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/english-course">View Course</Link>
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <BookUser className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Notas de Alumno</h3>
+                <p className="text-muted-foreground text-sm">Crea y comparte el avance de un alumno.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/notas-alumno">Crear Nota</Link>
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="flex flex-col">
+              <CardContent className="p-6 flex-grow">
+                <FileText className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Términos y Condiciones</h3>
+                <p className="text-muted-foreground text-sm">Revisa las políticas del servicio.</p>
+              </CardContent>
+              <div className="p-6 pt-0">
+                <Button asChild className="w-full">
+                  <Link href="/terminos">Leer Términos</Link>
+                </Button>
+              </div>
+            </Card>
+
+          </div>
         </div>
 
-        {/* Sección de Testimonios */}
-        <div className="w-full max-w-4xl mt-8">
-             <h2 className="text-2xl font-bold text-center text-foreground mb-6">Lo que dicen nuestros alumnos</h2>
-             <div className="grid md:grid-cols-3 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex gap-1 text-yellow-400 mb-3">
-                            <Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" />
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-4">"¡Excelente servicio! El instructor fue súper paciente y profesional. Aprendí muchísimo y ahora me siento con total confianza para manejar en la ciudad."</p>
-                        <p className="font-bold text-sm text-foreground">- Sofía H.</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardContent className="p-6">
-                        <div className="flex gap-1 text-yellow-400 mb-3">
-                            <Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" />
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-4">"Recomendado al 100%. Me daba pánico manejar en Periférico, pero con las técnicas que me enseñaron, ahora lo hago sin problema. ¡Gracias!"</p>
-                        <p className="font-bold text-sm text-foreground">- Carlos M.</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardContent className="p-6">
-                        <div className="flex gap-1 text-yellow-400 mb-3">
-                           <Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" />
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-4">"Tomé el curso en inglés y fue una maravilla. El instructor hablaba perfecto y me ayudó a entender todas las reglas de tránsito de México."</p>
-                        <p className="font-bold text-sm text-foreground">- John S.</p>
-                    </CardContent>
-                </Card>
-             </div>
-             <div className="text-center mt-6">
-                 <Button asChild variant="outline">
-                    <a href="https://www.google.com/search?q=Auto+Escuela+Americana&ludocid=2053648174540417035#lrd=0x85d1ff3b16555555:0x1c80842f1f13380b,1" target="_blank" rel="noopener noreferrer">
-                        Leer más reseñas en Google
-                    </a>
-                </Button>
-             </div>
-        </div>
+          {/* Sección de Google Maps */}
+          <div className="w-full max-w-4xl mt-8 px-4">
+              <h2 className="text-2xl font-bold text-center text-foreground mb-2 flex items-center justify-center gap-2"><MapPin className="text-primary" /> Dónde Encontrarnos</h2>
+              <p className="text-center text-muted-foreground mb-6">
+                  Torreón #49, Roma Sur, Cuauhtémoc, 06700 Ciudad de México, CDMX.
+              </p>
+              <Card className="overflow-hidden shadow-lg">
+                <CardContent className="p-0">
+                  <div className="w-full aspect-video">
+                      <iframe
+                          className="w-full h-full"
+                          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.9649175317183!2d-99.1663567!3d19.4140064!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff3b16555555%3A0x1c80842f1f13380b!2sAuto%20Escuela%20Americana!5e0!3m2!1ses-419!2smx"
+                          style={{ border: 0 }}
+                          allowFullScreen={true}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          title="Ubicación de Auto Escuela Americana en Torreón #49, Roma Sur, CDMX"
+                      ></iframe>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="text-center mt-4">
+                  <Button asChild variant="link">
+                      <a href="https://www.google.com/maps/search/?api=1&query=Auto+Escuela+Americana&query_place_id=ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
+                          Ver en Google Maps
+                      </a>
+                  </Button>
+              </div>
+          </div>
 
+          {/* Sección de Testimonios */}
+          <div className="w-full max-w-4xl mt-8 px-4">
+              <h2 className="text-2xl font-bold text-center text-foreground mb-6">Lo que dicen nuestros alumnos</h2>
+              <div className="grid md:grid-cols-3 gap-6">
+                  <Card>
+                      <CardContent className="p-6">
+                          <div className="flex gap-1 text-yellow-400 mb-3">
+                              <Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" />
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-4">"¡Excelente servicio! El instructor fue súper paciente y profesional. Aprendí muchísimo y ahora me siento con total confianza para manejar en la ciudad."</p>
+                          <p className="font-bold text-sm text-foreground">- Sofía H.</p>
+                      </CardContent>
+                  </Card>
+                  <Card>
+                      <CardContent className="p-6">
+                          <div className="flex gap-1 text-yellow-400 mb-3">
+                              <Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" />
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-4">"Recomendado al 100%. Me daba pánico manejar en Periférico, pero con las técnicas que me enseñaron, ahora lo hago sin problema. ¡Gracias!"</p>
+                          <p className="font-bold text-sm text-foreground">- Carlos M.</p>
+                      </CardContent>
+                  </Card>
+                  <Card>
+                      <CardContent className="p-6">
+                          <div className="flex gap-1 text-yellow-400 mb-3">
+                            <Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" /><Star className="fill-current h-5 w-5" />
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-4">"Tomé el curso en inglés y fue una maravilla. El instructor hablaba perfecto y me ayudó a entender todas las reglas de tránsito de México."</p>
+                          <p className="font-bold text-sm text-foreground">- John S.</p>
+                      </CardContent>
+                  </Card>
+              </div>
+              <div className="text-center mt-6">
+                  <Button asChild variant="outline">
+                      <a href="https://www.google.com/search?q=Auto+Escuela+Americana&ludocid=2053648174540417035#lrd=0x85d1ff3b16555555:0x1c80842f1f13380b,1" target="_blank" rel="noopener noreferrer">
+                          Leer más reseñas en Google
+                      </a>
+                  </Button>
+              </div>
+          </div>
+      </div>
       <AppFooter />
     </main>
   );
 }
-
-    

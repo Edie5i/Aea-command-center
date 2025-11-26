@@ -87,12 +87,6 @@
   main, header, footer {
       @apply bg-background;
   }
-   main:first-child, header:first-child {
-      @apply rounded-t-xl;
-  }
-  main:last-child, footer:last-child {
-      @apply rounded-b-xl;
-  }
 }
 
     
