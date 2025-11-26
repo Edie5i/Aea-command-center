@@ -260,7 +260,7 @@ export default function EncuestaSatisfaccionPage() {
                     </Button>
                     <Button asChild>
                         <a
-                            href="https://maps.app.goo.gl/yYv8DqS3bApt2jQW7"
+                            href="https://www.google.com/maps/place/?q=place_id:ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
                             target="_blank"
                             rel="noopener noreferrer"
                         >

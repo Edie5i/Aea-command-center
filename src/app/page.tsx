@@ -169,7 +169,7 @@ export default function Home() {
             </Card>
             <div className="text-center mt-4">
                  <Button asChild variant="link">
-                    <a href="https://maps.app.goo.gl/yYv8DqS3bApt2jQW7" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.google.com/maps/place/?q=place_id:ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
                         Ver en Google Maps
                     </a>
                 </Button>
@@ -210,7 +210,7 @@ export default function Home() {
              </div>
              <div className="text-center mt-6">
                  <Button asChild variant="outline">
-                    <a href="https://maps.app.goo.gl/yYv8DqS3bApt2jQW7" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.google.com/maps/place/?q=place_id:ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
                         Leer más reseñas en Google
                     </a>
                 </Button>
