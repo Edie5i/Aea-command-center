@@ -65,7 +65,7 @@ export default function Home() {
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
         
-        <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
               <CalendarCheck className="h-8 w-8 text-primary mb-4" />
@@ -91,6 +91,19 @@ export default function Home() {
               </Button>
             </div>
           </Card>
+
+          <Card className="flex flex-col">
+            <CardContent className="p-6 flex-grow">
+              <List className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
+              <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
+            </CardContent>
+            <div className="p-6 pt-0">
+              <Button asChild className="w-full">
+                <Link href="/catalogo">Ver Catálogo</Link>
+              </Button>
+            </div>
+          </Card>
           
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
@@ -101,19 +114,6 @@ export default function Home() {
             <div className="p-6 pt-0">
               <Button asChild className="w-full">
                 <Link href="/examen-teorico">Iniciar Examen</Link>
-              </Button>
-            </div>
-          </Card>
-
-           <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <List className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
-              <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/catalogo">Ver Catálogo</Link>
               </Button>
             </div>
           </Card>
