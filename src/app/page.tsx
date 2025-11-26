@@ -177,7 +177,9 @@ export default function Home() {
         {/* Sección de Google Maps */}
         <div className="w-full max-w-4xl mt-8">
             <h2 className="text-2xl font-bold text-center text-foreground mb-2 flex items-center justify-center gap-2"><MapPin className="text-primary" /> Dónde Encontrarnos</h2>
-            <p className="text-center text-muted-foreground mb-6">Visítanos en nuestra sucursal de la Colonia Roma.</p>
+            <p className="text-center text-muted-foreground mb-6">
+                Torreón #49, Roma Sur, Alcaldía Cuauhtémoc, CDMX.
+            </p>
             <Card className="overflow-hidden shadow-lg">
               <CardContent className="p-0">
                 <div className="w-full aspect-video">
