@@ -82,7 +82,7 @@
      @apply h-full;
   }
   body {
-    @apply bg-secondary text-foreground p-4 md:p-8 h-full;
+    @apply bg-secondary text-foreground h-full;
   }
   main, header, footer {
       @apply bg-background;
@@ -94,3 +94,5 @@
       @apply rounded-b-xl;
   }
 }
+
+    
