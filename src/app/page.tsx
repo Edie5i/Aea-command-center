@@ -210,7 +210,7 @@ export default function Home() {
              </div>
              <div className="text-center mt-6">
                  <Button asChild variant="outline">
-                    <a href="https://g.page/r/CQGclUqRv7ohEBE/review" target="_blank" rel="noopener noreferrer">
+                    <a href="https://maps.app.goo.gl/yYv8DqS3bApt2jQW7" target="_blank" rel="noopener noreferrer">
                         Leer más reseñas en Google
                     </a>
                 </Button>
