@@ -260,7 +260,7 @@ export default function EncuestaSatisfaccionPage() {
                     </Button>
                     <Button asChild>
                         <a
-                            href="https://www.google.com/maps/place/?q=place_id:ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
+                            href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -278,3 +278,5 @@ export default function EncuestaSatisfaccionPage() {
     </main>
   );
 }
+
+    

@@ -210,7 +210,7 @@ export default function Home() {
              </div>
              <div className="text-center mt-6">
                  <Button asChild variant="outline">
-                    <a href="https://www.google.com/maps/place/?q=place_id:ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
+                    <a href="https://search.google.com/local/reviews?placeid=ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
                         Leer más reseñas en Google
                     </a>
                 </Button>
@@ -221,3 +221,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
