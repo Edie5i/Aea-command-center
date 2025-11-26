@@ -65,17 +65,30 @@ export default function Home() {
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
         
-        <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
-              <BookOpen className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Programa del Curso</h3>
-              <p className="text-muted-foreground text-sm">Consulta el manual de conducción completo.</p>
+              <CalendarCheck className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Agenda tu Curso</h3>
+              <p className="text-muted-foreground text-sm">Selecciona fechas y completa el formulario.</p>
             </CardContent>
             <div className="p-6 pt-0">
               <Button asChild className="w-full">
-                <Link href="/programa">Ver Programa</Link>
+                <Link href="/agenda">Ir a la Agenda</Link>
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="flex flex-col">
+            <CardContent className="p-6 flex-grow">
+              <Lightbulb className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
+              <p className="text-muted-foreground text-sm">Descubre qué curso es el ideal para ti.</p>
+            </CardContent>
+            <div className="p-6 pt-0">
+              <Button asChild className="w-full">
+                <Link href="/evaluacion">Empezar Evaluación</Link>
               </Button>
             </div>
           </Card>
@@ -95,17 +108,30 @@ export default function Home() {
 
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
-              <Lightbulb className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
-              <p className="text-muted-foreground text-sm">Descubre qué curso es el ideal para ti.</p>
+              <List className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
+              <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
             </CardContent>
             <div className="p-6 pt-0">
               <Button asChild className="w-full">
-                <Link href="/evaluacion">Empezar Evaluación</Link>
+                <Link href="/catalogo">Ver Catálogo</Link>
               </Button>
             </div>
           </Card>
 
+          <Card className="flex flex-col">
+            <CardContent className="p-6 flex-grow">
+              <BookOpen className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Programa del Curso</h3>
+              <p className="text-muted-foreground text-sm">Consulta el manual de conducción completo.</p>
+            </CardContent>
+            <div className="p-6 pt-0">
+              <Button asChild className="w-full">
+                <Link href="/programa">Ver Programa</Link>
+              </Button>
+            </div>
+          </Card>
+          
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
               <Globe className="h-8 w-8 text-primary mb-4" />
@@ -134,19 +160,6 @@ export default function Home() {
 
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
-              <List className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
-              <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/catalogo">Ver Catálogo</Link>
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
               <FileText className="h-8 w-8 text-primary mb-4" />
               <h3 className="font-bold text-lg mb-2">Términos y Condiciones</h3>
               <p className="text-muted-foreground text-sm">Revisa las políticas del servicio.</p>
@@ -157,19 +170,6 @@ export default function Home() {
               </Button>
             </div>
           </Card>
-          
-           <Card className="flex flex-col">
-            <CardContent className="p-6 flex-grow">
-              <CalendarCheck className="h-8 w-8 text-primary mb-4" />
-              <h3 className="font-bold text-lg mb-2">Agenda tu Curso</h3>
-              <p className="text-muted-foreground text-sm">Selecciona fechas y completa el formulario.</p>
-            </CardContent>
-            <div className="p-6 pt-0">
-              <Button asChild className="w-full">
-                <Link href="/agenda">Ir a la Agenda</Link>
-              </Button>
-            </div>
-          </Card>
 
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function Home() {
         {/* Sección de Google Maps */}
         <div className="w-full max-w-4xl mt-8">
             <h2 className="text-2xl font-bold text-center text-foreground mb-2 flex items-center justify-center gap-2"><MapPin className="text-primary" /> Dónde Encontrarnos</h2>
-            <p className="text-center text-muted-foreground mb-6">Visítanos en nuestra sucursal de la Colonia Roma Sur.</p>
+            <p className="text-center text-muted-foreground mb-6">Visítanos en nuestra sucursal de la Colonia Roma.</p>
             <Card className="overflow-hidden shadow-lg">
               <CardContent className="p-0">
                 <div className="w-full aspect-video">
@@ -195,7 +195,7 @@ export default function Home() {
             </Card>
             <div className="text-center mt-4">
                  <Button asChild variant="link">
-                    <a href="https://www.google.com/maps/place/?q=place_id:ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Auto+Escuela+Americana&query_place_id=ChIJ-ZlSikb-0YUR0JmS3w-4O3A" target="_blank" rel="noopener noreferrer">
                         Ver en Google Maps
                     </a>
                 </Button>
