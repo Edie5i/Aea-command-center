@@ -82,7 +82,7 @@
      @apply h-full;
   }
   body {
-    @apply bg-secondary text-foreground p-2 md:p-4 h-full;
+    @apply bg-secondary text-foreground p-4 md:p-8 h-full;
   }
   main, header, footer {
       @apply bg-background;
