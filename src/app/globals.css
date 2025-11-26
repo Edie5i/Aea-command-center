@@ -78,7 +78,11 @@
   * {
     @apply border-border;
   }
+  html {
+     @apply bg-background;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-gray-100 to-gray-300 text-foreground dark:from-gray-800 dark:to-gray-950 rounded-xl overflow-hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
   }
 }

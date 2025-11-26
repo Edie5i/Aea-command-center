@@ -20,11 +20,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${lexend.variable} ${noto_sans.variable}`}>
+    <html lang="es" className={`${lexend.variable} ${noto_sans.variable} bg-background p-2 md:p-4`}>
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
       </head>
-      <body className="font-body antialiased h-full border-[16px] border-gray-200 dark:border-gray-800">
+      <body className="font-body antialiased h-full">
         {children}
         <Toaster />
         <FloatingWhatsappButton />
