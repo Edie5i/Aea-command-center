@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck, BookUser } from 'lucide-react';
+import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck, BookUser, List } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -65,7 +65,7 @@ export default function Home() {
 
       <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center gap-8">
         
-        <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           
           <Card className="flex flex-col">
             <CardContent className="p-6 flex-grow">
@@ -128,6 +128,32 @@ export default function Home() {
             <div className="p-6 pt-0">
                <Button asChild className="w-full">
                 <Link href="/notas-alumno">Crear Nota</Link>
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="flex flex-col">
+            <CardContent className="p-6 flex-grow">
+              <List className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
+              <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
+            </CardContent>
+            <div className="p-6 pt-0">
+              <Button asChild className="w-full">
+                <Link href="/catalogo">Ver Catálogo</Link>
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="flex flex-col">
+            <CardContent className="p-6 flex-grow">
+              <FileText className="h-8 w-8 text-primary mb-4" />
+              <h3 className="font-bold text-lg mb-2">Términos y Condiciones</h3>
+              <p className="text-muted-foreground text-sm">Revisa las políticas del servicio.</p>
+            </CardContent>
+            <div className="p-6 pt-0">
+              <Button asChild className="w-full">
+                <Link href="/terminos">Leer Términos</Link>
               </Button>
             </div>
           </Card>
