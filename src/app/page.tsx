@@ -178,7 +178,14 @@ export default function Home() {
           <div className="w-full max-w-4xl mt-8 px-4">
               <h2 className="text-2xl font-bold text-center text-foreground mb-2 flex items-center justify-center gap-2"><MapPin className="text-primary" /> Dónde Encontrarnos</h2>
               <p className="text-center text-muted-foreground mb-6">
-                  Torreón #49, Roma Sur, Cuauhtémoc, 06700 Ciudad de México, CDMX.
+                  <a 
+                      href="https://www.google.com/maps/search/?api=1&query=Torre%C3%B3n+49%2C+Roma+Sur%2C+Cuauht%C3%A9moc%2C+06700+Ciudad+de+M%C3%A9xico%2C+CDMX" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-primary hover:underline"
+                  >
+                      Torreón #49, Roma Sur, Cuauhtémoc, 06700 Ciudad de México, CDMX.
+                  </a>
               </p>
               <Card className="overflow-hidden shadow-lg">
                 <CardContent className="p-0">
