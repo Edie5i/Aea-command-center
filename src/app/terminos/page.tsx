@@ -114,7 +114,7 @@ export default function TerminosPage() {
             <div className="space-y-2">
               <h3 className="font-semibold text-foreground">1. Reserva del curso</h3>
               <p>
-                Para reservar el curso, el alumno deberá realizar un anticipo mínimo del 20% del valor total. El curso debe de ser reservado 24 horas antes para guardar los espacios en el slot de la agenda por motivos de espacio entre los demás cursos.
+                Para reservar el curso, el alumno deberá realizar un anticipo mínimo del 20% del valor total. El curso debe de ser reservado 48 horas al menos antes para guardar los espacios en el slot de la agenda por motivos de espacio entre los demás cursos.
               </p>
             </div>
             <div className="space-y-2">

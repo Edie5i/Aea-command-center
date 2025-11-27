@@ -425,7 +425,7 @@ export default function EnglishCoursePage() {
                             <div className="space-y-4 text-muted-foreground text-sm pt-4">
                                 <div className="space-y-1">
                                     <h3 className="font-semibold text-foreground">1. Course Reservation</h3>
-                                    <p>To book the course, the student must make a minimum down payment of 20% of the total value. The course must be reserved 24 hours in advance to secure the slots in the schedule due to space among other courses.</p>
+                                    <p>To book the course, the student must make a minimum down payment of 20% of the total value. The course must be reserved at least 48 hours in advance to secure the slots in the schedule due to space among other courses.</p>
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="font-semibold text-foreground">2. Full Payment</h3>
