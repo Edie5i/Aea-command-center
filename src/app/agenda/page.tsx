@@ -181,7 +181,7 @@ export default function AgendaPage() {
       doc.rect(0, 282, 210, 15, 'F');
       doc.setFontSize(9);
       doc.setTextColor('#FFFFFF');
-      doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | https://mi-proyecto-de-prueba-12345.web.app`, 105, 288, { align: 'center' });
+      doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | www.autoescuelaamericana.com`, 105, 288, { align: 'center' });
 
       doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
@@ -249,9 +249,9 @@ export default function AgendaPage() {
         <div className="relative z-10 flex flex-col items-center text-center px-4">
           <div className="flex flex-wrap justify-center gap-2 mb-4">
             <Button asChild variant="outline" className="bg-background/80 backdrop-blur-sm hover:bg-background">
-              <a href="https://mi-proyecto-de-prueba-12345.web.app" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
                 <Globe className="mr-2 h-4 w-4" />
-                mi-proyecto-de-prueba-12345.web.app
+                www.autoescuelaamericana.com
               </a>
             </Button>
           </div>

@@ -172,5 +172,3 @@ export const botContextData = {
   programaDelCurso: programData,
   reglamentoTransito: reglamentoTransitoCompleto,
 };
-
-    
