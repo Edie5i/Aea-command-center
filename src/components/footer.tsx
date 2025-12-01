@@ -29,8 +29,8 @@ export function AppFooter() {
             </Button>
         </div>
       <p>
-        <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-          www.autoescuelaamericana.com
+        <a href="https://mi-proyecto-de-prueba-12345.web.app" target="_blank" rel="noopener noreferrer" className="hover:underline">
+          mi-proyecto-de-prueba-12345.web.app
         </a>
       </p>
       <p className="mt-2">

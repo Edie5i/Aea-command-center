@@ -184,7 +184,7 @@ export default function Home() {
                       rel="noopener noreferrer" 
                       className="text-primary hover:underline"
                   >
-                      Torreón #49, Roma Sur, Cuauhtémoc, 06700 Ciudad de México, CDMX.
+                      Torreón #49, Roma Sur, Cuauhtémoc, 06700 Ciudad de México, CDMX
                   </a>
               </p>
               <Card className="overflow-hidden shadow-lg">
