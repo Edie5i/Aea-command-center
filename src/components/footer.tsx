@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -9,7 +10,7 @@ export function AppFooter() {
   const { toast } = useToast();
 
   const handleCopyLink = () => {
-    const appUrl = window.location.href;
+    const appUrl = "https://app.autoescuelaamericana.com";
     navigator.clipboard.writeText(appUrl)
       .then(() => {
         toast({ title: '¡Enlace copiado!', description: 'El enlace de la app ha sido copiado al portapapeles.' });
@@ -29,8 +30,8 @@ export function AppFooter() {
             </Button>
         </div>
       <p>
-        <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-          www.autoescuelaamericana.com
+        <a href="https://app.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
+          app.autoescuelaamericana.com
         </a>
       </p>
       <p className="mt-2">

@@ -262,9 +262,9 @@ export default function EvaluacionPage() {
       <div className="flex flex-col items-center text-center my-8 px-4">
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           <Button asChild variant="outline">
-            <a href="https://www.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://app.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
               <Globe className="mr-2 h-4 w-4" />
-              www.autoescuelaamericana.com
+              app.autoescuelaamericana.com
             </a>
           </Button>
         </div>
@@ -399,7 +399,3 @@ export default function EvaluacionPage() {
     </main>
   );
 }
-
-
-
-

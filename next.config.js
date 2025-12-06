@@ -36,7 +36,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'www.autoescuelaamericana.com',
+        hostname: 'app.autoescuelaamericana.com',
         port: '',
         pathname: '/**',
       }
