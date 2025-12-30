@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { FloatingWhatsappButton } from "@/components/floating-whatsapp-button";
 import { lexend, noto_sans } from "@/lib/fonts";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "AEA - Autoescuela Americana",
@@ -25,6 +26,16 @@ export default function RootLayout({
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
       </head>
       <body className="font-body antialiased h-full">
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=AW-11300877997" />
+        <Script id="google-analytics">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'AW-11300877997');
+          `}
+        </Script>
         {children}
         <Toaster />
         <FloatingWhatsappButton />
