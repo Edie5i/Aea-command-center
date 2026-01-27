@@ -24,7 +24,7 @@ export type SimpleChatOutput = z.infer<typeof SimpleChatOutputSchema>;
 export async function simpleChat(
   input: SimpleChatInput
 ): Promise<SimpleChatOutput> {
-  const { output } = await ai.generate({
+  const result = await ai.generate({
     prompt: input.message,
     model: 'googleai/gemini-1.5-pro-latest',
     tools: [schoolKnowledgeRetriever],
@@ -37,5 +37,5 @@ export async function simpleChat(
     Always be friendly and professional.`,
   });
 
-  return { response: output?.text || "Sorry, I could not process your request at this moment." };
+  return { response: result.text || "Sorry, I could not process your request at this moment." };
 }
