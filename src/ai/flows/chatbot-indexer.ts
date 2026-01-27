@@ -8,7 +8,7 @@
 
 import { ai } from '@/ai/genkit';
 import { botContextData } from '@/lib/bot-data';
-import { Document, DocumentSource } from 'genkit';
+import { Document, DocumentSource, RetrieverRequest } from 'genkit';
 
 const SCHOOL_KNOWLEDGE_INDEX = 'schoolKnowledge';
 
@@ -73,10 +73,11 @@ export const schoolKnowledgeRetriever = ai.defineRetriever(
   async () => {
     return {
       // The `retrieve` function is called to get the most relevant documents for the input query.
-      retrieve: async (query) => {
+      retrieve: async (request: RetrieverRequest) => {
         const index = await schoolKnowledgeIndexer();
+        const queryText = await request.query.text();
         return {
-          documents: await index.search(query.text(), {
+          documents: await index.search(queryText, {
             k: 5, // Return the top 5 most relevant chunks.
           }),
         };
@@ -84,5 +85,3 @@ export const schoolKnowledgeRetriever = ai.defineRetriever(
     };
   }
 );
-
-    
