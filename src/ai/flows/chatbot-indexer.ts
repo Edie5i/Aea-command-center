@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview This file defines the knowledge base indexer and retriever for the chatbot.
@@ -75,7 +74,10 @@ export const schoolKnowledgeRetriever = ai.defineRetriever(
       // The `retrieve` function is called to get the most relevant documents for the input query.
       retrieve: async (request: RetrieverRequest) => {
         const index = await schoolKnowledgeIndexer();
-        const queryText = await request.query.text();
+        // A Document's content is an array of Parts. We need to extract the text from them.
+        const queryText = request.query.content
+          .map((part) => part.text || '')
+          .join(' ');
         return {
           documents: await index.search(queryText, {
             k: 5, // Return the top 5 most relevant chunks.
