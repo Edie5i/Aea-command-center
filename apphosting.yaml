@@ -9,4 +9,4 @@ runConfig:
 
 env:
   - variable: GOOGLE_GENERATIVE_AI_API_KEY
-    value: "TU_API_KEY_AQUÍ"
+value:"AIzaSyBbVrQuMLvDxSiPa-ZI5RS_asDct2OzBZQ"
