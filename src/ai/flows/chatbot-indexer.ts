@@ -1,13 +1,13 @@
 'use server';
 /**
- * @fileOverview This file defines the knowledge base indexer and retriever for the chatbot.
- * It reads structured data about the driving school, processes it, and makes it
- * available for the chatbot to query.
+ * @fileOverview This file defines the knowledge base indexer and a function to retrieve
+ * information from it. It reads structured data about the driving school, processes it, 
+ * and makes it available for the chatbot to query.
  */
 
 import { ai } from '@/ai/genkit';
 import { botContextData } from '@/lib/bot-data';
-import { Document, DocumentSource, RetrieverRequest } from 'genkit';
+import { Document, DocumentSource } from 'genkit';
 
 const SCHOOL_KNOWLEDGE_INDEX = 'schoolKnowledge';
 
@@ -46,7 +46,7 @@ function formatKnowledgeBase(): DocumentSource {
 
 // Define an indexer for the school's knowledge base.
 // An indexer is responsible for loading and chunking documents.
-const schoolKnowledgeIndexer = ai.defineIndexer(
+export const schoolKnowledgeIndexer = ai.defineIndexer(
   {
     name: SCHOOL_KNOWLEDGE_INDEX,
   },
@@ -62,28 +62,13 @@ const schoolKnowledgeIndexer = ai.defineIndexer(
   }
 );
 
-// Define a retriever that uses the indexer.
-// A retriever is a tool that the AI can use to find relevant information.
-export const schoolKnowledgeRetriever = ai.defineRetriever(
-  {
-    name: 'schoolKnowledgeRetriever',
-    description: 'Provides information about the driving school, including courses, prices, schedules, policies, and the driving program.',
-  },
-  async () => {
-    return {
-      // The `retrieve` function is called to get the most relevant documents for the input query.
-      retrieve: async (request: RetrieverRequest) => {
-        const index = await schoolKnowledgeIndexer();
-        // A Document's content is an array of Parts. We need to extract the text from them.
-        const queryText = request.query.content
-          .map((part) => part.text || '')
-          .join(' ');
-        return {
-          documents: await index.search(queryText, {
-            k: 5, // Return the top 5 most relevant chunks.
-          }),
-        };
-      },
-    };
-  }
-);
+/**
+ * Retrieves relevant documents from the school's knowledge base.
+ * @param query The user's question as a string.
+ * @returns A promise that resolves to an array of relevant documents.
+ */
+export async function retrieveSchoolKnowledge(query: string): Promise<Document[]> {
+    const index = await schoolKnowledgeIndexer();
+    const results = await index.search(query, { k: 5 });
+    return results;
+}
