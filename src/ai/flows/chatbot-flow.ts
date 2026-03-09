@@ -9,7 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z, Document } from 'genkit';
 import { schoolKnowledgeRetriever } from './chatbot-indexer';
 
 const SimpleChatInputSchema = z.object({
