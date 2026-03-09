@@ -11,8 +11,9 @@ import { Document, DocumentSource } from 'genkit';
 
 const SCHOOL_KNOWLEDGE_INDEX = 'schoolKnowledge';
 
-// This function converts the structured knowledge base into a single string.
-function formatKnowledgeBase(): DocumentSource {
+// This function converts the structured knowledge base into smaller, chunked documents.
+function formatKnowledgeBase(): DocumentSource[] {
+  const sources: DocumentSource[] = [];
   const {
     informacionGeneral,
     catalogoCursos,
@@ -24,24 +25,30 @@ function formatKnowledgeBase(): DocumentSource {
     reglamentoTransito,
   } = botContextData;
 
-  // Combine all data into a single text block for indexing.
-  const content = `
-    Información General: ${JSON.stringify(informacionGeneral)}
-    Catálogo de Cursos: ${JSON.stringify(catalogoCursos)}
-    Proceso para Agendar: ${procesoAgendar.join('; ')}
-    Métodos de Pago: ${JSON.stringify(metodosPago)}
-    Políticas Importantes: ${JSON.stringify(politicas)}
-    Preguntas Frecuentes: ${JSON.stringify(preguntasFrecuentes)}
-    Programa del Curso: ${JSON.stringify(programaDelCurso)}
-    Reglamento de Tránsito: ${reglamentoTransito}
-  `;
+  sources.push({ content: `Información General: ${JSON.stringify(informacionGeneral)}`, metadata: { source: 'general' } });
+  sources.push({ content: `Catálogo de Cursos: ${JSON.stringify(catalogoCursos)}`, metadata: { source: 'courses' } });
+  sources.push({ content: `Proceso para Agendar: ${procesoAgendar.join('; ')}`, metadata: { source: 'scheduling' } });
+  sources.push({ content: `Métodos de Pago: ${JSON.stringify(metodosPago)}`, metadata: { source: 'payment' } });
+  sources.push({ content: `Políticas Importantes: ${JSON.stringify(politicas)}`, metadata: { source: 'policies' } });
+  
+  preguntasFrecuentes.forEach(faq => {
+      sources.push({ content: `Pregunta Frecuente: ${faq.pregunta}\nRespuesta: ${faq.respuesta}`, metadata: { source: 'faq' } });
+  });
 
-  return {
-    content,
-    metadata: {
-      source: 'internal knowledge base',
-    },
-  };
+  programaDelCurso.forEach(section => {
+      const sectionContent = section.content.map(c => `${c.heading ? c.heading + ': ' : ''}${c.points.join(', ')}`).join('\n');
+      sources.push({ content: `Programa del Curso - ${section.title}: ${sectionContent}`, metadata: { source: 'program' } });
+  });
+
+  // Split the large traffic regulation string into smaller chunks by article.
+  const chunks = reglamentoTransito.split('Artículo').filter(c => c.trim());
+  chunks.forEach(chunk => {
+      if (chunk.trim()) {
+          sources.push({ content: `Reglamento de Tránsito: Artículo ${chunk.trim()}`, metadata: { source: 'traffic_rules' } });
+      }
+  });
+
+  return sources;
 }
 
 // Define an indexer for the school's knowledge base.
@@ -54,8 +61,9 @@ export const schoolKnowledgeIndexer = ai.defineIndexer(
     // The loader function is called to get the documents to index.
     return {
       loader: () => {
+        const sources = formatKnowledgeBase();
         return {
-          documents: [Document.fromSource(formatKnowledgeBase())],
+          documents: sources.map(source => Document.fromSource(source)),
         };
       },
     };
