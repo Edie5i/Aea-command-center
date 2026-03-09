@@ -8,7 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { Document, z } from 'genkit';
 import { retrieveSchoolKnowledge } from './chatbot-indexer';
 
 const SimpleChatInputSchema = z.object({
@@ -27,7 +27,9 @@ export async function simpleChat(
   try {
     // Step 1: Explicitly retrieve relevant context from the knowledge base.
     const contextDocuments = await retrieveSchoolKnowledge(input.message);
-    const contextText = contextDocuments.map(doc => doc.content.map(part => part.text).join('\n')).join('\n\n---\n\n');
+    
+    // Convert documents to a single string context, using a robust helper.
+    const contextText = contextDocuments.map(doc => Document.contentAsString(doc)).join('\n\n---\n\n');
 
     // Step 2: Call the generative model with the user's message and the retrieved context.
     const result = await ai.generate({
