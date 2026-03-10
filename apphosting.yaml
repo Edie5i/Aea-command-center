@@ -5,8 +5,4 @@ runConfig:
 
 env:
   - variable: GOOGLE_GENERATIVE_AI_API_KEY
-    secret: GOOGLE_GENERATIVE_AI_API_KEY
-  - variable: GOOGLE_CALENDAR_ID
-    secret: GOOGLE_CALENDAR_ID
-  - variable: WHATSAPP_VERIFY_TOKEN
-    secret: WHATSAPP_VERIFY_TOKEN
+    value: "AIzaSyCkTKnnYTl14CuA30TI06e9Bwonc84Wmrg"
