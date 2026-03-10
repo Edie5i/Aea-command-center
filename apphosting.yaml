@@ -6,3 +6,7 @@ runConfig:
   maxInstances: 2
   cpu: 1
   memoryMiB: 1024
+secretEnvironmentVariables:
+  - secret: GOOGLE_GENERATIVE_AI_API_KEY
+  - secret: GOOGLE_CALENDAR_ID
+  - secret: WHATSAPP_VERIFY_TOKEN
