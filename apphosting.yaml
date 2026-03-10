@@ -1,12 +1,9 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
-
-# Configuración para Auto Escuela Americana
+# Configuración Final Auto Escuela Americana
 runConfig:
   maxInstances: 2
   cpu: 1
   memoryMiB: 1024
-secretEnvironmentVariables:
-  - secret: GOOGLE_GENERATIVE_AI_API_KEY
-  - secret: GOOGLE_CALENDAR_ID
-  - secret: WHATSAPP_VERIFY_TOKEN
+
+env:
+  - variable: GOOGLE_GENERATIVE_AI_API_KEY
+    value: "AIzaSyBbVrQuMLvDxSiPa-ZI5RS_asDct20zBZQ"
