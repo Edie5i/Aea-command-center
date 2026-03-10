@@ -6,7 +6,3 @@ runConfig:
   maxInstances: 2
   cpu: 1
   memoryMiB: 1024
-
-env:
-  - variable: GOOGLE_GENERATIVE_AI_API_KEY
-value:"AIzaSyBbVrQuMLvDxSiPa-ZI5RS_asDct2OzBZQ"
