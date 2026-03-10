@@ -1,3 +1,4 @@
+
 'use server';
 import { NextRequest, NextResponse } from 'next/server';
 import { simpleChat } from '@/ai/flows/chatbot-flow';
@@ -62,45 +63,57 @@ async function sendWhatsappMessage(to: string, text: string) {
   }
 }
 
-
-/**
- * Handles incoming WhatsApp messages via POST request from Meta.
- */
-export async function POST(request: NextRequest) {
-  const body = await request.json();
-  console.log('Incoming webhook body:', JSON.stringify(body, null, 2));
-
-  // Check if it's a valid WhatsApp message notification
-  if (body.object === 'whatsapp_business_account' && body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
-    const messageData = body.entry[0].changes[0].value.messages[0];
-
+async function handleMessage(messageData: any) {
     // Ignore status updates and non-text messages
     if (messageData.type !== 'text') {
-        // Acknowledge event but do nothing
-        return new NextResponse('EVENT_RECEIVED_NON_TEXT', { status: 200 });
+        console.log('Ignoring non-text message.');
+        return;
     }
 
     const userMessage = messageData.text.body;
     const userPhoneNumber = messageData.from;
 
     try {
-      // Get a response from the chatbot AI
-      const chatbotResponse = await simpleChat({ message: userMessage });
-      const replyText = chatbotResponse.response;
+        // Get a response from the chatbot AI
+        const chatbotResponse = await simpleChat({ message: userMessage });
+        const replyText = chatbotResponse.response;
 
-      if (replyText) {
-        // Send the response back to the user
-        await sendWhatsappMessage(userPhoneNumber, replyText);
-      } else {
-        console.log("Chatbot returned an empty response.");
-        await sendWhatsappMessage(userPhoneNumber, "No pude procesar tu solicitud en este momento.");
-      }
-
+        if (replyText) {
+            // Send the response back to the user
+            await sendWhatsappMessage(userPhoneNumber, replyText);
+        } else {
+            console.log("Chatbot returned an empty response.");
+            await sendWhatsappMessage(userPhoneNumber, "No pude procesar tu solicitud en este momento.");
+        }
     } catch (error) {
-      console.error("Error processing message with chatbot:", error);
-      // Send a generic error message back to the user
-      await sendWhatsappMessage(userPhoneNumber, "Lo siento, estoy teniendo problemas para procesar tu solicitud. Por favor, intenta de nuevo más tarde.");
+        console.error("Error processing message with chatbot:", error);
+        // Send a generic error message back to the user
+        await sendWhatsappMessage(userPhoneNumber, "Lo siento, estoy teniendo problemas para procesar tu solicitud. Por favor, intenta de nuevo más tarde.");
     }
+}
+
+
+/**
+ * Handles incoming WhatsApp messages via POST request from Meta.
+ * This function now acknowledges the request immediately and processes the message asynchronously.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    console.log('Incoming webhook body:', JSON.stringify(body, null, 2));
+
+    // Check if it's a valid WhatsApp message notification
+    if (body.object === 'whatsapp_business_account' && body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
+      const messageData = body.entry[0].changes[0].value.messages[0];
+      
+      // Process the message asynchronously without awaiting
+      handleMessage(messageData).catch(error => {
+        console.error("Error in detached message handling:", error);
+      });
+
+    }
+  } catch (error) {
+      console.error("Error parsing webhook body:", error);
   }
 
   // Acknowledge the event immediately to prevent Meta from resending.
