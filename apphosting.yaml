@@ -2,9 +2,7 @@ runConfig:
   maxInstances: 2
   cpu: 1
   memoryMiB: 1024
-secretEnv:
-  - key: GOOGLE_GENERATIVE_AI_API_KEY
-  - key: GOOGLE_CALENDAR_ID
-  - key: WHATSAPP_VERIFY_TOKEN
-  - key: WHATSAPP_ACCESS_TOKEN
-  - key: WHATSAPP_PHONE_NUMBER_ID
+
+env:
+  - variable: GOOGLE_GENERATIVE_AI_API_KEY
+    value: "AIzaSyCkTKnnYTl14CuA30TI06e9Bwonc84Wmrg"
