@@ -40,9 +40,9 @@ async function getCalendarClient() {
   const auth = new GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/calendar'],
   });
-  const authClient = await auth.getClient();
-  return google.calendar({ version: 'v3', auth: authClient });
-}
+  const authClient as any = await auth.getClient ();
+  return google.calendar({ version: 'v3', auth: authClient as any });
+});
 
 export const createCalendarEvent = ai.defineFlow(
   {
