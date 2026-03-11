@@ -1,8 +1,7 @@
 runConfig:
-  maxInstances: 2
   cpu: 1
   memoryMiB: 1024
-
+  maxInstances: 2
 secretEnv:
   - key: GOOGLE_GENERATIVE_AI_API_KEY
     secret: GOOGLE_GENERATIVE_AI_API_KEY
