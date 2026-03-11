@@ -33,6 +33,12 @@ const nextConfig = {
         hostname: 'app.autoescuelaamericana.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
