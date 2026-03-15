@@ -39,7 +39,7 @@ async function getCalendarClient() {
     scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
   });
   const authClient = await auth.getClient();
-  return google.calendar({ version: 'v3', auth: authClient });
+  return google.calendar({ version: 'v3', auth: authClient as any });
 }
 
 // Helper to get start and end of the current week (Monday to Sunday)

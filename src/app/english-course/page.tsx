@@ -392,8 +392,8 @@ export default function EnglishCoursePage() {
                     <div className="space-y-4 text-muted-foreground">
                       {section.content.map((contentBlock, blockIndex) => (
                         <div key={blockIndex}>
-                          {contentBlock.heading && (
-                            <h4 className="font-semibold text-foreground mb-2">{contentBlock.heading}</h4>
+                          {(contentBlock as any).heading && (
+                            <h4 className="font-semibold text-foreground mb-2">{(contentBlock as any).heading}</h4>
                           )}
                           <ul className="list-disc space-y-2 pl-6">
                             {contentBlock.points.map((item, itemIndex) => (
