@@ -1,6 +1,6 @@
 runConfig:
   cpu: 1
-  memoryMiB: 1024
+  memoryMiB: 2048
 secretEnv:
   - key: GOOGLE_GENERATIVE_AI_API_KEY
     secret: GOOGLE_GENERATIVE_AI_API_KEY
