@@ -49,6 +49,7 @@ const timeSlots = ["07:00", "10:00", "13:00", "16:00", "19:00"];
 export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
+  const [calendarLink, setCalendarLink] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<ScheduleFormValues>({
@@ -84,6 +85,7 @@ export default function AgendaPage() {
   const handleNewSchedule = () => {
     setCourseScheduled(false);
     setSelectedDates([]);
+    setCalendarLink(null);
     form.reset();
   };
 
@@ -108,7 +110,34 @@ export default function AgendaPage() {
     }
 
     try {
-      // 1. Generate PDF
+      // 1. Create Calendar Event FIRST to ensure availability
+      const eventCreationResult = await createCalendarEventAction({
+        studentName: values.name,
+        phone: values.phone,
+        address: values.address,
+        transmission: values.transmission,
+        isMinor: values.isMinor,
+        notes: values.notes,
+        classDates: selectedDates.map(d => ({
+            date: format(d.date, 'yyyy-MM-dd'),
+            time: d.time!
+        }))
+      });
+
+      if (!eventCreationResult.success) {
+          toast({
+              variant: 'destructive',
+              title: 'Error de Calendario',
+              description: eventCreationResult.error || 'No se pudo crear el evento. Revisa que el ID del calendario esté bien configurado.',
+          });
+          return; // Stop if calendar event fails
+      }
+      
+      if (eventCreationResult.link) {
+          setCalendarLink(eventCreationResult.link);
+      }
+
+      // 2. Generate PDF
       const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
@@ -186,29 +215,6 @@ export default function AgendaPage() {
 
       doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
-      // 2. Create Calendar Event
-      const eventCreationResult = await createCalendarEventAction({
-        studentName: values.name,
-        phone: values.phone,
-        address: values.address,
-        transmission: values.transmission,
-        isMinor: values.isMinor,
-        notes: values.notes,
-        classDates: selectedDates.map(d => ({
-            date: format(d.date, 'yyyy-MM-dd'),
-            time: d.time!
-        }))
-      });
-
-      if (!eventCreationResult.success) {
-          toast({
-              variant: 'destructive',
-              title: 'Error de Calendario',
-              description: eventCreationResult.error || 'No se pudo crear el evento en Google Calendar.',
-          });
-      }
-
-
       // 3. Prepare WhatsApp message
       let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
       message += `*Nombre:* ${values.name}\n`;
@@ -232,7 +238,7 @@ export default function AgendaPage() {
       window.open(whatsappUrl, '_blank');
 
       setCourseScheduled(true);
-      toast({ title: '¡Ficha Generada!', description: 'Tu solicitud fue registrada. Se descargó tu ficha y se abrirá WhatsApp para que la envíes.' });
+      toast({ title: '¡Solicitud Registrada!', description: 'Tu clase fue agendada, se descargó tu ficha y se abrirá WhatsApp.' });
     
     } catch (e) {
       console.error("Operation failed: ", e);
@@ -302,7 +308,7 @@ export default function AgendaPage() {
                             ¡Solicitud de Inscripción Enviada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu ficha se ha descargado y se ha preparado un mensaje en WhatsApp para que lo envíes junto con el PDF. Un asesor confirmará los horarios a la brevedad.
+                            La clase se agendó en Google Calendar, tu ficha se descargó y se preparó un mensaje en WhatsApp. ¡Envía ambos al asesor para confirmar!
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
@@ -310,6 +316,14 @@ export default function AgendaPage() {
                             <CalendarCheck className="mr-2 h-4 w-4" />
                             Agendar Otro Curso
                         </Button>
+                        {calendarLink && (
+                          <Button asChild>
+                            <a href={calendarLink} target="_blank" rel="noopener noreferrer">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              Ver Evento en Calendario
+                            </a>
+                          </Button>
+                        )}
                         <Button asChild>
                             <Link href="/pagos">
                                 <CreditCard className="mr-2 h-4 w-4" />
