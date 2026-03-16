@@ -1,9 +1,10 @@
+
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, BarChart3, FileQuestion, Users, MessageSquare } from 'lucide-react';
+import { Calendar, Users, MessageSquare } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 
 export default function AdminPage() {
@@ -29,6 +30,20 @@ export default function AdminPage() {
               <Button asChild>
                 <Link href="/admin/calendario">
                   Ver Calendario Semanal
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Users className="text-primary"/> Gestión de Alumnos</CardTitle>
+              <CardDescription>Ver info de contacto y cursos de los alumnos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link href="/admin/alumnos">
+                  Ver Alumnos
                 </Link>
               </Button>
             </CardContent>
