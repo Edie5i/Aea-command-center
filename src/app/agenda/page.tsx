@@ -109,42 +109,54 @@ export default function AgendaPage() {
         return;
     }
 
+    // --- Step 1: Create Calendar Event (Primary Action) ---
+    const eventCreationResult = await createCalendarEventAction({
+      studentName: values.name,
+      phone: values.phone,
+      address: values.address,
+      transmission: values.transmission,
+      isMinor: values.isMinor,
+      notes: values.notes,
+      classDates: selectedDates.map(d => ({
+          date: format(d.date, 'yyyy-MM-dd'),
+          time: d.time!
+      }))
+    });
+
+    // If calendar event fails, stop everything and show a specific error.
+    if (!eventCreationResult.success) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Calendario',
+            description: eventCreationResult.error || 'No se pudo agendar la clase. Revisa que el ID del calendario esté bien configurado y que la app tenga permisos.',
+        });
+        // Manually reset submitting state if it's managed by a parent component
+        // For react-hook-form, isSubmitting is handled automatically, but we might need to re-enable the button if we stop here.
+        return;
+    }
+
+    // --- Calendar event was successful! ---
+    // Update the UI immediately to reflect success.
+    setCourseScheduled(true);
+    if (eventCreationResult.link) {
+      setCalendarLink(eventCreationResult.link);
+    }
+    toast({
+        title: '¡Clase Agendada Correctamente!',
+        description: 'Tu curso fue registrado en el calendario.',
+        className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
+    });
+
+
+    // --- Step 2: Try to run secondary actions (PDF & WhatsApp) ---
     try {
-      // 1. Create Calendar Event FIRST to ensure availability
-      const eventCreationResult = await createCalendarEventAction({
-        studentName: values.name,
-        phone: values.phone,
-        address: values.address,
-        transmission: values.transmission,
-        isMinor: values.isMinor,
-        notes: values.notes,
-        classDates: selectedDates.map(d => ({
-            date: format(d.date, 'yyyy-MM-dd'),
-            time: d.time!
-        }))
-      });
-
-      if (!eventCreationResult.success) {
-          toast({
-              variant: 'destructive',
-              title: 'Error de Calendario',
-              description: eventCreationResult.error || 'No se pudo crear el evento. Revisa que el ID del calendario esté bien configurado.',
-          });
-          return; // Stop if calendar event fails
-      }
-      
-      if (eventCreationResult.link) {
-          setCalendarLink(eventCreationResult.link);
-      }
-
-      // 2. Generate PDF
       const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
+      // PDF Generation Logic...
       const headerBlue = '#1D4ED8';
       doc.setFillColor(headerBlue);
       doc.rect(0, 0, 210, 30, 'F');
-      
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor('#FFFFFF');
@@ -215,7 +227,7 @@ export default function AgendaPage() {
 
       doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
-      // 3. Prepare WhatsApp message
+      // WhatsApp Message Logic...
       let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
       message += `*Nombre:* ${values.name}\n`;
       if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
@@ -237,16 +249,13 @@ export default function AgendaPage() {
       const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
 
-      setCourseScheduled(true);
-      toast({ title: '¡Solicitud Registrada!', description: 'Tu clase fue agendada, se descargó tu ficha y se abrirá WhatsApp.' });
-    
     } catch (e) {
-      console.error("Operation failed: ", e);
-      toast({
-        variant: 'destructive',
-        title: 'Error Inesperado',
-        description: 'No se pudo registrar la solicitud o generar el PDF. Por favor, inténtalo de nuevo.',
-      });
+        console.error("Secondary action (PDF/WhatsApp) failed: ", e);
+        toast({
+            variant: 'destructive',
+            title: 'Error en Pasos Secundarios',
+            description: 'Tu clase SÍ fue agendada, pero hubo un problema al generar la ficha o abrir WhatsApp. Por favor, contacta a un asesor.',
+        });
     }
   }
 
@@ -305,10 +314,10 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Solicitud de Inscripción Enviada!
+                            ¡Solicitud de Inscripción Registrada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            La clase se agendó en Google Calendar, tu ficha se descargó y se preparó un mensaje en WhatsApp. ¡Envía ambos al asesor para confirmar!
+                            Tu clase se ha agendado con éxito en nuestro calendario. Los siguientes pasos (ficha y WhatsApp) pueden haber fallado, pero tu lugar está asegurado. Contacta a un asesor si necesitas ayuda.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
