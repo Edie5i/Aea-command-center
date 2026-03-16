@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getWeeklySchedule as getWeeklyScheduleFlow, type WeeklySchedule } from '@/ai/flows/get-weekly-schedule';
