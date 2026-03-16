@@ -101,10 +101,8 @@ export const getWeeklySchedule = ai.defineFlow(
             const eventDate = new Date(event.start.dateTime);
             const dayName = dayMapping[eventDate.getDay()] as keyof WeeklySchedule;
             
-            // Extract transmission from description if available
-            const description = event.description || '';
-            const transmissionMatch = description.match(/Transmisión: (Automático|Estándar)/);
-            const transmission = transmissionMatch ? transmissionMatch[1] : 'No especificada';
+            const props = event.extendedProperties?.private || {};
+            const transmission = props.transmission || 'No especificada';
 
             schedule[dayName].push({
                 studentName: event.summary,

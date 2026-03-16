@@ -68,14 +68,10 @@ export const getStudentsFlow = ai.defineFlow(
       if (event.start?.dateTime && event.summary && event.summary.toLowerCase().startsWith('clase: ')) {
         const studentName = event.summary.substring(7); // Remove "Clase: "
         
-        const description = event.description || '';
-        const phoneMatch = description.match(/<b>Teléfono:<\/b> (.*?)(<br>|$)/);
-        const addressMatch = description.match(/<b>Punto de Encuentro:<\/b> (.*?)(<br>|$)/);
-        const transmissionMatch = description.match(/<b>Transmisión:<\/b> (.*?)(<br>|$)/);
-        
-        const phone = phoneMatch ? phoneMatch[1].trim() : 'No disponible';
-        const address = addressMatch ? addressMatch[1].trim() : 'No disponible';
-        const transmission = transmissionMatch ? transmissionMatch[1].trim() : 'No especificada';
+        const props = event.extendedProperties?.private || {};
+        const phone = props.phone || 'No disponible';
+        const address = props.address || 'No disponible';
+        const transmission = props.transmission || 'No especificada';
         const classDate = format(new Date(event.start.dateTime), "EEE, d 'de' MMM, h:mm a", { locale: es });
 
         if (studentMap.has(studentName)) {

@@ -3,7 +3,8 @@
  * @fileOverview A Genkit flow for creating Google Calendar events.
  *
  * This flow authenticates with Google Calendar and creates a new event
- * for each class session requested by the student.
+ * for each class session requested by the student, storing details
+ * in extendedProperties for robust retrieval.
  */
 
 import { ai } from '@/ai/genkit';
@@ -90,6 +91,15 @@ export const createCalendarEvent = ai.defineFlow(
             dateTime: endTime.toISOString(),
             timeZone: 'America/Mexico_City',
           },
+          extendedProperties: {
+            private: {
+              phone: input.phone,
+              address: input.address,
+              transmission: input.transmission,
+              isMinor: String(input.isMinor || false),
+              notes: input.notes || '',
+            }
+          }
         };
 
         const createdEvent = await calendar.events.insert({
