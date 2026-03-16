@@ -52,10 +52,10 @@ export default function Home() {
         <header className="flex flex-col items-center text-center my-8 px-4">
           <LogoDigital size="large" />
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground mt-8">
-            Auto Escuela Americana
+            Bienvenido a Auto Escuela Americana
           </h1>
           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            Cursos de manejo para todos los niveles
+            Tu camino hacia la confianza al volante comienza aquí.
           </p>
           <div className="mt-6">
               <Button asChild size="lg">
