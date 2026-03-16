@@ -342,7 +342,7 @@ export default function EvaluacionPage() {
                     <div key={question.id}>
                       <p className="font-semibold mb-3">{index + 1}. {question.text}</p>
                       <RadioGroup
-                        onValueChange={(value) => handleAnswerChange(question.id, value)}
+                        onValueChange={(value) => handleAnswerChange(String(question.id), value)}
                         value={form.getValues('answers')[question.id]}
                         className="space-y-2"
                       >
@@ -355,7 +355,7 @@ export default function EvaluacionPage() {
                       </RadioGroup>
                     </div>
                   ))}
-                   {form.formState.errors.answers && <p className="text-sm font-medium text-destructive">{form.formState.errors.answers.message}</p>}
+                   {form.formState.errors.answers && <p className="text-sm font-medium text-destructive">{String(form.formState.errors.answers?.message || "")}</p>}
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Button type="submit" disabled={!isFormComplete || form.formState.isSubmitting}>
