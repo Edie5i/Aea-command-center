@@ -1,7 +1,6 @@
 
 'use server';
 import { NextRequest, NextResponse } from 'next/server';
-import { simpleChat } from '@/ai/flows/chatbot-flow';
 
 /**
  * Handles the webhook verification GET request from Meta.
@@ -70,26 +69,10 @@ async function handleMessage(messageData: any) {
         return;
     }
 
-    const userMessage = messageData.text.body;
     const userPhoneNumber = messageData.from;
-
-    try {
-        // Get a response from the chatbot AI
-        const chatbotResponse = await simpleChat({ message: userMessage });
-        const replyText = chatbotResponse.response;
-
-        if (replyText) {
-            // Send the response back to the user
-            await sendWhatsappMessage(userPhoneNumber, replyText);
-        } else {
-            console.log("Chatbot returned an empty response.");
-            await sendWhatsappMessage(userPhoneNumber, "No pude procesar tu solicitud en este momento.");
-        }
-    } catch (error) {
-        console.error("Error processing message with chatbot:", error);
-        // Send a generic error message back to the user
-        await sendWhatsappMessage(userPhoneNumber, "Lo siento, estoy teniendo problemas para procesar tu solicitud. Por favor, intenta de nuevo más tarde.");
-    }
+    const replyText = "Gracias por contactar a Auto Escuela Americana. Un asesor te responderá a la brevedad.";
+    
+    await sendWhatsappMessage(userPhoneNumber, replyText);
 }
 
 
