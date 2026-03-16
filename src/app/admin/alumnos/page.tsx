@@ -76,11 +76,21 @@ export default function AlumnosPage() {
                 <p className="text-lg">Cargando alumnos...</p>
               </div>
             ) : error ? (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error al Cargar</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              error.includes('GOOGLE_CALENDAR_ID') ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error de Configuración</AlertTitle>
+                  <AlertDescription>
+                    Falta la configuración de `GOOGLE_CALENDAR_ID`. Para que la app funcione, este secreto debe estar configurado en tu entorno.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error al Cargar</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )
             ) : students && students.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>

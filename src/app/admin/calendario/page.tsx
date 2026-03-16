@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Loader2, User, Clock, Car } from 'lucide-react';
+import { ArrowLeft, Calendar, Loader2, User, Clock, Car, AlertCircle } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getWeeklySchedule, type WeeklySchedule } from './actions';
@@ -71,14 +71,23 @@ export default function CalendarioSemanalPage() {
               <p className="text-lg">Cargando calendario...</p>
             </div>
           ) : error ? (
-            <Alert variant="destructive">
-              <AlertTitle>Error de Configuración</AlertTitle>
-              <AlertDescription>
-                No se pudo cargar el calendario. Por favor, asegúrate de que la variable de entorno `GOOGLE_CALENDAR_ID` esté configurada correctamente y que la cuenta de servicio tenga permisos para acceder al calendario.
-                <br />
-                <code className="text-xs bg-muted p-1 rounded-sm mt-2 block">{error}</code>
-              </AlertDescription>
-            </Alert>
+            error.includes('GOOGLE_CALENDAR_ID') ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error de Configuración</AlertTitle>
+                <AlertDescription>
+                  Falta la configuración de `GOOGLE_CALENDAR_ID`. Para que la app funcione, este secreto debe estar configurado en tu entorno.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error al Cargar</AlertTitle>
+                <AlertDescription>
+                  {`Ocurrió un error al cargar el calendario: ${error}`}
+                </AlertDescription>
+              </Alert>
+            )
           ) : schedule ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
               {Object.entries(schedule).map(([day, courses]) => (
