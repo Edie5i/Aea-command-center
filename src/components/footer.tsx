@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Link2 } from 'lucide-react';
+import { Link2, Shield } from 'lucide-react';
 
 export function AppFooter() {
   const { toast } = useToast();
@@ -34,12 +33,17 @@ export function AppFooter() {
           app.autoescuelaamericana.com
         </a>
       </p>
-      <p className="mt-2">
+      <div className="mt-4 flex justify-center items-center gap-4">
         <Link href="/terminos" className="hover:underline">
           Términos y Condiciones
         </Link>
-      </p>
-      <p className="mt-2">
+        <span className="text-muted-foreground">|</span>
+        <Link href="/admin" className="hover:underline inline-flex items-center gap-1.5">
+          <Shield className="h-3 w-3" />
+          Panel de Administrador
+        </Link>
+      </div>
+      <p className="mt-4">
         Powered by Next.js and Genkit.
       </p>
     </footer>
