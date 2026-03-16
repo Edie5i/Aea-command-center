@@ -1,0 +1,5 @@
+[33m5595fad[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m configuro next.js para firebase
+[33m1ab841d[m line 345
+[33md09ddae[m runConfig:   cpu: 1   memoryMiB: 1024
+[33ma859bc6[m arregla para que se pueda publicar
+[33md18e486[m "message"
