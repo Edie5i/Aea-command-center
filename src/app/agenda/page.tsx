@@ -104,73 +104,33 @@ export default function AgendaPage() {
         const { default: jsPDF } = await import('jspdf');
         const doc = new jsPDF();
         
-        const headerBlue = '#1D4ED8';
-        doc.setFillColor(headerBlue);
-        doc.rect(0, 0, 210, 30, 'F');
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor('#FFFFFF');
-        doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center' });
-
-        let y = 45;
-        const leftMargin = 20;
-        const rightColumn = 115;
-        
-        const addSectionTitle = (title: string, newY: number) => {
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(headerBlue);
-            doc.text(title, leftMargin, newY);
-            return newY + 8;
-        };
-        
-        const addDataRow = (label: string, value: string, currentY: number) => {
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor('#666666');
-            doc.text(label, leftMargin, currentY);
-            doc.setTextColor('#000000');
-            doc.text(value, rightColumn, currentY, { align: 'left' });
-            return currentY + 7;
+        let y = 20;
+        const addText = (text: string, isTitle = false) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.setFont('helvetica', isTitle ? 'bold' : 'normal');
+            doc.setFontSize(isTitle ? 16 : 11);
+            doc.text(text, 15, y);
+            y += isTitle ? 10 : 7;
         };
 
-        y = addSectionTitle('DATOS DEL ALUMNO Y CURSO', y);
-        y = addDataRow('Nombre Completo:', values.name, y);
-        y = addDataRow('Teléfono de Contacto:', values.phone, y);
-        y = addDataRow('Tipo de Transmisión:', values.transmission, y);
-        if (values.isMinor) y = addDataRow('Modalidad:', 'Menor de Edad', y);
+        addText('Ficha de Inscripción - Auto Escuela Americana', true);
         y += 5;
 
-        y = addSectionTitle('PUNTO DE ENCUENTRO', y);
-        doc.setFontSize(10);
-        doc.setTextColor('#000000');
-        const addressLines = doc.splitTextToSize(values.address, 170);
-        doc.text(addressLines, leftMargin, y);
-        y += (addressLines.length * 5) + 5;
+        addText(`Nombre del Alumno: ${values.name}`);
+        addText(`Teléfono de Contacto: ${values.phone}`);
+        addText(`Tipo de Transmisión: ${values.transmission}`);
+        if (values.isMinor) addText('Modalidad: El curso es para un menor de edad');
+        addText(`Punto de Encuentro: ${values.address}`);
+        if (values.notes) addText(`Notas Adicionales: ${values.notes}`);
 
-        y = addSectionTitle('FECHAS Y HORARIOS SOLICITADOS', y);
-        doc.setFontSize(10);
-        doc.setTextColor('#000000');
+        y += 5;
+        addText('Fechas y Horarios Solicitados:', true);
+
         dates.forEach(item => {
-            if (y > 260) { doc.addPage(); y = 20; }
-            const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-            doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${formattedTime}`, leftMargin, y);
-            y += 6;
+            const formattedTime = item.time ? format(parse(item.time, 'HH:mm', new Date()), 'h:mm a') : 'Sin hora';
+            const formattedDate = format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+            addText(`• ${formattedDate} a las ${formattedTime}`);
         });
-        y += 5;
-
-        if (values.notes) {
-            y = addSectionTitle('NOTAS ADICIONALES', y);
-            doc.setFontSize(10);
-            const noteLines = doc.splitTextToSize(values.notes, 170);
-            doc.text(noteLines, leftMargin, y);
-        }
-        
-        doc.setFillColor(headerBlue);
-        doc.rect(0, 282, 210, 15, 'F');
-        doc.setFontSize(9);
-        doc.setTextColor('#FFFFFF');
-        doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | app.autoescuelaamericana.com`, 105, 288, { align: 'center' });
 
         doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
 
@@ -212,48 +172,57 @@ export default function AgendaPage() {
 
 
   async function onSubmit(values: ScheduleFormValues) {
-    if (selectedDates.length === 0) {
-        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
-        return;
-    }
-    if (!selectedDates.every(d => !!d.time)) {
-        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
-        return;
-    }
+    try {
+        if (selectedDates.length === 0) {
+            toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
+            return;
+        }
+        if (!selectedDates.every(d => !!d.time)) {
+            toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
+            return;
+        }
 
-    const eventCreationResult = await createCalendarEventAction({
-      studentName: values.name,
-      phone: values.phone,
-      address: values.address,
-      transmission: values.transmission,
-      isMinor: values.isMinor,
-      notes: values.notes,
-      classDates: selectedDates.map(d => ({
-          date: format(d.date, 'yyyy-MM-dd'),
-          time: d.time!
-      }))
-    });
+        const eventCreationResult = await createCalendarEventAction({
+          studentName: values.name,
+          phone: values.phone,
+          address: values.address,
+          transmission: values.transmission,
+          isMinor: values.isMinor,
+          notes: values.notes,
+          classDates: selectedDates.map(d => ({
+              date: format(d.date, 'yyyy-MM-dd'),
+              time: d.time!
+          }))
+        });
 
-    if (!eventCreationResult.success) {
+        if (!eventCreationResult.success) {
+            toast({
+                variant: 'destructive',
+                title: 'Error al Agendar',
+                description: eventCreationResult.error || 'No se pudo registrar la solicitud en el calendario.',
+            });
+            return;
+        }
+
+        setCourseScheduled(true);
+        if (eventCreationResult.link) {
+          setCalendarLink(eventCreationResult.link);
+        }
+        setLastSubmission({ values, dates: selectedDates });
+        
+        toast({
+            title: '¡Solicitud Registrada!',
+            description: 'Tu curso fue agendado. Ahora puedes descargar tu ficha.',
+            className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
+        });
+    } catch (error) {
+        console.error("An unexpected error occurred in onSubmit:", error);
         toast({
             variant: 'destructive',
-            title: 'Error de Calendario',
-            description: eventCreationResult.error || 'No se pudo agendar la clase. Revisa la configuración del calendario.',
+            title: 'Error Inesperado',
+            description: 'Ocurrió un error al procesar tu solicitud. Por favor, intenta de nuevo.',
         });
-        return;
     }
-
-    setCourseScheduled(true);
-    if (eventCreationResult.link) {
-      setCalendarLink(eventCreationResult.link);
-    }
-    setLastSubmission({ values, dates: selectedDates });
-    
-    toast({
-        title: '¡Clase Agendada Correctamente!',
-        description: 'Tu curso fue registrado en el calendario. Ahora puedes descargar tu ficha.',
-        className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
-    });
   }
 
   return (
