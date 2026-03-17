@@ -8,6 +8,7 @@ import { format, isPast, isToday, parse } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import jsPDF from 'jspdf';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,30 +98,93 @@ export default function AgendaPage() {
   const handleDownloadPdf = async () => {
     if (!lastSubmission) return;
 
-    toast({ title: 'Iniciando generación de PDF de prueba...' });
+    toast({ title: 'Generando PDF...' });
 
     try {
-      const { default: jsPDF } = await import('jspdf');
-      const { values } = lastSubmission;
+      const { values, dates } = lastSubmission;
       
       const doc = new jsPDF();
       
-      doc.text("PRUEBA DE PDF", 10, 10);
-      doc.text(`Nombre: ${values.name}`, 10, 20);
-      doc.text(`Telefono: ${values.phone}`, 10, 30);
-      doc.text("Si ves esto, la libreria PDF funciona.", 10, 40);
+      // Header
+      doc.setFillColor(0, 74, 173); // Dark Blue from logo
+      doc.rect(0, 0, 210, 25, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("AUTO ESCUELA AMERICANA", 105, 15, { align: 'center' });
       
-      doc.save('prueba-diagnostico.pdf');
+      // Title
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 74, 173); // Dark Blue
+      doc.text("Ficha de Inscripción", 105, 38, { align: 'center' });
+      
+      let y = 55;
 
-      toast({ title: 'PDF de diagnóstico generado.' });
+      // Student Data
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text("Datos del Alumno", 14, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Nombre: ${values.name}`, 14, y);
+      y += 7;
+      doc.text(`Teléfono: ${values.phone}`, 14, y);
+      y += 7;
+      
+      const addressLines = doc.splitTextToSize(`Punto de Encuentro: ${values.address}`, 180);
+      doc.text(addressLines, 14, y);
+      y += (addressLines.length * 5) + 2;
+
+      doc.text(`Transmisión: ${values.transmission}`, 14, y);
+      y += 7;
+
+      if (values.isMinor) {
+          doc.setFont('helvetica', 'bold');
+          doc.text("Modalidad: El curso es para un MENOR DE EDAD.", 14, y);
+          y += 7;
+          doc.setFont('helvetica', 'normal');
+      }
+
+      if (values.notes) {
+          y += 2;
+          const notesLines = doc.splitTextToSize(`Notas Adicionales: ${values.notes}`, 180);
+          doc.text(notesLines, 14, y);
+          y += (notesLines.length * 5) + 3;
+      }
+
+      y += 5; // Extra space
+
+      // Class Dates
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text("Fechas y Horarios Solicitados", 14, y);
+      y += 8;
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      dates.forEach(item => {
+          if (y > 280) { // Check for page break
+            doc.addPage();
+            y = 20;
+          }
+          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} a las ${formattedTime}`, 14, y);
+          y += 7;
+      });
+      
+      doc.save(`Ficha_${values.name.replace(/ /g, '_')}.pdf`);
+      toast({ title: 'PDF generado exitosamente.' });
 
     } catch (error) {
-      console.error("Error generando PDF de diagnóstico:", error);
+      console.error("Error al generar PDF:", error);
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast({
         variant: 'destructive',
-        title: 'Error en la Librería PDF',
-        description: `La librería falló: ${errorMessage}`,
+        title: 'Error al Generar PDF',
+        description: `Hubo un problema al crear la ficha: ${errorMessage}`,
       });
     }
   };

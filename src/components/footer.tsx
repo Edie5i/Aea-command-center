@@ -37,11 +37,6 @@ export function AppFooter() {
         <Link href="/terminos" className="hover:underline">
           Términos y Condiciones
         </Link>
-        <span className="text-muted-foreground">|</span>
-        <Link href="/admin" className="hover:underline inline-flex items-center gap-1.5">
-          <Shield className="h-3 w-3" />
-          Panel de Administrador
-        </Link>
       </div>
       <p className="mt-4">
         Powered by Next.js and Genkit.
