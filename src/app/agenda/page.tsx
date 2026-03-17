@@ -107,84 +107,31 @@ export default function AgendaPage() {
     try {
         const { default: jsPDF } = await import('jspdf');
         const doc = new jsPDF();
-        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-
-        // --- Header ---
-        doc.setFillColor(0, 74, 173); // Dark blue color for the header (#004aad)
-        doc.rect(0, 0, pageWidth, 30, 'F');
         
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(20);
-        doc.setTextColor(255, 255, 255); // White text
-        doc.text('AUTO ESCUELA AMERICANA', pageWidth / 2, 18, { align: 'center' });
-
-        let y = 45; // Start content below the header
-
-        // --- Title ---
-        doc.setFont('helvetica', 'bold');
         doc.setFontSize(18);
-        doc.setTextColor(0, 74, 173); // Dark blue color
-        doc.text('Ficha de Inscripción', 15, y);
-        y += 15;
+        doc.text('Ficha de Inscripción - Auto Escuela Americana', 15, 20);
+        
+        let y = 35;
 
-        // --- Helper functions for content ---
-        const addSectionTitle = (text: string) => {
-            if (y > pageHeight - 25) { doc.addPage(); y = 20; }
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
-            doc.setTextColor(0, 74, 173); // Dark blue
-            doc.text(text, 15, y);
-            y += 10;
-        };
-
-        const addText = (label: string, value: string) => {
-            if (y > pageHeight - 20) { doc.addPage(); y = 20; }
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.setTextColor(0, 0, 0); // Black
-            doc.text(label, 15, y);
-            
-            doc.setFont('helvetica', 'normal');
-            const valueLines = doc.splitTextToSize(value, pageWidth - 70);
-            doc.text(valueLines, 55, y);
-            y += (valueLines.length * 5) + 3;
-        };
-
-        const addListItem = (text: string) => {
-            if (y > pageHeight - 20) { doc.addPage(); y = 20; }
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
-            doc.setTextColor(50, 50, 50); // Dark Gray
-            doc.text(`• ${text}`, 20, y);
-            y += 7;
-        };
-
-        // --- Student Data ---
-        addSectionTitle('Datos del Alumno');
-        addText('Nombre:', values.name);
-        addText('Teléfono:', values.phone);
-        addText('Transmisión:', values.transmission);
+        doc.setFontSize(12);
+        doc.text(`Nombre: ${values.name}`, 15, y); y += 7;
+        doc.text(`Teléfono: ${values.phone}`, 15, y); y += 7;
+        doc.text(`Transmisión: ${values.transmission}`, 15, y); y += 7;
         if (values.isMinor) {
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(220, 53, 69); // Red color for emphasis
-          doc.text('Modalidad: El curso es para un menor de edad.', 15, y);
-          doc.setTextColor(0, 0, 0);
-          y += 7;
+          doc.text('Modalidad: El curso es para un menor de edad.', 15, y); y += 7;
         }
-        addText('P. Encuentro:', values.address);
-        if (values.notes) {
-          addText('Notas:', values.notes);
+        doc.text(`Punto de Encuentro: ${values.address}`, 15, y); y += 7;
+         if (values.notes) {
+          doc.text(`Notas: ${values.notes}`, 15, y); y += 7;
         }
 
         y += 5;
-
-        // --- Schedule ---
-        addSectionTitle('Fechas y Horarios Solicitados');
+        
+        doc.text('Fechas y Horarios Solicitados:', 15, y); y+= 7;
         dates.forEach(item => {
             const formattedTime = item.time ? format(parse(item.time, 'HH:mm', new Date()), 'h:mm a') : 'Sin hora';
             const formattedDate = format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
-            addListItem(`${formattedDate} a las ${formattedTime}`);
+            doc.text(`• ${formattedDate} a las ${formattedTime}`, 20, y); y += 7;
         });
 
         doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
@@ -194,7 +141,7 @@ export default function AgendaPage() {
         toast({
             variant: 'destructive',
             title: 'Error al Generar PDF',
-            description: 'No pudimos generar la ficha. Por favor, inténtalo de nuevo o contacta a un asesor.',
+            description: 'No pudimos generar la ficha. Por favor, inténtalo de nuevo.',
         });
     }
   };
@@ -240,7 +187,6 @@ export default function AgendaPage() {
             return;
         }
 
-        // The flow is now focused on generating the form data
         const submissionData = { values, dates: selectedDates };
         setLastSubmission(submissionData);
         setCourseScheduled(true);
