@@ -1,14 +1,12 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
 import { format, isPast, isToday, parse } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import jsPDF from 'jspdf';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,7 +54,6 @@ export default function AgendaPage() {
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [whatsAppUrl, setWhatsAppUrl] = useState('');
   const { toast } = useToast();
   
   const form = useForm<ScheduleFormValues>({
@@ -71,32 +68,6 @@ export default function AgendaPage() {
       terms: false,
     },
   });
-
-  useEffect(() => {
-    if (lastSubmission) {
-      const { values, dates } = lastSubmission;
-      let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
-      message += `*Nombre:* ${values.name}\n`;
-      if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
-      message += `*Teléfono:* ${values.phone}\n`;
-      message += `*Punto de Encuentro:* ${values.address}\n`;
-      message += `*Transmisión:* ${values.transmission}\n\n`;
-      message += `*Fechas y Horarios solicitados:*\n`;
-      dates.forEach(item => {
-          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
-      });
-      if (values.notes) {
-          message += `\n*Notas Adicionales:*\n${values.notes}\n`;
-      }
-      message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
-
-      const whatsAppNumber = "525634433212";
-      const encodedMessage = encodeURIComponent(message);
-      setWhatsAppUrl(`https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`);
-    }
-  }, [lastSubmission]);
-
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const newDates = dates || [];
@@ -126,12 +97,12 @@ export default function AgendaPage() {
     if (!lastSubmission) return;
 
     try {
+      const { default: jsPDF } = await import('jspdf');
       const { values, dates } = lastSubmission;
       const doc = new jsPDF();
 
-      // --- PDF Design ---
-      doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 58, 138); // Dark Blue
       doc.text("AUTO ESCUELA AMERICANA", 105, 20, { align: 'center' });
 
@@ -153,8 +124,9 @@ export default function AgendaPage() {
         doc.setFont('helvetica', 'bold');
         doc.text(label, 14, yPos);
         doc.setFont('helvetica', 'normal');
-        doc.text(value, 60, yPos);
-        yPos += 8;
+        const textLines = doc.splitTextToSize(value, 130);
+        doc.text(textLines, 60, yPos);
+        yPos += (textLines.length * 6) + 2;
       };
 
       addLine("Nombre:", values.name);
@@ -209,7 +181,6 @@ export default function AgendaPage() {
       doc.text("Este documento es una solicitud de inscripción. La disponibilidad será confirmada por un asesor.", 105, 280, { align: 'center' });
       doc.text("Al enviar esta solicitud, aceptas los Términos y Condiciones de Auto Escuela Americana.", 105, 285, { align: 'center' });
 
-
       doc.save('ficha-inscripcion.pdf');
       
       toast({
@@ -229,33 +200,60 @@ export default function AgendaPage() {
 
   async function onSubmit(values: ScheduleFormValues) {
     setIsProcessing(true);
+    try {
+        if (selectedDates.length === 0) {
+            throw new Error('Por favor, selecciona al menos un día.');
+        }
+        if (!selectedDates.every(d => !!d.time)) {
+            throw new Error('Selecciona un horario para cada día.');
+        }
+        
+        // This is a safe operation, just setting state
+        const submissionData = { values, dates: selectedDates };
+        setLastSubmission(submissionData);
+        setCourseScheduled(true);
+        
+        toast({
+            title: '¡Solicitud Procesada!',
+            description: 'Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp.',
+            className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
+        });
 
-    if (selectedDates.length === 0) {
-        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
+    } catch (error: any) {
+         toast({
+            variant: 'destructive',
+            title: 'Error en el Formulario',
+            description: error.message || 'Ocurrió un error inesperado.',
+        });
+    } finally {
         setIsProcessing(false);
-        return;
     }
-    if (!selectedDates.every(d => !!d.time)) {
-        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
-        setIsProcessing(false);
-        return;
-    }
-    
-    // Simulate processing
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const submissionData = { values, dates: selectedDates };
-    setLastSubmission(submissionData);
-    setCourseScheduled(true);
-    
-    toast({
-        title: '¡Solicitud Procesada!',
-        description: 'Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp.',
-        className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
-    });
-    
-    setIsProcessing(false);
   }
+
+  let whatsAppUrl = '';
+  if (lastSubmission) {
+      const { values, dates } = lastSubmission;
+      let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
+      message += `*Nombre:* ${values.name}\n`;
+      if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
+      message += `*Teléfono:* ${values.phone}\n`;
+      message += `*Punto de Encuentro:* ${values.address}\n`;
+      message += `*Transmisión:* ${values.transmission}\n\n`;
+      message += `*Fechas y Horarios solicitados:*\n`;
+      dates.forEach(item => {
+          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
+      });
+      if (values.notes) {
+          message += `\n*Notas Adicionales:*\n${values.notes}\n`;
+      }
+      message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+
+      const whatsAppNumber = "525634433212";
+      const encodedMessage = encodeURIComponent(message);
+      whatsAppUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+  }
+
 
   return (
     <main className="flex min-h-screen flex-col bg-background">
