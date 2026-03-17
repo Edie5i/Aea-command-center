@@ -8,7 +8,6 @@ import { format, isPast, isToday, parse } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createCalendarEventAction } from '@/app/actions';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,6 @@ const timeSlots = ["07:00", "10:00", "13:00", "16:00", "19:00"];
 export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
-  const [calendarLink, setCalendarLink] = useState<string | null>(null);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -92,7 +90,6 @@ export default function AgendaPage() {
   const handleNewSchedule = () => {
     setCourseScheduled(false);
     setSelectedDates([]);
-    setCalendarLink(null);
     setLastSubmission(null);
     form.reset();
   };
@@ -193,39 +190,13 @@ export default function AgendaPage() {
             return;
         }
 
-        const eventCreationResult = await createCalendarEventAction({
-          studentName: values.name,
-          phone: values.phone,
-          address: values.address,
-          transmission: values.transmission,
-          isMinor: values.isMinor,
-          notes: values.notes,
-          classDates: selectedDates.map(d => ({
-              date: format(d.date, 'yyyy-MM-dd'),
-              time: d.time!
-          }))
-        });
-
-        if (!eventCreationResult.success) {
-            toast({
-                variant: 'destructive',
-                title: 'Error al Agendar',
-                description: eventCreationResult.error || 'No se pudo registrar la solicitud en el calendario.',
-            });
-            setIsProcessing(false);
-            return;
-        }
-
         const submissionData = { values, dates: selectedDates };
         setLastSubmission(submissionData);
         setCourseScheduled(true);
-        if (eventCreationResult.link) {
-          setCalendarLink(eventCreationResult.link);
-        }
         
         toast({
-            title: '¡Solicitud Registrada!',
-            description: 'Tu curso fue agendado. La ficha se descargará automáticamente.',
+            title: '¡Ficha Generada!',
+            description: 'Tu ficha de inscripción se descargará automáticamente.',
             className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
         });
 
@@ -260,7 +231,7 @@ export default function AgendaPage() {
             Agenda tu Curso
           </h1>
           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tu solicitud ha sido registrada con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
+            {courseScheduled ? '¡Tu ficha de inscripción ha sido generada!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
           </p>
         </div>
       </section>
@@ -299,7 +270,7 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Solicitud Registrada!
+                            ¡Ficha Generada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
                             Tu ficha de inscripción debería haberse descargado. Si no fue así, usa el botón. Luego, envíala por WhatsApp para completar el proceso.
@@ -314,17 +285,9 @@ export default function AgendaPage() {
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Enviar por WhatsApp
                         </Button>
-                        {calendarLink && (
-                          <Button asChild variant="outline">
-                            <a href={calendarLink} target="_blank" rel="noopener noreferrer">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              Ver Evento en Calendario
-                            </a>
-                          </Button>
-                        )}
                         <Button onClick={handleNewSchedule} variant="ghost" className="text-muted-foreground">
                             <CalendarCheck className="mr-2 h-4 w-4" />
-                            Agendar Otro Curso
+                            Crear Nueva Ficha
                         </Button>
                     </div>
                 </CardContent>
@@ -458,8 +421,8 @@ export default function AgendaPage() {
                                         </div>
                                         
                                         <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
-                                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
-                                            {isProcessing ? 'Procesando...' : 'Confirmar y Agendar en Calendario'}
+                                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                                            {isProcessing ? 'Procesando...' : 'Generar Ficha de Inscripción'}
                                         </Button>
                                     </form>
                                 </Form>
