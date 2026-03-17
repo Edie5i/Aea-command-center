@@ -56,6 +56,7 @@ export default function AgendaPage() {
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [calendarLink, setCalendarLink] = useState<string | null>(null);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<ScheduleFormValues>({
@@ -172,6 +173,7 @@ export default function AgendaPage() {
 
 
   async function onSubmit(values: ScheduleFormValues) {
+    setIsProcessing(true);
     try {
         if (selectedDates.length === 0) {
             toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
@@ -222,6 +224,8 @@ export default function AgendaPage() {
             title: 'Error Inesperado',
             description: 'Ocurrió un error al procesar tu solicitud. Por favor, intenta de nuevo.',
         });
+    } finally {
+        setIsProcessing(false);
     }
   }
 
@@ -438,9 +442,9 @@ export default function AgendaPage() {
                                             )}/>
                                         </div>
                                         
-                                        <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
-                                            {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
-                                            {form.formState.isSubmitting ? 'Procesando...' : 'Confirmar y Agendar en Calendario'}
+                                        <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
+                                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
+                                            {isProcessing ? 'Procesando...' : 'Confirmar y Agendar en Calendario'}
                                         </Button>
                                     </form>
                                 </Form>
@@ -465,5 +469,7 @@ export default function AgendaPage() {
     </main>
   );
 }
+
+    
 
     
