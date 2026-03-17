@@ -22,8 +22,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { createCalendarEventAction } from '@/app/actions';
-import type { CreateEventInput } from '@/ai/flows/create-calendar-event';
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -56,7 +54,6 @@ export default function AgendaPage() {
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [calendarEventLink, setCalendarEventLink] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<ScheduleFormValues>({
@@ -93,7 +90,6 @@ export default function AgendaPage() {
     setCourseScheduled(false);
     setSelectedDates([]);
     setLastSubmission(null);
-    setCalendarEventLink(null);
     form.reset();
   };
 
@@ -244,40 +240,16 @@ export default function AgendaPage() {
             return;
         }
 
-        const eventData: CreateEventInput = {
-            studentName: values.name,
-            phone: values.phone,
-            address: values.address,
-            transmission: values.transmission,
-            isMinor: values.isMinor,
-            notes: values.notes,
-            classDates: selectedDates.map(d => ({
-                date: format(d.date, 'yyyy-MM-dd'),
-                time: d.time!,
-            })),
-        };
+        // The flow is now focused on generating the form data
+        const submissionData = { values, dates: selectedDates };
+        setLastSubmission(submissionData);
+        setCourseScheduled(true);
         
-        const result = await createCalendarEventAction(eventData);
-
-        if (result.success) {
-            const submissionData = { values, dates: selectedDates };
-            setLastSubmission(submissionData);
-            setCalendarEventLink(result.link);
-            setCourseScheduled(true);
-            
-            toast({
-                title: '¡Clase Agendada y Ficha Generada!',
-                description: 'Tu curso se ha agendado en el calendario. Ahora puedes descargar la ficha.',
-                className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
-            });
-
-        } else {
-             toast({
-                variant: 'destructive',
-                title: 'Error al Agendar en Calendario',
-                description: result.error || 'No se pudo registrar la clase. Intenta de nuevo.',
-            });
-        }
+        toast({
+            title: '¡Datos Listos!',
+            description: 'Tu ficha está lista para ser generada. Ahora puedes descargarla.',
+            className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
+        });
 
     } catch (error) {
         console.error("An unexpected error occurred in onSubmit:", error);
@@ -307,7 +279,7 @@ export default function AgendaPage() {
             Agenda tu Curso
           </h1>
           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tu curso ha sido agendado con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
+            {courseScheduled ? '¡Tu ficha ha sido generada con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
           </p>
         </div>
       </section>
@@ -346,21 +318,13 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Clase Agendada!
+                            ¡Ficha Generada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu curso ha sido registrado en el calendario. Ahora puedes descargar tu ficha y/o enviarla por WhatsApp para finalizar.
+                            Tu ficha de inscripción está lista. Ahora puedes descargarla y/o enviarla por WhatsApp para finalizar.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        {calendarEventLink && (
-                            <Button asChild variant="outline">
-                                <a href={calendarEventLink} target="_blank" rel="noopener noreferrer">
-                                    <CalendarCheck className="mr-2 h-4 w-4" />
-                                    Ver Evento en Calendario
-                                </a>
-                            </Button>
-                        )}
                         <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary">
                             <Download className="mr-2 h-4 w-4" />
                             Descargar Ficha PDF
@@ -371,7 +335,7 @@ export default function AgendaPage() {
                         </Button>
                         <Button onClick={handleNewSchedule} variant="ghost" className="text-muted-foreground">
                             <CalendarCheck className="mr-2 h-4 w-4" />
-                            Agendar Otro Curso
+                            Generar Nueva Ficha
                         </Button>
                     </div>
                 </CardContent>
@@ -506,7 +470,7 @@ export default function AgendaPage() {
                                         
                                         <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
                                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
-                                            {isProcessing ? 'Procesando...' : 'Confirmar y Agendar'}
+                                            {isProcessing ? 'Procesando...' : 'Generar Ficha y Continuar'}
                                         </Button>
                                     </form>
                                 </Form>
