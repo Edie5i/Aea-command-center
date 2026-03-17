@@ -38,9 +38,9 @@ async function getCalendarClient() {
 }
 
 // Main flow to get and parse student data from calendar events
-export const getStudentsFlow = ai.defineFlow(
+export const getStudents = ai.defineFlow(
   {
-    name: 'getStudentsFlow',
+    name: 'getStudents',
     inputSchema: z.void(),
     outputSchema: StudentListSchema,
   },
@@ -98,8 +98,3 @@ export const getStudentsFlow = ai.defineFlow(
     return studentList;
   }
 );
-
-// Wrapper function to be called from server actions
-export async function getStudents(): Promise<Student[]> {
-    return await getStudentsFlow();
-}
