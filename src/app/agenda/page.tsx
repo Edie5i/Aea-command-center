@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -96,104 +97,30 @@ export default function AgendaPage() {
   const handleDownloadPdf = async () => {
     if (!lastSubmission) return;
 
+    toast({ title: 'Iniciando generación de PDF de prueba...' });
+
     try {
       const { default: jsPDF } = await import('jspdf');
-      const { values, dates } = lastSubmission;
+      const { values } = lastSubmission;
+      
       const doc = new jsPDF();
-
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 58, 138); // Dark Blue
-      doc.text("AUTO ESCUELA AMERICANA", 105, 20, { align: 'center' });
-
-      doc.setFontSize(24);
-      doc.text("Ficha de Inscripción", 105, 35, { align: 'center' });
-
-      let yPos = 55;
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text("Datos del Alumno", 14, yPos);
-      yPos += 10;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
       
-      const addLine = (label: string, value: string) => {
-        doc.setFont('helvetica', 'bold');
-        doc.text(label, 14, yPos);
-        doc.setFont('helvetica', 'normal');
-        const textLines = doc.splitTextToSize(value, 130);
-        doc.text(textLines, 60, yPos);
-        yPos += (textLines.length * 6) + 2;
-      };
-
-      addLine("Nombre:", values.name);
-      addLine("Teléfono:", values.phone);
-      addLine("Punto de Encuentro:", values.address);
-      addLine("Transmisión:", values.transmission);
-
-      if (values.isMinor) {
-        yPos += 2;
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(220, 53, 69); // Red color for emphasis
-        doc.text(`Modalidad: El curso es para un MENOR DE EDAD.`, 14, yPos);
-        yPos += 8;
-        doc.setTextColor(0, 0, 0);
-      }
-
-      if (values.notes) {
-        yPos += 2;
-        doc.setFont('helvetica', 'bold');
-        doc.text("Notas Adicionales:", 14, yPos);
-        yPos += 6;
-        doc.setFont('helvetica', 'normal');
-        const noteLines = doc.splitTextToSize(values.notes, 180);
-        doc.text(noteLines, 14, yPos);
-        yPos += (noteLines.length * 6);
-      }
+      doc.text("PRUEBA DE PDF", 10, 10);
+      doc.text(`Nombre: ${values.name}`, 10, 20);
+      doc.text(`Telefono: ${values.phone}`, 10, 30);
+      doc.text("Si ves esto, la libreria PDF funciona.", 10, 40);
       
-      yPos += 12;
+      doc.save('prueba-diagnostico.pdf');
 
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 58, 138);
-      doc.text("Fechas y Horarios Solicitados", 14, yPos);
-      yPos += 10;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      dates.forEach(item => {
-        const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-        const line = `• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} a las ${formattedTime}`;
-        doc.text(line, 14, yPos);
-        yPos += 8;
-        if (yPos > 280) {
-            doc.addPage();
-            yPos = 20;
-        }
-      });
-      
-      doc.setFontSize(9);
-      doc.setTextColor(150, 150, 150);
-      doc.text("Este documento es una solicitud de inscripción. La disponibilidad será confirmada por un asesor.", 105, 280, { align: 'center' });
-      doc.text("Al enviar esta solicitud, aceptas los Términos y Condiciones de Auto Escuela Americana.", 105, 285, { align: 'center' });
-
-      doc.save('ficha-inscripcion.pdf');
-      
-      toast({
-        title: '¡Descarga Iniciada!',
-        description: 'Tu ficha de inscripción se está descargando.',
-      });
+      toast({ title: 'PDF de diagnóstico generado.' });
 
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error("Error generando PDF de diagnóstico:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast({
         variant: 'destructive',
-        title: 'Error al Generar PDF',
-        description: 'Hubo un problema al crear la ficha. Por favor, intenta de nuevo.',
+        title: 'Error en la Librería PDF',
+        description: `La librería falló: ${errorMessage}`,
       });
     }
   };
@@ -208,7 +135,6 @@ export default function AgendaPage() {
             throw new Error('Selecciona un horario para cada día.');
         }
         
-        // This is a safe operation, just setting state
         const submissionData = { values, dates: selectedDates };
         setLastSubmission(submissionData);
         setCourseScheduled(true);
