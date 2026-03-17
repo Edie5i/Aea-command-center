@@ -6,7 +6,7 @@ import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, Calendar
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 // Este componente recrea tu logo usando CSS puro para que sea escalable
 const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
@@ -73,11 +73,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Agenda tu Curso</h3>
                 <p className="text-muted-foreground text-sm">Selecciona fechas y completa el formulario.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/agenda">Ir a la Agenda</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
 
             <Card className="flex flex-col">
@@ -86,11 +86,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Evalúa tus Habilidades</h3>
                 <p className="text-muted-foreground text-sm">Descubre qué curso es el ideal para ti.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/evaluacion">Empezar Evaluación</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
 
             <Card className="flex flex-col">
@@ -99,11 +99,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Examen Teórico</h3>
                 <p className="text-muted-foreground text-sm">Pon a prueba tus conocimientos del reglamento.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/examen-teorico">Iniciar Examen</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
             
             <Card className="flex flex-col">
@@ -112,11 +112,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Catálogo de Cursos</h3>
                 <p className="text-muted-foreground text-sm">Explora todos los cursos que ofrecemos.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/catalogo">Ver Catálogo</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
 
             <Card className="flex flex-col">
@@ -125,11 +125,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Programa del Curso</h3>
                 <p className="text-muted-foreground text-sm">Consulta el manual de conducción completo.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/programa">Ver Programa</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
             
             <Card className="flex flex-col">
@@ -138,11 +138,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">English Driving Course</h3>
                 <p className="text-muted-foreground text-sm">Comprehensive course for English speakers.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/english-course">View Course</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
 
             <Card className="flex flex-col">
@@ -151,11 +151,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Notas de Alumno</h3>
                 <p className="text-muted-foreground text-sm">Crea y comparte el avance de un alumno.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/notas-alumno">Crear Nota</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
 
             <Card className="flex flex-col">
@@ -164,11 +164,11 @@ export default function Home() {
                 <h3 className="font-bold text-lg mb-2">Términos y Condiciones</h3>
                 <p className="text-muted-foreground text-sm">Revisa las políticas del servicio.</p>
               </CardContent>
-              <div className="p-6 pt-0">
+              <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/terminos">Leer Términos</Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
 
           </div>
