@@ -97,9 +97,16 @@ export default function AgendaPage() {
     form.reset();
   };
 
-  const handleDownloadPdf = async () => {
-    if (!lastSubmission) return;
-    const { values, dates } = lastSubmission;
+  const handleDownloadPdf = async (submissionData: SubmissionData) => {
+    if (!submissionData) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Datos',
+            description: 'No se encontraron los datos para generar la ficha.',
+        });
+        return;
+    }
+    const { values, dates } = submissionData;
 
     try {
         const { default: jsPDF } = await import('jspdf');
@@ -177,10 +184,12 @@ export default function AgendaPage() {
     try {
         if (selectedDates.length === 0) {
             toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
+            setIsProcessing(false);
             return;
         }
         if (!selectedDates.every(d => !!d.time)) {
             toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
+            setIsProcessing(false);
             return;
         }
 
@@ -203,20 +212,26 @@ export default function AgendaPage() {
                 title: 'Error al Agendar',
                 description: eventCreationResult.error || 'No se pudo registrar la solicitud en el calendario.',
             });
+            setIsProcessing(false);
             return;
         }
 
+        const submissionData = { values, dates: selectedDates };
+        setLastSubmission(submissionData);
         setCourseScheduled(true);
         if (eventCreationResult.link) {
           setCalendarLink(eventCreationResult.link);
         }
-        setLastSubmission({ values, dates: selectedDates });
         
         toast({
             title: '¡Solicitud Registrada!',
-            description: 'Tu curso fue agendado. Ahora puedes descargar tu ficha.',
+            description: 'Tu curso fue agendado. La ficha se descargará automáticamente.',
             className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
         });
+
+        // Attempt to download the PDF automatically
+        await handleDownloadPdf(submissionData);
+
     } catch (error) {
         console.error("An unexpected error occurred in onSubmit:", error);
         toast({
@@ -284,14 +299,14 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Solicitud de Inscripción Registrada!
+                            ¡Solicitud Registrada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu clase se ha agendado con éxito. Ahora, descarga tu ficha y envíala por WhatsApp a un asesor para completar el proceso.
+                            Tu ficha de inscripción debería haberse descargado. Si no fue así, usa el botón. Luego, envíala por WhatsApp para completar el proceso.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        <Button onClick={handleDownloadPdf} variant="secondary">
+                        <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary">
                             <Download className="mr-2 h-4 w-4" />
                             Descargar Ficha PDF
                         </Button>
@@ -469,7 +484,3 @@ export default function AgendaPage() {
     </main>
   );
 }
-
-    
-
-    
