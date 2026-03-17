@@ -44,12 +44,18 @@ type DateWithTime = {
     time?: string;
 };
 
+type SubmissionData = {
+    values: ScheduleFormValues;
+    dates: DateWithTime[];
+};
+
 const timeSlots = ["07:00", "10:00", "13:00", "16:00", "19:00"];
 
 export default function AgendaPage() {
   const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [calendarLink, setCalendarLink] = useState<string | null>(null);
+  const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const { toast } = useToast();
   
   const form = useForm<ScheduleFormValues>({
@@ -86,30 +92,135 @@ export default function AgendaPage() {
     setCourseScheduled(false);
     setSelectedDates([]);
     setCalendarLink(null);
+    setLastSubmission(null);
     form.reset();
   };
 
-  async function onSubmit(values: ScheduleFormValues) {
-    if (selectedDates.length === 0) {
+  const handleDownloadPdf = async () => {
+    if (!lastSubmission) return;
+    const { values, dates } = lastSubmission;
+
+    try {
+        const { default: jsPDF } = await import('jspdf');
+        const doc = new jsPDF();
+        
+        const headerBlue = '#1D4ED8';
+        doc.setFillColor(headerBlue);
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor('#FFFFFF');
+        doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center' });
+
+        let y = 45;
+        const leftMargin = 20;
+        const rightColumn = 115;
+        
+        const addSectionTitle = (title: string, newY: number) => {
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(headerBlue);
+            doc.text(title, leftMargin, newY);
+            return newY + 8;
+        };
+        
+        const addDataRow = (label: string, value: string, currentY: number) => {
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor('#666666');
+            doc.text(label, leftMargin, currentY);
+            doc.setTextColor('#000000');
+            doc.text(value, rightColumn, currentY, { align: 'left' });
+            return currentY + 7;
+        };
+
+        y = addSectionTitle('DATOS DEL ALUMNO Y CURSO', y);
+        y = addDataRow('Nombre Completo:', values.name, y);
+        y = addDataRow('Teléfono de Contacto:', values.phone, y);
+        y = addDataRow('Tipo de Transmisión:', values.transmission, y);
+        if (values.isMinor) y = addDataRow('Modalidad:', 'Menor de Edad', y);
+        y += 5;
+
+        y = addSectionTitle('PUNTO DE ENCUENTRO', y);
+        doc.setFontSize(10);
+        doc.setTextColor('#000000');
+        const addressLines = doc.splitTextToSize(values.address, 170);
+        doc.text(addressLines, leftMargin, y);
+        y += (addressLines.length * 5) + 5;
+
+        y = addSectionTitle('FECHAS Y HORARIOS SOLICITADOS', y);
+        doc.setFontSize(10);
+        doc.setTextColor('#000000');
+        dates.forEach(item => {
+            if (y > 260) { doc.addPage(); y = 20; }
+            const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+            doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${formattedTime}`, leftMargin, y);
+            y += 6;
+        });
+        y += 5;
+
+        if (values.notes) {
+            y = addSectionTitle('NOTAS ADICIONALES', y);
+            doc.setFontSize(10);
+            const noteLines = doc.splitTextToSize(values.notes, 170);
+            doc.text(noteLines, leftMargin, y);
+        }
+        
+        doc.setFillColor(headerBlue);
+        doc.rect(0, 282, 210, 15, 'F');
+        doc.setFontSize(9);
+        doc.setTextColor('#FFFFFF');
+        doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | app.autoescuelaamericana.com`, 105, 288, { align: 'center' });
+
+        doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
+
+    } catch (e) {
+        console.error("PDF generation failed: ", e);
         toast({
             variant: 'destructive',
-            title: 'Error de Horario',
-            description: 'Por favor, selecciona al menos un día para continuar.',
+            title: 'Error al Generar PDF',
+            description: 'No pudimos generar la ficha. Por favor, inténtalo de nuevo o contacta a un asesor.',
         });
+    }
+  };
+  
+  const handleOpenWhatsApp = () => {
+    if (!lastSubmission) return;
+    const { values, dates } = lastSubmission;
+
+    let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
+    message += `*Nombre:* ${values.name}\n`;
+    if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
+    message += `*Teléfono:* ${values.phone}\n`;
+    message += `*Punto de Encuentro:* ${values.address}\n`;
+    message += `*Transmisión:* ${values.transmission}\n\n`;
+    message += `*Fechas y Horarios solicitados:*\n`;
+    dates.forEach(item => {
+        const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+        message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
+    });
+    if (values.notes) {
+        message += `\n*Notas Adicionales:*\n${values.notes}\n`;
+    }
+    message += `\nAdjunto mi ficha de inscripción. Un asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+
+    const whatsAppNumber = "525634433212";
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+
+  async function onSubmit(values: ScheduleFormValues) {
+    if (selectedDates.length === 0) {
+        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
+        return;
+    }
+    if (!selectedDates.every(d => !!d.time)) {
+        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
         return;
     }
 
-    const allDatesHaveTime = selectedDates.every(d => !!d.time);
-    if (!allDatesHaveTime) {
-         toast({
-            variant: 'destructive',
-            title: 'Error de Horario',
-            description: 'Por favor, asegúrate de seleccionar un horario para cada día de clase.',
-        });
-        return;
-    }
-
-    // --- Step 1: Create Calendar Event (Primary Action) ---
     const eventCreationResult = await createCalendarEventAction({
       studentName: values.name,
       phone: values.phone,
@@ -123,140 +234,26 @@ export default function AgendaPage() {
       }))
     });
 
-    // If calendar event fails, stop everything and show a specific error.
     if (!eventCreationResult.success) {
         toast({
             variant: 'destructive',
             title: 'Error de Calendario',
-            description: eventCreationResult.error || 'No se pudo agendar la clase. Revisa que el ID del calendario esté bien configurado y que la app tenga permisos.',
+            description: eventCreationResult.error || 'No se pudo agendar la clase. Revisa la configuración del calendario.',
         });
-        // Manually reset submitting state if it's managed by a parent component
-        // For react-hook-form, isSubmitting is handled automatically, but we might need to re-enable the button if we stop here.
         return;
     }
 
-    // --- Calendar event was successful! ---
-    // Update the UI immediately to reflect success.
     setCourseScheduled(true);
     if (eventCreationResult.link) {
       setCalendarLink(eventCreationResult.link);
     }
+    setLastSubmission({ values, dates: selectedDates });
+    
     toast({
         title: '¡Clase Agendada Correctamente!',
-        description: 'Tu curso fue registrado en el calendario.',
+        description: 'Tu curso fue registrado en el calendario. Ahora puedes descargar tu ficha.',
         className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
     });
-
-
-    // --- Step 2: Try to run secondary actions (PDF & WhatsApp) ---
-    try {
-      const { default: jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      
-      // PDF Generation Logic...
-      const headerBlue = '#1D4ED8';
-      doc.setFillColor(headerBlue);
-      doc.rect(0, 0, 210, 30, 'F');
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor('#FFFFFF');
-      doc.text('FICHA DE INSCRIPCIÓN', 105, 20, { align: 'center' });
-
-      let y = 45;
-      const leftMargin = 20;
-      const rightColumn = 115;
-      
-      const addSectionTitle = (title: string, newY: number) => {
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(headerBlue);
-          doc.text(title, leftMargin, newY);
-          return newY + 8;
-      };
-      
-      const addDataRow = (label: string, value: string, currentY: number) => {
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor('#666666');
-          doc.text(label, leftMargin, currentY);
-          
-          doc.setTextColor('#000000');
-          doc.text(value, rightColumn, currentY, { align: 'left' });
-          return currentY + 7;
-      };
-
-      y = addSectionTitle('DATOS DEL ALUMNO Y CURSO', y);
-      y = addDataRow('Nombre Completo:', values.name, y);
-      y = addDataRow('Teléfono de Contacto:', values.phone, y);
-      y = addDataRow('Tipo de Transmisión:', values.transmission, y);
-      if (values.isMinor) {
-          y = addDataRow('Modalidad:', 'Menor de Edad', y);
-      }
-      y += 5;
-
-      y = addSectionTitle('PUNTO DE ENCUENTRO', y);
-      doc.setFontSize(10);
-      doc.setTextColor('#000000');
-      const addressLines = doc.splitTextToSize(values.address, 170);
-      doc.text(addressLines, leftMargin, y);
-      y += (addressLines.length * 5) + 5;
-
-      y = addSectionTitle('FECHAS Y HORARIOS SOLICITADOS', y);
-      doc.setFontSize(10);
-      doc.setTextColor('#000000');
-      selectedDates.forEach(item => {
-          if (y > 260) { doc.addPage(); y = 20; }
-          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-          doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} - ${formattedTime}`, leftMargin, y);
-          y += 6;
-      });
-      y += 5;
-
-      if (values.notes) {
-          y = addSectionTitle('NOTAS ADICIONALES', y);
-          doc.setFontSize(10);
-          const noteLines = doc.splitTextToSize(values.notes, 170);
-          doc.text(noteLines, leftMargin, y);
-      }
-      
-      doc.setFillColor(headerBlue);
-      doc.rect(0, 282, 210, 15, 'F');
-      doc.setFontSize(9);
-      doc.setTextColor('#FFFFFF');
-      doc.text(`Ficha generada el ${format(new Date(), 'dd/MM/yyyy')}. Sujeto a confirmación por un asesor. | app.autoescuelaamericana.com`, 105, 288, { align: 'center' });
-
-      doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
-
-      // WhatsApp Message Logic...
-      let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
-      message += `*Nombre:* ${values.name}\n`;
-      if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
-      message += `*Teléfono:* ${values.phone}\n`;
-      message += `*Punto de Encuentro:* ${values.address}\n`;
-      message += `*Transmisión:* ${values.transmission}\n\n`;
-      message += `*Fechas y Horarios solicitados:*\n`;
-      selectedDates.forEach(item => {
-          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
-      });
-      if (values.notes) {
-          message += `\n*Notas Adicionales:*\n${values.notes}\n`;
-      }
-      message += `\nAdjunto mi ficha de inscripción. Un asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
-
-      const whatsAppNumber = "525634433212";
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
-      window.open(whatsappUrl, '_blank');
-
-    } catch (e) {
-        console.error("Secondary action (PDF/WhatsApp) failed: ", e);
-        toast({
-            variant: 'destructive',
-            title: 'Error en Pasos Secundarios',
-            description: 'Tu clase SÍ fue agendada, pero hubo un problema al generar la ficha o abrir WhatsApp. Por favor, contacta a un asesor.',
-        });
-    }
   }
 
   return (
@@ -317,27 +314,29 @@ export default function AgendaPage() {
                             ¡Solicitud de Inscripción Registrada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu clase se ha agendado con éxito en nuestro calendario. Los siguientes pasos (ficha y WhatsApp) pueden haber fallado, pero tu lugar está asegurado. Contacta a un asesor si necesitas ayuda.
+                            Tu clase se ha agendado con éxito. Ahora, descarga tu ficha y envíala por WhatsApp a un asesor para completar el proceso.
                         </AlertDescription>
                     </Alert>
-                    <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button onClick={handleNewSchedule} variant="secondary">
-                            <CalendarCheck className="mr-2 h-4 w-4" />
-                            Agendar Otro Curso
+                    <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
+                        <Button onClick={handleDownloadPdf} variant="secondary">
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar Ficha PDF
+                        </Button>
+                         <Button onClick={handleOpenWhatsApp}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Enviar por WhatsApp
                         </Button>
                         {calendarLink && (
-                          <Button asChild>
+                          <Button asChild variant="outline">
                             <a href={calendarLink} target="_blank" rel="noopener noreferrer">
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               Ver Evento en Calendario
                             </a>
                           </Button>
                         )}
-                        <Button asChild>
-                            <Link href="/pagos">
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                Ver Métodos de Pago
-                            </Link>
+                        <Button onClick={handleNewSchedule} variant="ghost" className="text-muted-foreground">
+                            <CalendarCheck className="mr-2 h-4 w-4" />
+                            Agendar Otro Curso
                         </Button>
                     </div>
                 </CardContent>
@@ -471,8 +470,8 @@ export default function AgendaPage() {
                                         </div>
                                         
                                         <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
-                                            {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                                            {form.formState.isSubmitting ? 'Procesando...' : 'Enviar y Crear Ficha'}
+                                            {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
+                                            {form.formState.isSubmitting ? 'Procesando...' : 'Confirmar y Agendar en Calendario'}
                                         </Button>
                                     </form>
                                 </Form>
@@ -497,3 +496,5 @@ export default function AgendaPage() {
     </main>
   );
 }
+
+    
