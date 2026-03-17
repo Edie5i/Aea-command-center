@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
 import { format, isPast, isToday, parse } from 'date-fns';
@@ -56,6 +56,7 @@ export default function AgendaPage() {
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [whatsAppUrl, setWhatsAppUrl] = useState('');
   const { toast } = useToast();
   
   const form = useForm<ScheduleFormValues>({
@@ -70,6 +71,32 @@ export default function AgendaPage() {
       terms: false,
     },
   });
+
+  useEffect(() => {
+    if (lastSubmission) {
+      const { values, dates } = lastSubmission;
+      let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
+      message += `*Nombre:* ${values.name}\n`;
+      if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
+      message += `*Teléfono:* ${values.phone}\n`;
+      message += `*Punto de Encuentro:* ${values.address}\n`;
+      message += `*Transmisión:* ${values.transmission}\n\n`;
+      message += `*Fechas y Horarios solicitados:*\n`;
+      dates.forEach(item => {
+          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
+      });
+      if (values.notes) {
+          message += `\n*Notas Adicionales:*\n${values.notes}\n`;
+      }
+      message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+
+      const whatsAppNumber = "525634433212";
+      const encodedMessage = encodeURIComponent(message);
+      setWhatsAppUrl(`https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`);
+    }
+  }, [lastSubmission]);
+
 
   const handleSelectDates = (dates: Date[] | undefined) => {
     const newDates = dates || [];
@@ -95,70 +122,82 @@ export default function AgendaPage() {
     form.reset();
   };
 
-  const handleDownloadPdf = async (submissionData: SubmissionData) => {
-    if (!submissionData) return;
+  const handleDownloadPdf = async () => {
+    if (!lastSubmission) return;
 
     try {
-      const { values, dates } = submissionData;
+      const { values, dates } = lastSubmission;
       const doc = new jsPDF();
 
       // --- PDF Design ---
-      doc.setFillColor(30, 58, 138); // Dark Blue
-      doc.rect(0, 0, 210, 30, 'F');
-      
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("AUTO ESCUELA AMERICANA", 105, 15, { align: 'center' });
-
-      doc.setFontSize(22);
+      doc.setFontSize(18);
       doc.setTextColor(30, 58, 138); // Dark Blue
-      doc.text("Ficha de Inscripción", 105, 45, { align: 'center' });
+      doc.text("AUTO ESCUELA AMERICANA", 105, 20, { align: 'center' });
 
-      let yPos = 65;
+      doc.setFontSize(24);
+      doc.text("Ficha de Inscripción", 105, 35, { align: 'center' });
+
+      let yPos = 55;
 
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text("Datos del Alumno", 14, yPos);
-      yPos += 8;
+      yPos += 10;
 
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      doc.text(`Nombre: ${values.name}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Teléfono: ${values.phone}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Punto de Encuentro: ${values.address}`, 14, yPos);
-      yPos += 7;
-      doc.text(`Transmisión: ${values.transmission}`, 14, yPos);
-      yPos += 7;
+      
+      const addLine = (label: string, value: string) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, 14, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(value, 60, yPos);
+        yPos += 8;
+      };
+
+      addLine("Nombre:", values.name);
+      addLine("Teléfono:", values.phone);
+      addLine("Punto de Encuentro:", values.address);
+      addLine("Transmisión:", values.transmission);
+
       if (values.isMinor) {
+        yPos += 2;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(220, 53, 69); // Red color for emphasis
         doc.text(`Modalidad: El curso es para un MENOR DE EDAD.`, 14, yPos);
-        yPos += 7;
+        yPos += 8;
+        doc.setTextColor(0, 0, 0);
       }
+
       if (values.notes) {
-        const noteLines = doc.splitTextToSize(`Notas Adicionales: ${values.notes}`, 180);
+        yPos += 2;
+        doc.setFont('helvetica', 'bold');
+        doc.text("Notas Adicionales:", 14, yPos);
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        const noteLines = doc.splitTextToSize(values.notes, 180);
         doc.text(noteLines, 14, yPos);
-        yPos += (noteLines.length * 5);
+        yPos += (noteLines.length * 6);
       }
       
-      yPos += 10;
+      yPos += 12;
 
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 58, 138);
       doc.text("Fechas y Horarios Solicitados", 14, yPos);
-      yPos += 8;
+      yPos += 10;
 
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       dates.forEach(item => {
         const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-        const line = `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}`;
+        const line = `• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} a las ${formattedTime}`;
         doc.text(line, 14, yPos);
-        yPos += 7;
+        yPos += 8;
         if (yPos > 280) {
             doc.addPage();
             yPos = 20;
@@ -169,6 +208,7 @@ export default function AgendaPage() {
       doc.setTextColor(150, 150, 150);
       doc.text("Este documento es una solicitud de inscripción. La disponibilidad será confirmada por un asesor.", 105, 280, { align: 'center' });
       doc.text("Al enviar esta solicitud, aceptas los Términos y Condiciones de Auto Escuela Americana.", 105, 285, { align: 'center' });
+
 
       doc.save('ficha-inscripcion.pdf');
       
@@ -186,32 +226,6 @@ export default function AgendaPage() {
       });
     }
   };
-  
-  const handleOpenWhatsApp = () => {
-    if (!lastSubmission) return;
-    const { values, dates } = lastSubmission;
-
-    let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
-    message += `*Nombre:* ${values.name}\n`;
-    if (values.isMinor) { message += `*Modalidad:* El curso es para un MENOR DE EDAD.\n`; }
-    message += `*Teléfono:* ${values.phone}\n`;
-    message += `*Punto de Encuentro:* ${values.address}\n`;
-    message += `*Transmisión:* ${values.transmission}\n\n`;
-    message += `*Fechas y Horarios solicitados:*\n`;
-    dates.forEach(item => {
-        const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
-        message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
-    });
-    if (values.notes) {
-        message += `\n*Notas Adicionales:*\n${values.notes}\n`;
-    }
-    message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
-
-    const whatsAppNumber = "525634433212";
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-  };
 
   async function onSubmit(values: ScheduleFormValues) {
     setIsProcessing(true);
@@ -227,6 +241,9 @@ export default function AgendaPage() {
         return;
     }
     
+    // Simulate processing
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     const submissionData = { values, dates: selectedDates };
     setLastSubmission(submissionData);
     setCourseScheduled(true);
@@ -302,13 +319,15 @@ export default function AgendaPage() {
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary">
+                        <Button onClick={handleDownloadPdf} variant="secondary">
                             <Download className="mr-2 h-4 w-4" />
                             Descargar Ficha PDF
                         </Button>
-                         <Button onClick={handleOpenWhatsApp}>
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Enviar por WhatsApp
+                         <Button asChild>
+                            <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer">
+                               <MessageSquare className="mr-2 h-4 w-4" />
+                               Enviar por WhatsApp
+                            </a>
                         </Button>
                         <Button onClick={handleNewSchedule} variant="ghost" className="text-muted-foreground">
                             <CalendarCheck className="mr-2 h-4 w-4" />
