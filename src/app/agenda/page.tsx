@@ -94,56 +94,11 @@ export default function AgendaPage() {
   };
 
   const handleDownloadPdf = async (submissionData: SubmissionData) => {
-    if (!submissionData) {
-        toast({
-            variant: 'destructive',
-            title: 'Error de Datos',
-            description: 'No se encontraron los datos para generar la ficha.',
-        });
-        return;
-    }
-    const { values, dates } = submissionData;
-
-    try {
-        const { default: jsPDF } = await import('jspdf');
-        const doc = new jsPDF();
-        
-        doc.setFontSize(18);
-        doc.text('Ficha de Inscripción - Auto Escuela Americana', 15, 20);
-        
-        let y = 35;
-
-        doc.setFontSize(12);
-        doc.text(`Nombre: ${values.name}`, 15, y); y += 7;
-        doc.text(`Teléfono: ${values.phone}`, 15, y); y += 7;
-        doc.text(`Transmisión: ${values.transmission}`, 15, y); y += 7;
-        if (values.isMinor) {
-          doc.text('Modalidad: El curso es para un menor de edad.', 15, y); y += 7;
-        }
-        doc.text(`Punto de Encuentro: ${values.address}`, 15, y); y += 7;
-         if (values.notes) {
-          doc.text(`Notas: ${values.notes}`, 15, y); y += 7;
-        }
-
-        y += 5;
-        
-        doc.text('Fechas y Horarios Solicitados:', 15, y); y+= 7;
-        dates.forEach(item => {
-            const formattedTime = item.time ? format(parse(item.time, 'HH:mm', new Date()), 'h:mm a') : 'Sin hora';
-            const formattedDate = format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
-            doc.text(`• ${formattedDate} a las ${formattedTime}`, 20, y); y += 7;
-        });
-
-        doc.save(`Ficha_AEA_${values.name.replace(/\s/g, '_')}.pdf`);
-
-    } catch (e) {
-        console.error("PDF generation failed: ", e);
-        toast({
-            variant: 'destructive',
-            title: 'Error al Generar PDF',
-            description: 'No pudimos generar la ficha. Por favor, inténtalo de nuevo.',
-        });
-    }
+    toast({
+        variant: 'destructive',
+        title: 'Función Deshabilitada',
+        description: 'La descarga de PDF está temporalmente desactivada para diagnóstico.',
+    });
   };
   
   const handleOpenWhatsApp = () => {
@@ -164,14 +119,13 @@ export default function AgendaPage() {
     if (values.notes) {
         message += `\n*Notas Adicionales:*\n${values.notes}\n`;
     }
-    message += `\nAdjunto mi ficha de inscripción. Un asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
+    message += `\nUn asesor se pondrá en contacto para confirmar los horarios. ¡Gracias!`;
 
     const whatsAppNumber = "525634433212";
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
   };
-
 
   async function onSubmit(values: ScheduleFormValues) {
     setIsProcessing(true);
@@ -186,14 +140,15 @@ export default function AgendaPage() {
             setIsProcessing(false);
             return;
         }
-
+        
+        // FOR DIAGNOSTIC PURPOSES: We are only setting state, not generating PDF or calling calendar.
         const submissionData = { values, dates: selectedDates };
         setLastSubmission(submissionData);
         setCourseScheduled(true);
         
         toast({
-            title: '¡Datos Listos!',
-            description: 'Tu ficha está lista para ser generada. Ahora puedes descargarla.',
+            title: '¡Datos Procesados!',
+            description: 'Formulario enviado correctamente. Continúa en el siguiente paso.',
             className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
         });
 
@@ -225,7 +180,7 @@ export default function AgendaPage() {
             Agenda tu Curso
           </h1>
           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tu ficha ha sido generada con éxito!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
+            {courseScheduled ? '¡Tus datos han sido procesados!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
           </p>
         </div>
       </section>
@@ -264,14 +219,14 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Ficha Generada!
+                            ¡Datos Listos!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu ficha de inscripción está lista. Ahora puedes descargarla y/o enviarla por WhatsApp para finalizar.
+                            Tu solicitud ha sido procesada. Ahora puedes enviar la información por WhatsApp. La descarga de PDF se rehabilitará pronto.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary">
+                        <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary" disabled>
                             <Download className="mr-2 h-4 w-4" />
                             Descargar Ficha PDF
                         </Button>
