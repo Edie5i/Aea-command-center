@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +8,7 @@ import { format, isPast, isToday, parse } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import jsPDF from 'jspdf';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -94,11 +96,95 @@ export default function AgendaPage() {
   };
 
   const handleDownloadPdf = async (submissionData: SubmissionData) => {
-    toast({
+    if (!submissionData) return;
+
+    try {
+      const { values, dates } = submissionData;
+      const doc = new jsPDF();
+
+      // --- PDF Design ---
+      doc.setFillColor(30, 58, 138); // Dark Blue
+      doc.rect(0, 0, 210, 30, 'F');
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("AUTO ESCUELA AMERICANA", 105, 15, { align: 'center' });
+
+      doc.setFontSize(22);
+      doc.setTextColor(30, 58, 138); // Dark Blue
+      doc.text("Ficha de Inscripción", 105, 45, { align: 'center' });
+
+      let yPos = 65;
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text("Datos del Alumno", 14, yPos);
+      yPos += 8;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Nombre: ${values.name}`, 14, yPos);
+      yPos += 7;
+      doc.text(`Teléfono: ${values.phone}`, 14, yPos);
+      yPos += 7;
+      doc.text(`Punto de Encuentro: ${values.address}`, 14, yPos);
+      yPos += 7;
+      doc.text(`Transmisión: ${values.transmission}`, 14, yPos);
+      yPos += 7;
+      if (values.isMinor) {
+        doc.text(`Modalidad: El curso es para un MENOR DE EDAD.`, 14, yPos);
+        yPos += 7;
+      }
+      if (values.notes) {
+        const noteLines = doc.splitTextToSize(`Notas Adicionales: ${values.notes}`, 180);
+        doc.text(noteLines, 14, yPos);
+        yPos += (noteLines.length * 5);
+      }
+      
+      yPos += 10;
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 58, 138);
+      doc.text("Fechas y Horarios Solicitados", 14, yPos);
+      yPos += 8;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      dates.forEach(item => {
+        const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+        const line = `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}`;
+        doc.text(line, 14, yPos);
+        yPos += 7;
+        if (yPos > 280) {
+            doc.addPage();
+            yPos = 20;
+        }
+      });
+      
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.text("Este documento es una solicitud de inscripción. La disponibilidad será confirmada por un asesor.", 105, 280, { align: 'center' });
+      doc.text("Al enviar esta solicitud, aceptas los Términos y Condiciones de Auto Escuela Americana.", 105, 285, { align: 'center' });
+
+      doc.save('ficha-inscripcion.pdf');
+      
+      toast({
+        title: '¡Descarga Iniciada!',
+        description: 'Tu ficha de inscripción se está descargando.',
+      });
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
         variant: 'destructive',
-        title: 'Función Deshabilitada',
-        description: 'La descarga de PDF está temporalmente desactivada para diagnóstico.',
-    });
+        title: 'Error al Generar PDF',
+        description: 'Hubo un problema al crear la ficha. Por favor, intenta de nuevo.',
+      });
+    }
   };
   
   const handleOpenWhatsApp = () => {
@@ -129,39 +215,29 @@ export default function AgendaPage() {
 
   async function onSubmit(values: ScheduleFormValues) {
     setIsProcessing(true);
-    try {
-        if (selectedDates.length === 0) {
-            toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
-            setIsProcessing(false);
-            return;
-        }
-        if (!selectedDates.every(d => !!d.time)) {
-            toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
-            setIsProcessing(false);
-            return;
-        }
-        
-        // FOR DIAGNOSTIC PURPOSES: We are only setting state, not generating PDF or calling calendar.
-        const submissionData = { values, dates: selectedDates };
-        setLastSubmission(submissionData);
-        setCourseScheduled(true);
-        
-        toast({
-            title: '¡Datos Procesados!',
-            description: 'Formulario enviado correctamente. Continúa en el siguiente paso.',
-            className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
-        });
 
-    } catch (error) {
-        console.error("An unexpected error occurred in onSubmit:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error Inesperado',
-            description: 'Ocurrió un error al procesar tu solicitud. Por favor, intenta de nuevo.',
-        });
-    } finally {
+    if (selectedDates.length === 0) {
+        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Por favor, selecciona al menos un día.' });
         setIsProcessing(false);
+        return;
     }
+    if (!selectedDates.every(d => !!d.time)) {
+        toast({ variant: 'destructive', title: 'Error de Horario', description: 'Selecciona un horario para cada día.' });
+        setIsProcessing(false);
+        return;
+    }
+    
+    const submissionData = { values, dates: selectedDates };
+    setLastSubmission(submissionData);
+    setCourseScheduled(true);
+    
+    toast({
+        title: '¡Solicitud Procesada!',
+        description: 'Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp.',
+        className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
+    });
+    
+    setIsProcessing(false);
   }
 
   return (
@@ -219,14 +295,14 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Datos Listos!
+                            ¡Solicitud Procesada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tu solicitud ha sido procesada. Ahora puedes enviar la información por WhatsApp. La descarga de PDF se rehabilitará pronto.
+                            Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp a un asesor.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary" disabled>
+                        <Button onClick={() => lastSubmission && handleDownloadPdf(lastSubmission)} variant="secondary">
                             <Download className="mr-2 h-4 w-4" />
                             Descargar Ficha PDF
                         </Button>
