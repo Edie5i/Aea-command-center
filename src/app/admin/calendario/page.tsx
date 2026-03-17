@@ -71,23 +71,11 @@ export default function CalendarioSemanalPage() {
               <p className="text-lg">Cargando calendario...</p>
             </div>
           ) : error ? (
-            error.includes('GOOGLE_CALENDAR_ID') ? (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error de Configuración</AlertTitle>
-                <AlertDescription>
-                  Falta la configuración de `GOOGLE_CALENDAR_ID`. Para que la app funcione, este secreto debe estar configurado en tu entorno.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error al Cargar</AlertTitle>
-                <AlertDescription>
-                  {`Ocurrió un error al cargar el calendario: ${error}`}
-                </AlertDescription>
-              </Alert>
-            )
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error al Cargar</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           ) : schedule ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
               {Object.entries(schedule).map(([day, courses]) => (
