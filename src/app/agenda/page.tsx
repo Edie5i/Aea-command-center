@@ -99,6 +99,7 @@ export default function AgendaPage() {
     if (!lastSubmission) return;
 
     toast({ title: 'Generando PDF...' });
+    setIsProcessing(true);
 
     try {
       const { values, dates } = lastSubmission;
@@ -186,6 +187,8 @@ export default function AgendaPage() {
         title: 'Error al Generar PDF',
         description: `Hubo un problema al crear la ficha: ${errorMessage}`,
       });
+    } finally {
+        setIsProcessing(false);
     }
   };
 
@@ -307,9 +310,9 @@ export default function AgendaPage() {
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        <Button onClick={handleDownloadPdf} variant="secondary">
-                            <Download className="mr-2 h-4 w-4" />
-                            Descargar Ficha PDF
+                        <Button onClick={handleDownloadPdf} variant="secondary" disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                            {isProcessing ? 'Generando...' : 'Descargar Ficha PDF'}
                         </Button>
                          <Button asChild>
                             <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer">
