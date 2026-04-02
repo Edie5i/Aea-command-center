@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { createCalendarEventsAction } from './actions';
 
 const scheduleSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -106,23 +107,20 @@ export default function AgendaPage() {
       
       const doc = new jsPDF();
       
-      // Header
-      doc.setFillColor(0, 74, 173); // Dark Blue from logo
+      doc.setFillColor(0, 74, 173);
       doc.rect(0, 0, 210, 25, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(16);
       doc.setTextColor(255, 255, 255);
       doc.text("AUTO ESCUELA AMERICANA", 105, 15, { align: 'center' });
       
-      // Title
       doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 74, 173); // Dark Blue
+      doc.setTextColor(0, 74, 173);
       doc.text("Ficha de Inscripción", 105, 38, { align: 'center' });
       
       let y = 55;
 
-      // Student Data
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text("Datos del Alumno", 14, y);
@@ -156,9 +154,8 @@ export default function AgendaPage() {
           y += (notesLines.length * 5) + 3;
       }
 
-      y += 5; // Extra space
+      y += 5;
 
-      // Class Dates
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text("Fechas y Horarios Solicitados", 14, y);
@@ -167,11 +164,11 @@ export default function AgendaPage() {
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       dates.forEach(item => {
-          if (y > 280) { // Check for page break
+          if (y > 280) {
             doc.addPage();
             y = 20;
           }
-          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          const formattedTime = item.time ? format(parse(item.time, 'HH:mm', new Date()), 'h:mm a') : 'Sin hora';
           doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} a las ${formattedTime}`, 14, y);
           y += 7;
       });
@@ -206,9 +203,18 @@ export default function AgendaPage() {
         setLastSubmission(submissionData);
         setCourseScheduled(true);
         
+        // Fire-and-forget call to create calendar events in the background.
+        createCalendarEventsAction({
+            ...values,
+            dates: selectedDates.map(d => ({
+                date: d.date.toISOString(), // Explicitly serialize to string
+                time: d.time,
+            })),
+        });
+        
         toast({
             title: '¡Solicitud Procesada!',
-            description: 'Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp.',
+            description: 'Tu ficha está lista. Los eventos se están agendando en el calendario en segundo plano.',
             className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
         });
 
@@ -234,7 +240,7 @@ export default function AgendaPage() {
       message += `*Transmisión:* ${values.transmission}\n\n`;
       message += `*Fechas y Horarios solicitados:*\n`;
       dates.forEach(item => {
-          const formattedTime = format(parse(item.time!, 'HH:mm', new Date()), 'h:mm a');
+          const formattedTime = item.time ? format(parse(item.time, 'HH:mm', new Date()), 'h:mm a') : 'A confirmar';
           message += `• ${format(item.date, "EEEE, d 'de' MMMM", { locale: es })} a las ${formattedTime}\n`;
       });
       if (values.notes) {
@@ -306,7 +312,7 @@ export default function AgendaPage() {
                             ¡Solicitud Procesada!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp a un asesor.
+                            Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp a un asesor. Los eventos se están agendando en el calendario.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">

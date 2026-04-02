@@ -10,3 +10,7 @@ secretEnv:
     secret: WHATSAPP_ACCESS_TOKEN
   - key: WHATSAPP_PHONE_NUMBER_ID
     secret: WHATSAPP_PHONE_NUMBER_ID
+  - key: GOOGLE_CALENDAR_ID
+    secret: GOOGLE_CALENDAR_ID
+  - key: CALENDAR_KEY
+    secret: CALENDAR_KEY
