@@ -54,6 +54,12 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
   const calendar = await getCalendar();
   if (!calendar || !CALENDAR_ID) {
     console.log('Calendar client not available. Cannot create event.');
+    if (!CALENDAR_ID) {
+        throw new Error('La variable de entorno GOOGLE_CALENDAR_ID no está configurada.');
+    }
+    if (!CALENDAR_KEY_BASE64) {
+        throw new Error('La variable de entorno CALENDAR_KEY no está configurada.');
+    }
     return null;
   }
 
@@ -67,15 +73,7 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
   const event: calendar_v3.Params$Resource$Events$Insert['requestBody'] = {
     summary: `Clase: ${details.studentName}`,
     location: details.studentAddress,
-    description: `
-      <b>Alumno:</b> ${details.studentName}
-      <b>Teléfono:</b> ${details.studentPhone}
-      <b>Transmisión:</b> ${details.transmission}
-      ${details.isMinor ? '<b>Modalidad:</b> MENOR DE EDAD\n' : ''}
-      ${details.notes ? `<b>Notas:</b> ${details.notes}\n` : ''}
-      <br>
-      <i>Evento creado automáticamente por la App de AEA.</i>
-    `,
+    description: `<b>Alumno:</b> ${details.studentName}<br><b>Teléfono:</b> ${details.studentPhone}<br><b>Transmisión:</b> ${details.transmission}${details.isMinor ? '<br><b>Modalidad:</b> MENOR DE EDAD' : ''}${details.notes ? `<br><b>Notas:</b> ${details.notes}` : ''}<br><br><i>Evento creado automáticamente por la App de AEA.</i>`,
     start: {
       dateTime: startDate.toISOString(),
       timeZone: 'America/Mexico_City',
@@ -102,7 +100,19 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
     return response.data.id || 'success';
   } catch (error) {
     console.error('Error creating calendar event:', error);
-    // Let the flow handle the error
-    throw new Error('Failed to create calendar event.');
+    if (error instanceof Error) {
+        const message = error.message;
+        if (message.includes('Not Found')) { // Google API error for not found calendar
+            throw new Error('Error de Calendario: El ID del calendario no fue encontrado. Verifica la variable de entorno GOOGLE_CALENDAR_ID.');
+        }
+        if (message.includes('permission')) {
+            throw new Error('Error de Calendario: Permisos insuficientes. Asegúrate de que la cuenta de servicio tenga permisos para editar eventos en el calendario.');
+        }
+        if (message.includes('invalid_grant')) {
+            throw new Error('Error de Calendario: Autenticación fallida. Revisa las credenciales de la cuenta de servicio (CALENDAR_KEY).');
+        }
+        throw new Error(`Error al crear evento: ${message}`);
+    }
+    throw new Error('Ocurrió un error desconocido al crear el evento.');
   }
 }
