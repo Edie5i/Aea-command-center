@@ -1,8 +1,7 @@
-
 'use client';
 
 import React from 'react';
-import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck, BookUser, List } from 'lucide-react';
+import { Car, Globe, Lightbulb, BookOpen, Star, MapPin, FileText, Bike, CalendarCheck, BookUser, List, FlaskConical } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
@@ -167,6 +166,19 @@ export default function Home() {
               <CardFooter>
                 <Button asChild className="w-full">
                   <Link href="/terminos">Leer Términos</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="flex flex-col border-dashed border-primary/50">
+              <CardContent className="p-6 flex-grow">
+                <FlaskConical className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-bold text-lg mb-2">Prueba de Calendario</h3>
+                <p className="text-muted-foreground text-sm">Verifica la conexión con Google Calendar.</p>
+              </CardContent>
+              <CardFooter>
+                <Button asChild className="w-full" variant="secondary">
+                  <Link href="/test-calendar">Ir a la Prueba</Link>
                 </Button>
               </CardFooter>
             </Card>
