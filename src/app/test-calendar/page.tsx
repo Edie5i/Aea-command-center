@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createTestEventAction } from './actions';
 import { Loader2, CalendarPlus, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
@@ -50,14 +51,14 @@ export default function TestCalendarPage() {
             </Alert>
           )}
         </CardContent>
-         <CardContent>
+         <CardFooter>
             <Button asChild variant="link" className="px-0">
                 <Link href="/">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Volver al inicio
                 </Link>
             </Button>
-        </CardContent>
+        </CardFooter>
       </Card>
     </main>
   );
