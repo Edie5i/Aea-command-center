@@ -3,24 +3,21 @@
 import { scheduleAndCreateEvents, type CreateEventInput } from '@/ai/flows/create-calendar-event';
 
 /**
- * A server action that triggers the creation of Google Calendar events in the background.
- * It does not wait for the calendar events to be created to provide a fast user experience.
+ * A server action that attempts to create Google Calendar events.
+ * It now awaits the result and returns success or a specific error message.
  * @param input The data from the schedule form.
  */
-export async function createCalendarEventsAction(input: CreateEventInput) {
+export async function createCalendarEventsAction(input: CreateEventInput): Promise<{ success: boolean; message: string | null; error: string | null; }> {
   try {
-    // Don't await this. Let it run in the background.
-    // The user's UI is not blocked.
-    scheduleAndCreateEvents(input)
-      .then(result => console.log('Background calendar event creation process finished.', result))
-      .catch(error => console.error('Background calendar event creation failed:', error));
+    // Await the result to provide feedback to the user.
+    const result = await scheduleAndCreateEvents(input);
     
-    // Return success to the UI immediately.
-    return { success: true, error: null };
+    // Return a detailed success message.
+    return { success: true, message: result.message, error: null };
   } catch (error) {
-    // This part should ideally not be reached if the call is not awaited, but it's good practice.
-    console.error('Error initiating calendar event creation:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    return { success: false, error: errorMessage };
+    // The calendarService and create-calendar-event flow now throw user-friendly errors.
+    console.error('Error in createCalendarEventsAction:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while creating calendar events.';
+    return { success: false, message: null, error: errorMessage };
   }
 }

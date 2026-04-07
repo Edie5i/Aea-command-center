@@ -48,7 +48,7 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
     try {
         const results = await Promise.all(promises);
         const createdCount = results.filter(r => r !== null).length;
-        const message = `${createdCount} of ${input.dates.length} calendar events created successfully.`;
+        const message = `Se crearon ${createdCount} de ${input.dates.length} eventos en el calendario exitosamente.`;
         console.log(message);
         return { success: true, message, created: createdCount, total: input.dates.length };
     } catch (error) {

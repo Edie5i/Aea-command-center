@@ -203,8 +203,8 @@ export default function AgendaPage() {
         setLastSubmission(submissionData);
         setCourseScheduled(true);
         
-        // Fire-and-forget call to create calendar events in the background.
-        createCalendarEventsAction({
+        // Await the calendar action to get feedback
+        const calendarResult = await createCalendarEventsAction({
             ...values,
             dates: selectedDates.map(d => ({
                 date: d.date.toISOString(), // Explicitly serialize to string
@@ -212,11 +212,22 @@ export default function AgendaPage() {
             })),
         });
         
-        toast({
-            title: '¡Solicitud Procesada!',
-            description: 'Tu ficha está lista. Los eventos se están agendando en el calendario en segundo plano.',
-            className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
-        });
+        // Display a toast based on the calendar action result.
+        if (calendarResult.success) {
+            toast({
+                title: '¡Solicitud Procesada!',
+                description: `${calendarResult.message}. Tu ficha está lista.`,
+                className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
+            });
+        } else {
+            // If calendar creation fails, we still proceeded, but we warn the user.
+            toast({
+                variant: 'destructive',
+                title: 'Atención: Falla al Agendar en Calendario',
+                description: `Tu ficha se generó, pero no se pudieron crear los eventos. Error: ${calendarResult.error}`,
+                duration: 9000,
+            });
+        }
 
     } catch (error: any) {
          toast({
