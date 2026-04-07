@@ -20,7 +20,7 @@ export async function createTestEventAction() {
 
     await createCalendarEvent(testEventDetails);
 
-    return { success: true, message: `¡Evento de prueba creado con éxito! Revisa tu Google Calendar para confirmarlo.` };
+    return { success: true, message: `¡Evento de prueba creado con éxito! Haz clic en el botón que apareció para abrir tu Google Calendar y verificar.` };
     
   } catch (error) {
     console.error('Error creating test event:', error);

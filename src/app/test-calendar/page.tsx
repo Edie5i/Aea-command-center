@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createTestEventAction } from './actions';
-import { Loader2, CalendarPlus, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, CalendarPlus, AlertCircle, CheckCircle, ArrowLeft, CalendarSearch } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TestCalendarPage() {
@@ -49,6 +49,14 @@ export default function TestCalendarPage() {
               <AlertTitle>{result.success ? 'Éxito' : 'Error'}</AlertTitle>
               <AlertDescription>{result.message}</AlertDescription>
             </Alert>
+          )}
+          {result?.success && (
+            <Button asChild variant="secondary" className="w-full">
+                <a href="https://calendar.google.com/" target="_blank" rel="noopener noreferrer">
+                    <CalendarSearch className="mr-2 h-4 w-4" />
+                    Abrir Google Calendar para verificar
+                </a>
+            </Button>
           )}
         </CardContent>
          <CardFooter>
