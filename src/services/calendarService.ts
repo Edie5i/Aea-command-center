@@ -42,7 +42,7 @@ interface EventDetails {
   transmission: string;
   isMinor: boolean;
   notes?: string;
-  classDate: Date;
+  classDate: Date; // This is an ISO string from the client
   classTime: string; // "HH:mm"
 }
 
@@ -51,27 +51,27 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
     const calendar = google.calendar({ version: 'v3', auth });
     const calendarId = process.env.GOOGLE_CALENDAR_ID!;
 
-    // Combine date and time into a single Date object
-    const [hours, minutes] = details.classTime.split(':').map(Number);
-    const startDate = new Date(details.classDate);
-    // This sets the time in the server's local timezone. toISOString() will then convert it to UTC.
-    startDate.setHours(hours, minutes, 0, 0);
+    // Construct date/time strings for the 'America/Mexico_City' timezone explicitly.
+    // This avoids issues with the server's default UTC timezone.
+    const datePart = (details.classDate as unknown as string).substring(0, 10); // "YYYY-MM-DD" from ISO string
+    const startTimeLocal = `${datePart}T${details.classTime}:00`; // "YYYY-MM-DDTHH:mm:00"
 
-    // Classes are 2.5 hours long (9,000,000 milliseconds)
-    const endDate = new Date(startDate.getTime() + 9000000); 
+    // To calculate the end time, create a Date object assuming the local time is UTC,
+    // perform the addition, and then format it back to a local time string.
+    const tempStartDate = new Date(startTimeLocal + 'Z'); // Treat as UTC for calculation purposes
+    const tempEndDate = new Date(tempStartDate.getTime() + 9000000); // Add 2.5 hours (9,000,000 ms)
+    const endTimeLocal = tempEndDate.toISOString().substring(0, 19); // Extracts "YYYY-MM-DDTHH:mm:ss"
 
-    // Using ISO 8601 format is the standard and most robust way to send dates to APIs.
-    // The Google Calendar API correctly handles the UTC 'Z' marker when a timeZone is also provided.
     const event: calendar_v3.Params$Resource$Events$Insert['requestBody'] = {
         summary: `Clase: ${details.studentName}`,
         location: details.studentAddress,
         description: `<b>Alumno:</b> ${details.studentName}<br><b>Teléfono:</b> ${details.studentPhone}<br><b>Transmisión:</b> ${details.transmission}${details.isMinor ? '<br><b>Modalidad:</b> MENOR DE EDAD' : ''}${details.notes ? `<br><b>Notas:</b> ${details.notes}` : ''}<br><br><i>Evento creado automáticamente por la App de AEA.</i>`,
         start: {
-            dateTime: startDate.toISOString(),
+            dateTime: startTimeLocal,
             timeZone: 'America/Mexico_City',
         },
         end: {
-            dateTime: endDate.toISOString(),
+            dateTime: endTimeLocal,
             timeZone: 'America/Mexico_City',
         },
         reminders: {

@@ -40,7 +40,7 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
             transmission: input.transmission,
             isMinor: !!input.isMinor,
             notes: input.notes,
-            classDate: new Date(classItem.date), // Parse date string here
+            classDate: new Date(classItem.date), // The service handles the ISO string
             classTime: classItem.time,
         });
     });
