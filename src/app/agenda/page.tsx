@@ -193,47 +193,45 @@ export default function AgendaPage() {
     setIsProcessing(true);
     try {
         if (selectedDates.length === 0) {
-            throw new Error('Por favor, selecciona al menos un día.');
+            throw new Error('Por favor, selecciona al menos un día para tu curso.');
         }
         if (!selectedDates.every(d => !!d.time)) {
-            throw new Error('Selecciona un horario para cada día.');
+            throw new Error('Debes seleccionar un horario para cada fecha elegida.');
         }
-        
-        const submissionData = { values, dates: selectedDates };
-        setLastSubmission(submissionData);
-        setCourseScheduled(true);
-        
-        // Await the calendar action to get feedback
+
+        // Call the calendar action first.
         const calendarResult = await createCalendarEventsAction({
             ...values,
             dates: selectedDates.map(d => ({
-                date: d.date.toISOString(), // Explicitly serialize to string
-                time: d.time,
+                date: d.date.toISOString(),
+                time: d.time!, // We already checked that time is not undefined.
             })),
         });
-        
-        // Display a toast based on the calendar action result.
-        if (calendarResult.success) {
-            toast({
-                title: '¡Solicitud Procesada!',
-                description: `${calendarResult.message}. Tu ficha está lista.`,
-                className: 'bg-green-100 dark:bg-green-900/30 border-green-500'
-            });
-        } else {
-            // If calendar creation fails, we still proceeded, but we warn the user.
-            toast({
-                variant: 'destructive',
-                title: 'Atención: Falla al Agendar en Calendario',
-                description: `Tu ficha se generó, pero no se pudieron crear los eventos. Error: ${calendarResult.error}`,
-                duration: 9000,
-            });
+
+        // If the action failed, throw an error to be caught by the main catch block.
+        if (!calendarResult.success) {
+            throw new Error(calendarResult.error || 'No se pudieron crear los eventos en el calendario.');
         }
+
+        // Only if the calendar part was successful, we proceed.
+        const submissionData = { values, dates: selectedDates };
+        setLastSubmission(submissionData);
+        setCourseScheduled(true); // Change view to success screen.
+
+        // Show a success toast with the message from the server.
+        toast({
+            title: '¡Solicitud Procesada con Éxito!',
+            description: calendarResult.message,
+            className: 'bg-green-100 dark:bg-green-900/30 border-green-500',
+            duration: 7000,
+        });
 
     } catch (error: any) {
          toast({
             variant: 'destructive',
-            title: 'Error en el Formulario',
-            description: error.message || 'Ocurrió un error inesperado.',
+            title: 'Error en la Solicitud',
+            description: error.message || 'Ocurrió un error inesperado. Revisa tus datos e intenta de nuevo.',
+            duration: 9000,
         });
     } finally {
         setIsProcessing(false);
@@ -281,7 +279,7 @@ export default function AgendaPage() {
             Agenda tu Curso
           </h1>
           <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tus datos han sido procesados!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
+            {courseScheduled ? '¡Tu inscripción y agenda están completas!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
           </p>
         </div>
       </section>
@@ -320,10 +318,10 @@ export default function AgendaPage() {
                     <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Solicitud Procesada!
+                            ¡Inscripción y Agenda Completas!
                         </AlertTitle>
                         <AlertDescription className="text-foreground mt-2">
-                            Tus datos están listos. Ahora puedes descargar la ficha o enviarla por WhatsApp a un asesor. Los eventos se están agendando en el calendario.
+                            Tus clases se han agendado correctamente en el calendario. Ahora puedes descargar tu ficha de inscripción o enviarla por WhatsApp para finalizar el proceso.
                         </AlertDescription>
                     </Alert>
                     <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
@@ -474,7 +472,7 @@ export default function AgendaPage() {
                                         
                                         <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
                                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
-                                            {isProcessing ? 'Procesando...' : 'Generar Ficha y Continuar'}
+                                            {isProcessing ? 'Procesando...' : 'Generar Ficha y Agendar'}
                                         </Button>
                                     </form>
                                 </Form>
