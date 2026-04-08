@@ -51,13 +51,17 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
     const calendar = google.calendar({ version: 'v3', auth });
     const calendarId = process.env.GOOGLE_CALENDAR_ID!;
 
+    // Combine date and time into a single Date object
     const [hours, minutes] = details.classTime.split(':').map(Number);
     const startDate = new Date(details.classDate);
+    // This sets the time in the server's local timezone. toISOString() will then convert it to UTC.
     startDate.setHours(hours, minutes, 0, 0);
 
-    // Classes are 2.5 hours long
-    const endDate = new Date(startDate.getTime() + 2.5 * 60 * 60 * 1000); 
+    // Classes are 2.5 hours long (9,000,000 milliseconds)
+    const endDate = new Date(startDate.getTime() + 9000000); 
 
+    // Using ISO 8601 format is the standard and most robust way to send dates to APIs.
+    // The Google Calendar API correctly handles the UTC 'Z' marker when a timeZone is also provided.
     const event: calendar_v3.Params$Resource$Events$Insert['requestBody'] = {
         summary: `Clase: ${details.studentName}`,
         location: details.studentAddress,
