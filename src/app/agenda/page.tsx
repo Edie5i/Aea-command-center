@@ -8,7 +8,6 @@ import { format, isPast, isToday, parse } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import jsPDF from 'jspdf';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,6 +102,7 @@ export default function AgendaPage() {
     setIsProcessing(true);
 
     try {
+      const { default: jsPDF } = await import('jspdf');
       const { values, dates } = lastSubmission;
       
       const doc = new jsPDF();
