@@ -42,7 +42,7 @@ interface EventDetails {
   transmission: string;
   isMinor: boolean;
   notes?: string;
-  classDate: Date; // This is an ISO string from the client
+  classDate: Date; // This is a Date object from the flow
   classTime: string; // "HH:mm"
 }
 
@@ -53,8 +53,8 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
 
     // Construct date/time strings for the 'America/Mexico_City' timezone explicitly.
     // This avoids issues with the server's default UTC timezone.
-    const datePart = (details.classDate as unknown as string).substring(0, 10); // "YYYY-MM-DD" from ISO string
-    const startTimeLocal = `${datePart}T${details.classTime}:00`; // "YYYY-MM-DDTHH:mm:00"
+    const datePart = details.classDate.toLocaleDateString("en-CA", { timeZone: "America/Mexico_City" }); // "YYYY-MM-DD"
+    const startTimeLocal = `${datePart}T${details.classTime}:00`;
 
     // To calculate the end time, create a Date object assuming the local time is UTC,
     // perform the addition, and then format it back to a local time string.
