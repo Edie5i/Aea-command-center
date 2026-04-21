@@ -14,3 +14,9 @@ secretEnv:
     secret: GOOGLE_CALENDAR_ID
   - key: CALENDAR_KEY
     secret: CALENDAR_KEY
+  - key: META_WHATSAPP_TOKEN
+    secret: META_WHATSAPP_TOKEN
+  - key: META_PHONE_NUMBER_ID
+    secret: META_PHONE_NUMBER_ID
+  - key: META_VERIFY_TOKEN
+    secret: META_VERIFY_TOKEN
