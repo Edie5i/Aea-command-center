@@ -5,5 +5,12 @@
   },
   "apphosting": {
     "serviceId": "aea-app"
-  }
+  ,
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    }
+  ]
+}
 }
