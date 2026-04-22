@@ -137,7 +137,22 @@ export async function POST(request: NextRequest) {
     }
     seen.set(msgId, now);
 
-    const reply = classify(textBody);
+    const classification = classify(textBody);
+
+if (classification === "TPL.agenda") {
+  try {
+    const result = await chatbotFlow({
+      input: { message: textBody, fullContext: "Agenda de clase" }
+    });
+    const botResponse = result.response || "Clase agendada correctamente ✓";
+    await sendMessage(from, botResponse);
+  } catch (error) {
+    console.error("Chatbot error:", error);
+    await sendMessage(from, "Ocurrió un error al procesar tu solicitud. Por favor intenta nuevamente.");
+  }
+} else {
+  await sendMessage(from, classification);
+}
     await sendMessage(from, reply);
 
     // botContextData available for future enrichment
