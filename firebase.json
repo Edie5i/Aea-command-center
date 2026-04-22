@@ -1,1 +1,9 @@
-{"hosting":{"source":".","ignore":["firebase.json","**/.*","**/node_modules/**"]}}
+{
+  "hosting": {
+    "source": ".",
+    "ignore": ["firebase.json", "/.firebaserc", "/node_modules/**"]
+  },
+  "apphosting": {
+    "serviceId": "aea-app"
+  }
+}
