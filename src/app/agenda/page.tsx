@@ -216,7 +216,10 @@ export default function AgendaPage() {
         // Only if the calendar part was successful, we proceed.
         const submissionData = { values, dates: selectedDates };
         setLastSubmission(submissionData);
-        setCourseScheduled(true); // Change view to success screen.
+        setCourseScheduled(true);
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'agenda_submit', { transmission: values.transmission });
+        }
 
         // Show a success toast with the message from the server.
         toast({
@@ -330,7 +333,16 @@ export default function AgendaPage() {
                             {isProcessing ? 'Generando...' : 'Descargar Ficha PDF'}
                         </Button>
                          <Button asChild>
-                            <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer">
+                            <a
+                              href={whatsAppUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                if (typeof window !== 'undefined' && (window as any).gtag) {
+                                  (window as any).gtag('event', 'whatsapp_click', { location: 'agenda_success' });
+                                }
+                              }}
+                            >
                                <MessageSquare className="mr-2 h-4 w-4" />
                                Enviar por WhatsApp
                             </a>

@@ -26,13 +26,13 @@ export default function RootLayout({
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
       </head>
       <body className="font-body antialiased h-full">
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=AW-11300877997" />
-        <Script id="google-analytics">
+        <Script strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=G-LMZBQ47D8K" />
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-
+            gtag('config', 'G-LMZBQ47D8K');
             gtag('config', 'AW-11300877997');
           `}
         </Script>
