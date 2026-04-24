@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileOverview A utility for creating Google Calendar events for driving classes.
  * This is NOT an AI flow, but a server-side utility function.
