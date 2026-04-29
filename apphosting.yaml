@@ -1,22 +1,17 @@
 runConfig:
   cpu: 1
   memoryMiB: 2048
-secretEnv:
-  - key: GOOGLE_GENERATIVE_AI_API_KEY
+
+env:
+  - variable: GEMINI_API_KEY
     secret: GOOGLE_GENERATIVE_AI_API_KEY
-  - key: WHATSAPP_VERIFY_TOKEN
-    secret: WHATSAPP_VERIFY_TOKEN
-  - key: WHATSAPP_ACCESS_TOKEN
-    secret: WHATSAPP_ACCESS_TOKEN
-  - key: WHATSAPP_PHONE_NUMBER_ID
-    secret: WHATSAPP_PHONE_NUMBER_ID
-  - key: GOOGLE_CALENDAR_ID
+  - variable: GOOGLE_CALENDAR_ID
     secret: GOOGLE_CALENDAR_ID
-  - key: CALENDAR_KEY
+  - variable: CALENDAR_KEY
     secret: CALENDAR_KEY
-  - key: META_WHATSAPP_TOKEN
+  - variable: META_WHATSAPP_TOKEN
     secret: META_WHATSAPP_TOKEN
-  - key: META_PHONE_NUMBER_ID
+  - variable: META_PHONE_NUMBER_ID
     secret: META_PHONE_NUMBER_ID
-  - key: META_VERIFY_TOKEN
+  - variable: META_VERIFY_TOKEN
     secret: META_VERIFY_TOKEN
