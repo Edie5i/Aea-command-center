@@ -21,7 +21,7 @@ export async function simpleChat(
 ): Promise<SimpleChatOutput> {
   try {
     const result = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-001',
+      model: 'googleai/gemini-2.5-flash',
       system: `Eres Ale, asesora de Auto Escuela Americana, una escuela de manejo en CDMX. Tu nombre es Ale.
 
 Cómo hablas:

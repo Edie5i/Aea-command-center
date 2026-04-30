@@ -42,7 +42,7 @@ const DEDUP_TTL = 5 * 60 * 1000;
 
 async function generateReply(userMessage: string): Promise<string> {
   const geminiCall = ai.generate({
-    model: 'googleai/gemini-2.0-flash-001',
+    model: 'googleai/gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     prompt: `CONTEXTO DE LA ESCUELA:\n${schoolContext}\n\nMensaje del cliente: "${userMessage}"`,
   });
