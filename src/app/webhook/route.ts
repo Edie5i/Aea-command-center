@@ -34,22 +34,29 @@ Cómo hablas:
 Usa SOLO la información del contexto de la escuela que se te proporciona. No inventes precios ni cursos.`;
 
 const MSG_FALLBACK = 'Déjame ponerte en contacto con un asesor 😊';
+// 14s timeout — Meta requires 200 within 20s
+const GEMINI_TIMEOUT_MS = 14_000;
 
 const seen = new Map<string, number>();
 const DEDUP_TTL = 5 * 60 * 1000;
 
 async function generateReply(userMessage: string): Promise<string> {
-  try {
-    const result = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-001',
-      system: SYSTEM_PROMPT,
-      prompt: `CONTEXTO DE LA ESCUELA:\n${schoolContext}\n\nMensaje del cliente: "${userMessage}"`,
-    });
-    return result.text?.trim() || MSG_FALLBACK;
-  } catch (err) {
-    console.error('[WEBHOOK] Gemini error:', err);
+  const geminiCall = ai.generate({
+    model: 'googleai/gemini-2.0-flash-001',
+    system: SYSTEM_PROMPT,
+    prompt: `CONTEXTO DE LA ESCUELA:\n${schoolContext}\n\nMensaje del cliente: "${userMessage}"`,
+  });
+
+  const timeout = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), GEMINI_TIMEOUT_MS)
+  );
+
+  const result = await Promise.race([geminiCall, timeout]);
+  if (!result) {
+    console.error('[WEBHOOK] Gemini timeout after', GEMINI_TIMEOUT_MS, 'ms');
     return MSG_FALLBACK;
   }
+  return result.text?.trim() || MSG_FALLBACK;
 }
 
 async function sendMessage(to: string, text: string): Promise<void> {
@@ -68,7 +75,7 @@ async function sendMessage(to: string, text: string): Promise<void> {
     }),
   });
   if (!res.ok) {
-    console.error('WhatsApp API error:', res.status, await res.text());
+    console.error('[WEBHOOK] WhatsApp API error:', res.status, await res.text());
   }
 }
 
@@ -114,15 +121,17 @@ export async function POST(request: NextRequest) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
     seen.set(msgId, now);
-
   } catch {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  if (from && textBody) {
-    generateReply(textBody)
-      .then((reply) => sendMessage(from, reply))
-      .catch((err) => console.error('[WEBHOOK] sendMessage failed:', err));
+  // Await Gemini + send BEFORE returning — keeps Cloud Run CPU allocated
+  try {
+    const reply = await generateReply(textBody);
+    await sendMessage(from, reply);
+    console.log('[WEBHOOK] Replied to', from, ':', reply.slice(0, 80));
+  } catch (err) {
+    console.error('[WEBHOOK] Pipeline error:', err);
   }
 
   return new NextResponse('EVENT_RECEIVED', { status: 200 });
