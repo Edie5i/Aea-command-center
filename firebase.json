@@ -1,16 +1,7 @@
 {
-  "hosting": {
-    "source": ".",
-    "ignore": ["firebase.json", "/.firebaserc", "/node_modules/**"]
-  },
-  "apphosting": {
-    "serviceId": "aea-app"
-  ,
-  "functions": [
+  "apphosting": [
     {
-      "source": "functions",
-      "codebase": "default"
+      "backendId": "studio"
     }
   ]
-}
 }
