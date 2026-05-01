@@ -24,7 +24,7 @@ const initialMessages: Message[] = [
   {
     id: 1,
     role: 'bot',
-    text: '¡Hola! Soy Auto EscuelaBot. ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre cursos, precios, horarios o cómo agendar una clase.',
+    text: '¡Hola! Soy Ale, de Auto Escuela Americana. ¿Ya manejas o vas empezando desde cero? 🚗',
   },
 ];
 
@@ -53,12 +53,13 @@ export default function ChatbotPage() {
       role: 'user',
       text: input,
     };
+    const historySnapshot = messages.map((m: Message) => ({ role: m.role, text: m.text }));
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const result = await getChatbotResponseAction(input);
+      const result = await getChatbotResponseAction(input, historySnapshot);
       
       if (result.error || !result.response) {
         throw new Error(result.error || 'No se pudo obtener una respuesta del bot.');
@@ -74,7 +75,7 @@ export default function ChatbotPage() {
     } catch (error: any) {
        toast({
         variant: 'destructive',
-        title: 'Error del Asistente',
+        title: 'Algo salió mal',
         description: error.message || 'Ocurrió un error inesperado.',
       });
       // Optionally add an error message to the chat
@@ -109,10 +110,10 @@ export default function ChatbotPage() {
           </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Asistente Virtual
+          Habla con Ale
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Chatea con nuestra IA para resolver tus dudas al instante.
+          Asesora de Auto Escuela Americana. Te ayuda a encontrar el curso que necesitas.
         </p>
       </div>
 
@@ -137,10 +138,10 @@ export default function ChatbotPage() {
             <div>
                 <CardTitle className="flex items-center gap-2">
                 <Bot className="text-primary" />
-                Auto EscuelaBot
+                Ale
                 </CardTitle>
                 <CardDescription>
-                Este es un asistente de IA. La información podría ser imprecisa.
+                Asesora de Auto Escuela Americana
                 </CardDescription>
             </div>
              <Button variant="ghost" size="icon" onClick={handleResetChat} aria-label="Reiniciar chat">

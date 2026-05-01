@@ -5,7 +5,10 @@ import { reglamentoTransitoCompleto } from './reglamento-transito-data';
 export const botContextData = {
   informacionGeneral: {
     nombre: "Auto Escuela Americana",
-    ubicacion: "Torreón #49, Roma Sur, CDMX.",
+    sucursales: [
+      { nombre: "Roma Sur (principal)", direccion: "Torreón #49, Roma Sur, CDMX." },
+      { nombre: "Av. Universidad", direccion: "Av. Universidad 1407, CDMX." },
+    ],
     cobertura: "Ciudad de México (CDMX) únicamente.",
     horariosGenerales: "Los horarios principales para iniciar clases son 7am, 10am, 13pm, 16pm y 19pm, todos los días. Se debe confirmar disponibilidad al agendar.",
     tiposDeVehiculo: "Enseñamos en coches con transmisión automática y estándar.",
@@ -39,6 +42,11 @@ export const botContextData = {
       descripcion: "Para quienes dejaron de manejar y quieren retomar la confianza.",
     },
     {
+      nombre: "Curso Avanzado",
+      precioMXN: 1900.00,
+      descripcion: "Conducción defensiva para personas que ya tienen licencia y quieren elevar su nivel de manejo.",
+    },
+    {
       nombre: "Curso para Personas Nerviosas",
       precioMXN: 5100.00,
       descripcion: "Un programa especial con paciencia y técnicas para superar la ansiedad al volante.",
@@ -47,6 +55,11 @@ export const botContextData = {
       nombre: "Curso Mixto (Automático y Estándar)",
       precioMXN: 5100.00,
       descripcion: "Aprende a dominar ambos tipos de transmisión y amplía tus habilidades de conducción.",
+    },
+    {
+      nombre: "Curso Intensivo",
+      precioMXN: 5100.00,
+      descripcion: "6 sesiones intensivas para aprender a manejar en poco tiempo. Ideal si tienes prisa o pocos días disponibles.",
     },
     {
       nombre: "Curso en Coche Propio",
@@ -162,7 +175,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Dónde están ubicados? / ¿Cuál es su dirección?",
-      respuesta: "Nuestra sucursal principal está en Torreón #49, Roma Sur, en la Ciudad de México. Sin embargo, ofrecemos servicio a domicilio en gran parte de CDMX, ¡así que podemos ir a donde tú estés! Puedes ver un mapa en nuestra página principal."
+      respuesta: "Contamos con dos puntos de atención: nuestra sucursal principal en Torreón #49, Roma Sur, y también tenemos presencia en Av. Universidad 1407. Además ofrecemos servicio a domicilio en gran parte de CDMX. Puedes ver un mapa en nuestra página principal."
     },
     {
       pregunta: "¿Tienen espacio disponible? / ¿Cómo sé si hay lugar?",

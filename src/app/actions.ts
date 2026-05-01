@@ -2,9 +2,12 @@
 
 import { simpleChat } from '@/ai/flows/chatbot-flow';
 
-export async function getChatbotResponseAction(message: string) {
+export async function getChatbotResponseAction(
+  message: string,
+  history: Array<{ role: 'user' | 'bot'; text: string }> = []
+) {
   try {
-    const response = await simpleChat({ message });
+    const response = await simpleChat({ message, history });
     return { response: response.response, error: null };
   } catch (error) {
     console.error('Error getting chatbot response:', error);
