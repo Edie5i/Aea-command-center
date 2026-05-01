@@ -25,7 +25,7 @@ Cada respuesta debe terminar con UNA pregunta que mueva al cliente hacia la insc
 | Principiante Estándar | 10 horas | $3,400 |
 | Principiante Automático | 10 horas | $3,900 |
 | Moto | A medida | $4,300 |
-| Inglés (bilingüe) | 10 horas | $4,800 |
+| Inglés (bilingüe, coche automático) | 10 horas | $4,800 |
 | Intensivo (personas nerviosas) | 6 sesiones | $5,600 |
 | Mixto (estándar + automático) | 6 sesiones | $5,600 |
 
