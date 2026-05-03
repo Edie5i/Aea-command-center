@@ -175,6 +175,7 @@ ${fullContext}`;
 const ADMIN_PHONE = '525634433212';
 const MSG_FALLBACK = 'Déjame confirmarlo con el equipo y te aviso en un momento.';
 const GEMINI_TIMEOUT_MS = 25_000;
+const REMINDER_24H = 24 * 60 * 60 * 1000;
 
 // Dedup de mensajes recibidos
 const seen = new Map<string, number>();
@@ -184,6 +185,10 @@ const DEDUP_TTL = 5 * 60 * 1000;
 type HistoryItem = { role: 'user' | 'bot'; text: string };
 const conversations = new Map<string, { messages: HistoryItem[]; lastActivity: number }>();
 const HISTORY_TTL = 2 * 60 * 60 * 1000;
+
+// Seguimiento de último mensaje del cliente y si ya se envió recordatorio
+export const lastUserMessage = new Map<string, number>();
+export const reminderSent = new Map<string, boolean>();
 
 function getHistory(phone: string): HistoryItem[] {
   const now = Date.now();
@@ -290,6 +295,10 @@ export async function POST(request: NextRequest) {
   } catch {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
+
+  // Registrar mensaje del cliente y resetear recordatorio si había respondido antes
+  lastUserMessage.set(from, Date.now());
+  reminderSent.set(from, false);
 
   try {
     const history = getHistory(from);

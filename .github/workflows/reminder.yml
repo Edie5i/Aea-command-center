@@ -1,0 +1,15 @@
+name: WhatsApp Reminder
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # cada hora
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar endpoint de recordatorios
+        run: |
+          curl -s "https://app.autoescuelaamericana.com/api/reminder?token=${{ secrets.REMINDER_TOKEN }}" \
+            | echo "Respuesta: $(cat)"
