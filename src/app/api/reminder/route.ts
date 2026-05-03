@@ -5,6 +5,7 @@ const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
 const REMINDER_24H = 24 * 60 * 60 * 1000;
+const REMINDER_25H = 25 * 60 * 60 * 1000;
 
 const MSG_RECORDATORIO =
   'Buen día, le escribimos de Auto Escuela Americana. ¿Tiene alguna pregunta sobre nuestros cursos o servicios? Con gusto le atendemos. 🚗';
@@ -36,10 +37,11 @@ export async function GET(request: NextRequest) {
   let enviados = 0;
 
   for (const [phone, lastTs] of lastUserMessage) {
-    const inactivo = now - lastTs > REMINDER_24H;
+    const elapsed = now - lastTs;
+    const enVentana = elapsed >= REMINDER_24H && elapsed < REMINDER_25H;
     const yaEnviado = reminderSent.get(phone) ?? false;
 
-    if (inactivo && !yaEnviado) {
+    if (enVentana && !yaEnviado) {
       await sendMessage(phone, MSG_RECORDATORIO).catch((e) =>
         console.error('[REMINDER] Error enviando a', phone, e)
       );
