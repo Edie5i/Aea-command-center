@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getConversations } from '@/lib/firestore';
+import { getConversations, type Conversation } from '@/lib/firestore';
 import Link from 'next/link';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
@@ -23,7 +23,12 @@ export default async function ConversacionesPage() {
     redirect('/admin/conversaciones/login');
   }
 
-  const conversaciones = await getConversations();
+  let conversaciones: Awaited<ReturnType<typeof getConversations>> = [];
+  try {
+    conversaciones = await getConversations();
+  } catch (e) {
+    console.error('[Admin] Firestore error:', e);
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">

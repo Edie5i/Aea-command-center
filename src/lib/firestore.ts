@@ -3,8 +3,7 @@ import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 function initAdmin() {
   if (getApps().length > 0) return;
-  // On Firebase App Hosting, Application Default Credentials are provided automatically
-  initializeApp();
+  initializeApp({ projectId: 'aea-25-85385059-83402' });
 }
 
 initAdmin();
