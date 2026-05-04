@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
-import { botContextData } from '@/lib/bot-data';
+import { AEA_TOOLS } from '@/ai/tools/aea-tools';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
-
-const fullContext = JSON.stringify(botContextData);
 
 const SYSTEM_PROMPT = `Eres Ale, asesora de ventas de Auto Escuela Americana (AEA). Atiendes por WhatsApp con un tono formal, profesional y cordial. Tu lenguaje es el de una asesora institucional: cuidado, claro y respetuoso en todo momento.
 
@@ -202,9 +200,15 @@ No use este recurso para preguntas simples que Ale sí puede responder. Solo cua
 - NUNCA repitas el saludo
 - NUNCA preguntes "¿las clases son para ti o para alguien más?"
 
-## CONTEXTO DE LA ESCUELA
+## HERRAMIENTAS DISPONIBLES
 
-${fullContext}`;
+Tienes acceso a 3 herramientas que debes usar proactivamente:
+
+- **consultarDisponibilidad**: Consulta el calendario real de clases. Úsala SIEMPRE que el cliente pregunte por disponibilidad, fechas, si hay lugar, cuándo puede empezar. No inventes ni supongas horarios — consúltalos.
+- **consultarCatalogoCursos**: Obtiene precios y descripciones actualizados. Úsala para confirmar datos exactos o comparar cursos.
+- **consultarProgramaCurso**: Obtiene el temario detallado. Úsala si el cliente pregunta qué aprende en el curso.
+
+Prioridad: si el cliente pregunta "¿hay lugar?", llama a consultarDisponibilidad antes de responder y comparte días y horarios concretos.`;
 
 const ADMIN_PHONE = '525634433212';
 const MSG_FALLBACK = 'Déjame confirmarlo con el equipo y te aviso en un momento.';
@@ -245,6 +249,7 @@ async function generateReply(userMessage: string, history: HistoryItem[]): Promi
   const geminiCall = ai.generate({
     model: 'googleai/gemini-2.5-pro',
     system: SYSTEM_PROMPT,
+    tools: AEA_TOOLS,
     messages: history.map((h) => ({
       role: h.role === 'bot' ? ('model' as const) : ('user' as const),
       content: [{ text: h.text }],
@@ -348,7 +353,7 @@ export async function POST(request: NextRequest) {
         .slice(-6)
         .join(' | ');
       const aviso =
-        `🔔 *Nuevo pago confirmado*\n\n` +
+        `🔔 *Lead enviado a /agenda*\n\n` +
         `📱 WhatsApp: +${from}\n` +
         `💬 Últimos mensajes: ${resumen.slice(0, 300)}`;
       await sendMessage(ADMIN_PHONE, aviso).catch((e) =>

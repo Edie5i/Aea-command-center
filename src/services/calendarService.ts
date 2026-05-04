@@ -4,6 +4,70 @@ import { google } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import type { calendar_v3 } from 'googleapis';
 
+const SLOTS_STANDARD = ['07:00', '10:00', '13:00', '16:00', '19:00'];
+const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+export interface SlotDisponible {
+  fecha: string;
+  diaSemana: string;
+  horariosLibres: string[];
+}
+
+export async function getAvailableSlots(days: number = 7): Promise<SlotDisponible[]> {
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID!;
+
+  const now = new Date();
+  const timeMax = new Date(now.getTime() + (days + 1) * 24 * 60 * 60 * 1000);
+
+  const response = await calendar.events.list({
+    calendarId,
+    timeMin: now.toISOString(),
+    timeMax: timeMax.toISOString(),
+    timeZone: 'America/Mexico_City',
+    singleEvents: true,
+    orderBy: 'startTime',
+  });
+
+  const events = response.data.items ?? [];
+
+  const result: SlotDisponible[] = [];
+  for (let d = 1; d <= days; d++) {
+    const day = new Date();
+    day.setDate(day.getDate() + d);
+    const dateStr = day.toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+
+    const dayEvents = events.filter(e => {
+      const start = e.start?.dateTime ?? e.start?.date ?? '';
+      return start.startsWith(dateStr);
+    });
+
+    const busyStartTimes = dayEvents
+      .map(e => {
+        const startDT = e.start?.dateTime;
+        if (!startDT) return null;
+        return new Date(startDT).toLocaleTimeString('en-GB', {
+          timeZone: 'America/Mexico_City',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      })
+      .filter((t): t is string => t !== null);
+
+    const horariosLibres = SLOTS_STANDARD.filter(s => !busyStartTimes.includes(s));
+    const dayOfWeek = new Date(dateStr + 'T12:00:00').getDay();
+
+    result.push({
+      fecha: dateStr,
+      diaSemana: DIAS_ES[dayOfWeek],
+      horariosLibres,
+    });
+  }
+
+  return result;
+}
+
 function getCalendarAuth(): JWT {
     const calendarId = process.env.GOOGLE_CALENDAR_ID;
     const calendarKeyBase64 = process.env.CALENDAR_KEY;
@@ -90,22 +154,21 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
         });
         console.log('Event created successfully: %s', response.data.htmlLink);
         return response.data.id || 'success';
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating calendar event:', error);
-        if (error instanceof Error) {
-            const message = error.message;
-            // The googleapis library returns errors with status codes in the message
-            if (message.includes('404')) { 
-                throw new Error('Error de Calendario: El ID del calendario no fue encontrado. Verifica que el valor de GOOGLE_CALENDAR_ID sea correcto.');
-            }
-            if (message.includes('403')) {
-                throw new Error('Error de Permisos: La cuenta de servicio no tiene permiso para editar el calendario. Asegúrate de haber compartido tu calendario con el `client_email` de tus credenciales y de haberle dado el permiso "Hacer cambios en los eventos".');
-            }
-            if (message.includes('invalid_grant')) {
-                throw new Error('Error de Autenticación: La autenticación con Google falló. Esto puede deberse a un problema con las credenciales en CALENDAR_KEY o un problema de sincronización de hora en el servidor.');
-            }
-            throw new Error(`Error al crear evento: ${message}`);
+        // GaxiosError exposes status on error.response?.status or error.status
+        const status = error?.response?.status ?? error?.status ?? 0;
+        const message = error instanceof Error ? error.message : String(error);
+
+        if (status === 404 || message.includes('404') || message.toLowerCase().includes('not found')) {
+            throw new Error('Error de Calendario (404): El calendario no fue encontrado. Verifica que GOOGLE_CALENDAR_ID sea correcto (debe ser el ID del calendario, p.ej. xxx@group.calendar.google.com) y que la cuenta de servicio tenga acceso a él.');
         }
-        throw new Error('Ocurrió un error desconocido al crear el evento en el calendario.');
+        if (status === 403 || message.includes('403') || message.toLowerCase().includes('forbidden')) {
+            throw new Error('Error de Permisos (403): La cuenta de servicio no tiene permiso para editar el calendario. Comparte el calendario con el `client_email` de tus credenciales y dale el permiso "Hacer cambios en los eventos".');
+        }
+        if (message.includes('invalid_grant')) {
+            throw new Error('Error de Autenticación: La autenticación con Google falló. Revisa que las credenciales en CALENDAR_KEY sean correctas y que el servidor tenga la hora sincronizada.');
+        }
+        throw new Error(`Error al crear evento: ${message}`);
     }
 }

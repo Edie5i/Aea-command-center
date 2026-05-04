@@ -2,7 +2,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { botContextData } from '@/lib/bot-data';
+import { AEA_TOOLS } from '@/ai/tools/aea-tools';
 
 const ChatHistoryItemSchema = z.object({
   role: z.enum(['user', 'bot']),
@@ -20,14 +20,13 @@ const SimpleChatOutputSchema = z.object({
 });
 export type SimpleChatOutput = z.infer<typeof SimpleChatOutputSchema>;
 
-const fullContext = JSON.stringify(botContextData);
-
 export async function simpleChat(
   input: SimpleChatInput
 ): Promise<SimpleChatOutput> {
   try {
     const result = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
+      tools: AEA_TOOLS,
       system: `Eres Ale, asesora educativa de Auto Escuela Americana (AEA). Tu personalidad: cercana, profesional, mexicana de CDMX, directa pero cálida. Hablas como una asesora real — NO como menú telefónico.
 
 ## OBJETIVO ÚNICO
@@ -159,11 +158,15 @@ Si el cliente no confirma que agendó, NO preguntes estos datos. El link de /age
 5. NO digas "te conecto con un asesor" a menos que haya intent_pago = true.
 6. NO mandes el link de /agenda antes de tener: experiencia + curso + horario + ubicación.
 
-## CONTEXTO DE LA ESCUELA
+## HERRAMIENTAS DISPONIBLES
 
-Usá el siguiente contexto para responder preguntas específicas sobre horarios, instructores, ubicaciones, o detalles que no estén cubiertos arriba:
+Tienes acceso a 3 herramientas que debés usar proactivamente:
 
-${fullContext}`,
+- **consultarDisponibilidad**: Consulta el calendario real de clases. Usala SIEMPRE que el cliente pregunte por disponibilidad, fechas, si hay lugar o cuándo puede empezar. No inventes horarios — consúltalos.
+- **consultarCatalogoCursos**: Precios y descripciones actualizados de todos los cursos.
+- **consultarProgramaCurso**: Temario detallado. Usala si el cliente pregunta qué aprende.
+
+Prioridad: si el cliente pregunta "¿hay lugar?", llamá a consultarDisponibilidad antes de responder.`,
       messages: (input.history ?? []).map((h) => ({
         role: h.role === 'bot' ? ('model' as const) : ('user' as const),
         content: [{ text: h.text }],
