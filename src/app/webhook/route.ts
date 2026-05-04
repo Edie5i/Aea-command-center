@@ -341,10 +341,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const history = getHistory(from);
+    console.log('[CHAT] 📩', from, '→ Ale:', textBody);
     const reply = await generateReply(textBody, history);
     await sendMessage(from, reply);
     saveHistory(from, textBody, reply);
-    console.log('[WEBHOOK] Replied to', from, ':', reply.slice(0, 80));
+    console.log('[CHAT] 🤖 Ale →', from, ':', reply);
 
     if (reply.includes('autoescuelaamericana.com/agenda')) {
       const resumen = history
