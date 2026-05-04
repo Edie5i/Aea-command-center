@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getConversations } from '@/lib/firestore';
 import Link from 'next/link';
 
-const ADMIN_PIN = process.env.ADMIN_PIN ?? '1234';
+const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
 function timeAgo(ms: number): string {
   const diff = Date.now() - ms;

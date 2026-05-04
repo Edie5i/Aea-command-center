@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ADMIN_PIN = process.env.ADMIN_PIN ?? '1234';
+const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
 export async function POST(request: NextRequest) {
   const { pin } = await request.json();

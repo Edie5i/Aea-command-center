@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getConversationMessages } from '@/lib/firestore';
 import Link from 'next/link';
 
-const ADMIN_PIN = process.env.ADMIN_PIN ?? '1234';
+const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
 export default async function ConversacionPage({
   params,
