@@ -1,17 +1,9 @@
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 function initAdmin() {
   if (getApps().length > 0) return;
-
-  const calendarKeyBase64 = process.env.CALENDAR_KEY;
-  if (calendarKeyBase64) {
-    try {
-      const credentials = JSON.parse(Buffer.from(calendarKeyBase64, 'base64').toString('utf-8'));
-      initializeApp({ credential: cert(credentials) });
-      return;
-    } catch {}
-  }
+  // On Firebase App Hosting, Application Default Credentials are provided automatically
   initializeApp();
 }
 
