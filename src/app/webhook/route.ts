@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
 import { AEA_TOOLS } from '@/ai/tools/aea-tools';
+import { saveConversationMessage } from '@/lib/firestore';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -345,6 +346,9 @@ export async function POST(request: NextRequest) {
     const reply = await generateReply(textBody, history);
     await sendMessage(from, reply);
     saveHistory(from, textBody, reply);
+    saveConversationMessage(from, textBody, reply).catch(e =>
+      console.error('[WEBHOOK] Firestore save error:', e)
+    );
     console.log('[CHAT] 🤖 Ale →', from, ':', reply);
 
     if (reply.includes('autoescuelaamericana.com/agenda')) {

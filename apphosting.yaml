@@ -15,3 +15,5 @@ env:
     secret: META_PHONE_NUMBER_ID
   - variable: META_VERIFY_TOKEN
     secret: META_VERIFY_TOKEN
+  - variable: ADMIN_PIN
+    secret: ADMIN_PIN
