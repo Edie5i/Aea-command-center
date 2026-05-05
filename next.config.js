@@ -6,6 +6,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
 };
 
 module.exports = nextConfig;
