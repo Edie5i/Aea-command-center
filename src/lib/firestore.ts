@@ -1,4 +1,4 @@
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 function initAdmin() {
@@ -8,7 +8,7 @@ function initAdmin() {
 
 initAdmin();
 
-export const db = getFirestore();
+export const db = getFirestore(getApp(), 'default');
 
 export interface ChatMessage {
   role: 'user' | 'bot';
