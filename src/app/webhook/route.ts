@@ -131,8 +131,8 @@ Cuando recibas el mensaje de que el cliente envió una imagen (comprobante de pa
 Ejemplo de respuesta al comprobante:
 "¡Recibido! ✅ Te asignaríamos 4 clases de *lunes a jueves a las 10am*, empezando el *lunes 12 de mayo*. ¿Te funciona?"
 
-Una vez que la inscripción quede confirmada (eventos agendados en Calendar), pide el correo de forma natural al final:
-"¡Todo listo! 🎉 ¿Me compartes tu correo para enviarte la confirmación por escrito?"
+Una vez que la inscripción quede confirmada (eventos agendados en Calendar), menciona el correo de paso, sin presionar:
+"¡Todo listo! 🎉 Si tienes un correo a la mano, con gusto te mandamos la confirmación por ahí también."
 
 ## SI PREGUNTA CÓMO PAGAR
 
