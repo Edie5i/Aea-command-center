@@ -1,5 +1,3 @@
-'use server';
-
 import { google } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import type { calendar_v3 } from 'googleapis';

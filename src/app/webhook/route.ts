@@ -429,13 +429,16 @@ export async function POST(request: NextRequest) {
 
     try {
       const leadInfo = await extractLeadInfo(history, from);
-      console.log('[WEBHOOK] Lead info extraída:', leadInfo);
+      console.log('[WEBHOOK] Lead info extraída:', JSON.stringify(leadInfo));
 
+      console.log('[WEBHOOK] Consultando slots disponibles...');
       const slots = await getAvailableSlots(21);
+      console.log('[WEBHOOK] Slots totales recibidos:', slots.length);
       const pickedSlots = pickSlots(slots, leadInfo.horario);
-      console.log('[WEBHOOK] Slots seleccionados:', pickedSlots);
+      console.log('[WEBHOOK] Slots seleccionados:', JSON.stringify(pickedSlots));
 
       if (pickedSlots.length >= 4) {
+        console.log('[WEBHOOK] Creando 4 eventos en Calendar...');
         await scheduleAndCreateEvents({
           name: leadInfo.nombre,
           phone: leadInfo.telefono,
