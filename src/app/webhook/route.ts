@@ -245,6 +245,23 @@ function saveHistory(phone: string, userText: string, botText: string) {
   conversations.set(phone, existing);
 }
 
+async function extractLeadData(history: HistoryItem[], phone: string): Promise<Record<string, string>> {
+  const conversation = history
+    .map((h) => `${h.role === 'user' ? 'Cliente' : 'Ale'}: ${h.text}`)
+    .join('\n');
+  const result = await ai.generate({
+    model: 'googleai/gemini-2.0-flash',
+    prompt: `De esta conversación extrae en JSON plano los campos: "name" (nombre completo del cliente) y "address" (colonia, zona o dirección mencionada). Si no hay dato deja el campo vacío. Solo responde JSON, sin texto extra.\n\n${conversation}`,
+  });
+  const json = JSON.parse(result.text?.trim() || '{}');
+  const params: Record<string, string> = {};
+  if (json.name) params.name = String(json.name);
+  if (json.address) params.address = String(json.address);
+  const displayPhone = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+  params.phone = displayPhone;
+  return params;
+}
+
 async function generateReply(userMessage: string, history: HistoryItem[]): Promise<string> {
   const geminiCall = ai.generate({
     model: 'googleai/gemini-2.5-pro',
@@ -342,7 +359,23 @@ export async function POST(request: NextRequest) {
   try {
     const history = getHistory(from);
     console.log('[CHAT] 📩', from, '→ Ale:', textBody);
-    const reply = await generateReply(textBody, history);
+    let reply = await generateReply(textBody, history);
+
+    if (reply.includes('autoescuelaamericana.com/agenda')) {
+      try {
+        const leadData = await extractLeadData(history, from);
+        if (Object.keys(leadData).length > 0) {
+          const params = new URLSearchParams(leadData).toString();
+          reply = reply.replace(
+            'https://app.autoescuelaamericana.com/agenda',
+            `https://app.autoescuelaamericana.com/agenda?${params}`
+          );
+        }
+      } catch (e) {
+        console.error('[WEBHOOK] Error extrayendo datos del lead:', e);
+      }
+    }
+
     await sendMessage(from, reply);
     saveHistory(from, textBody, reply);
     import('@/lib/firestore')

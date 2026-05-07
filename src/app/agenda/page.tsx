@@ -1,7 +1,9 @@
 
 'use client';
 
+import { Suspense } from 'react';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { es } from 'date-fns/locale';
 import { format, isPast, isToday, parse } from 'date-fns';
@@ -51,19 +53,20 @@ type SubmissionData = {
 
 const timeSlots = ["07:00", "10:00", "13:00", "16:00", "19:00"];
 
-export default function AgendaPage() {
+function AgendaContent() {
+  const searchParams = useSearchParams();
   const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  
+
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
-      name: '',
-      phone: '',
-      address: '',
+      name: searchParams.get('name') ?? '',
+      phone: searchParams.get('phone') ?? '',
+      address: searchParams.get('address') ?? '',
       transmission: undefined,
       isMinor: false,
       notes: '',
@@ -507,5 +510,13 @@ export default function AgendaPage() {
       </div>
        <AppFooter />
     </main>
+  );
+}
+
+export default function AgendaPage() {
+  return (
+    <Suspense>
+      <AgendaContent />
+    </Suspense>
   );
 }
