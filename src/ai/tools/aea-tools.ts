@@ -113,9 +113,29 @@ export const confirmarInscripcionTool = ai.defineTool(
   },
   async ({ nombre, telefono, zona, transmision, patron, hora, fechaInicio }) => {
     console.log('[TOOL] confirmarInscripcion llamado:', { nombre, telefono, zona, patron, hora, fechaInicio });
+
+    const adminPhone = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
+    const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
+    const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
+
+    async function notificarAdmin(texto: string) {
+      if (!waToken || !phoneId) return;
+      await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: adminPhone,
+          type: 'text',
+          text: { body: texto },
+        }),
+      }).catch(e => console.error('[Tool] WhatsApp error:', e));
+    }
+
+    let calendarError: string | null = null;
     try {
       const fechas = calcularFechas(patron, fechaInicio, hora);
-      console.log('[TOOL] Fechas calculadas:', fechas);
+      console.log('[TOOL] Fechas calculadas:', JSON.stringify(fechas));
       await scheduleAndCreateEvents({
         name: nombre,
         phone: telefono,
@@ -123,42 +143,38 @@ export const confirmarInscripcionTool = ai.defineTool(
         transmission: transmision ?? 'Estándar',
         dates: fechas,
       });
-
-      const adminPhone = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-      const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
-      const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
-
-      if (waToken && phoneId) {
-        const patronLabel =
-          patron === 'lunes-jueves' ? 'Lunes a jueves' :
-          patron === 'martes-viernes' ? 'Martes a viernes' : 'Sábado y domingo';
-        const texto =
-          `✅ *Inscripción confirmada*\n\n` +
-          `👤 *Nombre:* ${nombre}\n` +
-          `📱 *Teléfono:* +${telefono}\n` +
-          `📍 *Zona:* ${zona}\n` +
-          `🚗 *Transmisión:* ${transmision ?? 'Estándar'}\n` +
-          `📅 *Patrón:* ${patronLabel} a las ${hora}\n` +
-          `🗓️ *Inicio:* ${fechaInicio}\n\n` +
-          `4 clases agendadas en Calendar ✅`;
-        await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: adminPhone,
-            type: 'text',
-            text: { body: texto },
-          }),
-        }).catch(e => console.error('[Tool] confirmarInscripcion WhatsApp error:', e));
-      }
-
-      return { exitoso: true, mensaje: '4 clases agendadas en Calendar.' };
+      console.log('[TOOL] Calendar events creados exitosamente');
     } catch (e) {
-      console.error('[Tool] confirmarInscripcion error:', e);
-      const msg = e instanceof Error ? e.message : 'Error desconocido';
-      return { exitoso: false, mensaje: `No se pudieron crear los eventos: ${msg}` };
+      calendarError = e instanceof Error ? e.message : String(e);
+      console.error('[TOOL] Error creando eventos en Calendar:', calendarError);
     }
+
+    const patronLabel =
+      patron === 'lunes-jueves' ? 'Lunes a jueves' :
+      patron === 'martes-viernes' ? 'Martes a viernes' : 'Sábado y domingo';
+
+    if (calendarError) {
+      await notificarAdmin(
+        `⚠️ *Error al agendar clases*\n\n` +
+        `👤 ${nombre} | 📱 +${telefono}\n` +
+        `📍 ${zona} | 🚗 ${transmision ?? 'Estándar'}\n` +
+        `📅 ${patronLabel} ${hora} desde ${fechaInicio}\n\n` +
+        `❌ Error: ${calendarError}`
+      );
+      return { exitoso: false, mensaje: `Error al crear eventos: ${calendarError}` };
+    }
+
+    await notificarAdmin(
+      `✅ *Inscripción confirmada*\n\n` +
+      `👤 *Nombre:* ${nombre}\n` +
+      `📱 *Teléfono:* +${telefono}\n` +
+      `📍 *Zona:* ${zona}\n` +
+      `🚗 *Transmisión:* ${transmision ?? 'Estándar'}\n` +
+      `📅 *Patrón:* ${patronLabel} a las ${hora}\n` +
+      `🗓️ *Inicio:* ${fechaInicio}\n\n` +
+      `4 clases agendadas en Calendar ✅`
+    );
+    return { exitoso: true, mensaje: '4 clases agendadas en Calendar.' };
   }
 );
 
