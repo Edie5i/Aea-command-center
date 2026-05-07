@@ -2,7 +2,7 @@
 
 import { scheduleAndCreateEvents, type CreateEventInput } from '@/ai/flows/create-calendar-event';
 
-const ADMIN_PHONE = process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212';
+const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
 
