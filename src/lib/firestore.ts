@@ -66,7 +66,8 @@ export async function updateLeadActivity(phone: string): Promise<void> {
 
 export async function getPendingReminders(type: '1h' | '23h'): Promise<Conversation[]> {
   const now = Date.now();
-  const ms = type === '1h' ? 60 * 60 * 1000 : 23 * 60 * 60 * 1000;
+  // TEST MODE: 5 min / 10 min — revertir a 60*60*1000 / 23*60*60*1000 después de probar
+  const ms = type === '1h' ? 5 * 60 * 1000 : 10 * 60 * 1000;
   const windowMs = 30 * 60 * 1000; // 30-min window to catch reminders
   const cutoffMax = Timestamp.fromMillis(now - ms);
   const cutoffMin = Timestamp.fromMillis(now - ms - windowMs);
