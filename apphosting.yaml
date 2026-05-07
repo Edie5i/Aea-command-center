@@ -17,3 +17,5 @@ env:
     secret: META_VERIFY_TOKEN
   - variable: ADMIN_PIN
     secret: ADMIN_PIN
+  - variable: ADMIN_NOTIFICATION_PHONE
+    secret: ADMIN_NOTIFICATION_PHONE
