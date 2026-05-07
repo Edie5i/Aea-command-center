@@ -315,18 +315,22 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
   return params;
 }
 
-function getSystemPrompt(): string {
+function getSystemPrompt(clientPhone?: string): string {
   const hoy = new Date().toLocaleDateString('es-MX', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     timeZone: 'America/Mexico_City',
   });
-  return SYSTEM_PROMPT + `\n\n## FECHA ACTUAL\n\nHoy es ${hoy}. Usa este año para calcular cualquier fecha futura.`;
+  let prompt = SYSTEM_PROMPT + `\n\n## FECHA ACTUAL\n\nHoy es ${hoy}. Usa este año para calcular cualquier fecha futura.`;
+  if (clientPhone) {
+    prompt += `\n\n## NÚMERO DE WHATSAPP DEL CLIENTE\n\nEl número de WhatsApp del cliente en esta conversación es: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a confirmarInscripcion. No uses ningún otro número.`;
+  }
+  return prompt;
 }
 
-async function generateReply(userMessage: string, history: HistoryItem[]): Promise<string> {
+async function generateReply(userMessage: string, history: HistoryItem[], clientPhone?: string): Promise<string> {
   const geminiCall = ai.generate({
     model: 'googleai/gemini-2.5-pro',
-    system: getSystemPrompt(),
+    system: getSystemPrompt(clientPhone),
     tools: AEA_TOOLS,
     messages: history.map((h) => ({
       role: h.role === 'bot' ? ('model' as const) : ('user' as const),
@@ -463,7 +467,7 @@ export async function POST(request: NextRequest) {
       syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
     }
 
-    const reply = await generateReply(syntheticMsg, history);
+    const reply = await generateReply(syntheticMsg, history, from);
     await sendMessage(from, reply);
     saveHistory(from, '[imagen: comprobante de pago]', reply);
     import('@/lib/firestore')
@@ -480,7 +484,7 @@ export async function POST(request: NextRequest) {
   try {
     const history = getHistory(from);
     console.log('[CHAT] 📩', from, '→ Ale:', textBody);
-    let reply = await generateReply(textBody, history);
+    let reply = await generateReply(textBody, history, from);
 
     if (reply.includes('autoescuelaamericana.com/agenda')) {
       try {
