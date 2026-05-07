@@ -68,18 +68,20 @@ export async function getPendingReminders(type: '1h' | '23h'): Promise<Conversat
   const now = Date.now();
   // TEST MODE: 5 min / 10 min — revertir a 60*60*1000 / 23*60*60*1000 después de probar
   const ms = type === '1h' ? 5 * 60 * 1000 : 10 * 60 * 1000;
-  const windowMs = 30 * 60 * 1000; // 30-min window to catch reminders
+  const windowMs = 30 * 60 * 1000;
   const cutoffMax = Timestamp.fromMillis(now - ms);
   const cutoffMin = Timestamp.fromMillis(now - ms - windowMs);
   const sentField = type === '1h' ? 'reminder1hSent' : 'reminder23hSent';
 
+  // Solo filtra por rango de tiempo para evitar índice compuesto
   const snap = await db.collection('conversations')
     .where('lastLeadActivity', '<=', cutoffMax)
     .where('lastLeadActivity', '>=', cutoffMin)
-    .where(sentField, '==', false)
     .get();
 
-  return snap.docs.map(d => d.data() as Conversation);
+  return snap.docs
+    .map(d => d.data() as Conversation)
+    .filter(c => c[sentField] !== true);
 }
 
 export async function markReminderSent(phone: string, type: '1h' | '23h'): Promise<void> {
