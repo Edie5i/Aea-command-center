@@ -380,6 +380,7 @@ export async function POST(request: NextRequest) {
   let from = '';
   let textBody = '';
   let messageType = 'text';
+  let leadSource: string | null = null;
 
   try {
     const body = await request.json();
@@ -394,6 +395,14 @@ export async function POST(request: NextRequest) {
     from = message.from ?? '';
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
+
+    // Detectar fuente del lead (Facebook referral o Google pre-filled text)
+    const referral = message?.referral;
+    if (referral?.source_type === 'ad') {
+      leadSource = `Facebook Ad: ${referral.headline ?? referral.source_id ?? 'Anuncio'}`;
+    } else if (textBody.toLowerCase().includes('google')) {
+      leadSource = 'Google Ads';
+    }
 
     if (!from || (messageType !== 'image' && !textBody)) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -475,9 +484,21 @@ export async function POST(request: NextRequest) {
   // Registrar mensaje del cliente y resetear recordatorios
   lastUserMessage.set(from, Date.now());
   reminderSent.set(from, false);
+  const isNewLead = getHistory(from).length === 0;
   import('@/lib/firestore')
-    .then(({ updateLeadActivity }) => updateLeadActivity(from))
+    .then(({ updateLeadActivity, saveLeadSource }) =>
+      Promise.all([
+        updateLeadActivity(from),
+        isNewLead && leadSource ? saveLeadSource(from, leadSource) : Promise.resolve(),
+      ])
+    )
     .catch((e) => console.error('[WEBHOOK] Error actualizando lead activity:', e));
+
+  // Notificar al admin cuando llega un lead nuevo con fuente identificada
+  if (isNewLead && leadSource) {
+    sendMessage(ADMIN_PHONE, `🆕 *Nuevo lead*\n\n📱 +${from}\n📣 Fuente: ${leadSource}`)
+      .catch((e) => console.error('[WEBHOOK] Error notificando nuevo lead:', e));
+  }
 
   try {
     const history = getHistory(from);

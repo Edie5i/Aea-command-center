@@ -25,6 +25,7 @@ export interface Conversation {
   messageCount: number;
   reminder1hSent: boolean;
   reminder23hSent: boolean;
+  source?: string;
 }
 
 export async function saveConversationMessage(
@@ -54,6 +55,10 @@ export async function saveConversationMessage(
   batch.set(messagesRef.doc(), { role: 'bot', text: botText, timestamp: now });
 
   await batch.commit();
+}
+
+export async function saveLeadSource(phone: string, source: string): Promise<void> {
+  await db.collection('conversations').doc(phone).set({ source }, { merge: true });
 }
 
 export async function updateLeadActivity(phone: string): Promise<void> {

@@ -63,9 +63,14 @@ export default async function ConversacionesPage() {
                     <span className="text-xs text-gray-400 shrink-0 ml-2">{timeAgo(ms)}</span>
                   </div>
                   <p className="text-sm text-gray-500 truncate mt-0.5">
-                    {conv.lastSender === 'ale' ? '🤖 ' : '👤 '}
+                    {conv.lastSender === 'bot' || conv.lastSender === ('ale' as string) ? '🤖 ' : '👤 '}
                     {conv.lastMessage}
                   </p>
+                  {conv.source && (
+                    <span className="inline-block mt-1 text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                      📣 {conv.source}
+                    </span>
+                  )}
                 </div>
               </Link>
             );
