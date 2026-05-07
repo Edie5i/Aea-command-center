@@ -49,7 +49,7 @@ export default async function ConversacionPage({
                 }`}
               >
                 {!isLead && (
-                  <p className="text-xs text-green-700 font-semibold mb-1">Ale</p>
+                  <p className="text-xs text-green-700 font-semibold mb-1">Luz</p>
                 )}
                 {msg.text}
               </div>

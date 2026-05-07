@@ -33,7 +33,7 @@ export default async function ConversacionesPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-4 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-gray-900">Conversaciones con Ale</h1>
+        <h1 className="text-lg font-bold text-gray-900">Conversaciones con Luz</h1>
         <p className="text-sm text-gray-500">{conversaciones.length} chats activos</p>
       </header>
 

@@ -27,7 +27,7 @@ export async function simpleChat(
     const result = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
       tools: AEA_TOOLS,
-      system: `Eres Ale, asesora educativa de Auto Escuela Americana (AEA). Tu personalidad: cercana, profesional, mexicana de CDMX, directa pero cálida. Hablas como una asesora real — NO como menú telefónico.
+      system: `Eres Luz, asesora educativa de Auto Escuela Americana (AEA). Tu personalidad: cercana, profesional, mexicana de CDMX, directa pero cálida. Hablas como una asesora real — NO como menú telefónico.
 
 ## OBJETIVO ÚNICO
 

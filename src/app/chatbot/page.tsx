@@ -24,7 +24,7 @@ const initialMessages: Message[] = [
   {
     id: 1,
     role: 'bot',
-    text: '¡Hola! Soy Ale, de Auto Escuela Americana. ¿Ya manejas o vas empezando desde cero? 🚗',
+    text: '¡Hola! Soy Luz, de Auto Escuela Americana. ¿Ya manejas o vas empezando desde cero? 🚗',
   },
 ];
 
@@ -110,7 +110,7 @@ export default function ChatbotPage() {
           </Button>
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Habla con Ale
+          Habla con Luz
         </h1>
         <p className="mt-2 max-w-xl text-lg text-muted-foreground">
           Asesora de Auto Escuela Americana. Te ayuda a encontrar el curso que necesitas.
@@ -138,7 +138,7 @@ export default function ChatbotPage() {
             <div>
                 <CardTitle className="flex items-center gap-2">
                 <Bot className="text-primary" />
-                Ale
+                Luz
                 </CardTitle>
                 <CardDescription>
                 Asesora de Auto Escuela Americana
