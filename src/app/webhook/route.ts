@@ -322,6 +322,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   let from = '';
   let textBody = '';
+  let messageType = 'text';
 
   try {
     const body = await request.json();
@@ -335,8 +336,9 @@ export async function POST(request: NextRequest) {
     const msgId: string = message.id ?? '';
     from = message.from ?? '';
     textBody = message?.text?.body ?? '';
+    messageType = message?.type ?? 'text';
 
-    if (!from || !textBody) {
+    if (!from || (messageType !== 'image' && !textBody)) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
 
@@ -349,6 +351,37 @@ export async function POST(request: NextRequest) {
     }
     seen.set(msgId, now);
   } catch {
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // Comprobante de pago (imagen)
+  if (messageType === 'image') {
+    const displayPhone = `+${from}`;
+    sendMessage(ADMIN_PHONE, `📸 *Comprobante de pago recibido*\n\n📱 ${displayPhone} envió una imagen — posible comprobante de pago.`)
+      .catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
+
+    const history = getHistory(from);
+    let agendaUrl = 'https://app.autoescuelaamericana.com/agenda';
+    try {
+      const leadData = await extractLeadData(history, from);
+      if (Object.keys(leadData).length > 0) {
+        agendaUrl = `${agendaUrl}?${new URLSearchParams(leadData).toString()}`;
+      }
+    } catch (e) {
+      console.error('[WEBHOOK] Error extrayendo datos del lead (imagen):', e);
+    }
+
+    const reply =
+      `Muchas gracias, hemos recibido su comprobante. Para coordinar sus clases, le pedimos completar este formulario con sus fechas y horarios de preferencia:\n\n` +
+      `👉 ${agendaUrl}\n\n` +
+      `En menos de un minuto quedará lista su ficha de inscripción. ¿Le puedo ayudar en algo más?`;
+
+    await sendMessage(from, reply);
+    saveHistory(from, '[imagen]', reply);
+    import('@/lib/firestore')
+      .then(({ saveConversationMessage }) => saveConversationMessage(from, '[imagen: comprobante de pago]', reply))
+      .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
+
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
