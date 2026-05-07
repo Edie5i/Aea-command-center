@@ -104,12 +104,21 @@ En el concepto, por favor incluya su nombre completo y envíeme el comprobante p
 
 ¿Tiene alguna duda?"
 
-Cuando confirme pago o mande comprobante:
-"Muchas gracias, hemos recibido su comprobante. Para coordinar sus clases, le pedimos completar este formulario con sus fechas y horarios de preferencia:
+Cuando el cliente confirme pago en texto pero NO haya enviado foto:
+"Perfecto. Para confirmar su lugar, le pedimos enviarnos la foto del comprobante de pago por este mismo chat."
 
-👉 https://app.autoescuelaamericana.com/agenda
+Cuando recibas el mensaje de que el cliente envió una imagen (comprobante de pago):
+1. Confirma brevemente la recepción.
+2. Según el horario preferido del cliente (ya lo sabes de la conversación), propón un patrón de 4 clases:
+   - Mañana (7am o 10am) → lunes a jueves o martes a viernes a las 10:00
+   - Tarde (1pm, 4pm o 7pm) → lunes a jueves o martes a viernes en ese horario
+   - Fines de semana → 2 sábados + 2 domingos
+3. Usa consultarDisponibilidad para verificar que la fecha propuesta esté libre.
+4. Propón fecha de inicio concreta: "¿Le funciona comenzar el lunes 12 de mayo a las 10:00am?"
+5. Cuando el cliente confirme → llama a confirmarInscripcion con todos los datos.
 
-En menos de un minuto quedará lista su ficha de inscripción. ¿Le puedo ayudar en algo más?"
+Ejemplo de respuesta al comprobante:
+"Muchas gracias, recibimos su comprobante ✅. Le asignaríamos 4 clases de *lunes a jueves a las 10:00am*, comenzando el *lunes 12 de mayo*. ¿Le funciona ese horario?"
 
 ## SI PREGUNTA CÓMO PAGAR
 
@@ -207,6 +216,7 @@ Tienes acceso a 3 herramientas que debes usar proactivamente:
 - **consultarDisponibilidad**: Consulta el calendario real de clases. Úsala SIEMPRE que el cliente pregunte por disponibilidad, fechas, si hay lugar, cuándo puede empezar. No inventes ni supongas horarios — consúltalos.
 - **consultarCatalogoCursos**: Obtiene precios y descripciones actualizados. Úsala para confirmar datos exactos o comparar cursos.
 - **consultarProgramaCurso**: Obtiene el temario detallado. Úsala si el cliente pregunta qué aprende en el curso.
+- **confirmarInscripcion**: Crea automáticamente las 4 clases en Google Calendar y notifica al equipo. Úsala cuando el alumno confirme su patrón de horario y fecha de inicio tras enviar el comprobante.
 
 Prioridad: si el cliente pregunta "¿hay lugar?", llama a consultarDisponibilidad antes de responder y comparte días y horarios concretos.`;
 
@@ -356,28 +366,14 @@ export async function POST(request: NextRequest) {
 
   // Comprobante de pago (imagen)
   if (messageType === 'image') {
-    const displayPhone = `+${from}`;
-    sendMessage(ADMIN_PHONE, `📸 *Comprobante de pago recibido*\n\n📱 ${displayPhone} envió una imagen — posible comprobante de pago.`)
+    sendMessage(ADMIN_PHONE, `📸 *Comprobante recibido*\n\n📱 +${from} envió una imagen — posible comprobante de pago.`)
       .catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     const history = getHistory(from);
-    let agendaUrl = 'https://app.autoescuelaamericana.com/agenda';
-    try {
-      const leadData = await extractLeadData(history, from);
-      if (Object.keys(leadData).length > 0) {
-        agendaUrl = `${agendaUrl}?${new URLSearchParams(leadData).toString()}`;
-      }
-    } catch (e) {
-      console.error('[WEBHOOK] Error extrayendo datos del lead (imagen):', e);
-    }
-
-    const reply =
-      `Muchas gracias, hemos recibido su comprobante. Para coordinar sus clases, le pedimos completar este formulario con sus fechas y horarios de preferencia:\n\n` +
-      `👉 ${agendaUrl}\n\n` +
-      `En menos de un minuto quedará lista su ficha de inscripción. ¿Le puedo ayudar en algo más?`;
-
+    const syntheticMsg = `El cliente (WhatsApp: ${from}) acaba de enviar una imagen — comprobante de pago.`;
+    const reply = await generateReply(syntheticMsg, history);
     await sendMessage(from, reply);
-    saveHistory(from, '[imagen]', reply);
+    saveHistory(from, '[imagen: comprobante de pago]', reply);
     import('@/lib/firestore')
       .then(({ saveConversationMessage }) => saveConversationMessage(from, '[imagen: comprobante de pago]', reply))
       .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
