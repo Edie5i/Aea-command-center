@@ -39,6 +39,7 @@
     "clsx": "^2.1.1",
     "cookie": "^0.6.0",
     "date-fns": "^3.6.0",
+    "firebase-admin": "^13.8.0",
     "framer-motion": "^11.3.12",
     "genkit": "1.25.0",
     "google-auth-library": "^9.11.0",

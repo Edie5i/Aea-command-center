@@ -315,10 +315,18 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
   return params;
 }
 
+function getSystemPrompt(): string {
+  const hoy = new Date().toLocaleDateString('es-MX', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: 'America/Mexico_City',
+  });
+  return SYSTEM_PROMPT + `\n\n## FECHA ACTUAL\n\nHoy es ${hoy}. Usa este año para calcular cualquier fecha futura.`;
+}
+
 async function generateReply(userMessage: string, history: HistoryItem[]): Promise<string> {
   const geminiCall = ai.generate({
     model: 'googleai/gemini-2.5-pro',
-    system: SYSTEM_PROMPT,
+    system: getSystemPrompt(),
     tools: AEA_TOOLS,
     messages: history.map((h) => ({
       role: h.role === 'bot' ? ('model' as const) : ('user' as const),
@@ -446,13 +454,13 @@ export async function POST(request: NextRequest) {
           `📅 Clases agendadas:\n  ${fechasTexto}`
         ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
-        syntheticMsg = `El cliente envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor.`;
+        syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor.`;
       } else {
-        syntheticMsg = `El cliente (WhatsApp: ${from}) acaba de enviar una imagen — comprobante de pago. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases según su preferencia y coordina con el equipo.`;
+        syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }
     } catch (e) {
       console.error('[WEBHOOK] Error en inscripción automática:', e);
-      syntheticMsg = `El cliente (WhatsApp: ${from}) acaba de enviar una imagen — comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
+      syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
     }
 
     const reply = await generateReply(syntheticMsg, history);
