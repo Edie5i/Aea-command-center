@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
 import { AEA_TOOLS } from '@/ai/tools/aea-tools';
+import { getAvailableSlots } from '@/services/calendarService';
+import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -255,6 +257,47 @@ function saveHistory(phone: string, userText: string, botText: string) {
   conversations.set(phone, existing);
 }
 
+async function extractLeadInfo(history: HistoryItem[], phone: string) {
+  const conversation = history.map(h => `${h.role === 'user' ? 'Cliente' : 'Ale'}: ${h.text}`).join('\n');
+  const result = await ai.generate({
+    model: 'googleai/gemini-2.0-flash',
+    prompt: `De esta conversación extrae en JSON plano: "nombre" (nombre completo del cliente), "zona" (colonia o dirección mencionada), "transmision" ("Estándar" o "Automático", default "Estándar"), "horario" ("mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente). Solo JSON sin texto extra.\n\n${conversation}`,
+  });
+  try {
+    const json = JSON.parse(result.text?.trim() || '{}');
+    const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    return {
+      nombre: String(json.nombre || 'Alumno'),
+      zona: String(json.zona || 'Por confirmar'),
+      transmision: String(json.transmision || 'Estándar'),
+      horario: (json.horario || 'mañana') as 'mañana' | 'tarde' | 'fin-de-semana',
+      telefono: tel,
+    };
+  } catch {
+    const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    return { nombre: 'Alumno', zona: 'Por confirmar', transmision: 'Estándar', horario: 'mañana' as const, telefono: tel };
+  }
+}
+
+function pickSlots(slots: Awaited<ReturnType<typeof getAvailableSlots>>, horario: string) {
+  const mañana = ['07:00', '10:00'];
+  const tarde = ['13:00', '16:00', '19:00'];
+  const finde = ['sábado', 'domingo'];
+  const diasSemana = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes'];
+
+  const result: Array<{ date: string; time: string }> = [];
+  for (const slot of slots) {
+    if (result.length >= 4) break;
+    const esFinDeSemana = finde.includes(slot.diaSemana);
+    if (horario === 'fin-de-semana' && !esFinDeSemana) continue;
+    if (horario !== 'fin-de-semana' && esFinDeSemana) continue;
+    const preferidos = horario === 'mañana' ? mañana : horario === 'tarde' ? tarde : ['10:00', '13:00'];
+    const hora = preferidos.find(h => slot.horariosLibres.includes(h)) ?? slot.horariosLibres[0];
+    if (hora) result.push({ date: slot.fecha + 'T12:00:00', time: hora });
+  }
+  return result;
+}
+
 async function extractLeadData(history: HistoryItem[], phone: string): Promise<Record<string, string>> {
   const conversation = history
     .map((h) => `${h.role === 'user' ? 'Cliente' : 'Ale'}: ${h.text}`)
@@ -364,13 +407,54 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  // Comprobante de pago (imagen)
+  // Comprobante de pago (imagen) — inscripción automática
   if (messageType === 'image') {
-    sendMessage(ADMIN_PHONE, `📸 *Comprobante recibido*\n\n📱 +${from} envió una imagen — posible comprobante de pago.`)
+    sendMessage(ADMIN_PHONE, `📸 *Comprobante recibido*\n\n📱 +${from} — procesando inscripción automática...`)
       .catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     const history = getHistory(from);
-    const syntheticMsg = `El cliente (WhatsApp: ${from}) acaba de enviar una imagen — comprobante de pago.`;
+    let syntheticMsg: string;
+
+    try {
+      const leadInfo = await extractLeadInfo(history, from);
+      console.log('[WEBHOOK] Lead info extraída:', leadInfo);
+
+      const slots = await getAvailableSlots(21);
+      const pickedSlots = pickSlots(slots, leadInfo.horario);
+      console.log('[WEBHOOK] Slots seleccionados:', pickedSlots);
+
+      if (pickedSlots.length >= 4) {
+        await scheduleAndCreateEvents({
+          name: leadInfo.nombre,
+          phone: leadInfo.telefono,
+          address: leadInfo.zona,
+          transmission: leadInfo.transmision,
+          dates: pickedSlots,
+        });
+        console.log('[WEBHOOK] Eventos creados en Calendar');
+
+        const fechasTexto = pickedSlots.map(s => {
+          const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
+          const d = new Date(yyyy, mm - 1, dd);
+          return `${d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${s.time}`;
+        }).join('\n  ');
+
+        await sendMessage(ADMIN_PHONE,
+          `✅ *Inscripción completada*\n\n` +
+          `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
+          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.transmision}\n\n` +
+          `📅 Clases agendadas:\n  ${fechasTexto}`
+        ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
+
+        syntheticMsg = `El cliente envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor.`;
+      } else {
+        syntheticMsg = `El cliente (WhatsApp: ${from}) acaba de enviar una imagen — comprobante de pago. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases según su preferencia y coordina con el equipo.`;
+      }
+    } catch (e) {
+      console.error('[WEBHOOK] Error en inscripción automática:', e);
+      syntheticMsg = `El cliente (WhatsApp: ${from}) acaba de enviar una imagen — comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
+    }
+
     const reply = await generateReply(syntheticMsg, history);
     await sendMessage(from, reply);
     saveHistory(from, '[imagen: comprobante de pago]', reply);
