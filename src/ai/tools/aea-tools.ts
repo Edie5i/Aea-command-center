@@ -112,8 +112,10 @@ export const confirmarInscripcionTool = ai.defineTool(
     }),
   },
   async ({ nombre, telefono, zona, transmision, patron, hora, fechaInicio }) => {
+    console.log('[TOOL] confirmarInscripcion llamado:', { nombre, telefono, zona, patron, hora, fechaInicio });
     try {
       const fechas = calcularFechas(patron, fechaInicio, hora);
+      console.log('[TOOL] Fechas calculadas:', fechas);
       await scheduleAndCreateEvents({
         name: nombre,
         phone: telefono,
