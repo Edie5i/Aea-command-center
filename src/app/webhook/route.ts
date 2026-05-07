@@ -210,7 +210,7 @@ Tienes acceso a 3 herramientas que debes usar proactivamente:
 
 Prioridad: si el cliente pregunta "¿hay lugar?", llama a consultarDisponibilidad antes de responder y comparte días y horarios concretos.`;
 
-const ADMIN_PHONE = '525634433212';
+const ADMIN_PHONE = process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212';
 const MSG_FALLBACK = 'Déjame confirmarlo con el equipo y te aviso en un momento.';
 const GEMINI_TIMEOUT_MS = 25_000;
 const REMINDER_24H = 24 * 60 * 60 * 1000;
