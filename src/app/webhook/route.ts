@@ -248,12 +248,30 @@ type HistoryItem = { role: 'user' | 'bot'; text: string };
 const conversations = new Map<string, { messages: HistoryItem[]; lastActivity: number }>();
 const HISTORY_TTL = 2 * 60 * 60 * 1000;
 
-function getHistory(phone: string): HistoryItem[] {
+async function getHistory(phone: string): Promise<HistoryItem[]> {
   const now = Date.now();
   for (const [p, data] of conversations) {
     if (now - data.lastActivity > HISTORY_TTL) conversations.delete(p);
   }
-  return conversations.get(phone)?.messages ?? [];
+  const cached = conversations.get(phone);
+  if (cached) return cached.messages;
+
+  // Memoria expirada o primera vez — restaurar desde Firestore
+  try {
+    const { getConversationMessages } = await import('@/lib/firestore');
+    const msgs = await getConversationMessages(phone);
+    if (msgs.length > 0) {
+      const recent = msgs.slice(-60);
+      const messages: HistoryItem[] = recent.map(m => ({ role: m.role, text: m.text }));
+      conversations.set(phone, { messages, lastActivity: now });
+      console.log(`[WEBHOOK] Historial restaurado desde Firestore: ${messages.length} msgs para ${phone}`);
+      return messages;
+    }
+  } catch (e) {
+    console.error('[WEBHOOK] Error cargando historial desde Firestore:', e);
+  }
+
+  return [];
 }
 
 function saveHistory(phone: string, userText: string, botText: string) {
@@ -441,7 +459,7 @@ export async function POST(request: NextRequest) {
     sendMessage(ADMIN_PHONE, `📸 *Comprobante recibido*\n\n📱 +${from} — procesando inscripción automática...`)
       .catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
-    const history = getHistory(from);
+    const history = await getHistory(from);
     let syntheticMsg: string;
 
     try {
@@ -497,7 +515,9 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  const isNewLead = getHistory(from).length === 0;
+  const history = await getHistory(from);
+  const isNewLead = history.length === 0;
+
   import('@/lib/firestore')
     .then(({ updateLeadActivity, saveLeadSource }) =>
       Promise.all([
@@ -515,7 +535,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const history = getHistory(from);
     console.log('[CHAT] 📩', from, '→ Luz:', textBody);
     let reply = await generateReply(textBody, history, from);
 
