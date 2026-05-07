@@ -238,7 +238,6 @@ Si alguien pregunta "¿hay lugar?", llama a consultarDisponibilidad antes de res
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const MSG_FALLBACK = 'Déjame verificarlo con el equipo y te escribo en un momento.';
 const GEMINI_TIMEOUT_MS = 25_000;
-const REMINDER_24H = 24 * 60 * 60 * 1000;
 
 // Dedup de mensajes recibidos
 const seen = new Map<string, number>();
@@ -248,10 +247,6 @@ const DEDUP_TTL = 5 * 60 * 1000;
 type HistoryItem = { role: 'user' | 'bot'; text: string };
 const conversations = new Map<string, { messages: HistoryItem[]; lastActivity: number }>();
 const HISTORY_TTL = 2 * 60 * 60 * 1000;
-
-// Seguimiento de último mensaje del cliente y si ya se envió recordatorio
-export const lastUserMessage = new Map<string, number>();
-export const reminderSent = new Map<string, boolean>();
 
 function getHistory(phone: string): HistoryItem[] {
   const now = Date.now();
@@ -274,7 +269,7 @@ async function extractLeadInfo(history: HistoryItem[], phone: string) {
   const conversation = history.map(h => `${h.role === 'user' ? 'Cliente' : 'Luz'}: ${h.text}`).join('\n');
   const result = await ai.generate({
     model: 'googleai/gemini-2.0-flash',
-    prompt: `De esta conversación extrae en JSON plano: "nombre" (nombre completo del cliente), "zona" (colonia o dirección mencionada), "transmision" ("Estándar" o "Automático", default "Estándar"), "horario" ("mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente). Solo JSON sin texto extra.\n\n${conversation}`,
+    prompt: `De esta conversación extrae en JSON plano: "nombre" (nombre completo del cliente), "zona" (calle, número, colonia y alcaldía mencionados por el cliente; si falta algún dato pon lo que haya), "transmision" ("Estándar" o "Automático", default "Estándar"), "horario" ("mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente). Solo JSON sin texto extra.\n\n${conversation}`,
   });
   try {
     const json = JSON.parse(result.text?.trim() || '{}');
@@ -317,7 +312,7 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
     .join('\n');
   const result = await ai.generate({
     model: 'googleai/gemini-2.0-flash',
-    prompt: `De esta conversación extrae en JSON plano los campos: "name" (nombre completo del cliente) y "address" (colonia, zona o dirección mencionada). Si no hay dato deja el campo vacío. Solo responde JSON, sin texto extra.\n\n${conversation}`,
+    prompt: `De esta conversación extrae en JSON plano los campos: "name" (nombre completo del cliente) y "address" (calle, número, colonia y alcaldía mencionados; si falta algún dato pon lo que haya). Si no hay dato deja el campo vacío. Solo responde JSON, sin texto extra.\n\n${conversation}`,
   });
   const json = JSON.parse(result.text?.trim() || '{}');
   const params: Record<string, string> = {};
@@ -483,7 +478,7 @@ export async function POST(request: NextRequest) {
           `📅 Clases agendadas:\n  ${fechasTexto}`
         ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
-        syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor.`;
+        syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
       } else {
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }
@@ -502,9 +497,6 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  // Registrar mensaje del cliente y resetear recordatorios
-  lastUserMessage.set(from, Date.now());
-  reminderSent.set(from, false);
   const isNewLead = getHistory(from).length === 0;
   import('@/lib/firestore')
     .then(({ updateLeadActivity, saveLeadSource }) =>
@@ -515,9 +507,10 @@ export async function POST(request: NextRequest) {
     )
     .catch((e) => console.error('[WEBHOOK] Error actualizando lead activity:', e));
 
-  // Notificar al admin cuando llega un lead nuevo con fuente identificada
-  if (isNewLead && leadSource) {
-    sendMessage(ADMIN_PHONE, `🆕 *Nuevo lead*\n\n📱 +${from}\n📣 Fuente: ${leadSource}`)
+  // Notificar al admin cuando llega cualquier lead nuevo
+  if (isNewLead) {
+    const fuenteTexto = leadSource ? `📣 Fuente: ${leadSource}` : '📣 Fuente: directa';
+    sendMessage(ADMIN_PHONE, `🆕 *Nuevo lead*\n\n📱 +${from}\n${fuenteTexto}`)
       .catch((e) => console.error('[WEBHOOK] Error notificando nuevo lead:', e));
   }
 
