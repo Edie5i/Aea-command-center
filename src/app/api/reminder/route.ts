@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { lastUserMessage, reminderSent } from '@/app/webhook/route';
+import { getPendingReminders, markReminderSent } from '@/lib/firestore';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
-const REMINDER_24H = 24 * 60 * 60 * 1000;
-const REMINDER_25H = 25 * 60 * 60 * 1000;
 
-const MSG_RECORDATORIO =
-  'Buen día, le escribimos de Auto Escuela Americana. ¿Tiene alguna pregunta sobre nuestros cursos o servicios? Con gusto le atendemos. 🚗';
+const MSG_1H =
+  '¡Hola! Solo quería asegurarme de que recibiste mi mensaje 😊 ¿Te gustaría continuar con el proceso? Con gusto te ayudo.';
+
+const MSG_23H =
+  '¡Hola! Por aquí Luz, de Auto Escuela Americana 👋 ¿Sigues pensando en tomar clases de manejo? Todavía puedes apartar tu lugar con la promo vigente. ¿Te ayudo?';
 
 async function sendMessage(to: string, text: string): Promise<void> {
   const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
-  await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${WA_TOKEN}`,
@@ -25,6 +26,9 @@ async function sendMessage(to: string, text: string): Promise<void> {
       text: { body: text },
     }),
   });
+  if (!res.ok) {
+    console.error('[REMINDER] WhatsApp error:', res.status, await res.text());
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -33,22 +37,28 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Forbidden', { status: 403 });
   }
 
-  const now = Date.now();
   let enviados = 0;
 
-  for (const [phone, lastTs] of lastUserMessage) {
-    const elapsed = now - lastTs;
-    const enVentana = elapsed >= REMINDER_24H && elapsed < REMINDER_25H;
-    const yaEnviado = reminderSent.get(phone) ?? false;
+  // Recordatorio 1h
+  const pending1h = await getPendingReminders('1h');
+  for (const conv of pending1h) {
+    await sendMessage(conv.phone, MSG_1H).catch((e) =>
+      console.error('[REMINDER] Error 1h a', conv.phone, e)
+    );
+    await markReminderSent(conv.phone, '1h');
+    enviados++;
+    console.log('[REMINDER] 1h enviado a', conv.phone);
+  }
 
-    if (enVentana && !yaEnviado) {
-      await sendMessage(phone, MSG_RECORDATORIO).catch((e) =>
-        console.error('[REMINDER] Error enviando a', phone, e)
-      );
-      reminderSent.set(phone, true);
-      enviados++;
-      console.log('[REMINDER] Recordatorio enviado a', phone);
-    }
+  // Recordatorio 23h
+  const pending23h = await getPendingReminders('23h');
+  for (const conv of pending23h) {
+    await sendMessage(conv.phone, MSG_23H).catch((e) =>
+      console.error('[REMINDER] Error 23h a', conv.phone, e)
+    );
+    await markReminderSent(conv.phone, '23h');
+    enviados++;
+    console.log('[REMINDER] 23h enviado a', conv.phone);
   }
 
   return NextResponse.json({ ok: true, enviados });

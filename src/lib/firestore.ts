@@ -19,9 +19,12 @@ export interface ChatMessage {
 export interface Conversation {
   phone: string;
   lastActivity: Timestamp;
+  lastLeadActivity: Timestamp;
   lastMessage: string;
-  lastSender: 'lead' | 'ale';
+  lastSender: 'lead' | 'bot';
   messageCount: number;
+  reminder1hSent: boolean;
+  reminder23hSent: boolean;
 }
 
 export async function saveConversationMessage(
@@ -51,6 +54,36 @@ export async function saveConversationMessage(
   batch.set(messagesRef.doc(), { role: 'bot', text: botText, timestamp: now });
 
   await batch.commit();
+}
+
+export async function updateLeadActivity(phone: string): Promise<void> {
+  const now = Timestamp.now();
+  await db.collection('conversations').doc(phone).set(
+    { phone, lastLeadActivity: now, reminder1hSent: false, reminder23hSent: false },
+    { merge: true }
+  );
+}
+
+export async function getPendingReminders(type: '1h' | '23h'): Promise<Conversation[]> {
+  const now = Date.now();
+  const ms = type === '1h' ? 60 * 60 * 1000 : 23 * 60 * 60 * 1000;
+  const windowMs = 30 * 60 * 1000; // 30-min window to catch reminders
+  const cutoffMax = Timestamp.fromMillis(now - ms);
+  const cutoffMin = Timestamp.fromMillis(now - ms - windowMs);
+  const sentField = type === '1h' ? 'reminder1hSent' : 'reminder23hSent';
+
+  const snap = await db.collection('conversations')
+    .where('lastLeadActivity', '<=', cutoffMax)
+    .where('lastLeadActivity', '>=', cutoffMin)
+    .where(sentField, '==', false)
+    .get();
+
+  return snap.docs.map(d => d.data() as Conversation);
+}
+
+export async function markReminderSent(phone: string, type: '1h' | '23h'): Promise<void> {
+  const field = type === '1h' ? 'reminder1hSent' : 'reminder23hSent';
+  await db.collection('conversations').doc(phone).set({ [field]: true }, { merge: true });
 }
 
 export async function getConversations(): Promise<Conversation[]> {

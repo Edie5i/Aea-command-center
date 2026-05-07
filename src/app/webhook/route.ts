@@ -472,9 +472,12 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  // Registrar mensaje del cliente y resetear recordatorio si había respondido antes
+  // Registrar mensaje del cliente y resetear recordatorios
   lastUserMessage.set(from, Date.now());
   reminderSent.set(from, false);
+  import('@/lib/firestore')
+    .then(({ updateLeadActivity }) => updateLeadActivity(from))
+    .catch((e) => console.error('[WEBHOOK] Error actualizando lead activity:', e));
 
   try {
     const history = getHistory(from);
