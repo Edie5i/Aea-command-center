@@ -164,6 +164,23 @@ export const confirmarInscripcionTool = ai.defineTool(
       return { exitoso: false, mensaje: `Error al crear eventos: ${calendarError}` };
     }
 
+    // Persiste datos de inscripción en Firestore para generar la ficha desde el admin panel
+    const fechasCalculadas = calcularFechas(patron, fechaInicio, hora).map(f => ({
+      date: f.date.split('T')[0],
+      time: hora,
+    }));
+    import('@/lib/firestore')
+      .then(({ saveInscripcionData }) =>
+        saveInscripcionData(telefono, {
+          nombre,
+          telefono,
+          zona,
+          transmision: transmision ?? 'Estándar',
+          fechas: fechasCalculadas,
+        })
+      )
+      .catch(e => console.error('[TOOL] Error guardando inscripcion en Firestore:', e));
+
     await notificarAdmin(
       `✅ *Inscripción confirmada*\n\n` +
       `👤 *Nombre:* ${nombre}\n` +

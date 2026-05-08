@@ -496,6 +496,19 @@ export async function POST(request: NextRequest) {
           `📅 Clases agendadas:\n  ${fechasTexto}`
         ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
+        // Persiste datos de inscripción para ficha PDF en admin panel
+        import('@/lib/firestore')
+          .then(({ saveInscripcionData }) =>
+            saveInscripcionData(from, {
+              nombre: leadInfo.nombre,
+              telefono: from,
+              zona: leadInfo.zona,
+              transmision: leadInfo.transmision,
+              fechas: pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time })),
+            })
+          )
+          .catch(e => console.error('[WEBHOOK] Error guardando inscripcion:', e));
+
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
       } else {
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;

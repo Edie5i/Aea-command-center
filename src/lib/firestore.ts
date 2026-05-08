@@ -113,3 +113,39 @@ export async function getConversationMessages(phone: string): Promise<ChatMessag
 
   return snap.docs.map(d => d.data() as ChatMessage);
 }
+
+export interface InscripcionData {
+  nombre: string;
+  telefono: string;
+  zona: string;
+  transmision: string;
+  fechas: Array<{ date: string; time: string }>;
+  fechaConfirmacion: number; // millis — serializable para Client Components
+}
+
+export async function saveInscripcionData(
+  phone: string,
+  data: Omit<InscripcionData, 'fechaConfirmacion'>
+): Promise<void> {
+  await db
+    .collection('conversations')
+    .doc(phone)
+    .set(
+      { inscripcion: { ...data, fechaConfirmacion: Timestamp.now() } },
+      { merge: true }
+    );
+}
+
+export async function getInscripcionData(phone: string): Promise<InscripcionData | null> {
+  const snap = await db.collection('conversations').doc(phone).get();
+  const ins = snap.data()?.inscripcion;
+  if (!ins) return null;
+  return {
+    nombre: ins.nombre ?? '',
+    telefono: ins.telefono ?? phone,
+    zona: ins.zona ?? '',
+    transmision: ins.transmision ?? 'Estándar',
+    fechas: ins.fechas ?? [],
+    fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
+  };
+}

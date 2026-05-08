@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getConversationMessages } from '@/lib/firestore';
+import { getConversationMessages, getInscripcionData } from '@/lib/firestore';
 import Link from 'next/link';
+import FichaButton from './FichaButton';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -18,7 +19,10 @@ export default async function ConversacionPage({
   }
 
   const { phone } = await params;
-  const messages = await getConversationMessages(phone);
+  const [messages, inscripcion] = await Promise.all([
+    getConversationMessages(phone),
+    getInscripcionData(phone),
+  ]);
   const displayPhone = phone.replace('52', '+52 ');
 
   return (
@@ -27,10 +31,11 @@ export default async function ConversacionPage({
         <Link href="/admin/conversaciones" className="text-blue-600 font-medium text-sm">
           ← Volver
         </Link>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-900 text-sm">{displayPhone}</p>
           <p className="text-xs text-gray-400">{messages.length} mensajes</p>
         </div>
+        {inscripcion && <FichaButton data={inscripcion} />}
       </header>
 
       <div className="flex-1 p-4 space-y-2 pb-8">
