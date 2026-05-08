@@ -4,12 +4,14 @@ import type { InscripcionData } from '@/lib/firestore';
 import { format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-// AEA brand colors
-const BLUE  = [0, 74, 173]   as const;
-const INK   = [20, 24, 31]   as const;
-const MUTED = [107, 99, 87]  as const;
-const WHITE = [255, 255, 255] as const;
+const BLUE       = [0, 74, 173]    as const;
+const INK        = [20, 24, 31]    as const;
+const MUTED      = [107, 99, 87]   as const;
+const WHITE      = [255, 255, 255] as const;
 const LIGHT_BLUE = [235, 243, 255] as const;
+const DASH_GRAY  = [180, 180, 180] as const;
+
+const MAX_SESSIONS = 6;
 
 export default function FichaButton({ data }: { data: InscripcionData }) {
   async function handleDownload() {
@@ -29,11 +31,11 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       .toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
       .toUpperCase();
 
-    const fmtDate = (dateStr: string) =>
-      format(new Date(dateStr + 'T12:00:00'), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+    const fmtDate = (d: string) =>
+      format(new Date(d + 'T12:00:00'), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
 
-    const fmtTime = (timeStr: string) =>
-      format(parse(timeStr, 'HH:mm', new Date()), 'h:mm a');
+    const fmtTime = (t: string) =>
+      format(parse(t, 'HH:mm', new Date()), 'h:mm a');
 
     // ── Banda azul superior ──────────────────────────────────────
     doc.setFillColor(...BLUE); doc.rect(0, 0, W, 5, 'F');
@@ -41,19 +43,16 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     // ── Header ──────────────────────────────────────────────────
     let y = M + 4;
 
-    // Brand mark — cuadro azul con "A"
     doc.setFillColor(...BLUE); doc.rect(M, y, 14, 14, 'F');
     doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
     doc.text('A', M + 7, y + 9.5, { align: 'center' });
 
-    // Nombre de la escuela
     doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
     doc.text('AUTO ESCUELA', M + 18, y + 5);
     doc.text('AMERICANA', M + 18, y + 9.5);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...MUTED);
     doc.text('APRENDE A MANEJAR · CDMX', M + 18, y + 13);
 
-    // Folio y fecha (derecha)
     doc.setFontSize(7); doc.setTextColor(...BLUE); doc.setFont('helvetica', 'bold');
     doc.text('FOLIO', W - M, y + 3, { align: 'right' });
     doc.setTextColor(...INK); doc.setFont('courier', 'normal'); doc.setFontSize(9);
@@ -63,7 +62,6 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     doc.setTextColor(...INK); doc.setFont('courier', 'normal'); doc.setFontSize(9);
     doc.text(fechaEmision, W - M, y + 16, { align: 'right' });
 
-    // Línea divisora
     y += 20;
     doc.setDrawColor(...INK); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
 
@@ -90,39 +88,56 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       y += 6;
     };
 
-    // ── Sección 01 — Alumno ─────────────────────────────────────
+    // Helper: línea de campo con label encima y valor abajo
+    const field = (label: string, value: string, x: number, w: number) => {
+      doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+      doc.text(label, x, y);
+      doc.setTextColor(...INK); doc.setFont(value ? 'courier' : 'helvetica', 'normal');
+      doc.setFontSize(value ? 10 : 9);
+      doc.text(value || '—', x, y + 5);
+      doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
+      doc.line(x, y + 6, x + w, y + 6); doc.setLineDashPattern([], 0);
+    };
+
+    // ── Sección 01 — Datos del alumno ───────────────────────────
     section('01', 'Datos del alumno');
 
+    // Nombre (ancho completo)
     doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     doc.text('NOMBRE', M, y);
     doc.setTextColor(...INK); doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
     doc.text(data.nombre, M, y + 5);
-    doc.setDrawColor(180, 180, 180); doc.setLineDashPattern([0.5, 0.5], 0);
+    doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
     doc.line(M, y + 6, W - M, y + 6); doc.setLineDashPattern([], 0);
     y += 12;
 
-    doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-    doc.text('TELÉFONO', M, y);
-    doc.text('PUNTO DE ENCUENTRO', W / 2, y);
-    doc.setTextColor(...INK); doc.setFont('courier', 'normal'); doc.setFontSize(10);
-    // Show phone without country code prefix for readability
+    // Teléfono | Email (opcional)
+    const colW = (W - 2 * M - 8) / 2;
     const displayPhone = data.telefono.startsWith('52') && data.telefono.length === 12
-      ? data.telefono.slice(2)
-      : data.telefono;
-    doc.text(displayPhone, M, y + 5);
-    const zonaShort = doc.splitTextToSize(data.zona, W / 2 - 4)[0] ?? '';
-    doc.text(zonaShort, W / 2, y + 5);
-    doc.setDrawColor(180, 180, 180); doc.setLineDashPattern([0.5, 0.5], 0);
-    doc.line(M, y + 6, W / 2 - 4, y + 6);
-    doc.line(W / 2, y + 6, W - M, y + 6);
+      ? data.telefono.slice(2) : data.telefono;
+    field('TELÉFONO', displayPhone, M, colW);
+    field('EMAIL  (opcional)', '', M + colW + 8, colW);
+    y += 12;
+
+    // Dirección / Punto de encuentro (ancho completo)
+    doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    doc.text('DIRECCIÓN / PUNTO DE ENCUENTRO', M, y);
+    if (data.zona) {
+      doc.setTextColor(...INK); doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+      const zonaLines = doc.splitTextToSize(data.zona, W - 2 * M);
+      doc.text(zonaLines, M, y + 5);
+    }
+    doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
+    doc.line(M, y + 6, W - M, y + 6);
+    doc.line(M, y + 11, W - M, y + 11); // segunda línea para dirección larga
     doc.setLineDashPattern([], 0);
-    y += 14;
+    y += 16;
 
     // ── Sección 02 — Curso (card azul) ──────────────────────────
     section('02', 'Curso elegido');
 
     const txLabel =
-      data.transmision === 'Estándar' ? 'ESTÁNDAR 10H' :
+      data.transmision === 'Estándar'   ? 'ESTÁNDAR 10H'   :
       data.transmision === 'Automático' ? 'AUTOMÁTICO 10H' :
       data.transmision.toUpperCase();
 
@@ -130,41 +145,54 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     const firstDateStr = firstFecha ? fmtDate(firstFecha.date).toUpperCase() : '—';
     const firstTimeStr = firstFecha ? fmtTime(firstFecha.time) : '—';
 
-    doc.setFillColor(...BLUE); doc.rect(M, y, W - 2 * M, 22, 'F');
+    doc.setFillColor(...BLUE); doc.rect(M, y, W - 2 * M, 20, 'F');
     doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
-    doc.text(txLabel, M + 5, y + 9);
-    doc.setFont('courier', 'normal'); doc.setFontSize(8);
-    doc.setTextColor(180, 200, 240);
+    doc.text(txLabel, M + 5, y + 8);
+    doc.setFont('courier', 'normal'); doc.setFontSize(8); doc.setTextColor(180, 200, 240);
     doc.text(
-      `${firstDateStr}  ·  ${firstTimeStr}  ·  ${data.fechas.length} SESIONES`,
-      M + 5, y + 16
+      `Inicio: ${firstDateStr}  ·  ${firstTimeStr}  ·  ${data.fechas.length} sesiones`,
+      M + 5, y + 15
     );
-    y += 28;
+    y += 26;
 
-    // ── Sección 03 — Fechas ─────────────────────────────────────
+    // ── Sección 03 — Fechas (siempre 6 espacios) ────────────────
     section('03', 'Fechas y horarios');
 
-    doc.setFont('courier', 'normal'); doc.setFontSize(9); doc.setTextColor(...INK);
-    data.fechas.forEach((f) => {
+    doc.setFont('courier', 'normal'); doc.setFontSize(9);
+
+    for (let i = 0; i < MAX_SESSIONS; i++) {
       if (y > H - 65) { doc.addPage(); y = 20; }
-      doc.text(`•  ${fmtDate(f.date)}  ·  ${fmtTime(f.time)}`, M, y);
-      doc.setDrawColor(180, 180, 180); doc.setLineDashPattern([0.5, 0.5], 0);
-      doc.line(M, y + 1.5, W - M, y + 1.5); doc.setLineDashPattern([], 0);
-      y += 6;
-    });
+      const f = data.fechas[i];
+      if (f) {
+        doc.setTextColor(...INK);
+        doc.text(`${i + 1}.  ${fmtDate(f.date)}  ·  ${fmtTime(f.time)}`, M, y);
+      } else {
+        // Espacio en blanco para anotación manual
+        doc.setTextColor(...MUTED);
+        doc.text(`${i + 1}.`, M, y);
+      }
+      doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
+      doc.line(M + 5, y + 1.5, W - M, y + 1.5); doc.setLineDashPattern([], 0);
+      y += 7;
+    }
 
-    y += 6;
+    y += 4;
 
-    // ── Términos ────────────────────────────────────────────────
-    doc.setFillColor(...LIGHT_BLUE); doc.rect(M, y, W - 2 * M, 16, 'F');
-    doc.setFillColor(...BLUE);       doc.rect(M, y, 1, 16, 'F');
-    doc.setTextColor(...MUTED); doc.setFont('helvetica', 'italic'); doc.setFontSize(8);
+    // ── Términos y aceptación ────────────────────────────────────
+    doc.setFillColor(...LIGHT_BLUE); doc.rect(M, y, W - 2 * M, 20, 'F');
+    doc.setFillColor(...BLUE);       doc.rect(M, y, 1, 20, 'F');
+
+    doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text('Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:', M + 4, y + 5);
+    doc.setTextColor(...BLUE); doc.setFont('courier', 'bold'); doc.setFontSize(8);
+    doc.text('app.autoescuelaamericana.com/terminos', M + 4, y + 10);
+
+    doc.setTextColor(...MUTED); doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5);
     const termsText =
-      'El apartado garantiza el lugar y fecha de inicio. El alumno se compromete a cubrir el ' +
-      'saldo restante en máximo 3 mensualidades sin intereses. Cancelaciones con menos de 24 hrs ' +
-      'de anticipación no son reembolsables.';
-    doc.text(doc.splitTextToSize(termsText, W - 2 * M - 6), M + 4, y + 4.5);
-    y += 22;
+      'El apartado garantiza el lugar y fecha de inicio. Cancelaciones con menos de 24 hrs ' +
+      'de anticipación no son reembolsables. Documento generado electrónicamente.';
+    doc.text(doc.splitTextToSize(termsText, W - 2 * M - 6), M + 4, y + 15);
+    y += 26;
 
     // ── Firmas ──────────────────────────────────────────────────
     doc.setDrawColor(...INK); doc.setLineWidth(0.4);
@@ -188,7 +216,7 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
   return (
     <button
       onClick={handleDownload}
-      className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
+      className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors shrink-0"
     >
       ↓ Ficha PDF
     </button>
