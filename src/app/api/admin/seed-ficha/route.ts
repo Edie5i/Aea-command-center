@@ -3,26 +3,25 @@ import { saveInscripcionData } from '@/lib/firestore';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 
+// Datos hardcodeados de Fernando Martinez — eliminar este endpoint después de usar
 export async function GET(request: NextRequest) {
   if (request.nextUrl.searchParams.get('token') !== TOKEN) {
     return new NextResponse('Forbidden', { status: 403 });
   }
 
-  const phone  = request.nextUrl.searchParams.get('phone')  ?? '';
-  const nombre = request.nextUrl.searchParams.get('nombre') ?? '';
+  const phone = '5215586163794';
+  await saveInscripcionData(phone, {
+    nombre: 'Fernando Martinez',
+    telefono: phone,
+    zona: 'Calle Puebla 345, Colonia Roma',
+    transmision: 'Automático',
+    fechas: [
+      { date: '2026-05-11', time: '10:00' },
+      { date: '2026-05-12', time: '10:00' },
+      { date: '2026-05-13', time: '10:00' },
+      { date: '2026-05-14', time: '10:00' },
+    ],
+  });
 
-  if (!phone || !nombre) {
-    return NextResponse.json({ error: 'Faltan phone y nombre' }, { status: 400 });
-  }
-
-  const zona       = request.nextUrl.searchParams.get('zona')       ?? '';
-  const transmision= request.nextUrl.searchParams.get('transmision')?? 'Estándar';
-  const fechasRaw  = request.nextUrl.searchParams.get('fechas')     ?? '';
-
-  let fechas: Array<{ date: string; time: string }> = [];
-  try { fechas = JSON.parse(fechasRaw); } catch { /* vacío */ }
-
-  await saveInscripcionData(phone, { nombre, telefono: phone, zona, transmision, fechas });
-
-  return NextResponse.json({ ok: true, phone, nombre });
+  return NextResponse.json({ ok: true, phone, nombre: 'Fernando Martinez' });
 }
