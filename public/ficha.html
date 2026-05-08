@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AEA — Generador de Fichas de Inscripción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --paper: #F5F0E6;
+    --paper-dim: #EDE6D6;
+    --ink: #14181F;
+    --ink-soft: #2A3142;
+    --signal: #C8312B;
+    --signal-dark: #8E1A15;
+    --gold: #B08D2E;
+    --rule: #1A1F2E;
+    --muted: #6B6357;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* Subtle paper grain */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(20,24,31,0.04) 1px, transparent 0);
+    background-size: 3px 3px; opacity: .6;
+  }
+
+  .display { font-family: 'Archivo Black', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; }
+  .editorial { font-family: 'Fraunces', serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header.app-header {
+    border-bottom: 2px solid var(--ink);
+    padding: 18px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--paper);
+    position: relative; z-index: 1;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 48px; height: 48px; background: var(--ink); color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Archivo Black', sans-serif; font-size: 22px; letter-spacing: -0.05em;
+  }
+  .brand-name { font-family: 'Archivo Black', sans-serif; font-size: 16px; line-height: 1; letter-spacing: -0.01em; }
+  .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.15em; }
+  .app-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.2em; text-align: right; }
+  .app-title strong { display: block; font-family: 'Archivo Black', sans-serif; font-size: 14px; letter-spacing: -0.01em; margin-top: 2px; }
+
+  main {
+    display: grid; grid-template-columns: 420px 1fr; gap: 0;
+    min-height: calc(100vh - 84px);
+    position: relative; z-index: 1;
+  }
+
+  /* FORM PANEL */
+  .form-panel {
+    background: var(--ink); color: var(--paper);
+    padding: 32px 28px; overflow-y: auto;
+    max-height: calc(100vh - 84px);
+  }
+  .form-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--signal); margin-bottom: 6px; }
+  .form-title { font-family: 'Archivo Black', sans-serif; font-size: 26px; line-height: 1; letter-spacing: -0.02em; text-transform: uppercase; margin-bottom: 4px; }
+  .form-desc { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; color: rgba(245,240,230,0.65); margin-bottom: 28px; }
+
+  .field-group { margin-bottom: 22px; }
+  .field-group-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: rgba(245,240,230,0.5); margin-bottom: 12px;
+    border-bottom: 1px dashed rgba(245,240,230,0.2); padding-bottom: 8px;
+  }
+
+  label { display: block; margin-bottom: 14px; }
+  label > span {
+    display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: rgba(245,240,230,0.7); margin-bottom: 6px;
+  }
+  input, select {
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1.5px solid rgba(245,240,230,0.3);
+    color: var(--paper); font-family: 'DM Sans', sans-serif; font-size: 15px;
+    padding: 8px 0; outline: none; transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-bottom-color: var(--signal); }
+  input::placeholder { color: rgba(245,240,230,0.3); }
+  select { color: var(--paper); cursor: pointer; }
+  select option { background: var(--ink); color: var(--paper); }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .actions {
+    display: flex; flex-direction: column; gap: 10px; margin-top: 30px;
+    padding-top: 24px; border-top: 1px solid rgba(245,240,230,0.15);
+  }
+  button {
+    font-family: 'Archivo Black', sans-serif; text-transform: uppercase;
+    letter-spacing: 0.04em; padding: 16px 20px; border: none; cursor: pointer;
+    font-size: 14px; transition: transform 0.15s, background 0.15s;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  button:hover { transform: translateX(2px); }
+  button.primary { background: var(--signal); color: var(--paper); }
+  button.primary:hover { background: var(--signal-dark); }
+  button.ghost { background: transparent; color: var(--paper); border: 1.5px solid rgba(245,240,230,0.3); }
+  button.ghost:hover { border-color: var(--paper); background: rgba(245,240,230,0.05); }
+  button .arrow { font-family: 'JetBrains Mono', monospace; font-size: 18px; }
+
+  /* PREVIEW PANEL */
+  .preview-panel {
+    background: var(--paper-dim);
+    padding: 40px;
+    overflow-y: auto;
+    max-height: calc(100vh - 84px);
+    display: flex; align-items: flex-start; justify-content: center;
+  }
+
+  .ficha {
+    width: 100%; max-width: 720px;
+    background: #FBF8F0; color: var(--ink);
+    padding: 50px 56px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.05), 0 18px 50px -10px rgba(20,24,31,0.18);
+    position: relative;
+    aspect-ratio: 8.5 / 11;
+    overflow: hidden;
+  }
+
+  .ficha::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: linear-gradient(90deg, var(--ink) 0% 33%, var(--signal) 33% 66%, var(--gold) 66% 100%);
+  }
+
+  .ficha-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 18px; border-bottom: 2px solid var(--ink); }
+  .ficha-brand-block { display: flex; gap: 12px; align-items: center; }
+  .ficha-mark { width: 44px; height: 44px; background: var(--ink); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: 'Archivo Black', sans-serif; font-size: 20px; }
+  .ficha-brand-text { font-family: 'Archivo Black', sans-serif; font-size: 13px; line-height: 1.1; letter-spacing: -0.01em; text-transform: uppercase; }
+  .ficha-brand-text small { display: block; font-family: 'JetBrains Mono', monospace; font-weight: normal; font-size: 9px; color: var(--muted); margin-top: 4px; letter-spacing: 0.15em; }
+  .ficha-meta { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; letter-spacing: 0.05em; }
+  .ficha-meta strong { color: var(--signal); display: block; font-size: 9px; letter-spacing: 0.2em; }
+
+  .ficha-title-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 22px; }
+  .ficha-title { font-family: 'Archivo Black', sans-serif; font-size: 38px; line-height: .95; letter-spacing: -0.03em; text-transform: uppercase; }
+  .ficha-subtitle { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; color: var(--muted); }
+
+  .ficha-section { margin-top: 26px; }
+  .ficha-section-label { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
+  .ficha-section-label .num { background: var(--ink); color: var(--paper); padding: 2px 7px; font-size: 9px; }
+  .ficha-section-label .line { flex: 1; height: 1px; background: var(--ink); opacity: 0.2; }
+
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 28px; }
+  .data-item small { display: block; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 2px; }
+  .data-item .value { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; border-bottom: 1px dotted var(--ink-soft); padding-bottom: 3px; min-height: 22px; }
+
+  .course-card {
+    background: var(--ink); color: var(--paper);
+    padding: 18px 22px; margin-top: 12px;
+    display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: end;
+  }
+  .course-card .course-name { font-family: 'Archivo Black', sans-serif; font-size: 22px; line-height: 1; letter-spacing: -0.02em; text-transform: uppercase; }
+  .course-card .course-detail { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,230,0.6); margin-top: 6px; }
+  .course-card .price-block { text-align: right; }
+  .course-card .price-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--signal); text-transform: uppercase; }
+  .course-card .price-value { font-family: 'Archivo Black', sans-serif; font-size: 26px; line-height: 1; margin-top: 2px; }
+
+  .pay-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .pay-table tr { border-bottom: 1px dashed rgba(20,24,31,0.2); }
+  .pay-table td { padding: 8px 0; }
+  .pay-table td:last-child { text-align: right; font-weight: 700; }
+  .pay-table tr.total td { padding-top: 12px; border-top: 1.5px solid var(--ink); border-bottom: none; font-size: 13px; }
+  .pay-table tr.total td:last-child { color: var(--signal); }
+
+  .terms { font-family: 'Fraunces', serif; font-style: italic; font-size: 10px; line-height: 1.55; color: var(--muted); margin-top: 18px; padding: 12px 14px; background: rgba(20,24,31,0.04); border-left: 2px solid var(--signal); }
+
+  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 26px; }
+  .sig-line { border-top: 1px solid var(--ink); padding-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); }
+
+  .ficha-footer {
+    position: absolute; bottom: 22px; left: 56px; right: 56px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--ink); padding-top: 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.08em;
+  }
+  .ficha-footer .stamp { color: var(--signal); font-weight: 700; }
+
+  /* MOBILE */
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; }
+    .form-panel, .preview-panel { max-height: none; }
+    .form-panel { padding: 24px 20px; }
+    .preview-panel { padding: 20px; }
+    .ficha { padding: 32px 28px; aspect-ratio: auto; }
+    .ficha-title { font-size: 28px; }
+    .data-grid { grid-template-columns: 1fr; }
+    .course-card { grid-template-columns: 1fr; }
+    .course-card .price-block { text-align: left; }
+    .ficha-footer { position: relative; bottom: auto; left: auto; right: auto; margin-top: 24px; flex-wrap: wrap; gap: 8px; }
+    header.app-header { flex-wrap: wrap; gap: 12px; padding: 14px 18px; }
+  }
+
+  /* Print only the ficha */
+  @media print {
+    body::before { display: none; }
+    header.app-header, .form-panel, .actions { display: none !important; }
+    main { display: block; }
+    .preview-panel { padding: 0; background: white; }
+    .ficha { box-shadow: none; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">A</div>
+    <div>
+      <div class="brand-name">AUTO ESCUELA AMERICANA</div>
+      <div class="brand-sub">CDMX · Desde Roma Sur</div>
+    </div>
+  </div>
+  <div class="app-title">
+    Sistema interno
+    <strong>Generador de Fichas</strong>
+  </div>
+</header>
+
+<main>
+  <!-- FORM -->
+  <section class="form-panel">
+    <div class="form-eyebrow">// Captura de datos</div>
+    <h1 class="form-title">Nueva ficha</h1>
+    <p class="form-desc">Llena los campos. La ficha se actualiza en tiempo real.</p>
+
+    <div class="field-group">
+      <div class="field-group-title">01 — Datos del alumno</div>
+      <label><span>Nombre completo</span><input id="f-nombre" type="text" placeholder="Ej. Juan Pérez García" /></label>
+      <div class="row-2">
+        <label><span>Teléfono</span><input id="f-tel" type="tel" placeholder="55 0000 0000" /></label>
+        <label><span>Email</span><input id="f-email" type="email" placeholder="correo@ejemplo.com" /></label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-group-title">02 — Curso</div>
+      <label><span>Programa</span>
+        <select id="f-curso">
+          <option value="">— Selecciona un curso —</option>
+          <option data-price="1800" value="Reforzamiento">Reforzamiento — $1,800</option>
+          <option data-price="1900" value="Avanzado">Avanzado — $1,900</option>
+          <option data-price="3400" value="Estándar 10h">Estándar 10h — $3,400</option>
+          <option data-price="3900" value="Automático 10h">Automático 10h — $3,900</option>
+          <option data-price="4300" value="Moto">Moto — $4,300</option>
+          <option data-price="4800" value="Inglés 10h">Inglés 10h — $4,800</option>
+          <option data-price="5600" value="Intensivo 6 sesiones">Intensivo 6 sesiones — $5,600</option>
+          <option data-price="5600" value="Mixto (Estándar + Automático)">Mixto Std+Aut 6 ses. — $5,600</option>
+        </select>
+      </label>
+      <div class="row-2">
+        <label><span>Fecha de inicio</span><input id="f-fecha" type="date" /></label>
+        <label><span>Horario</span>
+          <select id="f-horario">
+            <option value="">—</option>
+            <option>07:00</option>
+            <option>08:00</option>
+            <option>10:00</option>
+            <option>12:00</option>
+            <option>14:00</option>
+            <option>16:00</option>
+            <option>18:00</option>
+          </select>
+        </label>
+      </div>
+      <label><span>Modalidad</span>
+        <select id="f-modalidad">
+          <option>Sede — Torreón 49, Roma Sur</option>
+          <option>A domicilio — CDMX</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="field-group">
+      <div class="field-group-title">03 — Pago</div>
+      <label><span>Apartado pagado hoy (mín. 10%)</span><input id="f-apartado" type="number" placeholder="690" /></label>
+    </div>
+
+    <div class="actions">
+      <button class="primary" onclick="generatePDF()">Descargar PDF <span class="arrow">↓</span></button>
+      <button class="ghost" onclick="resetForm()">Nueva ficha <span class="arrow">↻</span></button>
+    </div>
+  </section>
+
+  <!-- PREVIEW -->
+  <section class="preview-panel">
+    <div class="ficha" id="ficha">
+      <div class="ficha-header">
+        <div class="ficha-brand-block">
+          <div class="ficha-mark">A</div>
+          <div class="ficha-brand-text">
+            Auto Escuela<br/>Americana
+            <small>Aprende a manejar · CDMX</small>
+          </div>
+        </div>
+        <div class="ficha-meta">
+          <strong>FOLIO</strong>
+          <span id="p-folio">AEA-2026-0001</span><br/>
+          <strong style="margin-top:6px;">FECHA</strong>
+          <span id="p-fecha-emision">—</span>
+        </div>
+      </div>
+
+      <div class="ficha-title-row">
+        <h2 class="ficha-title">Ficha de<br/>Inscripción</h2>
+        <span class="ficha-subtitle">Documento oficial de registro</span>
+      </div>
+
+      <div class="ficha-section">
+        <div class="ficha-section-label"><span class="num">01</span> Datos del alumno <span class="line"></span></div>
+        <div class="data-grid">
+          <div class="data-item" style="grid-column: span 2;"><small>Nombre</small><div class="value" id="p-nombre">—</div></div>
+          <div class="data-item"><small>Teléfono</small><div class="value mono" id="p-tel">—</div></div>
+          <div class="data-item"><small>Email</small><div class="value mono" id="p-email">—</div></div>
+        </div>
+      </div>
+
+      <div class="ficha-section">
+        <div class="ficha-section-label"><span class="num">02</span> Curso elegido <span class="line"></span></div>
+        <div class="course-card">
+          <div>
+            <div class="course-name" id="p-curso">—</div>
+            <div class="course-detail">
+              <span id="p-fecha-inicio">—</span> · <span id="p-horario">—</span> · <span id="p-modalidad">—</span>
+            </div>
+          </div>
+          <div class="price-block">
+            <div class="price-label">Total</div>
+            <div class="price-value" id="p-total">$0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ficha-section">
+        <div class="ficha-section-label"><span class="num">03</span> Plan de pagos <span class="line"></span></div>
+        <table class="pay-table">
+          <tr><td>Apartado pagado hoy</td><td id="p-apartado">$0</td></tr>
+          <tr><td>Restante a pagar</td><td id="p-restante">$0</td></tr>
+          <tr><td>Plan a 3 meses sin intereses</td><td id="p-mensualidad">$0 / mes</td></tr>
+          <tr class="total"><td>Costo total del curso</td><td id="p-total-2">$0</td></tr>
+        </table>
+      </div>
+
+      <div class="terms">
+        El apartado garantiza el lugar y fecha de inicio. El alumno se compromete a cubrir el saldo restante en máximo 3 mensualidades sin intereses. Cancelaciones con menos de 24 hrs de anticipación no son reembolsables. Documento generado electrónicamente por AEA.
+      </div>
+
+      <div class="signatures">
+        <div class="sig-line">Firma del alumno</div>
+        <div class="sig-line">Asesor / Sello AEA</div>
+      </div>
+
+      <div class="ficha-footer">
+        <span>Torreón 49, Roma Sur, CDMX · 56 3443 3212</span>
+        <span class="stamp">app.autoescuelaamericana.com</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Util
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => '$' + Number(n || 0).toLocaleString('es-MX');
+  const today = () => new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+
+  // Folio único
+  function generateFolio() {
+    const ts = Date.now().toString().slice(-4);
+    return 'AEA-2026-' + ts;
+  }
+
+  // Init
+  let currentFolio = generateFolio();
+  $('p-folio').textContent = currentFolio;
+  $('p-fecha-emision').textContent = today();
+  $('f-fecha').value = new Date().toISOString().split('T')[0];
+
+  // Live update
+  function update() {
+    const nombre = $('f-nombre').value.trim();
+    const tel = $('f-tel').value.trim();
+    const email = $('f-email').value.trim();
+    const cursoSelect = $('f-curso');
+    const cursoValue = cursoSelect.value;
+    const cursoOption = cursoSelect.options[cursoSelect.selectedIndex];
+    const precio = cursoOption ? Number(cursoOption.dataset.price || 0) : 0;
+    const fecha = $('f-fecha').value;
+    const horario = $('f-horario').value;
+    const modalidad = $('f-modalidad').value;
+    const apartado = Number($('f-apartado').value || 0);
+    const restante = Math.max(0, precio - apartado);
+    const mensualidad = restante > 0 ? Math.ceil(restante / 3) : 0;
+
+    $('p-nombre').textContent = nombre || '—';
+    $('p-tel').textContent = tel || '—';
+    $('p-email').textContent = email || '—';
+    $('p-curso').textContent = cursoValue || '—';
+    $('p-fecha-inicio').textContent = fecha ? new Date(fecha + 'T00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric'}).toUpperCase() : '—';
+    $('p-horario').textContent = horario || '—';
+    $('p-modalidad').textContent = modalidad || '—';
+    $('p-total').textContent = fmt(precio);
+    $('p-apartado').textContent = fmt(apartado);
+    $('p-restante').textContent = fmt(restante);
+    $('p-mensualidad').textContent = fmt(mensualidad) + ' / mes';
+    $('p-total-2').textContent = fmt(precio);
+  }
+
+  ['f-nombre','f-tel','f-email','f-curso','f-fecha','f-horario','f-modalidad','f-apartado'].forEach(id => {
+    $(id).addEventListener('input', update);
+    $(id).addEventListener('change', update);
+  });
+
+  // Reset
+  function resetForm() {
+    ['f-nombre','f-tel','f-email','f-apartado'].forEach(id => $(id).value = '');
+    $('f-curso').selectedIndex = 0;
+    $('f-horario').selectedIndex = 0;
+    $('f-modalidad').selectedIndex = 0;
+    $('f-fecha').value = new Date().toISOString().split('T')[0];
+    currentFolio = generateFolio();
+    $('p-folio').textContent = currentFolio;
+    $('p-fecha-emision').textContent = today();
+    update();
+  }
+
+  // PDF GENERATION
+  function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+
+    // Page dims (letter): 215.9 × 279.4 mm
+    const W = 215.9, H = 279.4;
+    const M = 18; // margin
+
+    // Top color band (3 stripes)
+    doc.setFillColor(20, 24, 31); doc.rect(0, 0, W/3, 3, 'F');
+    doc.setFillColor(200, 49, 43); doc.rect(W/3, 0, W/3, 3, 'F');
+    doc.setFillColor(176, 141, 46); doc.rect(2*W/3, 0, W/3, 3, 'F');
+
+    // HEADER
+    let y = M + 4;
+    // Brand mark
+    doc.setFillColor(20, 24, 31); doc.rect(M, y, 14, 14, 'F');
+    doc.setTextColor(245, 240, 230); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text('A', M + 7, y + 9.5, { align: 'center' });
+
+    // Brand text
+    doc.setTextColor(20, 24, 31); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('AUTO ESCUELA', M + 18, y + 5);
+    doc.text('AMERICANA', M + 18, y + 9.5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(107, 99, 87);
+    doc.text('APRENDE A MANEJAR · CDMX', M + 18, y + 13);
+
+    // Folio + Fecha (right)
+    doc.setFontSize(7); doc.setTextColor(200, 49, 43); doc.setFont('helvetica','bold');
+    doc.text('FOLIO', W - M, y + 3, { align: 'right' });
+    doc.setTextColor(20, 24, 31); doc.setFont('courier','normal'); doc.setFontSize(9);
+    doc.text(currentFolio, W - M, y + 7, { align: 'right' });
+    doc.setFontSize(7); doc.setTextColor(200, 49, 43); doc.setFont('helvetica','bold');
+    doc.text('FECHA', W - M, y + 12, { align: 'right' });
+    doc.setTextColor(20, 24, 31); doc.setFont('courier','normal'); doc.setFontSize(9);
+    doc.text(today(), W - M, y + 16, { align: 'right' });
+
+    // Header divider
+    y += 20;
+    doc.setDrawColor(20, 24, 31); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
+
+    // TITLE
+    y += 10;
+    doc.setTextColor(20, 24, 31); doc.setFont('helvetica','bold'); doc.setFontSize(28);
+    doc.text('FICHA DE', M, y);
+    doc.text('INSCRIPCIÓN', M, y + 9);
+    doc.setFont('helvetica','italic'); doc.setFontSize(10); doc.setTextColor(107, 99, 87);
+    doc.text('Documento oficial de registro', W - M, y + 6, { align: 'right' });
+
+    y += 22;
+
+    // SECTION HELPER
+    function sectionLabel(num, title) {
+      doc.setFillColor(20, 24, 31);
+      doc.rect(M, y - 3, 7, 4.5, 'F');
+      doc.setTextColor(245, 240, 230); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      doc.text(num, M + 3.5, y + 0.2, { align: 'center' });
+      doc.setTextColor(42, 49, 66); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+      doc.text(title.toUpperCase(), M + 10, y);
+      doc.setDrawColor(20, 24, 31); doc.setLineWidth(0.2);
+      const labelEnd = M + 10 + doc.getTextWidth(title.toUpperCase()) + 3;
+      doc.line(labelEnd, y - 0.5, W - M, y - 0.5);
+      y += 6;
+    }
+
+    // SECTION 01 — Alumno
+    sectionLabel('01', 'Datos del alumno');
+    doc.setTextColor(107, 99, 87); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+    doc.text('NOMBRE', M, y);
+    doc.setTextColor(20, 24, 31); doc.setFont('helvetica','normal'); doc.setFontSize(11);
+    doc.text($('f-nombre').value || '—', M, y + 5);
+    doc.setDrawColor(150,150,150); doc.setLineDashPattern([0.5,0.5],0); doc.line(M, y + 6, W - M, y + 6); doc.setLineDashPattern([],0);
+    y += 12;
+
+    doc.setTextColor(107, 99, 87); doc.setFontSize(7);
+    doc.text('TELÉFONO', M, y);
+    doc.text('EMAIL', (W/2), y);
+    doc.setTextColor(20, 24, 31); doc.setFont('courier','normal'); doc.setFontSize(10);
+    doc.text($('f-tel').value || '—', M, y + 5);
+    doc.text($('f-email').value || '—', (W/2), y + 5);
+    doc.setDrawColor(150,150,150); doc.setLineDashPattern([0.5,0.5],0);
+    doc.line(M, y + 6, (W/2) - 4, y + 6);
+    doc.line((W/2), y + 6, W - M, y + 6);
+    doc.setLineDashPattern([],0);
+    y += 14;
+
+    // SECTION 02 — Curso
+    sectionLabel('02', 'Curso elegido');
+    const cursoSelect = $('f-curso');
+    const cursoValue = cursoSelect.value || '—';
+    const precio = cursoSelect.options[cursoSelect.selectedIndex] ? Number(cursoSelect.options[cursoSelect.selectedIndex].dataset.price || 0) : 0;
+
+    // Course black card
+    doc.setFillColor(20, 24, 31); doc.rect(M, y, W - 2*M, 22, 'F');
+    doc.setTextColor(245, 240, 230); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+    doc.text(cursoValue.toUpperCase(), M + 5, y + 9);
+
+    const fechaVal = $('f-fecha').value ? new Date($('f-fecha').value + 'T00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase() : '—';
+    doc.setFont('courier','normal'); doc.setFontSize(8); doc.setTextColor(180,170,150);
+    doc.text(`${fechaVal}  ·  ${$('f-horario').value || '—'}  ·  ${$('f-modalidad').value}`, M + 5, y + 16);
+
+    // Price right side
+    doc.setTextColor(200, 49, 43); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text('TOTAL', W - M - 5, y + 7, { align: 'right' });
+    doc.setTextColor(245, 240, 230); doc.setFontSize(18);
+    doc.text(fmt(precio), W - M - 5, y + 16, { align: 'right' });
+
+    y += 28;
+
+    // SECTION 03 — Pago
+    sectionLabel('03', 'Plan de pagos');
+    const apartado = Number($('f-apartado').value || 0);
+    const restante = Math.max(0, precio - apartado);
+    const mensualidad = restante > 0 ? Math.ceil(restante/3) : 0;
+
+    doc.setFont('courier','normal'); doc.setFontSize(10);
+    function payRow(label, val, special) {
+      doc.setTextColor(20,24,31); doc.text(label, M, y);
+      if (special) doc.setTextColor(200,49,43); else doc.setTextColor(20,24,31);
+      doc.setFont('courier','bold');
+      doc.text(val, W - M, y, { align: 'right' });
+      doc.setFont('courier','normal');
+      doc.setDrawColor(180,180,180); doc.setLineDashPattern([0.5,0.5],0);
+      doc.line(M, y + 1.5, W - M, y + 1.5); doc.setLineDashPattern([],0);
+      y += 6;
+    }
+    payRow('Apartado pagado hoy', fmt(apartado));
+    payRow('Restante a pagar', fmt(restante));
+    payRow('Plan a 3 meses sin intereses', fmt(mensualidad) + ' / mes');
+
+    // Total emphasized
+    y += 1;
+    doc.setDrawColor(20,24,31); doc.setLineWidth(0.5); doc.line(M, y, W - M, y);
+    y += 5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(20,24,31);
+    doc.text('COSTO TOTAL DEL CURSO', M, y);
+    doc.setTextColor(200,49,43); doc.setFontSize(13);
+    doc.text(fmt(precio), W - M, y, { align: 'right' });
+
+    y += 10;
+
+    // TERMS
+    doc.setFillColor(244, 240, 232); doc.rect(M, y, W - 2*M, 16, 'F');
+    doc.setFillColor(200, 49, 43); doc.rect(M, y, 0.8, 16, 'F');
+    doc.setTextColor(107, 99, 87); doc.setFont('helvetica','italic'); doc.setFontSize(8);
+    const terms = 'El apartado garantiza el lugar y fecha de inicio. El alumno se compromete a cubrir el saldo restante en máximo 3 mensualidades sin intereses. Cancelaciones con menos de 24 hrs de anticipación no son reembolsables.';
+    const termsLines = doc.splitTextToSize(terms, W - 2*M - 6);
+    doc.text(termsLines, M + 4, y + 4.5);
+
+    y += 22;
+
+    // SIGNATURES
+    doc.setDrawColor(20,24,31); doc.setLineWidth(0.4);
+    doc.line(M, y, M + 70, y);
+    doc.line(W - M - 70, y, W - M, y);
+    doc.setFont('courier','normal'); doc.setFontSize(7); doc.setTextColor(107,99,87);
+    doc.text('FIRMA DEL ALUMNO', M, y + 4);
+    doc.text('ASESOR / SELLO AEA', W - M, y + 4, { align: 'right' });
+
+    // FOOTER
+    const fy = H - 14;
+    doc.setDrawColor(20,24,31); doc.setLineWidth(0.4); doc.line(M, fy, W - M, fy);
+    doc.setFont('courier','normal'); doc.setFontSize(8); doc.setTextColor(107,99,87);
+    doc.text('Torreón 49, Roma Sur, CDMX · 56 3443 3212', M, fy + 5);
+    doc.setTextColor(200,49,43); doc.setFont('courier','bold');
+    doc.text('app.autoescuelaamericana.com', W - M, fy + 5, { align: 'right' });
+
+    // Save
+    const filename = `${currentFolio}-${($('f-nombre').value || 'alumno').replace(/\s+/g,'_')}.pdf`;
+    doc.save(filename);
+  }
+
+  // First render
+  update();
+</script>
+
+</body>
+</html>
