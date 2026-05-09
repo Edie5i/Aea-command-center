@@ -82,7 +82,7 @@ export async function recalculateChatState(
         qualifiedAt = qualifiedAt ?? Timestamp.now();
       }
       if (classification.intent === 'info_personal' && !contactName) {
-        // El nombre se extrae en el webhook — aquí solo marcamos que llegó info
+        if (classification.detected_name) contactName = classification.detected_name;
       }
 
       // Regla 1: compra

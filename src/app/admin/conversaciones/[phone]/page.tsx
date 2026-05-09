@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getConversationMessages, getInscripcionData, getConversation, type ChatState } from '@/lib/firestore';
 import Link from 'next/link';
 import FichaButton from './FichaButton';
+import StateActions from './StateActions';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -79,6 +80,7 @@ export default async function ConversacionPage({
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
             <p className="text-xs text-gray-400">{messages.length} msgs</p>
+            <StateActions phone={phone} state={state} />
             {inscripcion && <FichaButton data={inscripcion} />}
           </div>
         </div>

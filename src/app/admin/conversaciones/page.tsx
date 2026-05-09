@@ -170,14 +170,19 @@ export default async function ConversacionesPage({
 
                 {/* Avatar */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 ${cfg.avatar}`}>
-                  {conv.phone.slice(-2)}
+                  {conv.contactName ? conv.contactName.charAt(0).toUpperCase() : conv.phone.slice(-2)}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  {/* Row 1: phone + state badge + time */}
+                  {/* Row 1: name/phone + state badge + time */}
                   <div className="flex items-center gap-2 justify-between">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-semibold text-gray-900 text-sm truncate">{phone}</span>
+                      <span className="font-semibold text-gray-900 text-sm truncate">
+                        {conv.contactName || phone}
+                      </span>
+                      {conv.contactName && (
+                        <span className="text-xs text-gray-400 truncate hidden sm:block">{phone}</span>
+                      )}
                       <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}>
                         {cfg.label}
                       </span>
@@ -187,7 +192,7 @@ export default async function ConversacionesPage({
 
                   {/* Row 2: last message preview */}
                   <p className="text-sm text-gray-500 truncate mt-0.5">
-                    {conv.lastSender === 'bot' || conv.lastSender === ('ale' as string) ? '🤖 ' : '👤 '}
+                    {conv.lastSender === 'bot' ? '🤖 ' : '👤 '}
                     {conv.chatLastPreview || conv.lastMessage}
                   </p>
 

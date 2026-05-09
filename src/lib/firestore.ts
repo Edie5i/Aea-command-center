@@ -88,7 +88,7 @@ export async function saveConversationMessage(
       phone,
       lastActivity: now,
       lastMessage: botText,
-      lastSender: 'ale',
+      lastSender: 'bot',
       messageCount: FieldValue.increment(2),
     },
     { merge: true }
