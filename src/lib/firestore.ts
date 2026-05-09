@@ -10,6 +10,35 @@ initAdmin();
 
 export const db = getFirestore(getApp(), 'default');
 
+// ── Chat state types ───────────────────────────────────────────────────────────
+
+export type ChatState =
+  | 'tu_turno'
+  | 'luz_atendiendo'
+  | 'esperando_cliente'
+  | 'atascado'
+  | 'cerrado'
+  | 'frio';
+
+export type ChatUrgency = 'alta' | 'media' | 'baja' | 'ninguna';
+export type ChatLastBy = 'cliente' | 'luz' | 'humano';
+export type StateChangeTrigger = 'mensaje_cliente' | 'mensaje_luz' | 'cron' | 'manual';
+
+export interface FollowUpRecord {
+  at: Timestamp;
+  type: '2h' | '24h' | '72h' | '7d';
+}
+
+export interface StateHistoryEntry {
+  from: ChatState | null;
+  to: ChatState;
+  reason: string;
+  timestamp: Timestamp;
+  trigger: StateChangeTrigger;
+}
+
+// ── Core message/conversation types ───────────────────────────────────────────
+
 export interface ChatMessage {
   role: 'user' | 'bot';
   text: string;
@@ -26,6 +55,20 @@ export interface Conversation {
   reminder1hSent: boolean;
   reminder23hSent: boolean;
   source?: string;
+  // ── Pipeline state fields (added in feature/chat-states) ──────────────────
+  chatState?: ChatState;
+  chatReason?: string;
+  chatUrgency?: ChatUrgency;
+  chatLastBy?: ChatLastBy;
+  chatLastPreview?: string;
+  courseInterest?: string | null;
+  coursePrice?: string | null;
+  qualifiedAt?: Timestamp | null;
+  followUpsSent?: FollowUpRecord[];
+  nextFollowupAt?: Timestamp | null;
+  closedAt?: Timestamp | null;
+  closedOutcome?: 'ganado' | 'perdido' | null;
+  contactName?: string | null;
 }
 
 export async function saveConversationMessage(
@@ -148,4 +191,105 @@ export async function getInscripcionData(phone: string): Promise<InscripcionData
     fechas: ins.fechas ?? [],
     fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
   };
+}
+
+// ── Chat state management ──────────────────────────────────────────────────────
+
+/**
+ * Logs a state transition to conversations/{phone}/state_history.
+ * Called by updateChatState whenever the state actually changes.
+ */
+export async function logStateChange(
+  phone: string,
+  from: ChatState | null,
+  to: ChatState,
+  reason: string,
+  trigger: StateChangeTrigger
+): Promise<void> {
+  const entry: StateHistoryEntry = {
+    from,
+    to,
+    reason,
+    timestamp: Timestamp.now(),
+    trigger,
+  };
+  await db
+    .collection('conversations')
+    .doc(phone)
+    .collection('state_history')
+    .add(entry);
+}
+
+/**
+ * Updates pipeline state fields on a conversation document.
+ * Logs to state_history if the state actually changed.
+ */
+export async function updateChatState(
+  phone: string,
+  update: {
+    chatState: ChatState;
+    chatReason: string;
+    chatUrgency: ChatUrgency;
+    chatLastBy?: ChatLastBy;
+    chatLastPreview?: string;
+    courseInterest?: string | null;
+    coursePrice?: string | null;
+    qualifiedAt?: Timestamp | null;
+    nextFollowupAt?: Timestamp | null;
+    closedAt?: Timestamp | null;
+    closedOutcome?: 'ganado' | 'perdido' | null;
+    contactName?: string | null;
+  },
+  trigger: StateChangeTrigger
+): Promise<void> {
+  const convRef = db.collection('conversations').doc(phone);
+  const snap = await convRef.get();
+  const prev = (snap.data()?.chatState ?? null) as ChatState | null;
+
+  await convRef.set(update, { merge: true });
+
+  if (prev !== update.chatState) {
+    await logStateChange(phone, prev, update.chatState, update.chatReason, trigger);
+  }
+}
+
+/**
+ * Returns conversations ordered by lastActivity, optionally filtered by chatState.
+ * Uninitialized docs (no chatState) are treated as 'luz_atendiendo'.
+ */
+export async function getConversationsFiltered(
+  state?: ChatState
+): Promise<Conversation[]> {
+  let query = db.collection('conversations').orderBy('lastActivity', 'desc').limit(100);
+
+  const snap = await query.get();
+  const all = snap.docs.map(d => d.data() as Conversation);
+
+  if (!state) return all;
+
+  return all.filter(c => (c.chatState ?? 'luz_atendiendo') === state);
+}
+
+/**
+ * Returns a single conversation document, or null if it doesn't exist.
+ */
+export async function getConversation(phone: string): Promise<Conversation | null> {
+  const snap = await db.collection('conversations').doc(phone).get();
+  if (!snap.exists) return null;
+  return snap.data() as Conversation;
+}
+
+/**
+ * Returns the last N messages from a conversation, newest first.
+ */
+export async function getRecentMessages(phone: string, limit = 6): Promise<ChatMessage[]> {
+  const snap = await db
+    .collection('conversations')
+    .doc(phone)
+    .collection('messages')
+    .orderBy('timestamp', 'desc')
+    .limit(limit)
+    .get();
+
+  return snap.docs.map(d => d.data() as ChatMessage).reverse();
 }
