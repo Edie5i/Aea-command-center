@@ -524,6 +524,9 @@ export async function POST(request: NextRequest) {
     import('@/lib/firestore')
       .then(({ saveConversationMessage }) => saveConversationMessage(from, '[imagen: comprobante de pago]', reply))
       .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
+    import('@/lib/chat-state')
+      .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_luz'))
+      .catch((e) => console.error('[WEBHOOK] recalculate error (imagen):', e));
 
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
@@ -571,6 +574,9 @@ export async function POST(request: NextRequest) {
     import('@/lib/firestore')
       .then(({ saveConversationMessage }) => saveConversationMessage(from, textBody, reply))
       .catch(e => console.error('[WEBHOOK] Firestore save error:', e));
+    import('@/lib/chat-state')
+      .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_cliente'))
+      .catch(e => console.error('[WEBHOOK] recalculate error:', e));
     console.log('[CHAT] 🤖 Luz →', from, ':', reply);
 
     if (reply.includes('autoescuelaamericana.com/agenda')) {
