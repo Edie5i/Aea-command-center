@@ -288,7 +288,7 @@ function saveHistory(phone: string, userText: string, botText: string) {
 async function extractLeadInfo(history: HistoryItem[], phone: string) {
   const conversation = history.map(h => `${h.role === 'user' ? 'Cliente' : 'Luz'}: ${h.text}`).join('\n');
   const result = await ai.generate({
-    model: 'googleai/gemini-2.0-flash',
+    model: 'googleai/gemini-2.5-flash',
     prompt: `De esta conversación extrae en JSON plano: "nombre" (nombre completo del cliente), "zona" (calle, número, colonia y alcaldía mencionados por el cliente; si falta algún dato pon lo que haya), "transmision" ("Estándar" o "Automático", default "Estándar"), "horario" ("mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente). Solo JSON sin texto extra.\n\n${conversation}`,
   });
   try {
@@ -331,7 +331,7 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
     .map((h) => `${h.role === 'user' ? 'Cliente' : 'Luz'}: ${h.text}`)
     .join('\n');
   const result = await ai.generate({
-    model: 'googleai/gemini-2.0-flash',
+    model: 'googleai/gemini-2.5-flash',
     prompt: `De esta conversación extrae en JSON plano los campos: "name" (nombre completo del cliente) y "address" (calle, número, colonia y alcaldía mencionados; si falta algún dato pon lo que haya). Si no hay dato deja el campo vacío. Solo responde JSON, sin texto extra.\n\n${conversation}`,
   });
   const json = JSON.parse(result.text?.trim() || '{}');
@@ -463,6 +463,7 @@ export async function POST(request: NextRequest) {
 
     const history = await getHistory(from);
     let syntheticMsg: string;
+    let inscriptionOk = false;
 
     try {
       const leadInfo = await extractLeadInfo(history, from);
@@ -511,6 +512,7 @@ export async function POST(request: NextRequest) {
           )
           .catch(e => console.error('[WEBHOOK] Error guardando inscripcion:', e));
 
+        inscriptionOk = true;
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
       } else {
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
@@ -526,9 +528,27 @@ export async function POST(request: NextRequest) {
     import('@/lib/firestore')
       .then(({ saveConversationMessage }) => saveConversationMessage(from, '[imagen: comprobante de pago]', reply))
       .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
-    import('@/lib/chat-state')
-      .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_luz'))
-      .catch((e) => console.error('[WEBHOOK] recalculate error (imagen):', e));
+
+    if (inscriptionOk) {
+      // Inscripción confirmada → cerrar lead como ganado directamente
+      import('@/lib/firestore')
+        .then(async ({ updateChatState }) => {
+          const { Timestamp } = await import('firebase-admin/firestore');
+          return updateChatState(from, {
+            chatState: 'cerrado',
+            chatReason: 'Inscripción confirmada automáticamente',
+            chatUrgency: 'ninguna',
+            closedAt: Timestamp.now(),
+            closedOutcome: 'ganado',
+          }, 'manual');
+        })
+        .catch((e) => console.error('[WEBHOOK] Error cerrando lead ganado:', e));
+    } else {
+      // Sin inscripción → recalcular estado normalmente
+      import('@/lib/chat-state')
+        .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_luz'))
+        .catch((e) => console.error('[WEBHOOK] recalculate error (imagen):', e));
+    }
 
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }

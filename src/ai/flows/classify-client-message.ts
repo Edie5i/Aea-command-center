@@ -75,7 +75,7 @@ const classifyFlow = ai.defineFlow(
         : '';
 
     const result = await ai.generate({
-      model: 'googleai/gemini-2.0-flash',
+      model: 'googleai/gemini-2.5-flash',
       system: CLASSIFY_PROMPT,
       prompt: `ÚLTIMO MENSAJE DEL CLIENTE: "${input.lastMessage}"${contextBlock}\n\nResponde SOLO con JSON válido que cumpla el schema.`,
       output: { schema: OutputSchema },
