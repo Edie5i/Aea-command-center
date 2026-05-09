@@ -19,6 +19,18 @@ const SYSTEM_PROMPT = `Eres Luz, asesora de Auto Escuela Americana (AEA). Atiend
 - Cuando alguien comparte un dato, acúsalo brevemente: "¡Perfecto!", "Entendido", "Listo 👍"
 - No escribas como menú telefónico. Si alguien dice "quiero info", pregúntale qué le interesa — no listes todo el catálogo.
 
+## MENÚ DE BIENVENIDA — opciones 1 a 5
+
+El sistema envía automáticamente un menú numerado al primer mensaje de cada lead. Cuando el cliente responda con un número o elija una opción:
+
+- **1** (llamar) → "¡Claro! Aquí el número directo: *56 3443 3212*. Eduardo o un asesor te atiende de inmediato 😊"
+- **2** (chatear con Luz / English) → Continúa el flujo normal. Si escribe en inglés, respóndele en inglés. No preguntes experiencia — avanza directo a horario y ubicación.
+- **3** (desde cero) → Ya sabes que va empezando. NO preguntes experiencia. Recomienda Estándar ($3,400) o Automático ($3,900) según si prefiere palanca o automático y avanza al cierre.
+- **4** (persona nerviosa) → Ya sabes que tiene miedo o nervios. NO preguntes experiencia. Recomienda directamente Personas Nerviosas ($5,100) y explica que las clases son 100% personalizadas y a su ritmo.
+- **5** (perfeccionar / más horas) → Ya sabes que ya maneja. NO preguntes experiencia. Recomienda Intermedio ($2,600) o Avanzado ($1,900) según lo que describa.
+
+Si el cliente escribe algo distinto a un número (frase, pregunta), responde normal ignorando el menú.
+
 ## ANTES DE RESPONDER
 
 Lee TODA la conversación. Identifica qué ya dijo la persona:
@@ -412,11 +424,30 @@ export async function GET(request: NextRequest) {
   return new NextResponse('Forbidden', { status: 403 });
 }
 
+function buildWelcomeMessage(nombre: string | null): string {
+  const saludo = nombre ? `¡Hola ${nombre.split(' ')[0]}! 👋` : '¡Hola! 👋';
+  return `${saludo} Soy Luz, asistente de la escuela. Eduardo ya me puso al tanto de tu mensaje.
+
+¿Cómo prefieres que te ayudemos ahora mismo?
+
+1️⃣ 📞 Llamar a un asesor ahora (56 3443 3212)
+2️⃣ 💬 Seguir chateando aquí con Luz (55 6320 6338)
+   English available
+
+---
+O si prefieres, cuéntanos tu nivel para darte info de estándar o automático:
+
+3️⃣ Empiezo desde cero (busco mucha paciencia).
+4️⃣ Ya manejo, pero soy una persona nerviosa y quiero hacerlo relajado o sin temor.
+5️⃣ Quiero perfeccionar técnica o quiero horas de manejo (estándar o automático).`;
+}
+
 export async function POST(request: NextRequest) {
   let from = '';
   let textBody = '';
   let messageType = 'text';
   let leadSource: string | null = null;
+  let waDisplayName: string | null = null;
 
   try {
     const body = await request.json();
@@ -431,6 +462,9 @@ export async function POST(request: NextRequest) {
     from = message.from ?? '';
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
+
+    // Nombre del contacto de WhatsApp (si lo tiene configurado)
+    waDisplayName = body?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name ?? null;
 
     // Detectar fuente del lead (Facebook referral o Google pre-filled text)
     const referral = message?.referral;
@@ -565,11 +599,26 @@ export async function POST(request: NextRequest) {
     )
     .catch((e) => console.error('[WEBHOOK] Error actualizando lead activity:', e));
 
-  // Notificar al admin cuando llega cualquier lead nuevo
+  // Nuevo lead — enviar menú de bienvenida y salir
   if (isNewLead) {
     const fuenteTexto = leadSource ? `📣 Fuente: ${leadSource}` : '📣 Fuente: directa';
-    sendMessage(ADMIN_PHONE, `🆕 *Nuevo lead*\n\n📱 +${from}\n${fuenteTexto}`)
+    const nombreTexto = waDisplayName ? `\n👤 ${waDisplayName}` : '';
+    sendMessage(ADMIN_PHONE, `🆕 *Nuevo lead*\n\n📱 +${from}${nombreTexto}\n${fuenteTexto}`)
       .catch((e) => console.error('[WEBHOOK] Error notificando nuevo lead:', e));
+
+    const welcome = buildWelcomeMessage(waDisplayName);
+    await sendMessage(from, welcome);
+    saveHistory(from, textBody, welcome);
+    import('@/lib/firestore')
+      .then(async ({ saveConversationMessage, db }) => {
+        await saveConversationMessage(from, textBody, welcome);
+        if (waDisplayName) {
+          await db.collection('conversations').doc(from).set({ contactName: waDisplayName }, { merge: true });
+        }
+      })
+      .catch((e) => console.error('[WEBHOOK] Error guardando lead nuevo:', e));
+
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
   try {
