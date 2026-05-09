@@ -41,6 +41,15 @@ export default function StateActions({ phone, state }: { phone: string; state: C
           </button>
         </>
       )}
+      {(state === 'luz_atendiendo' || state === 'esperando_cliente') && (
+        <button
+          disabled={loading}
+          onClick={() => run(() => setLeadTuTurno(phone))}
+          className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-700 active:bg-red-800 disabled:opacity-40 transition-colors"
+        >
+          → Tu turno
+        </button>
+      )}
       {state === 'frio' && (
         <button
           disabled={loading}
