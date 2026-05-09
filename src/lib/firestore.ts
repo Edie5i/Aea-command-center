@@ -271,6 +271,15 @@ export async function getConversationsFiltered(
 }
 
 /**
+ * Returns a single conversation document, or null if it doesn't exist.
+ */
+export async function getConversation(phone: string): Promise<Conversation | null> {
+  const snap = await db.collection('conversations').doc(phone).get();
+  if (!snap.exists) return null;
+  return snap.data() as Conversation;
+}
+
+/**
  * Returns the last N messages from a conversation, newest first.
  */
 export async function getRecentMessages(phone: string, limit = 6): Promise<ChatMessage[]> {
