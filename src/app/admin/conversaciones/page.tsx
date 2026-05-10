@@ -102,6 +102,9 @@ export default async function ConversacionesPage({
             <h1 className="text-lg font-bold text-gray-900">Conversaciones</h1>
             <p className="text-xs text-gray-400">{filtered.length} de {conversaciones.length} chats</p>
           </div>
+          <Link href="/admin/metricas" className="text-xs text-blue-600 font-medium shrink-0">
+            Métricas →
+          </Link>
           {/* Urgentes highlight */}
           {(counts['tu_turno'] ?? 0) > 0 && (
             <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1">

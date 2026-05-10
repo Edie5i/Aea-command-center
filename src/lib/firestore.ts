@@ -220,6 +220,69 @@ export async function getInscripcionData(phone: string): Promise<InscripcionData
   };
 }
 
+// ── Metrics ───────────────────────────────────────────────────────────────────
+
+export interface MetricsData {
+  totalLeads: number;
+  activeToday: number;
+  activeThisWeek: number;
+  activeThisMonth: number;
+  byState: Partial<Record<ChatState, number>>;
+  closedGanado: number;
+  closedPerdido: number;
+  bySource: Record<string, number>;
+  byCourse: Record<string, number>;
+}
+
+export async function getMetricsData(): Promise<MetricsData> {
+  const snap = await db.collection('conversations').get();
+  const all = snap.docs.map(d => d.data() as Conversation);
+
+  const now = Date.now();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const weekStart = now - 7 * 24 * 60 * 60 * 1000;
+  const monthStart = now - 30 * 24 * 60 * 60 * 1000;
+
+  const byState: Partial<Record<ChatState, number>> = {};
+  const bySource: Record<string, number> = {};
+  const byCourse: Record<string, number> = {};
+  let activeToday = 0, activeThisWeek = 0, activeThisMonth = 0;
+  let closedGanado = 0, closedPerdido = 0;
+
+  for (const conv of all) {
+    const state: ChatState = conv.chatState ?? 'luz_atendiendo';
+    byState[state] = (byState[state] ?? 0) + 1;
+
+    const ms = conv.lastActivity?.toMillis?.() ?? 0;
+    if (ms >= todayStart.getTime()) activeToday++;
+    if (ms >= weekStart) activeThisWeek++;
+    if (ms >= monthStart) activeThisMonth++;
+
+    if (conv.closedOutcome === 'ganado') closedGanado++;
+    if (conv.closedOutcome === 'perdido') closedPerdido++;
+
+    const src = conv.source ?? 'Directo';
+    bySource[src] = (bySource[src] ?? 0) + 1;
+
+    if (conv.courseInterest) {
+      byCourse[conv.courseInterest] = (byCourse[conv.courseInterest] ?? 0) + 1;
+    }
+  }
+
+  return {
+    totalLeads: all.length,
+    activeToday,
+    activeThisWeek,
+    activeThisMonth,
+    byState,
+    closedGanado,
+    closedPerdido,
+    bySource,
+    byCourse,
+  };
+}
+
 // ── Chat state management ──────────────────────────────────────────────────────
 
 /**
