@@ -621,6 +621,17 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
+  // Si el bot está en pausa, guardar mensaje y no responder
+  {
+    const { getConversation, saveUserMessage } = await import('@/lib/firestore');
+    const convData = await getConversation(from);
+    if (convData?.botPaused) {
+      console.log('[WEBHOOK] Bot en pausa para', from, '— guardando mensaje sin responder');
+      saveUserMessage(from, textBody).catch(e => console.error('[WEBHOOK] saveUserMessage (paused):', e));
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+  }
+
   try {
     console.log('[CHAT] 📩', from, '→ Luz:', textBody);
     let reply = await generateReply(textBody, history, from);

@@ -61,6 +61,7 @@ export interface Conversation {
   chatUrgency?: ChatUrgency;
   chatLastBy?: ChatLastBy;
   chatLastPreview?: string;
+  botPaused?: boolean;
   courseInterest?: string | null;
   coursePrice?: string | null;
   qualifiedAt?: Timestamp | null;
@@ -69,6 +70,32 @@ export interface Conversation {
   closedAt?: Timestamp | null;
   closedOutcome?: 'ganado' | 'perdido' | null;
   contactName?: string | null;
+}
+
+export async function saveUserMessage(phone: string, text: string): Promise<void> {
+  const now = Timestamp.now();
+  const convRef = db.collection('conversations').doc(phone);
+  const batch = db.batch();
+  batch.set(
+    convRef,
+    { lastActivity: now, lastMessage: text, lastSender: 'lead', messageCount: FieldValue.increment(1) },
+    { merge: true }
+  );
+  batch.set(convRef.collection('messages').doc(), { role: 'user', text, timestamp: now });
+  await batch.commit();
+}
+
+export async function saveBotMessage(phone: string, text: string): Promise<void> {
+  const now = Timestamp.now();
+  const convRef = db.collection('conversations').doc(phone);
+  const batch = db.batch();
+  batch.set(
+    convRef,
+    { lastActivity: now, lastMessage: text, lastSender: 'bot', messageCount: FieldValue.increment(1) },
+    { merge: true }
+  );
+  batch.set(convRef.collection('messages').doc(), { role: 'bot', text, timestamp: now });
+  await batch.commit();
 }
 
 export async function saveConversationMessage(

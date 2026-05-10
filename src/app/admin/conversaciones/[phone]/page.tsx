@@ -4,6 +4,7 @@ import { getConversationMessages, getInscripcionData, getConversation, type Chat
 import Link from 'next/link';
 import FichaButton from './FichaButton';
 import StateActions from './StateActions';
+import ReplyBox from './ReplyBox';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -114,6 +115,8 @@ export default async function ConversacionPage({
           </div>
         )}
       </div>
+
+      <ReplyBox phone={phone} botPaused={conv?.botPaused ?? false} />
     </main>
   );
 }
