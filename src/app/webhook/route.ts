@@ -466,6 +466,8 @@ export async function POST(request: NextRequest) {
 
     const msgId: string = message.id ?? '';
     from = message.from ?? '';
+    // Normalizar números mexicanos: 521XXXXXXXXXX → 52XXXXXXXXXX
+    if (from.startsWith('521') && from.length === 13) from = '52' + from.slice(3);
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
 
