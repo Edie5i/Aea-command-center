@@ -417,6 +417,18 @@ async function sendMessage(to: string, text: string): Promise<void> {
   }
 }
 
+/**
+ * Normaliza cualquier variación de número mexicano a 52XXXXXXXXXX (12 dígitos).
+ * Cubre: 521XXXXXXXXXX, +52XXXXXXXXXX, +521XXXXXXXXXX, 10 dígitos sin código.
+ */
+function normalizePhone(raw: string): string {
+  let p = raw.replace(/\D/g, ''); // solo dígitos
+  if (p.startsWith('521') && p.length === 13) p = '52' + p.slice(3); // 521→52
+  if (p.startsWith('52') && p.length === 12) return p;               // ya correcto
+  if (p.length === 10) return '52' + p;                              // sin código país
+  return p; // internacional no mexicano — dejar como está
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get('hub.mode');
@@ -465,9 +477,7 @@ export async function POST(request: NextRequest) {
     }
 
     const msgId: string = message.id ?? '';
-    from = message.from ?? '';
-    // Normalizar números mexicanos: 521XXXXXXXXXX → 52XXXXXXXXXX
-    if (from.startsWith('521') && from.length === 13) from = '52' + from.slice(3);
+    from = normalizePhone(message.from ?? '');
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
 
