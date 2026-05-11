@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getConversations, type Conversation, type ChatState } from '@/lib/firestore';
 import Link from 'next/link';
+import AutoRefresh from './AutoRefresh';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -95,6 +96,7 @@ export default async function ConversacionesPage({
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <AutoRefresh intervalMs={30_000} />
       {/* Header */}
       <header className="bg-white border-b px-4 pt-4 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
