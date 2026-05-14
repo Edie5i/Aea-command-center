@@ -340,7 +340,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + Number(n || 0).toLocaleString('es-MX');
   const today = () => new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-  const HORARIOS = ['07:00','08:00','10:00','12:00','14:00','16:00','18:00'];
+  const HORARIOS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
   const MAX_SLOTS = 6, MIN_SLOTS = 2;
 
   function generateFolio() { return 'AEA-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-4); }
