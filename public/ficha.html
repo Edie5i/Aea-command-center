@@ -65,6 +65,16 @@
     display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.08em; color: rgba(245,240,230,0.7); margin-bottom: 6px;
   }
+  textarea {
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1.5px solid rgba(245,240,230,0.3);
+    color: var(--paper); font-family: 'DM Sans', sans-serif; font-size: 15px;
+    padding: 8px 0; outline: none; transition: border-color 0.2s;
+    resize: none; min-height: 56px;
+  }
+  textarea:focus { border-bottom-color: #5B9BFF; }
+  textarea::placeholder { color: rgba(245,240,230,0.3); }
+
   input, select {
     width: 100%; background: transparent; border: none;
     border-bottom: 1.5px solid rgba(245,240,230,0.3);
@@ -229,6 +239,7 @@
           <option value="">— Selecciona un curso —</option>
           <option data-price="1800" value="Reforzamiento">Reforzamiento — $1,800</option>
           <option data-price="1900" value="Avanzado">Avanzado — $1,900</option>
+          <option data-price="2900" value="Intermedio 3 sesiones">Intermedio 3 sesiones — $2,900</option>
           <option data-price="3400" value="Estándar 10h">Estándar 10h — $3,400</option>
           <option data-price="3900" value="Automático 10h">Automático 10h — $3,900</option>
           <option data-price="4300" value="Moto">Moto — $4,300</option>
@@ -246,7 +257,7 @@
     </div>
 
     <div class="field-group">
-      <div class="field-group-title">03 — Fechas y horarios (2–6 sesiones)</div>
+      <div class="field-group-title">03 — Fechas y horarios (2–8 sesiones)</div>
       <div id="slots-container"></div>
       <button type="button" class="add-slot-btn" id="add-slot-btn" onclick="addSlot()">+ Agregar sesión</button>
     </div>
@@ -254,6 +265,11 @@
     <div class="field-group">
       <div class="field-group-title">Apartado</div>
       <label><span>Monto pagado hoy (mín. 20% · sugerido de promoción)</span><input id="f-apartado" type="number" placeholder="—" /></label>
+    </div>
+
+    <div class="field-group">
+      <div class="field-group-title">Nota</div>
+      <label><span>Observaciones / detalles adicionales</span><textarea id="f-nota" placeholder="Ej. Alumno con experiencia previa, solicita clases en horario matutino…"></textarea></label>
     </div>
 
     <div class="actions">
@@ -322,6 +338,11 @@
         </div>
       </div>
 
+      <div id="p-nota-wrap" style="display:none; margin-top:12px; padding:8px 12px; background:var(--signal-light); border-left:2px solid var(--signal);">
+        <small style="font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em;">Nota</small>
+        <div id="p-nota" style="font-family:'DM Sans',sans-serif; font-size:12px; margin-top:3px; color:var(--ink-soft);"></div>
+      </div>
+
       <div class="terms">
         <strong>Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:</strong>
         <span class="terms-url">app.autoescuelaamericana.com/terminos</span>
@@ -341,7 +362,7 @@
   const fmt = (n) => '$' + Number(n || 0).toLocaleString('es-MX');
   const today = () => new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
   const HORARIOS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
-  const MAX_SLOTS = 6, MIN_SLOTS = 2;
+  const MAX_SLOTS = 8, MIN_SLOTS = 2;
 
   function generateFolio() { return 'AEA-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-4); }
   let currentFolio = generateFolio();
@@ -452,16 +473,19 @@
     $('p-restante').textContent = fmt(Math.max(0, precio - apartadoVal));
     $('p-total').textContent    = fmt(precio);
     $('f-apartado').placeholder = precio ? fmt(Math.ceil(precio * 0.2)) : '—';
+    const nota = $('f-nota').value.trim();
+    $('p-nota').textContent = nota;
+    $('p-nota-wrap').style.display = nota ? '' : 'none';
   }
 
-  ['f-nombre','f-tel','f-email','f-direccion','f-curso','f-modalidad','f-apartado'].forEach(id => {
+  ['f-nombre','f-tel','f-email','f-direccion','f-curso','f-modalidad','f-apartado','f-nota'].forEach(id => {
     $(id).addEventListener('input', update);
     $(id).addEventListener('change', update);
   });
 
   // ── Reset ──────────────────────────────────────────────────────────
   function resetForm() {
-    ['f-nombre','f-tel','f-email','f-direccion','f-apartado'].forEach(id => $(id).value = '');
+    ['f-nombre','f-tel','f-email','f-direccion','f-apartado','f-nota'].forEach(id => $(id).value = '');
     $('f-curso').selectedIndex = 0;
     $('f-modalidad').selectedIndex = 0;
     const c = $('slots-container'); c.innerHTML = '';
@@ -597,6 +621,19 @@
     doc.text(fmt(restante), W/2, y+6, {align:'center'});
     doc.setTextColor(...BLUE); doc.setFontSize(13);
     doc.text(fmt(precio), W-M, y+6, {align:'right'}); y += 14;
+
+    // Nota
+    const nota = $('f-nota').value.trim();
+    if (nota) {
+      if (y > H-50) { doc.addPage(); y = 20; }
+      doc.setFillColor(...LBLUE); doc.rect(M, y, W-2*M, 16, 'F');
+      doc.setFillColor(...BLUE); doc.rect(M, y, 1, 16, 'F');
+      doc.setTextColor(...MUTED); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      doc.text('NOTA', M+4, y+5);
+      doc.setTextColor(...INK); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+      doc.text(doc.splitTextToSize(nota, W-2*M-8), M+4, y+11);
+      y += 22;
+    }
 
     // Terms
     if (y > H-40) { doc.addPage(); y = 20; }
