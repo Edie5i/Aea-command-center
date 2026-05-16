@@ -91,6 +91,18 @@ export const consultarProgramaCursoTool = ai.defineTool(
   }
 );
 
+/**
+ * Normaliza cualquier variación de número mexicano a 52XXXXXXXXXX (12 dígitos).
+ * Cubre: 521XXXXXXXXXX, +52XXXXXXXXXX, +521XXXXXXXXXX, 10 dígitos sin código.
+ */
+function normalizePhone(raw: string): string {
+  let p = raw.replace(/\D/g, '');
+  if (p.startsWith('521') && p.length === 13) p = '52' + p.slice(3);
+  if (p.startsWith('52') && p.length === 12) return p;
+  if (p.length === 10) return '52' + p;
+  return p;
+}
+
 export const confirmarInscripcionTool = ai.defineTool(
   {
     name: 'confirmarInscripcion',
@@ -111,8 +123,10 @@ export const confirmarInscripcionTool = ai.defineTool(
       mensaje: z.string(),
     }),
   },
-  async ({ nombre, telefono, zona, transmision, patron, hora, fechaInicio }) => {
-    console.log('[TOOL] confirmarInscripcion llamado:', { nombre, telefono, zona, patron, hora, fechaInicio });
+  async ({ nombre, telefono: rawTelefono, zona, transmision, patron, hora, fechaInicio }) => {
+    // Normalize so Firestore key always matches the webhook's conversations/{from} doc
+    const telefono = normalizePhone(rawTelefono);
+    console.log('[TOOL] confirmarInscripcion llamado:', { nombre, telefono, rawTelefono, zona, patron, hora, fechaInicio });
 
     const adminPhone = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
     const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -169,17 +183,28 @@ export const confirmarInscripcionTool = ai.defineTool(
       date: f.date.split('T')[0],
       time: hora,
     }));
-    import('@/lib/firestore')
-      .then(({ saveInscripcionData }) =>
-        saveInscripcionData(telefono, {
-          nombre,
-          telefono,
-          zona,
-          transmision: transmision ?? 'Estándar',
-          fechas: fechasCalculadas,
-        })
-      )
-      .catch(e => console.error('[TOOL] Error guardando inscripcion en Firestore:', e));
+    try {
+      const { saveInscripcionData, updateChatState } = await import('@/lib/firestore');
+      const { Timestamp } = await import('firebase-admin/firestore');
+      await saveInscripcionData(telefono, {
+        nombre,
+        telefono,
+        zona,
+        transmision: transmision ?? 'Estándar',
+        fechas: fechasCalculadas,
+      });
+      console.log('[TOOL] Inscripción guardada en Firestore para', telefono);
+      await updateChatState(telefono, {
+        chatState: 'cerrado',
+        chatReason: 'Inscripción confirmada por Luz',
+        chatUrgency: 'ninguna',
+        closedAt: Timestamp.now(),
+        closedOutcome: 'ganado',
+      }, 'manual');
+      console.log('[TOOL] Lead marcado como cerrado/ganado:', telefono);
+    } catch (e) {
+      console.error('[TOOL] Error guardando inscripcion en Firestore:', e);
+    }
 
     await notificarAdmin(
       `✅ *Inscripción confirmada*\n\n` +
