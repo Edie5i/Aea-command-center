@@ -102,7 +102,7 @@ export default async function ConversacionPage({
           return (
             <div key={i} className={`flex ${isLead ? 'justify-start' : 'justify-end'}`}>
               <div
-                className={`max-w-[82%] px-4 py-3 rounded-2xl shadow-sm text-base leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[82%] px-4 py-3 rounded-2xl shadow-sm text-xl leading-relaxed whitespace-pre-wrap ${
                   isLead
                     ? 'bg-white text-gray-900 rounded-tl-sm'
                     : 'bg-[#d9fdd3] text-gray-900 rounded-tr-sm'
