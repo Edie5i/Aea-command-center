@@ -50,29 +50,31 @@ export default function ReplyBox({ phone, botPaused: initialPaused }: Props) {
   }
 
   return (
-    <div className="bg-white border-t px-4 py-3 sticky bottom-0 shadow-[0_-1px_4px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-[#f0f2f5] border-t border-gray-200 px-4 py-3 sticky bottom-0">
+      {/* Bot status bar */}
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${paused ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-          <span className="text-xs text-gray-600">
-            {paused ? 'Modo manual — Luz pausada' : 'Luz activa'}
+          <div className={`w-2.5 h-2.5 rounded-full ${paused ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+          <span className="text-sm font-medium text-gray-700">
+            {paused ? 'Modo manual — escribes tú' : 'Luz está respondiendo'}
           </span>
         </div>
         <button
           disabled={toggling}
           onClick={handleToggle}
-          className={`text-xs px-3 py-1 rounded-full font-semibold transition-colors disabled:opacity-40 ${
+          className={`text-sm px-4 py-1.5 rounded-full font-semibold transition-colors disabled:opacity-40 ${
             paused
-              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-              : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+              : 'bg-amber-400 text-white hover:bg-amber-500'
           }`}
         >
-          {toggling ? '...' : paused ? '▶ Reactivar Luz' : '⏸ Pausar Luz'}
+          {toggling ? '...' : paused ? '▶ Reactivar Luz' : '⏸ Tomar el control'}
         </button>
       </div>
 
+      {/* Reply input — only visible in manual mode */}
       {paused && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-end">
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}
@@ -82,16 +84,17 @@ export default function ReplyBox({ phone, botPaused: initialPaused }: Props) {
                 handleSend();
               }
             }}
-            placeholder="Escribe tu mensaje al lead…"
+            placeholder="Escribe tu mensaje…"
             rows={2}
-            className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 text-base border border-gray-300 rounded-2xl px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-[#075e54] bg-white"
           />
           <button
             disabled={sending || !text.trim()}
             onClick={handleSend}
-            className="bg-[#25D366] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#1ebe5d] disabled:opacity-40 transition-colors self-end"
+            className="bg-[#25D366] text-white w-12 h-12 rounded-full text-xl flex items-center justify-center hover:bg-[#1ebe5d] disabled:opacity-40 transition-colors shrink-0"
+            aria-label="Enviar"
           >
-            {sending ? '…' : 'Enviar'}
+            {sending ? '…' : '↑'}
           </button>
         </div>
       )}

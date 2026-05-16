@@ -1,21 +1,11 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getConversationMessages, getInscripcionData, getConversation, type ChatState } from '@/lib/firestore';
+import { getConversationMessages, getInscripcionData, getConversation } from '@/lib/firestore';
 import Link from 'next/link';
 import FichaButton from './FichaButton';
-import StateActions from './StateActions';
 import ReplyBox from './ReplyBox';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
-
-const STATE_CONFIG: Record<ChatState, { label: string; badge: string }> = {
-  tu_turno:          { label: 'Tu turno',  badge: 'bg-red-100 text-red-700 border border-red-200' },
-  atascado:          { label: 'Atascado',  badge: 'bg-amber-100 text-amber-700 border border-amber-200' },
-  esperando_cliente: { label: 'Esperando', badge: 'bg-blue-100 text-blue-700 border border-blue-200' },
-  luz_atendiendo:    { label: 'Con Luz',   badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200' },
-  frio:              { label: 'Frío',      badge: 'bg-gray-100 text-gray-500 border border-gray-200' },
-  cerrado:           { label: 'Cerrado',   badge: 'bg-gray-100 text-gray-400 border border-gray-200' },
-};
 
 function displayPhone(phone: string): string {
   if (phone.startsWith('521') && phone.length === 13) return phone.slice(3);
@@ -41,79 +31,91 @@ export default async function ConversacionPage({
   ]);
 
   const dp = displayPhone(phone);
+  const name = conv?.contactName || dp;
   const state = conv?.chatState ?? 'luz_atendiendo';
-  const cfg = STATE_CONFIG[state];
+  const needsAttention = state === 'tu_turno' || state === 'atascado';
 
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="min-h-screen bg-[#e5ddd5] flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b px-4 py-3 sticky top-0 z-10">
+      <header className="bg-[#075e54] text-white px-4 py-3 sticky top-0 z-10 shadow-md">
         <div className="flex items-center gap-3">
-          <Link href="/admin/conversaciones" className="text-blue-600 font-medium text-sm shrink-0">
-            ← Volver
+          <Link
+            href="/admin/conversaciones"
+            className="text-white/80 hover:text-white transition-colors text-2xl leading-none shrink-0"
+            aria-label="Volver"
+          >
+            ←
           </Link>
 
+          {/* Avatar */}
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg shrink-0">
+            {name.charAt(0).toUpperCase()}
+          </div>
+
           <div className="flex-1 min-w-0">
-            {/* Row 1: phone + state badge */}
-            <div className="flex items-center gap-2">
-              <p className="font-semibold text-gray-900 text-sm">{dp}</p>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}>
-                {cfg.label}
-              </span>
-              {(conv?.chatUrgency === 'alta') && (
-                <span className="text-[10px] font-bold text-red-600">⚡ urgente</span>
-              )}
-            </div>
-
-            {/* Row 2: reason / course */}
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              {conv?.chatReason && (
-                <p className="text-xs text-gray-500 truncate">{conv.chatReason}</p>
-              )}
-              {conv?.courseInterest && (
-                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-100 shrink-0">
-                  {conv.courseInterest}{conv.coursePrice ? ` · ${conv.coursePrice}` : ''}
-                </span>
-              )}
-            </div>
+            <p className="font-bold text-base leading-tight truncate">{name}</p>
+            <p className="text-white/60 text-sm leading-none mt-0.5">{dp}</p>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            <p className="text-xs text-gray-400">{messages.length} msgs</p>
-            <StateActions phone={phone} state={state} />
-            {inscripcion && <FichaButton data={inscripcion} />}
-          </div>
+          {/* Ficha button in header */}
+          {inscripcion && (
+            <div className="shrink-0">
+              <FichaButton data={inscripcion} />
+            </div>
+          )}
         </div>
+
+        {/* Attention banner */}
+        {needsAttention && (
+          <div className="mt-2 bg-red-500/90 rounded-lg px-3 py-2 flex items-center gap-2">
+            <span className="text-lg">⚡</span>
+            <p className="text-sm font-semibold text-white">{conv?.chatReason ?? 'Requiere tu atención'}</p>
+          </div>
+        )}
+
+        {/* Inscrito banner */}
+        {inscripcion && (
+          <div className="mt-2 bg-green-600/80 rounded-lg px-3 py-2 flex items-center gap-2">
+            <span className="text-lg">🎉</span>
+            <div>
+              <p className="text-sm font-bold text-white">Alumno inscrito</p>
+              <p className="text-xs text-white/80">
+                {inscripcion.nombre} · {inscripcion.transmision} · {inscripcion.zona}
+              </p>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Messages */}
-      <div className="flex-1 p-4 space-y-2 pb-8">
+      <div className="flex-1 px-4 py-4 space-y-2 overflow-y-auto pb-6">
+        {messages.length === 0 && (
+          <div className="text-center text-gray-500 pt-20">
+            <p className="text-5xl mb-3">💬</p>
+            <p>No hay mensajes aún.</p>
+          </div>
+        )}
+
         {messages.map((msg, i) => {
           const isLead = msg.role === 'user';
           return (
             <div key={i} className={`flex ${isLead ? 'justify-start' : 'justify-end'}`}>
               <div
-                className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
+                className={`max-w-[82%] px-4 py-3 rounded-2xl shadow-sm text-base leading-relaxed whitespace-pre-wrap ${
                   isLead
-                    ? 'bg-white text-gray-900 rounded-tl-sm shadow-sm'
-                    : 'bg-[#DCF8C6] text-gray-900 rounded-tr-sm shadow-sm'
+                    ? 'bg-white text-gray-900 rounded-tl-sm'
+                    : 'bg-[#d9fdd3] text-gray-900 rounded-tr-sm'
                 }`}
               >
                 {!isLead && (
-                  <p className="text-xs text-green-700 font-semibold mb-1">Luz</p>
+                  <p className="text-xs text-[#128c7e] font-bold mb-1">Luz</p>
                 )}
                 {msg.text}
               </div>
             </div>
           );
         })}
-
-        {messages.length === 0 && (
-          <div className="text-center text-gray-400 pt-20">
-            <p>No hay mensajes aún.</p>
-          </div>
-        )}
       </div>
 
       <ReplyBox phone={phone} botPaused={conv?.botPaused ?? false} />
