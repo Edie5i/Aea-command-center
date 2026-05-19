@@ -7,8 +7,21 @@ import { lexend, noto_sans } from "@/lib/fonts";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "AEA - Autoescuela Americana",
-  description: "App de Auto Escuela Americana. Portal para instructores y alumnos para generar planes de lecciones, gestionar agendas y más.",
+  title: "Auto Escuela Americana — Clases de Manejo en CDMX",
+  description: "Aprende a manejar en CDMX con instructores certificados. Clases 1 a 1, a tu ritmo. Roma Sur y a domicilio en CDMX. Más de 220 reseñas ⭐ 4.8. Aparta tu lugar desde $690.",
+  keywords: "clases de manejo CDMX, autoescuela Ciudad de México, aprender a manejar CDMX, escuela de manejo Roma Sur, clases de manejo personalizadas",
+  robots: "index, follow",
+  alternates: {
+    canonical: "https://www.autoescuelaamericana.com/",
+  },
+  openGraph: {
+    title: "Auto Escuela Americana — Clases de Manejo en CDMX",
+    description: "Aprende a manejar en CDMX con instructores certificados. Clases 1 a 1, a tu ritmo. Más de 220 reseñas ⭐ 4.8.",
+    url: "https://www.autoescuelaamericana.com/",
+    siteName: "Auto Escuela Americana",
+    locale: "es_MX",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
@@ -21,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${lexend.variable} ${noto_sans.variable}`}>
+    <html lang="es-MX" className={`${lexend.variable} ${noto_sans.variable}`}>
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
       </head>
