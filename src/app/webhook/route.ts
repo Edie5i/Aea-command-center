@@ -391,12 +391,18 @@ export async function POST(request: NextRequest) {
 
   // Comprobante de pago (imagen) — inscripción automática
   if (messageType === 'image') {
-    sendMessage(ADMIN_PHONE, `📸 *Comprobante recibido*\n\n📱 +${from} — procesando inscripción automática...`)
-      .catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
-
     const history = await getHistory(from);
     let syntheticMsg: string;
     let inscriptionOk = false;
+
+    // Extraer nombre del lead del historial para la notificación inicial
+    const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
+
+    sendMessage(ADMIN_PHONE,
+      `🔴 *COMPROBANTE RECIBIDO — ACCIÓN REQUERIDA*\n\n` +
+      `👤 ${nombreRapido}\n📱 +${from}\n\n` +
+      `⏳ Procesando inscripción automática...`
+    ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     try {
       const leadInfo = await extractLeadInfo(history, from);
@@ -426,7 +432,7 @@ export async function POST(request: NextRequest) {
         }).join('\n  ');
 
         await sendMessage(ADMIN_PHONE,
-          `✅ *Inscripción completada*\n\n` +
+          `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
           `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
           `📍 ${leadInfo.zona} | 🚗 ${leadInfo.transmision}\n\n` +
           `📅 Clases agendadas:\n  ${fechasTexto}`
@@ -448,10 +454,21 @@ export async function POST(request: NextRequest) {
         inscriptionOk = true;
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
       } else {
+        sendMessage(ADMIN_PHONE,
+          `⚠️ *COMPROBANTE RECIBIDO — Horario pendiente*\n\n` +
+          `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
+          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.transmision}\n\n` +
+          `No había suficientes slots disponibles. Asigna horario manualmente.`
+        ).catch((e) => console.error('[WEBHOOK] Error notificando admin (sin slots):', e));
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }
     } catch (e) {
       console.error('[WEBHOOK] Error en inscripción automática:', e);
+      sendMessage(ADMIN_PHONE,
+        `⚠️ *COMPROBANTE RECIBIDO — Requiere atención manual*\n\n` +
+        `📱 +${from}\n\n` +
+        `No se pudo procesar automáticamente. Entra al chat y coordina el horario.`
+      ).catch((err) => console.error('[WEBHOOK] Error notificando admin (error path):', err));
       syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
     }
 
