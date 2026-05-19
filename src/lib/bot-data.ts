@@ -34,7 +34,7 @@ export const botContextData = {
     {
       nombre: "Curso Intermedio",
       precioMXN: 2900.00,
-      descripcion: "Para personas que ya saben manejar pero quieren perfeccionar su técnica y ganar confianza. 3 sesiones.",
+      descripcion: "Para quienes dejaron de manejar y quieren retomar confianza. 3 sesiones × 2.5h = 7.5h.",
     },
     {
       nombre: "Curso de Reforzamiento",
@@ -44,7 +44,7 @@ export const botContextData = {
     {
       nombre: "Curso Avanzado",
       precioMXN: 1900.00,
-      descripcion: "Conducción defensiva para personas que ya tienen licencia y quieren elevar su nivel de manejo.",
+      descripcion: "Conducción defensiva para personas que ya tienen licencia y quieren elevar su nivel de manejo. 2 sesiones × 2.5h.",
     },
     {
       nombre: "Curso para Personas Nerviosas",

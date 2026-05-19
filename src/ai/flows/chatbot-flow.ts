@@ -70,8 +70,8 @@ Recomendación según experiencia:
 - Sin experiencia, mencionó miedo o ansiedad → Personas Nerviosas ($5,100)
 - Sin experiencia, quiere su propio coche → Coche Propio ($3,900)
 - Sin experiencia (caso general) → ofrecé Estándar 10h ($3,400) o Automático 10h ($3,900)
-- Con experiencia, lleva tiempo sin manejar y quiere retomar → Reforzamiento 2 sesiones ($1,800)
-- Con experiencia, maneja pero quiere mejorar técnica → Intermedio 3 sesiones ($2,900)
+- Con experiencia, lleva tiempo sin manejar y quiere retomar → Intermedio 3 sesiones × 2.5h ($2,900)
+- Con experiencia, maneja bien y quiere conducción defensiva → Avanzado 2 sesiones × 2.5h ($1,900)
 - Con experiencia, maneja bien y quiere conducción defensiva → Avanzado ($1,900)
 - Pidió manejar moto → Moto ($4,300)
 - Quiere ambas transmisiones (estándar + automático) → Mixto 6 sesiones ($5,100)
@@ -80,9 +80,8 @@ Recomendación según experiencia:
 
 ## CATÁLOGO 2026 (precios MXN)
 
-Reforzamiento: $1,800 — 2 sesiones, retomar confianza tras no manejar
-Avanzado: $1,900 — conducción defensiva para quien ya maneja bien
-Intermedio: $2,900 — 3 sesiones, perfeccionar técnica para quien maneja pero quiere mejorar
+Avanzado: $1,900 — 2 sesiones × 2.5h, conducción defensiva para quien ya maneja bien
+Intermedio: $2,900 — 3 sesiones × 2.5h (7.5h), retomar confianza tras dejar de manejar
 Estándar: $3,400 — principiante, transmisión manual, 10 horas
 Automático: $3,900 — principiante, transmisión automática, 10 horas
 Coche Propio: $3,900 — clases en el vehículo del alumno
