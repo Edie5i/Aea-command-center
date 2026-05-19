@@ -1,7 +1,7 @@
 {
   "name": "Auto Escuela Americana",
   "short_name": "AEA",
-  "description": "App de Auto Escuela Americana. Portal para instructores y alumnos para generar planes de lecciones, gestionar agendas y más.",
+  "description": "Clases de manejo en CDMX. Instructores certificados, clases 1 a 1. Roma Sur y a domicilio.",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -15,7 +15,7 @@
     }
   ],
   "start_url": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#ffffff",
   "theme_color": "#1D4ED8"
 }
