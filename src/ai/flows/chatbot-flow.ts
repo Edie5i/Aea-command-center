@@ -72,7 +72,6 @@ Recomendación según experiencia:
 - Sin experiencia (caso general) → ofrecé Estándar 10h ($3,400) o Automático 10h ($3,900)
 - Con experiencia, lleva tiempo sin manejar y quiere retomar → Intermedio 3 sesiones × 2.5h ($2,900)
 - Con experiencia, maneja bien y quiere conducción defensiva → Avanzado 2 sesiones × 2.5h ($1,900)
-- Con experiencia, maneja bien y quiere conducción defensiva → Avanzado ($1,900)
 - Pidió manejar moto → Moto ($4,300)
 - Quiere ambas transmisiones (estándar + automático) → Mixto 6 sesiones ($5,100)
 - Tiene prisa / pocos días disponibles → Intensivo 6 sesiones ($5,100)
