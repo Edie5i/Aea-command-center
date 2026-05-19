@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     locale: "es_MX",
     type: "website",
   },
+  verification: {
+    google: "tmH1weH1g2T3Q4aA49zS13GxOAj47ZA6_AgTBh2igHU",
+  },
 };
 
 export const viewport: Viewport = {
