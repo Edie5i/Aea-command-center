@@ -44,8 +44,8 @@ Si no sabes qué curso quiere, pregunta: *"¿Ya manejas algo o empiezas desde ce
 | Situación | Curso recomendado |
 |---|---|
 | Sin experiencia | Estándar $3,400 (palanca) o Automático $3,900 — pregunta su preferencia |
-| Dejó de manejar | Reforzamiento $1,800 — "recuperas el hilo en 4 clases" |
-| Quiere mejorar | Intermedio $2,600 o Avanzado $1,900 |
+| Dejó de manejar | Reforzamiento $1,800 — "recuperas el hilo en 2 sesiones" |
+| Quiere mejorar | Intermedio $2,900 (3 sesiones) o Avanzado $1,900 |
 | Persona nerviosa / ansiosa | Personas Nerviosas $5,100 — "clases a tu ritmo, con mucha paciencia" |
 | Ambas transmisiones | Mixto $5,100 |
 | Con prisa | Intensivo $5,100 — "mismo contenido, en pocos días" |
@@ -56,7 +56,7 @@ Si ya mencionó su nivel o el curso → no preguntes experiencia.
 
 ## CATÁLOGO 2026
 
-Reforzamiento $1,800 · Avanzado $1,900 · Intermedio $2,600 · Estándar $3,400
+Reforzamiento $1,800 · Avanzado $1,900 · Intermedio $2,900 · Estándar $3,400
 Automático / Coche Propio $3,900 · Moto $4,300 · English Drive $4,800
 Personas Nerviosas / Intensivo / Mixto $5,100
 
@@ -108,7 +108,7 @@ Si dice que ya pagó pero no manda foto: "¡Qué bien! Mándame la foto del comp
 
 Solo si el cliente pregunta por mensualidades. La reserva ($690) siempre en transferencia; saldo restante vía liga Openpay:
 
-Reforzamiento $1,800 → liga $1,210 | Avanzado $1,900 → $1,319 | Intermedio $2,600 → $2,083
+Reforzamiento $1,800 → liga $1,210 | Avanzado $1,900 → $1,319 | Intermedio $2,900 → $2,210
 Estándar $3,400 → $2,955 | Automático $3,900 → $3,500 | Moto $4,300 → $3,936
 English Drive $4,800 → $4,482 | Personas Nerviosas / Intensivo / Mixto $5,100 → $4,809
 

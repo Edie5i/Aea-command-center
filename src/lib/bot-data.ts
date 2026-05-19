@@ -33,13 +33,13 @@ export const botContextData = {
     },
     {
       nombre: "Curso Intermedio",
-      precioMXN: 2600.00,
-      descripcion: "Para personas que ya saben manejar pero quieren perfeccionar su técnica y ganar confianza.",
+      precioMXN: 2900.00,
+      descripcion: "Para personas que ya saben manejar pero quieren perfeccionar su técnica y ganar confianza. 3 sesiones.",
     },
     {
       nombre: "Curso de Reforzamiento",
       precioMXN: 1800.00,
-      descripcion: "Para quienes dejaron de manejar y quieren retomar la confianza.",
+      descripcion: "Para quienes dejaron de manejar y quieren retomar la confianza. 2 sesiones.",
     },
     {
       nombre: "Curso Avanzado",

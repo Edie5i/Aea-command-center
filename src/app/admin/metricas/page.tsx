@@ -29,7 +29,7 @@ const PIPELINE_ORDER: ChatState[] = [
 
 // Precio promedio estimado por curso (para estimado de ingresos)
 const COURSE_PRICES: Record<string, number> = {
-  'Estándar': 3400, 'Automático': 3900, 'Intermedio': 2600, 'Avanzado': 1900,
+  'Estándar': 3400, 'Automático': 3900, 'Intermedio': 2900, 'Avanzado': 1900,
   'Reforzamiento': 1800, 'Personas Nerviosas': 5100, 'Intensivo': 5100,
   'Mixto': 5100, 'English Drive': 4800, 'Moto': 4300, 'Coche Propio': 3900,
 };
