@@ -200,6 +200,87 @@
     .preview-panel { padding: 0; background: white; }
     .ficha { box-shadow: none; max-width: 100%; }
   }
+
+  /* ── Calendar picker ─────────────────────────────────────────── */
+  .date-btn {
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1.5px solid rgba(245,240,230,0.3);
+    color: var(--paper); font-family: 'DM Sans', sans-serif; font-size: 15px;
+    padding: 8px 0; text-align: left; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: border-color 0.2s; font-weight: 400;
+    text-transform: none; letter-spacing: normal;
+  }
+  .date-btn:hover { border-bottom-color: #5B9BFF; transform: none; }
+  .date-btn .date-btn-text { color: rgba(245,240,230,0.3); }
+  .date-btn.has-value .date-btn-text { color: var(--paper); }
+  .date-btn .cal-icon { font-size: 13px; opacity: 0.4; flex-shrink: 0; }
+
+  #cal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65); z-index: 1000;
+    align-items: flex-end; justify-content: center;
+  }
+  #cal-overlay.open { display: flex; }
+
+  #cal-picker {
+    background: #1C2130; border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 420px;
+    padding: 20px 16px 36px;
+    border-top: 2px solid #5B9BFF;
+  }
+  .cal-handle {
+    width: 36px; height: 4px; background: rgba(245,240,230,0.2);
+    border-radius: 2px; margin: 0 auto 20px;
+  }
+  .cal-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 16px;
+  }
+  .cal-header-label {
+    font-family: 'Archivo Black', sans-serif; font-size: 17px;
+    color: var(--paper); text-transform: uppercase; letter-spacing: -0.01em;
+  }
+  .cal-nav-btn {
+    background: transparent; border: 1.5px solid rgba(245,240,230,0.2);
+    color: var(--paper); width: 38px; height: 38px; border-radius: 50%;
+    font-size: 20px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-family: sans-serif; padding: 0;
+    text-transform: none; letter-spacing: 0; line-height: 1;
+  }
+  .cal-nav-btn:hover { border-color: var(--paper); transform: none; }
+
+  .cal-dow {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px; margin-bottom: 6px;
+  }
+  .cal-dow span {
+    text-align: center; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: rgba(245,240,230,0.4);
+    letter-spacing: 0.05em; padding: 4px 0;
+  }
+  #cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  }
+  .cal-day {
+    min-height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px;
+    cursor: pointer; color: var(--paper); background: transparent; border: none;
+    transition: background 0.1s; padding: 0; text-transform: none;
+    letter-spacing: 0; font-weight: 500;
+  }
+  .cal-day:hover { background: rgba(91,155,255,0.2); transform: none; }
+  .cal-day.other-month { color: rgba(245,240,230,0.2); }
+  .cal-day.today { border: 1.5px solid #5B9BFF; color: #5B9BFF; }
+  .cal-day.selected { background: #004AAD !important; color: #fff !important; border: none; }
+  .cal-cancel-btn {
+    width: 100%; margin-top: 14px; background: transparent;
+    border: 1.5px solid rgba(245,240,230,0.2); color: rgba(245,240,230,0.55);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 14px; text-transform: uppercase; letter-spacing: 0.12em;
+    cursor: pointer; border-radius: 10px; text-align: center;
+  }
+  .cal-cancel-btn:hover { border-color: rgba(245,240,230,0.45); transform: none; }
 </style>
 </head>
 <body>
@@ -384,9 +465,15 @@
     const row = document.createElement('div');
     row.className = 'slot-row';
 
-    const dWrap = document.createElement('label');
+    const dWrap = document.createElement('div');
     dWrap.className = 'slot-date-wrap';
-    dWrap.innerHTML = `<span>Fecha ${idx + 1}</span><input type="date" class="slot-date" />`;
+    dWrap.innerHTML = `
+      <span style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:rgba(245,240,230,0.7);margin-bottom:6px;">Fecha ${idx + 1}</span>
+      <button type="button" class="date-btn" onclick="openCal(this)">
+        <span class="date-btn-text">Seleccionar fecha</span>
+        <span class="cal-icon">▦</span>
+      </button>
+      <input type="hidden" class="slot-date" value="" />`;
 
     const tWrap = document.createElement('label');
     tWrap.className = 'slot-time-wrap';
@@ -397,7 +484,6 @@
     rm.onclick = () => removeSlot(row);
 
     row.appendChild(dWrap); row.appendChild(tWrap); row.appendChild(rm);
-    dWrap.querySelector('input').addEventListener('change', syncSlots);
     tWrap.querySelector('select').addEventListener('change', syncSlots);
     return row;
   }
@@ -658,7 +744,104 @@
     doc.save(`${currentFolio}-${($('f-nombre').value||'alumno').replace(/\s+/g,'_')}.pdf`);
   }
 
+  // ── Calendar picker ────────────────────────────────────────────────
+  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let calTarget = null, calYear = 0, calMonth = 0;
+
+  function openCal(btn) {
+    const row = btn.closest('.slot-row');
+    calTarget = row.querySelector('.slot-date');
+    const val = calTarget.value;
+    const ref = val ? new Date(val + 'T12:00:00') : new Date();
+    calYear = ref.getFullYear();
+    calMonth = ref.getMonth();
+    renderCal();
+    document.getElementById('cal-overlay').classList.add('open');
+  }
+
+  function closeCal() {
+    document.getElementById('cal-overlay').classList.remove('open');
+    calTarget = null;
+  }
+
+  function calNav(dir) {
+    calMonth += dir;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCal();
+  }
+
+  function pickDay(y, m, d) {
+    if (!calTarget) return;
+    const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    calTarget.value = iso;
+    const row = calTarget.closest('.slot-row');
+    const btn = row.querySelector('.date-btn');
+    btn.querySelector('.date-btn-text').textContent = fmtDateShort(iso);
+    btn.classList.add('has-value');
+    closeCal();
+    syncSlots();
+  }
+
+  function fmtDateShort(iso) {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('es-MX', {
+      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+    });
+  }
+
+  function renderCal() {
+    document.getElementById('cal-month-label').textContent = `${MONTHS_ES[calMonth]} ${calYear}`;
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    const t = new Date();
+    const [tY, tM, tD] = [t.getFullYear(), t.getMonth(), t.getDate()];
+    const selVal = calTarget ? calTarget.value : '';
+    const firstDow = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+    const offset = firstDow === 0 ? 6 : firstDow - 1; // Mon-first
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+    const total = Math.ceil((offset + daysInMonth) / 7) * 7;
+
+    for (let i = 0; i < total; i++) {
+      let dn, dy = calYear, dm = calMonth;
+      if (i < offset) {
+        dn = daysInPrev - offset + i + 1;
+        dm = calMonth - 1; if (dm < 0) { dm = 11; dy = calYear - 1; }
+      } else if (i >= offset + daysInMonth) {
+        dn = i - offset - daysInMonth + 1;
+        dm = calMonth + 1; if (dm > 11) { dm = 0; dy = calYear + 1; }
+      } else {
+        dn = i - offset + 1;
+      }
+      const iso = `${dy}-${String(dm+1).padStart(2,'0')}-${String(dn).padStart(2,'0')}`;
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'cal-day'; btn.textContent = dn;
+      if (i < offset || i >= offset + daysInMonth) btn.classList.add('other-month');
+      if (dy === tY && dm === tM && dn === tD) btn.classList.add('today');
+      if (iso === selVal) btn.classList.add('selected');
+      btn.onclick = () => pickDay(dy, dm, dn);
+      grid.appendChild(btn);
+    }
+  }
+
   update();
 </script>
+
+<div id="cal-overlay" onclick="closeCal()">
+  <div id="cal-picker" onclick="event.stopPropagation()">
+    <div class="cal-handle"></div>
+    <div class="cal-header">
+      <button type="button" class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+      <div class="cal-header-label" id="cal-month-label"></div>
+      <button type="button" class="cal-nav-btn" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-dow">
+      <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+    </div>
+    <div id="cal-grid"></div>
+    <button type="button" class="cal-cancel-btn" onclick="closeCal()">Cancelar</button>
+  </div>
+</div>
 </body>
 </html>
