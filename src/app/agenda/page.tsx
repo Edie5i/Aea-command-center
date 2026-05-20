@@ -15,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
 import { AppFooter } from '@/components/footer';
-import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -51,11 +50,96 @@ type SubmissionData = {
     dates: DateWithTime[];
 };
 
-const timeSlots = ["07:00", "10:00", "13:00", "16:00", "19:00"];
+const timeSlots = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DOW_ES = ['L','M','X','J','V','S','D'];
+
+function CalendarModal({ selected, onConfirm, onClose }: {
+  selected: Date[];
+  onConfirm: (dates: Date[]) => void;
+  onClose: () => void;
+}) {
+  const todayRef = new Date(); todayRef.setHours(0,0,0,0);
+  const [yr, setYr] = useState(todayRef.getFullYear());
+  const [mo, setMo] = useState(todayRef.getMonth());
+  const [picked, setPicked] = useState<Date[]>(selected);
+
+  function navMonth(dir: number) {
+    let m = mo + dir, y = yr;
+    if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; }
+    setMo(m); setYr(y);
+  }
+
+  function toggleDay(d: Date) {
+    if (d < todayRef) return;
+    const t = d.getTime();
+    const idx = picked.findIndex((p: Date) => p.getTime() === t);
+    if (idx >= 0) setPicked(picked.filter((_: Date, i: number) => i !== idx));
+    else if (picked.length < 6) setPicked([...picked, d].sort((a: Date, b: Date) => a.getTime() - b.getTime()));
+  }
+
+  function buildGrid() {
+    const firstDow = new Date(yr, mo, 1).getDay();
+    const offset = firstDow === 0 ? 6 : firstDow - 1;
+    const dim = new Date(yr, mo + 1, 0).getDate();
+    const dip = new Date(yr, mo, 0).getDate();
+    const total = Math.ceil((offset + dim) / 7) * 7;
+    return Array.from({ length: total }, (_: unknown, i: number) => {
+      let day: number, dy = yr, dm = mo, other = false;
+      if (i < offset) { day = dip - offset + i + 1; dm = mo - 1; if (dm < 0) { dm = 11; dy = yr - 1; } other = true; }
+      else if (i >= offset + dim) { day = i - offset - dim + 1; dm = mo + 1; if (dm > 11) { dm = 0; dy = yr + 1; } other = true; }
+      else { day = i - offset + 1; }
+      const date = new Date(dy, dm, day); date.setHours(0,0,0,0);
+      const past = date < todayRef;
+      const sel = picked.some((p: Date) => p.getTime() === date.getTime());
+      const tdy = date.getTime() === todayRef.getTime();
+      return { day, date, other, past, sel, tdy };
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/65 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="bg-[#1C2130] w-full max-w-[420px] rounded-t-[20px] sm:rounded-2xl p-5 pb-9 sm:pb-5 border-t-2 sm:border-2 border-[#5B9BFF]" onClick={e => e.stopPropagation()}>
+        <div className="w-9 h-1 bg-white/20 rounded-full mx-auto mb-5 sm:hidden" />
+        <div className="flex items-center justify-between mb-4">
+          <button type="button" onClick={() => navMonth(-1)} className="w-10 h-10 rounded-full border border-white/20 text-white flex items-center justify-center text-xl hover:border-white/60 transition-colors">‹</button>
+          <span className="font-black text-white uppercase text-lg tracking-tight">{MONTHS_ES[mo]} {yr}</span>
+          <button type="button" onClick={() => navMonth(1)} className="w-10 h-10 rounded-full border border-white/20 text-white flex items-center justify-center text-xl hover:border-white/60 transition-colors">›</button>
+        </div>
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {DOW_ES.map(d => <div key={d} className="text-center text-[10px] font-mono text-white/40 py-1">{d}</div>)}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {buildGrid().map(({ day, date, other, past, sel, tdy }, i) => (
+            <button key={i} type="button" onClick={() => toggleDay(date)}
+              disabled={past || other}
+              className={[
+                'min-h-[44px] flex items-center justify-center rounded-xl text-base font-medium transition-colors text-white',
+                other ? 'opacity-20 cursor-default' : '',
+                past && !other ? 'opacity-30 cursor-default line-through' : '',
+                sel ? 'bg-[#004AAD]' : '',
+                !sel && tdy ? 'border-2 border-[#5B9BFF] text-[#5B9BFF]' : '',
+                !sel && !past && !other ? 'hover:bg-[#5B9BFF]/20' : '',
+              ].filter(Boolean).join(' ')}>
+              {day}
+            </button>
+          ))}
+        </div>
+        <div className="mt-4 flex items-center gap-3">
+          <span className="flex-1 text-white/50 text-sm font-mono">{picked.length} de 6 fechas</span>
+          <button type="button" onClick={onClose} className="px-4 py-3 text-white/50 text-xs font-mono uppercase tracking-wider border border-white/15 rounded-lg hover:border-white/40 transition-colors">Cancelar</button>
+          <button type="button" onClick={() => onConfirm(picked)} disabled={picked.length === 0} className="px-5 py-3 bg-[#004AAD] text-white text-xs font-mono uppercase tracking-wider rounded-lg hover:bg-[#003080] transition-colors disabled:opacity-40">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AgendaContent() {
   const searchParams = useSearchParams();
   const [selectedDates, setSelectedDates] = useState<DateWithTime[]>([]);
+  const [calOpen, setCalOpen] = useState(false);
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -74,11 +158,14 @@ function AgendaContent() {
     },
   });
 
-  const handleSelectDates = (dates: Date[] | undefined) => {
-    const newDates = dates || [];
-    const validDates = newDates.filter(date => isToday(date) || !isPast(date));
-    const dateWithTimeObjects = validDates.slice(0, 6).map(date => ({ date }));
-    setSelectedDates(dateWithTimeObjects);
+  const handleSelectDates = (dates: Date[]) => {
+    const validDates = dates.filter(date => isToday(date) || !isPast(date));
+    setSelectedDates(validDates.slice(0, 6).map(date => ({ date })));
+  };
+
+  const handleCalConfirm = (dates: Date[]) => {
+    handleSelectDates(dates);
+    setCalOpen(false);
   };
   
   const handleTimeChange = (dateIndex: number, time: string) => {
@@ -367,28 +454,41 @@ function AgendaContent() {
                        Elige hasta 6 fechas. Un asesor confirmará los horarios por WhatsApp.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col md:flex-row gap-8 items-start">
-                    <div className="w-full md:w-auto flex justify-center">
-                        <Calendar
-                            mode="multiple"
-                            selected={selectedDates.map(d => d.date)}
-                            onSelect={handleSelectDates}
-                            locale={es}
-                            numberOfMonths={1}
-                            disabled={(date) => isPast(date) && !isToday(date)}
-                            footer={
-                                <div className="text-center pt-2 text-sm text-muted-foreground">
-                                    {selectedDates.length} de 6 días seleccionados.
-                                    {selectedDates.length > 0 && (
-                                        <Button variant="ghost" size="sm" onClick={handleClearSelection} className="ml-2">
-                                            Limpiar
-                                        </Button>
-                                    )}
-                                </div>
-                            }
-                        />
+                <CardContent className="flex flex-col gap-6">
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setCalOpen(true)}
+                        className="w-full flex items-center justify-between bg-muted/50 border rounded-xl px-4 py-3 hover:bg-muted transition-colors text-left"
+                      >
+                        <span className="text-sm text-muted-foreground">
+                          {selectedDates.length > 0
+                            ? `${selectedDates.length} fecha${selectedDates.length !== 1 ? 's' : ''} seleccionada${selectedDates.length !== 1 ? 's' : ''}`
+                            : 'Toca para seleccionar fechas'}
+                        </span>
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </button>
+                      {selectedDates.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2 items-center">
+                          {selectedDates.map((item, i) => (
+                            <span key={i} className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full font-medium">
+                              {format(item.date, "EEE d MMM", { locale: es })}
+                            </span>
+                          ))}
+                          <button type="button" onClick={handleClearSelection} className="text-xs text-muted-foreground hover:text-foreground underline ml-1">
+                            Limpiar
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-grow w-full">
+                    {calOpen && (
+                      <CalendarModal
+                        selected={selectedDates.map(d => d.date)}
+                        onConfirm={handleCalConfirm}
+                        onClose={() => setCalOpen(false)}
+                      />
+                    )}
+                    <div className="w-full">
                         {selectedDates.length > 0 ? (
                             <div className="space-y-4">
                                <CardHeader className="p-0 mb-4">
@@ -497,7 +597,7 @@ function AgendaContent() {
                                 <CalendarCheck className="h-4 w-4" />
                                 <AlertTitle>Esperando selección...</AlertTitle>
                                 <AlertDescription>
-                                Por favor, selecciona al menos un día en el calendario para ver el formulario.
+                                Toca el botón de arriba para elegir tus fechas de clase.
                                 </AlertDescription>
                             </Alert>
                         )}
