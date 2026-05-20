@@ -33,9 +33,15 @@ export function AppFooter() {
           app.autoescuelaamericana.com
         </a>
       </p>
-      <div className="mt-4 flex justify-center items-center gap-4">
+      <div className="mt-4 flex justify-center items-center gap-4 flex-wrap">
+        <Link href="/blog" className="hover:underline">
+          Blog
+        </Link>
         <Link href="/terminos" className="hover:underline">
           Términos y Condiciones
+        </Link>
+        <Link href="/aviso-privacidad" className="hover:underline">
+          Aviso de Privacidad
         </Link>
       </div>
       <p className="mt-4">
