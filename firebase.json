@@ -3,5 +3,8 @@
     {
       "backendId": "studio"
     }
-  ]
+  ],
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  }
 }

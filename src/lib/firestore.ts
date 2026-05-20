@@ -8,7 +8,7 @@ function initAdmin() {
 
 initAdmin();
 
-export const db = getFirestore(getApp(), 'default');
+export const db = getFirestore(getApp());
 
 // ── Chat state types ───────────────────────────────────────────────────────────
 
