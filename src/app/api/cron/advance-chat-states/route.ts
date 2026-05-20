@@ -8,22 +8,27 @@ const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
 
 const FRIO_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 
-const FOLLOWUP_MSGS: Record<string, string> = {
-  '2h':  '¡Hola! Por aquí Luz de Auto Escuela Americana 😊 ¿Pudiste checar la info? Con gusto te ayudo a resolver cualquier duda.',
-  '24h': '¡Hola de nuevo! Quería ver si pudiste pensarlo. Todavía tienes tu lugar disponible — puedes apartarlo con solo $690. ¿Te animas?',
-  '72h': 'Hola 👋 Sé que estás ocupado/a. Solo quería recordarte que los lugares se llenan rápido. ¿Quieres que te reserve uno?',
-  '7d':  '¡Hola! Han pasado unos días. Si ya no te interesa no hay problema, solo avísame para liberar el lugar. Si aún quieres aprender a manejar, aquí estoy 😊',
-};
-
+// 2h → dentro de ventana 24h, se puede mandar como texto libre
+// 24h, 72h, 7d → fuera de ventana, requieren template aprobado por Meta
 const FOLLOWUP_SEQUENCE = ['2h', '24h', '72h', '7d'] as const;
 
-async function sendWhatsApp(to: string, text: string): Promise<void> {
+// Nombres de templates registrados en Meta Business Manager
+// Cambiar a true en TEMPLATES_ACTIVE cuando Meta los apruebe
+const TEMPLATES_ACTIVE = process.env.WA_TEMPLATES_ACTIVE === 'true';
+
+const TEMPLATE_NAMES: Record<string, string> = {
+  '24h': 'aea_followup_24h',
+  '72h': 'aea_followup_72h',
+  '7d':  'aea_followup_7d',
+};
+
+// Texto de fallback para el 2h (siempre dentro de ventana)
+const MSG_2H = '¡Hola! Por aquí Luz de Auto Escuela Americana 😊 ¿Pudiste checar la info? Con gusto te ayudo a resolver cualquier duda.';
+
+async function sendText(to: string, text: string): Promise<void> {
   const res = await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
       to,
@@ -31,9 +36,35 @@ async function sendWhatsApp(to: string, text: string): Promise<void> {
       text: { body: text },
     }),
   });
-  if (!res.ok) {
-    throw new Error(`WhatsApp API ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`WhatsApp API ${res.status}: ${await res.text()}`);
+}
+
+async function sendTemplate(to: string, templateName: string): Promise<void> {
+  const res = await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: 'es_MX' },
+      },
+    }),
+  });
+  if (!res.ok) throw new Error(`WhatsApp Template API ${res.status}: ${await res.text()}`);
+}
+
+async function sendFollowup(to: string, type: string): Promise<void> {
+  if (type === '2h') {
+    return sendText(to, MSG_2H);
   }
+  if (!TEMPLATES_ACTIVE) {
+    console.warn(`[CRON] Templates no activos — follow-up ${type} omitido para ${to}`);
+    return;
+  }
+  return sendTemplate(to, TEMPLATE_NAMES[type]);
 }
 
 // GET /api/cron/advance-chat-states?token=...
@@ -72,7 +103,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      await sendWhatsApp(phone, FOLLOWUP_MSGS[nextType]);
+      await sendFollowup(phone, nextType);
 
       const newFollowUpsSent = [
         ...followUpsSent,
