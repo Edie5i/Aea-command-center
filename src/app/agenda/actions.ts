@@ -1,10 +1,19 @@
 'use server';
 
 import { scheduleAndCreateEvents, type CreateEventInput } from '@/ai/flows/create-calendar-event';
+import { saveInscripcionData } from '@/lib/firestore';
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
+
+function normalizePhone(raw: string): string {
+  let p = raw.replace(/\D/g, '');
+  if (p.startsWith('521') && p.length === 13) p = '52' + p.slice(3);
+  if (p.startsWith('52') && p.length === 12) return p;
+  if (p.length === 10) return '52' + p;
+  return p;
+}
 
 async function notifyAdmin(input: CreateEventInput): Promise<void> {
   if (!WA_TOKEN || !PHONE_ID) return;
@@ -48,6 +57,22 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
   try {
     const result = await scheduleAndCreateEvents(input);
     notifyAdmin(input);
+
+    const phone = normalizePhone(input.phone);
+    const fechas = input.dates
+      .filter(d => !!d.time)
+      .map(d => ({
+        date: new Date(d.date).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }),
+        time: d.time!,
+      }));
+    saveInscripcionData(phone, {
+      nombre: input.name,
+      telefono: phone,
+      zona: input.address,
+      transmision: input.transmission,
+      fechas,
+    }).catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
+
     return { success: true, message: result.message, error: null };
   } catch (error) {
     console.error('Error in createCalendarEventsAction:', error);
