@@ -281,6 +281,15 @@
     cursor: pointer; border-radius: 10px; text-align: center;
   }
   .cal-cancel-btn:hover { border-color: rgba(245,240,230,0.45); transform: none; }
+
+  @media (min-width: 600px) {
+    #cal-overlay { align-items: center; }
+    #cal-picker {
+      border-radius: 16px; max-width: 360px;
+      border-top: none; border: 2px solid #5B9BFF;
+    }
+    .cal-handle { display: none; }
+  }
 </style>
 </head>
 <body>
