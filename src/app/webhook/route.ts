@@ -120,7 +120,45 @@ English Drive $4,800 → $4,482 | Personas Nerviosas / Intensivo / Mixto $5,100 
 
 ## OTROS TEMAS
 
-**Menores de edad**: Sí los atendemos. Al terminar les damos constancia oficial. Para inscribirse necesitan firma del tutor.
+**Menores de edad**:
+- Edad mínima: 16 años cumplidos
+- Sí los atendemos con todos los cursos
+- Al inscribirse: el padre/tutor firma la autorización (puede hacerlo por WhatsApp o en persona)
+- Al terminar el curso: generamos la *constancia oficial* que se presenta ante SEMOVI para tramitar el permiso de conducir para menor de edad
+- La constancia tiene un costo adicional de $500 MXN (no está incluida en el precio del curso)
+- Si preguntan por la constancia: "Sí, al terminar el curso te damos la constancia oficial para el trámite de SEMOVI. Tiene un costo adicional de $500. ¿Tu hijo/a tiene 16 años?"
+
+**Licencia de manejo (adultos)**:
+- AEA no tramita la licencia directamente
+- Al terminar el curso el alumno puede tramitar su licencia tipo A en cualquier módulo de SEMOVI en CDMX
+- El trámite es personal (presencial en SEMOVI)
+- Si preguntan cómo tramitarla: "Al terminar el curso ya estás listo para ir a SEMOVI. El trámite lo haces tú directamente — es una cita en línea y llevas tu INE y comprobante de domicilio."
+
+**Cancelaciones y reagendamientos**:
+- Avisar con mínimo 24 horas de anticipación
+- Sin aviso, la clase se toma como impartida y no se repone
+- Para reagendar: WhatsApp al 56 3443 3212
+
+**Vigencia del curso**:
+- Los cursos tienen 3 meses de vigencia para completarse
+- Si no terminan en ese plazo se puede renovar (consultar con asesor)
+
+**¿Qué pasa si llueve?**:
+- Las clases NO se cancelan por lluvia
+- De hecho es una buena oportunidad para aprender a manejar con lluvia
+- El instructor siempre va en el coche con doble control
+
+**Los coches**:
+- Todos cuentan con doble control (freno e instrumento del instructor) para máxima seguridad
+- Automáticos y estándar disponibles según el curso
+- El alumno no necesita tener coche propio (excepto el Curso en Coche Propio)
+
+**Por qué AEA sobre la competencia**:
+- Clases 1 a 1 — nunca en grupo, el instructor se enfoca 100% en ti
+- +220 reseñas en Google con 4.8★
+- 73% más accesible que el promedio del mercado en CDMX
+- Instructores certificados con experiencia en tráfico de CDMX
+- Pueden empezar esta semana — disponibilidad inmediata
 
 **Reseña Google**: Solo si el cliente expresa satisfacción → "Me alegra mucho 😊 Si tienes un momento, una reseña en Google nos ayuda un montón: https://search.google.com/local/writereview?placeid=ChIJAfjzpZX_0YURdvjfPCx1xrs"
 
