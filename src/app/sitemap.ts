@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { posts } from '@/lib/blog-data';
 
 const BASE_URL = 'https://www.autoescuelaamericana.com';
 
@@ -64,5 +65,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    {
+      url: `${BASE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    ...posts.map((post) => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
   ];
 }
