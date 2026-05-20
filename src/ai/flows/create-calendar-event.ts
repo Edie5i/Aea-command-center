@@ -44,16 +44,22 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
         });
     });
 
-    try {
-        const results = await Promise.all(promises);
-        const createdCount = results.filter(r => r !== null).length;
-        const message = `Se crearon ${createdCount} de ${input.dates.length} eventos en el calendario exitosamente.`;
-        console.log(message);
-        return { success: true, message, created: createdCount, total: input.dates.length };
-    } catch (error) {
-        console.error("An error occurred while creating one or more calendar events:", error);
-        // Propagate the specific error message if available
-        const errorMessage = error instanceof Error ? error.message : "Failed to create one or more calendar events.";
-        throw new Error(errorMessage);
+    const results = await Promise.allSettled(promises);
+
+    const created = results.filter(
+        (r): r is PromiseFulfilledResult<string | null> => r.status === 'fulfilled' && r.value !== null
+    ).length;
+    const failures = results.filter(r => r.status === 'rejected');
+
+    if (failures.length > 0) {
+        const reasons = failures.map(f => (f as PromiseRejectedResult).reason?.message ?? String((f as PromiseRejectedResult).reason)).join(' | ');
+        console.error(`[Calendar] ${failures.length} evento(s) fallaron: ${reasons}`);
+        if (created === 0) {
+            throw new Error(reasons);
+        }
     }
+
+    const message = `Se crearon ${created} de ${input.dates.length} eventos en el calendario.`;
+    console.log(message);
+    return { success: true, message, created, total: input.dates.length };
 }
