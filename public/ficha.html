@@ -751,6 +751,59 @@
     doc.text('app.autoescuelaamericana.com', W-M, fy+5, {align:'right'});
 
     doc.save(`${currentFolio}-${($('f-nombre').value||'alumno').replace(/\s+/g,'_')}.pdf`);
+    scheduleCalendar(slots);
+  }
+
+  function inferTransmission(curso) {
+    if (/estándar|estandar/i.test(curso)) return 'Estándar';
+    if (/moto/i.test(curso)) return 'Moto';
+    if (/mixto/i.test(curso)) return 'Estándar/Automático';
+    return 'Automático';
+  }
+
+  async function scheduleCalendar(slots) {
+    const filledSlots = slots.filter(s => s.date && s.time);
+    if (filledSlots.length === 0) return;
+
+    const btn = document.querySelector('button.primary');
+    const originalText = btn.querySelector('.arrow').previousSibling.textContent;
+    btn.disabled = true;
+    btn.querySelector('.arrow').previousSibling.textContent = 'Agendando en Calendar… ';
+
+    try {
+      const payload = {
+        name:         $('f-nombre').value.trim(),
+        phone:        $('f-tel').value.trim() || '—',
+        address:      $('f-direccion').value.trim() || '—',
+        transmission: inferTransmission($('f-curso').value),
+        notes:        $('f-nota').value.trim() || undefined,
+        dates: filledSlots.map(s => ({
+          date: new Date(s.date + 'T12:00:00').toISOString(),
+          time: s.time,
+        })),
+      };
+
+      const res = await fetch('/api/ficha/calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      btn.querySelector('.arrow').textContent = data.ok ? '✓' : '⚠';
+      btn.querySelector('.arrow').previousSibling.textContent = data.ok
+        ? `PDF + ${data.created} evento${data.created !== 1 ? 's' : ''} en Calendar `
+        : 'PDF ok — error en Calendar ';
+    } catch (e) {
+      btn.querySelector('.arrow').textContent = '⚠';
+      btn.querySelector('.arrow').previousSibling.textContent = 'PDF ok — sin conexión ';
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.querySelector('.arrow').textContent = '↓';
+        btn.querySelector('.arrow').previousSibling.textContent = 'Descargar PDF ';
+      }, 4000);
+    }
   }
 
   // ── Calendar picker ────────────────────────────────────────────────
