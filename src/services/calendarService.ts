@@ -139,6 +139,60 @@ export async function getEventosProximos(dias = 7): Promise<EventoCalendario[]> 
   });
 }
 
+export async function createFichaEvent(details: {
+  studentName: string;
+  studentPhone: string;
+  completedTopics: string[];
+  pendingTopics: string[];
+  completedCount: number;
+  totalTopics: number;
+}): Promise<void> {
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID!;
+
+  const now = new Date();
+  const nowMX = now.toLocaleString('en-CA', { timeZone: 'America/Mexico_City', hour12: false });
+  const [datePart, timePart] = nowMX.split(', ');
+  const startLocal = `${datePart}T${timePart}`;
+  const endLocal = new Date(now.getTime() + 9000000) // +2.5h
+    .toLocaleString('en-CA', { timeZone: 'America/Mexico_City', hour12: false })
+    .replace(', ', 'T');
+
+  const pct = details.totalTopics > 0
+    ? Math.round((details.completedCount / details.totalTopics) * 100)
+    : 0;
+
+  const coveredList = details.completedTopics.slice(0, 5)
+    .map(t => `• ${t}`)
+    .join('<br>');
+  const pendingList = details.pendingTopics.slice(0, 5)
+    .map(t => `• ${t}`)
+    .join('<br>');
+  const moreCovered = details.completedTopics.length > 5
+    ? `<br>+${details.completedTopics.length - 5} más` : '';
+  const morePending = details.pendingTopics.length > 5
+    ? `<br>+${details.pendingTopics.length - 5} más` : '';
+
+  const description =
+    `<b>Alumno:</b> ${details.studentName}<br>` +
+    `<b>Teléfono:</b> ${details.studentPhone}<br>` +
+    `<b>Avance:</b> ${details.completedCount}/${details.totalTopics} temas (${pct}%)<br><br>` +
+    `<b>✅ Cubiertos:</b><br>${coveredList}${moreCovered}<br><br>` +
+    `<b>📝 Pendientes:</b><br>${pendingList}${morePending}<br><br>` +
+    `<i>Ficha generada automáticamente por la App de AEA.</i>`;
+
+  await calendar.events.insert({
+    calendarId,
+    requestBody: {
+      summary: `Ficha: ${details.studentName}`,
+      description,
+      start: { dateTime: startLocal, timeZone: 'America/Mexico_City' },
+      end: { dateTime: endLocal, timeZone: 'America/Mexico_City' },
+    },
+  });
+}
+
 interface EventDetails {
   studentName: string;
   studentPhone: string;
