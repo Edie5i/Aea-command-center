@@ -36,7 +36,7 @@ export default function ImportarFichaPage() {
     nombre: '', telefono: '', curso: '', transmision: 'Automático',
     direccion: '', notas: '', fechas: [],
   });
-  const [calResult, setCalResult] = useState<{ created: number } | null>(null);
+  const [calResult, setCalResult] = useState<{ created: number; total: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
@@ -127,7 +127,7 @@ export default function ImportarFichaPage() {
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? 'Error al agendar');
-      setCalResult({ created: json.created });
+      setCalResult({ created: json.created, total: json.total ?? fechasValidas.length });
       setStage('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear eventos');
@@ -332,7 +332,7 @@ export default function ImportarFichaPage() {
                   disabled={loading}
                   className="flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Agendando…' : `Agendar ${data.fechas.filter((f: FechaRow) => f.date).length} sesión${data.fechas.filter((f: FechaRow) => f.date).length !== 1 ? 'es' : ''} en Calendar`}
+                  {loading ? 'Agendando…' : `Agendar ${data.fechas.filter((f: FechaRow) => f.date && f.time).length} sesión${data.fechas.filter((f: FechaRow) => f.date && f.time).length !== 1 ? 'es' : ''} en Calendar`}
                 </button>
               </div>
             </div>
@@ -344,11 +344,17 @@ export default function ImportarFichaPage() {
             <p className="text-5xl mb-4">✅</p>
             <h2 className="text-xl font-bold text-gray-900 mb-1">{data.nombre}</h2>
             <p className="text-gray-500 text-sm mb-2">{data.telefono}</p>
-            <p className="text-emerald-600 font-semibold text-sm mb-6">
-              {calResult?.created} evento{calResult?.created !== 1 ? 's' : ''} creados en Google Calendar
-            </p>
+            {calResult && calResult.created === calResult.total ? (
+              <p className="text-emerald-600 font-semibold text-sm mb-6">
+                {calResult.created} de {calResult.total} evento{calResult.total !== 1 ? 's' : ''} creados en Google Calendar ✓
+              </p>
+            ) : (
+              <p className="text-amber-600 font-semibold text-sm mb-6">
+                {calResult?.created} de {calResult?.total} evento{calResult?.total !== 1 ? 's' : ''} creados — algunos fallaron
+              </p>
+            )}
             <div className="space-y-1 mb-6 text-left bg-gray-50 rounded-xl p-4">
-              {data.fechas.filter((f: FechaRow) => f.date).map((f: FechaRow, i: number) => (
+              {data.fechas.filter((f: FechaRow) => f.date && f.time).map((f: FechaRow, i: number) => (
                 <p key={i} className="text-sm text-gray-600">
                   {i + 1}. {formatDate(f.date)} · {f.time}
                 </p>
