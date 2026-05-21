@@ -235,11 +235,11 @@ export default async function AdminPage() {
             <p className="text-sm font-semibold text-gray-700">Historial alumnos</p>
           </Link>
           <Link
-            href="/agenda"
+            href="/admin/importar"
             className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors"
           >
-            <p className="text-2xl mb-1">📅</p>
-            <p className="text-sm font-semibold text-gray-700">Agendar clase</p>
+            <p className="text-2xl mb-1">📥</p>
+            <p className="text-sm font-semibold text-gray-700">Importar ficha</p>
           </Link>
           <Link
             href="/admin/conversaciones"
