@@ -218,6 +218,19 @@ export default async function AdminPage() {
           )}
         </div>
 
+        {/* Importar ficha — botón prominente para móvil */}
+        <Link
+          href="/admin/importar"
+          className="flex items-center justify-center gap-3 bg-blue-600 text-white rounded-2xl p-4 shadow-sm hover:bg-blue-700 active:bg-blue-800 transition-colors"
+        >
+          <span className="text-2xl">📥</span>
+          <div className="text-left">
+            <p className="font-bold text-base leading-tight">Importar ficha</p>
+            <p className="text-blue-200 text-xs mt-0.5">Sube foto o PDF → Calendar automático</p>
+          </div>
+          <span className="ml-auto text-white/60 text-xl">→</span>
+        </Link>
+
         {/* Nav rápida */}
         <div className="grid grid-cols-2 gap-3">
           <Link
@@ -235,11 +248,11 @@ export default async function AdminPage() {
             <p className="text-sm font-semibold text-gray-700">Historial alumnos</p>
           </Link>
           <Link
-            href="/admin/importar"
+            href="/agenda"
             className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors"
           >
-            <p className="text-2xl mb-1">📥</p>
-            <p className="text-sm font-semibold text-gray-700">Importar ficha</p>
+            <p className="text-2xl mb-1">📅</p>
+            <p className="text-sm font-semibold text-gray-700">Agendar clase</p>
           </Link>
           <Link
             href="/admin/conversaciones"
