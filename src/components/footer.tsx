@@ -43,6 +43,9 @@ export function AppFooter() {
         <Link href="/aviso-privacidad" className="hover:underline">
           Aviso de Privacidad
         </Link>
+        <a href="/privacidad" className="hover:underline">
+          Privacidad (LFPDPPP)
+        </a>
       </div>
       <p className="mt-4">
         Powered by Next.js and Genkit.
