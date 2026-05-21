@@ -220,6 +220,61 @@ export async function getInscripcionData(phone: string): Promise<InscripcionData
   };
 }
 
+// ── Fichas de progreso ─────────────────────────────────────────────────────────
+
+export interface Ficha {
+  studentName: string;
+  phone: string;
+  date: Timestamp;
+  completedTopics: string[];
+  pendingTopics: string[];
+  totalTopics: number;
+  completedCount: number;
+}
+
+export interface FichaWithId extends Ficha {
+  id: string;
+  dateMillis: number;
+}
+
+export async function saveFicha(data: Omit<Ficha, 'date'>): Promise<string> {
+  const ref = db.collection('fichas').doc();
+  await ref.set({ ...data, date: Timestamp.now() });
+  return ref.id;
+}
+
+export async function getRecentFichas(limit = 20): Promise<FichaWithId[]> {
+  const snap = await db.collection('fichas').orderBy('date', 'desc').limit(limit).get();
+  return snap.docs.map(d => {
+    const data = d.data() as Ficha;
+    return { ...data, id: d.id, dateMillis: data.date.toMillis() };
+  });
+}
+
+export async function getFichasByPhone(phone: string): Promise<FichaWithId[]> {
+  const snap = await db.collection('fichas')
+    .where('phone', '==', phone)
+    .orderBy('date', 'desc')
+    .get();
+  return snap.docs.map(d => {
+    const data = d.data() as Ficha;
+    return { ...data, id: d.id, dateMillis: data.date.toMillis() };
+  });
+}
+
+export async function getFichasStats(): Promise<{
+  total: number;
+  thisWeek: number;
+  uniqueStudents: number;
+}> {
+  const weekAgo = Timestamp.fromMillis(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const snap = await db.collection('fichas').get();
+  const all = snap.docs.map(d => d.data() as Ficha);
+  const thisWeek = all.filter(f => f.date.toMillis() >= weekAgo.toMillis()).length;
+  const uniqueStudents = new Set(all.map(f => f.phone)).size;
+  return { total: all.length, thisWeek, uniqueStudents };
+}
+
 // ── Metrics ───────────────────────────────────────────────────────────────────
 
 export interface MetricsData {

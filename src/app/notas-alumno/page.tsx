@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { AppFooter } from '@/components/footer';
 import { programData } from '@/lib/course-data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { guardarFicha } from './actions';
 
 const notesSchema = z.object({
   studentName: z.string().min(2, { message: 'Por favor, ingresa el nombre completo del alumno.' }),
@@ -50,20 +51,24 @@ export default function NotasAlumnoPage() {
     let pendingTopics = '📝 *Temas Pendientes por Repasar*\n';
     let hasCovered = false;
     let hasPending = false;
+    const completedTopicsArr: string[] = [];
+    const pendingTopicsArr: string[] = [];
+    let totalTopics = 0;
 
     programData.forEach(section => {
-        let sectionCovered = true;
         let coveredPoints: string[] = [];
         let pendingPoints: string[] = [];
 
         section.content.forEach((contentBlock, blockIndex) => {
             contentBlock.points.forEach((point, index) => {
                 const pointId = `${section.title}-${blockIndex}-${index}`;
-                 if (checkedItems[pointId]) {
+                totalTopics++;
+                if (checkedItems[pointId]) {
                     coveredPoints.push(`  • ${point}`);
+                    completedTopicsArr.push(point);
                 } else {
                     pendingPoints.push(`  • ${point}`);
-                    sectionCovered = false;
+                    pendingTopicsArr.push(point);
                 }
             });
         });
@@ -77,6 +82,10 @@ export default function NotasAlumnoPage() {
             pendingTopics += `\n*${section.title}*\n${pendingPoints.join('\n')}\n`;
         }
     });
+
+    // Guardar ficha en Firestore (fire-and-forget)
+    guardarFicha(data.studentName, data.phone, completedTopicsArr, pendingTopicsArr, totalTopics)
+      .catch(err => console.error('[notas-alumno] Error guardando ficha:', err));
 
     const whatsAppNumber = "52" + data.phone;
     let message = `*Reporte de Avance para ${data.studentName}*\n\n` +

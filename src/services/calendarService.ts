@@ -97,6 +97,48 @@ function getCalendarAuth(): JWT {
     });
 }
 
+export interface EventoCalendario {
+  id: string;
+  alumno: string;
+  telefono?: string;
+  inicio: string;
+  fin: string;
+  ubicacion?: string;
+}
+
+export async function getEventosProximos(dias = 7): Promise<EventoCalendario[]> {
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID!;
+
+  const now = new Date();
+  const timeMax = new Date(now.getTime() + dias * 24 * 60 * 60 * 1000);
+
+  const response = await calendar.events.list({
+    calendarId,
+    timeMin: now.toISOString(),
+    timeMax: timeMax.toISOString(),
+    timeZone: 'America/Mexico_City',
+    singleEvents: true,
+    orderBy: 'startTime',
+  });
+
+  return (response.data.items ?? []).map(e => {
+    const summary = e.summary ?? '';
+    const alumno = summary.startsWith('Clase: ') ? summary.slice(7) : summary;
+    const desc = e.description ?? '';
+    const phoneMatch = desc.match(/Teléfono:<\/b>\s*(\d+)/);
+    return {
+      id: e.id ?? '',
+      alumno,
+      telefono: phoneMatch?.[1],
+      inicio: e.start?.dateTime ?? e.start?.date ?? '',
+      fin: e.end?.dateTime ?? e.end?.date ?? '',
+      ubicacion: e.location ?? undefined,
+    };
+  });
+}
+
 interface EventDetails {
   studentName: string;
   studentPhone: string;
