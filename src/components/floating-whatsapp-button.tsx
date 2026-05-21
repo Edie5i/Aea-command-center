@@ -16,7 +16,7 @@ const WhatsAppIcon = () => (
 
 export function FloatingWhatsappButton() {
   const whatsAppNumber = "525634433212";
-  const message = "¡Hola! Me gustaría más información sobre los cursos de manejo.";
+  const message = "Hola, me gustaría recibir información sobre los cursos de manejo y agendar mi sesión.";
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${whatsAppNumber}?text=${encodedMessage}`;
 
