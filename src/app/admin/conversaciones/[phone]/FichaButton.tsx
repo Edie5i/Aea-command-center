@@ -15,6 +15,11 @@ const MAX_SESSIONS = 6;
 
 export default function FichaButton({ data }: { data: InscripcionData }) {
   async function handleDownload() {
+    const fechasIncompletas = data.fechas.filter(f => !f.date || !f.time);
+    if (fechasIncompletas.length > 0) {
+      alert(`⚠️ ${fechasIncompletas.length} sesión(es) sin fecha u horario completo. Corrige los datos antes de generar la ficha.`);
+      return;
+    }
     const { default: jsPDF } = await import('jspdf');
 
     const doc = new jsPDF({ unit: 'mm', format: 'letter' });
@@ -35,7 +40,7 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       format(new Date(d + 'T12:00:00'), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
 
     const fmtTime = (t: string) =>
-      format(parse(t, 'HH:mm', new Date()), 'h:mm a');
+      t ? format(parse(t, 'HH:mm', new Date()), 'h:mm a') : '—';
 
     // ── Banda azul superior ──────────────────────────────────────
     doc.setFillColor(...BLUE); doc.rect(0, 0, W, 5, 'F');
