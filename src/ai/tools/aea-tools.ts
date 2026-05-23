@@ -5,13 +5,17 @@ import { programData } from '@/lib/course-data';
 import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 
+const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
 function calcularFechas(patron: string, fechaInicio: string, hora: string) {
   const offsets = patron === 'fin-de-semana' ? [0, 1, 7, 8] : [0, 1, 2, 3];
   const [y, m, d] = fechaInicio.split('-').map(Number);
   return offsets.map(offset => {
     const fecha = new Date(y, m - 1, d + offset);
     const dateStr = fecha.toLocaleDateString('en-CA');
-    return { date: dateStr + 'T12:00:00', time: hora };
+    const label = `${DIAS_ES[fecha.getDay()]} ${fecha.getDate()} de ${MESES_ES[fecha.getMonth()]}`;
+    return { date: dateStr + 'T12:00:00', time: hora, label };
   });
 }
 
@@ -182,6 +186,7 @@ export const confirmarInscripcionTool = ai.defineTool(
     const fechasCalculadas = calcularFechas(patron, fechaInicio, hora).map(f => ({
       date: f.date.split('T')[0],
       time: hora,
+      label: f.label,
     }));
     try {
       const { saveInscripcionData, updateChatState } = await import('@/lib/firestore');
@@ -216,7 +221,18 @@ export const confirmarInscripcionTool = ai.defineTool(
       `🗓️ *Inicio:* ${fechaInicio}\n\n` +
       `4 clases agendadas en Calendar ✅`
     );
-    return { exitoso: true, mensaje: '4 clases agendadas en Calendar.' };
+    const fechasTexto = fechasCalculadas
+      .map((f, i) => {
+        const fecha = new Date(f.date + 'T12:00:00');
+        const label = `${DIAS_ES[fecha.getDay()]} ${fecha.getDate()} de ${MESES_ES[fecha.getMonth()]}`;
+        const [hh, mm] = f.time.split(':');
+        const h = parseInt(hh);
+        const ampm = h >= 12 ? 'pm' : 'am';
+        const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+        return `  ${i + 1}. ${label} a las ${h12}:${mm} ${ampm}`;
+      })
+      .join('\n');
+    return { exitoso: true, mensaje: `4 clases agendadas en Calendar:\n${fechasTexto}` };
   }
 );
 
