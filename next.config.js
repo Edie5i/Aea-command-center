@@ -10,6 +10,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/ficha', destination: '/ficha.html', permanent: false },
+      // Redirigir el home al sitio de marketing (www) — ads y tráfico general llegan aquí
+      { source: '/', destination: 'https://www.autoescuelaamericana.com', permanent: false },
     ];
   },
 };
