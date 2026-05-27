@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const WhatsAppIcon = () => (
@@ -15,6 +16,9 @@ const WhatsAppIcon = () => (
 );
 
 export function FloatingWhatsappButton() {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) return null;
+
   const whatsAppNumber = "525634433212";
   const message = "Hola, me gustaría recibir información sobre los cursos de manejo y agendar mi sesión.";
   const encodedMessage = encodeURIComponent(message);
