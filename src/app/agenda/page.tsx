@@ -263,7 +263,15 @@ function AgendaContent() {
           y += 7;
       });
       
-      doc.save(`Ficha_${values.name.replace(/ /g, '_')}.pdf`);
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Ficha_${values.name.replace(/ /g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
       toast({ title: 'PDF generado exitosamente.' });
 
     } catch (error) {

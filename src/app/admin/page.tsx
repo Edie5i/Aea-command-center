@@ -47,7 +47,7 @@ export default async function AdminPage() {
     getFichasStats().catch(() => ({ total: 0, thisWeek: 0, uniqueStudents: 0 })),
     getRecentFichas(8).catch(() => []),
     getMetricsData().catch(() => null),
-    getEventosProximos(7).catch(() => []),
+    getEventosProximos(30).catch(() => []),
   ]);
 
   const pct = (n: number, total: number) =>
@@ -122,7 +122,7 @@ export default async function AdminPage() {
         {/* Próximas clases */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="text-sm font-semibold text-gray-700">Próximas clases (7 días)</p>
+            <p className="text-sm font-semibold text-gray-700">Próximas clases (30 días)</p>
             <span className="text-xs text-gray-400">{eventos.length} agendadas</span>
           </div>
 

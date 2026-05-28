@@ -215,7 +215,15 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     doc.setTextColor(...BLUE); doc.setFont('courier', 'bold');
     doc.text('app.autoescuelaamericana.com', W - M, fy + 5, { align: 'right' });
 
-    doc.save(`${folio}-${data.nombre.replace(/\s+/g, '_')}.pdf`);
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${folio}-${data.nombre.replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
   return (
