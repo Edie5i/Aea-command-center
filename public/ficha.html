@@ -354,7 +354,10 @@
 
     <div class="field-group">
       <div class="field-group-title">Apartado</div>
-      <label><span>Monto pagado hoy (mín. 20% · sugerido de promoción)</span><input id="f-apartado" type="number" placeholder="—" /></label>
+      <label><span>Monto pagado hoy (mín. 20%)</span><input id="f-apartado" type="number" placeholder="—" /></label>
+      <div id="hint-apartado" style="display:none; margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#5B9BFF;">
+        Sugerido: <span id="hint-monto">—</span> (20% del curso)
+      </div>
     </div>
 
     <div class="field-group">
@@ -567,7 +570,10 @@
     $('p-apartado').textContent = fmt(apartadoVal);
     $('p-restante').textContent = fmt(Math.max(0, precio - apartadoVal));
     $('p-total').textContent    = fmt(precio);
-    $('f-apartado').placeholder = precio ? fmt(Math.ceil(precio * 0.2)) : '—';
+    const sugerido = precio ? Math.ceil(precio * 0.2) : 0;
+    $('f-apartado').placeholder = sugerido ? fmt(sugerido) : '—';
+    $('hint-monto').textContent = sugerido ? fmt(sugerido) : '—';
+    $('hint-apartado').style.display = precio ? '' : 'none';
     const nota = $('f-nota').value.trim();
     $('p-nota').textContent = nota;
     $('p-nota-wrap').style.display = nota ? '' : 'none';
@@ -592,10 +598,26 @@
     update();
   }
 
+  // ── Descarga cross-browser (fix Safari/Mac) ──────────────────────────
+  function savePDF(doc, filename) {
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }
+
   // ── PDF ─────────────────────────────────────────────────────────────
   function generatePDF() {
     if (!$('f-nombre').value.trim()) { alert('Ingresa el nombre del alumno antes de generar.'); return; }
     if (!$('f-curso').value) { alert('Selecciona un curso antes de generar.'); return; }
+    const slots = getSlots();
+    const incompletos = slots.filter(s => !s.date || !s.time);
+    if (incompletos.length > 0) { alert('Completa fecha y hora de todas las sesiones antes de generar la ficha.'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'mm', format: 'letter' });
     const W = 215.9, H = 279.4, M = 18;
@@ -750,7 +772,7 @@
     doc.setTextColor(...BLUE); doc.setFont('courier','bold');
     doc.text('app.autoescuelaamericana.com', W-M, fy+5, {align:'right'});
 
-    doc.save(`${currentFolio}-${($('f-nombre').value||'alumno').replace(/\s+/g,'_')}.pdf`);
+    savePDF(doc, `${currentFolio}-${($('f-nombre').value||'alumno').replace(/\s+/g,'_')}.pdf`);
     scheduleCalendar(slots);
   }
 
