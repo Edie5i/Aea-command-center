@@ -273,10 +273,10 @@ export default function AgendaNLP() {
               )}
             </div>
 
-            {parsed.falta_info.length > 0 && (
+            {parsed.falta_info.filter(f => f !== 'curso').length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
                 <p className="text-xs text-yellow-800 font-semibold mb-1">Falta información:</p>
-                <p className="text-xs text-yellow-700">{parsed.falta_info.join(', ')}</p>
+                <p className="text-xs text-yellow-700">{parsed.falta_info.filter(f => f !== 'curso').join(', ')}</p>
               </div>
             )}
 
