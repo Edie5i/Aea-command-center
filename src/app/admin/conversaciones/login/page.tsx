@@ -16,7 +16,7 @@ export default function LoginPage() {
       body: JSON.stringify({ pin }),
     });
     if (res.ok) {
-      router.push('/admin/conversaciones');
+      router.push('/admin');
       router.refresh();
     } else {
       setError(true);
