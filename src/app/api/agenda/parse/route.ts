@@ -45,11 +45,13 @@ Reglas de parseo:
   "7"/"siete"→"07:00". "mediodía"→"12:00". "en la tarde" sin número→null.
 - alumno: nombre completo o parcial. Si dice "la de Juan" o "el de Pérez", extrae el nombre.
 - curso: mapear solo si se menciona. Para agendar_ficha/mover_clase/cancelar_clase no es requerido.
-- confianza:
-  0.9–1.0: acción clara + alumno + fecha + hora (o no se necesitan para la acción).
-  0.7–0.89: falta solo el curso en nueva_ficha, o la hora es ambigua pero fecha clara.
-  0.5–0.69: falta fecha u hora para acciones que las requieren.
-  <0.5: muy ambiguo, no se entiende la intención.
+- confianza — sé generoso, no conservador:
+  1.0: acción clara + alumno + fecha resuelta + hora resuelta.
+  0.95: acción clara + alumno + fecha resuelta, hora ambigua pero inferible (ej. "a las 4" = 16:00).
+  0.9: acción solo requiere alumno (consultar_alumno, cancelar_clase, agendar_ficha) y alumno está claro.
+  0.75: nueva_ficha con fecha y hora pero sin curso.
+  0.5–0.69: falta fecha u hora para mover_clase o nueva_ficha.
+  <0.5: intención realmente ambigua o nombre de alumno no identificable.
 - falta_info: SOLO lo bloqueante. agendar_ficha→[] si hay alumno. cancelar_clase→[] si hay alumno.
   consultar_agenda→[] si hay fecha (o se entiende que es hoy/mañana/esta semana).
   consultar_alumno→[] si hay alumno.
