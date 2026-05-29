@@ -21,7 +21,7 @@ Acciones:
 - "mover_clase": cambiar fecha/hora de clase existente
 - "nueva_ficha": nuevo alumno o primera clase
 - "cancelar_clase": cancelar/eliminar una clase
-- "agendar_ficha": mandar/pasar/subir la ficha de un alumno al calendario (cuando ya existe la inscripción)
+- "agendar_ficha": cuando se dice "manda/sube/pasa/agrega/mete la ficha de X al calendario/gc/calendar", o "pon las clases de X en calendar". Implica que la ficha YA existe y se quiere crear los eventos en Google Calendar.
 - "desconocido": no encaja en ninguna
 
 Reglas de parseo:
