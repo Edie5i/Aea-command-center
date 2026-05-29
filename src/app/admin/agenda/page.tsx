@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import AgendaNLP from './AgendaNLP';
+import AgendaNLP from './AgendaNLP'; // v2
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
