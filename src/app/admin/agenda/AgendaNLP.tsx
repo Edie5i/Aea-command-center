@@ -181,7 +181,7 @@ export default function AgendaNLP() {
             value={texto}
             onChange={e => setTexto(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleParse(); } }}
-            placeholder="Ej: muévele la clase de Juan al jueves a las 4pm"
+            placeholder="Ej: pásale la clase de Juan al viernes a las 10"
             rows={3}
             disabled={step !== 'idle' && step !== 'error'}
             className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
@@ -342,10 +342,12 @@ export default function AgendaNLP() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ejemplos</p>
             {[
-              'Muévele la clase de Juan al jueves a las 4',
-              'Nueva ficha Pedro Ramírez, automático, sábado 9am',
-              'Cancela la clase de María López',
-              'Cambia a Carlos del lunes al miércoles 10am',
+              'Pásale la clase de Juan al viernes a las 4',
+              'Nuevo alumno Pedro Ramírez, automático, sábado 9',
+              'Cancela la de María López',
+              'Mete las clases de Luis Torres en el calendar',
+              'Cambia a Carlos al miércoles 10 de la mañana',
+              'Quítale la clase de mañana a Roberto',
             ].map(ej => (
               <button
                 key={ej}
