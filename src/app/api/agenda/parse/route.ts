@@ -32,6 +32,8 @@ Acciones — elige la más probable según el contexto:
 - "consultar_agenda": ver qué clases hay en un día o semana.
   Frases: "¿qué hay mañana?", "¿quién tiene clase el viernes?", "¿qué tenemos esta semana?",
   "muéstrame el jueves", "¿está ocupado el lunes a las 10?", "clases de hoy".
+- "consultar_alumno": ver info completa de un alumno: ficha, avance, clases próximas.
+  Frases: "¿cómo va X?", "búscame a X", "¿qué tiene X?", "info de X", "dime de X", "ficha de X".
 - "desconocido": no encaja en ninguna.
 
 Reglas de parseo:
@@ -50,6 +52,7 @@ Reglas de parseo:
   <0.5: muy ambiguo, no se entiende la intención.
 - falta_info: SOLO lo bloqueante. agendar_ficha→[] si hay alumno. cancelar_clase→[] si hay alumno.
   consultar_agenda→[] si hay fecha (o se entiende que es hoy/mañana/esta semana).
+  consultar_alumno→[] si hay alumno.
   mover_clase/nueva_ficha→["fecha"] si falta fecha, ["hora"] si falta hora. Nunca incluir "curso" para mover/cancelar.
 
 Devuelve SOLO JSON puro sin markdown:

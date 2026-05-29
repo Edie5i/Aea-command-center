@@ -19,7 +19,25 @@ interface Evento {
   inicio: string;
 }
 
-type Step = 'idle' | 'parsing' | 'confirm' | 'disambiguate' | 'executing' | 'done' | 'consulta' | 'error';
+interface AlumnoData {
+  inscripcion: {
+    nombre: string;
+    telefono: string;
+    zona: string;
+    transmision: string;
+    fechas: { date: string; time: string }[];
+  } | null;
+  ultimaFicha: {
+    completedCount: number;
+    totalTopics: number;
+    completedTopics: string[];
+    pendingTopics: string[];
+    dateMillis: number;
+  } | null;
+  proximasClases: Evento[];
+}
+
+type Step = 'idle' | 'parsing' | 'confirm' | 'disambiguate' | 'executing' | 'done' | 'consulta' | 'alumno' | 'error';
 
 const ACCION_LABEL: Record<string, string> = {
   nueva_ficha: 'Nueva ficha',
@@ -47,6 +65,7 @@ export default function AgendaNLP() {
   const [step, setStep] = useState<Step>('idle');
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [eventos, setEventos] = useState<Evento[]>([]);
+  const [alumnoData, setAlumnoData] = useState<AlumnoData | null>(null);
   const [mensaje, setMensaje] = useState('');
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -110,6 +129,7 @@ export default function AgendaNLP() {
           throw new Error(d2.error ?? 'Error al ejecutar');
         }
         if (d2.consulta) { setEventos(d2.eventos ?? []); setMensaje(d2.mensaje ?? ''); setStep('consulta'); return; }
+        if (d2.alumno) { setAlumnoData(d2.data); setStep('alumno'); return; }
         setMensaje(d2.mensaje ?? 'Listo');
         setStep('done');
       } else {
@@ -140,6 +160,7 @@ export default function AgendaNLP() {
         throw new Error(data.error ?? 'Error al ejecutar');
       }
       if (data.consulta) { setEventos(data.eventos ?? []); setMensaje(data.mensaje ?? ''); setStep('consulta'); return; }
+      if (data.alumno) { setAlumnoData(data.data); setStep('alumno'); return; }
       setMensaje(data.mensaje ?? 'Listo');
       setStep('done');
     } catch (e) {
@@ -152,6 +173,7 @@ export default function AgendaNLP() {
     setTexto('');
     setParsed(null);
     setEventos([]);
+    setAlumnoData(null);
     setMensaje('');
     setStep('idle');
     setTimeout(() => textareaRef.current?.focus(), 50);
@@ -340,6 +362,85 @@ export default function AgendaNLP() {
           </div>
         )}
 
+        {/* Consulta alumno */}
+        {step === 'alumno' && alumnoData && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-base font-bold text-gray-900">{alumnoData.inscripcion?.nombre ?? parsed?.alumno}</p>
+                {alumnoData.inscripcion?.telefono && (
+                  <a href={`tel:${alumnoData.inscripcion.telefono}`} className="text-xs text-blue-600">
+                    {alumnoData.inscripcion.telefono}
+                  </a>
+                )}
+              </div>
+              <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+
+            {alumnoData.inscripcion && (
+              <div className="grid grid-cols-2 gap-y-1 text-xs">
+                <span className="text-gray-500">Curso</span>
+                <span className="font-medium">{alumnoData.inscripcion.transmision}</span>
+                {alumnoData.inscripcion.zona && (
+                  <>
+                    <span className="text-gray-500">Zona</span>
+                    <span className="font-medium">{alumnoData.inscripcion.zona}</span>
+                  </>
+                )}
+              </div>
+            )}
+
+            {alumnoData.ultimaFicha && (
+              <div className="bg-blue-50 rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-blue-800">Progreso</p>
+                  <p className="text-xs text-blue-700 font-bold">
+                    {alumnoData.ultimaFicha.completedCount}/{alumnoData.ultimaFicha.totalTopics} temas
+                    ({Math.round(alumnoData.ultimaFicha.completedCount / alumnoData.ultimaFicha.totalTopics * 100)}%)
+                  </p>
+                </div>
+                {alumnoData.ultimaFicha.pendingTopics.length > 0 && (
+                  <div>
+                    <p className="text-xs text-blue-600 font-semibold mb-1">Pendientes:</p>
+                    {alumnoData.ultimaFicha.pendingTopics.map(t => (
+                      <p key={t} className="text-xs text-blue-700">• {t}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {alumnoData.proximasClases.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Próximas clases</p>
+                {alumnoData.proximasClases.map(ev => (
+                  <div key={ev.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
+                    <p className="text-xs text-gray-700">{formatEventDate(ev.inicio)}</p>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setStep('confirm'); }}
+                        className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
+                      >
+                        Mover
+                      </button>
+                      <button
+                        onClick={async () => { setParsed({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }); await handleEjecutar(ev.id); }}
+                        className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {alumnoData.proximasClases.length === 0 && !alumnoData.ultimaFicha && (
+              <p className="text-xs text-gray-400 text-center">Sin clases próximas ni fichas de progreso.</p>
+            )}
+          </div>
+        )}
+
         {/* Executing */}
         {step === 'executing' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
@@ -383,8 +484,8 @@ export default function AgendaNLP() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ejemplos</p>
             {[
+              '¿Cómo va Luis Torres?',
               '¿Qué hay mañana?',
-              '¿Quién tiene clase el viernes?',
               'Pásale a Juan al jueves 4pm',
               'Ya no viene Roberto mañana',
               'Nuevo Pedro Ramírez, automático, sábado 9',

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buscarEventosPorAlumno, moverEvento, cancelarEvento, getEventosProximos } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
-import { saveInscripcionData, buscarInscripcionPorNombre } from '@/lib/firestore';
+import { saveInscripcionData, buscarInscripcionPorNombre, getFichasByPhone } from '@/lib/firestore';
 
 function normalizePhone(raw: string): string {
   let p = raw.replace(/\D/g, '');
@@ -105,6 +105,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ok: true,
         mensaje: `${ins.fechas.length} clase(s) de ${ins.nombre} agendadas en Calendar.`,
+      });
+    }
+
+    // ── consultar_alumno ─────────────────────────────────────────
+    if (accion === 'consultar_alumno') {
+      if (!alumno) return NextResponse.json({ ok: false, error: 'Falta el nombre del alumno.' });
+
+      const [inscripciones, eventosCalendar] = await Promise.all([
+        buscarInscripcionPorNombre(alumno),
+        buscarEventosPorAlumno(alumno),
+      ]);
+
+      if (inscripciones.length === 0 && eventosCalendar.length === 0) {
+        return NextResponse.json({ ok: false, error: `No se encontró información de "${alumno}".` });
+      }
+
+      const ins = inscripciones[0] ?? null;
+      const fichas = ins ? await getFichasByPhone(ins.phone).catch(() => []) : [];
+      const ultimaFicha = fichas[0] ?? null;
+
+      return NextResponse.json({
+        ok: true,
+        alumno: true,
+        data: {
+          inscripcion: ins,
+          ultimaFicha: ultimaFicha ? {
+            completedCount: ultimaFicha.completedCount,
+            totalTopics: ultimaFicha.totalTopics,
+            completedTopics: ultimaFicha.completedTopics.slice(0, 5),
+            pendingTopics: ultimaFicha.pendingTopics.slice(0, 5),
+            dateMillis: ultimaFicha.dateMillis,
+          } : null,
+          proximasClases: eventosCalendar.slice(0, 4),
+        },
       });
     }
 
