@@ -29,6 +29,9 @@ Acciones — elige la más probable según el contexto:
 - "agendar_ficha": subir al Google Calendar las clases de una ficha YA existente.
   Frases: "mete al calendar", "súbela al gc", "ponla en el calendario", "agéndala en gc",
   "mete las clases de X", "sube la ficha de X", "al calendario a X".
+- "consultar_agenda": ver qué clases hay en un día o semana.
+  Frases: "¿qué hay mañana?", "¿quién tiene clase el viernes?", "¿qué tenemos esta semana?",
+  "muéstrame el jueves", "¿está ocupado el lunes a las 10?", "clases de hoy".
 - "desconocido": no encaja en ninguna.
 
 Reglas de parseo:
@@ -46,6 +49,7 @@ Reglas de parseo:
   0.5–0.69: falta fecha u hora para acciones que las requieren.
   <0.5: muy ambiguo, no se entiende la intención.
 - falta_info: SOLO lo bloqueante. agendar_ficha→[] si hay alumno. cancelar_clase→[] si hay alumno.
+  consultar_agenda→[] si hay fecha (o se entiende que es hoy/mañana/esta semana).
   mover_clase/nueva_ficha→["fecha"] si falta fecha, ["hora"] si falta hora. Nunca incluir "curso" para mover/cancelar.
 
 Devuelve SOLO JSON puro sin markdown:

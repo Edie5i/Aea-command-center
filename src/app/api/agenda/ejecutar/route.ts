@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buscarEventosPorAlumno, moverEvento, cancelarEvento } from '@/services/calendarService';
+import { buscarEventosPorAlumno, moverEvento, cancelarEvento, getEventosProximos } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { saveInscripcionData, buscarInscripcionPorNombre } from '@/lib/firestore';
 
@@ -106,6 +106,23 @@ export async function POST(request: NextRequest) {
         ok: true,
         mensaje: `${ins.fechas.length} clase(s) de ${ins.nombre} agendadas en Calendar.`,
       });
+    }
+
+    // ── consultar_agenda ─────────────────────────────────────────
+    if (accion === 'consultar_agenda') {
+      const todos = await getEventosProximos(14);
+
+      let eventosFiltrados = todos;
+      if (fecha) {
+        eventosFiltrados = todos.filter(e => e.inicio.startsWith(fecha));
+      }
+
+      if (eventosFiltrados.length === 0) {
+        const label = fecha ?? 'próximos días';
+        return NextResponse.json({ ok: true, consulta: true, eventos: [], mensaje: `No hay clases agendadas para ${label}.` });
+      }
+
+      return NextResponse.json({ ok: true, consulta: true, eventos: eventosFiltrados });
     }
 
     return NextResponse.json({ ok: false, error: `Acción desconocida: ${accion}` });

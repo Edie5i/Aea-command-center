@@ -19,7 +19,7 @@ interface Evento {
   inicio: string;
 }
 
-type Step = 'idle' | 'parsing' | 'confirm' | 'disambiguate' | 'executing' | 'done' | 'error';
+type Step = 'idle' | 'parsing' | 'confirm' | 'disambiguate' | 'executing' | 'done' | 'consulta' | 'error';
 
 const ACCION_LABEL: Record<string, string> = {
   nueva_ficha: 'Nueva ficha',
@@ -94,7 +94,9 @@ export default function AgendaNLP() {
       const r: ParseResult = data.resultado;
       setParsed(r);
       const soloNombreRequerido = r.accion === 'cancelar_clase' || r.accion === 'agendar_ficha';
-      const criticos = !r.alumno || (!soloNombreRequerido && (!r.fecha || !r.hora));
+      const soloFechaRequerida = r.accion === 'consultar_agenda';
+      const criticos = (!soloNombreRequerido && !soloFechaRequerida && !r.alumno) ||
+        (!soloNombreRequerido && !soloFechaRequerida && !r.fecha && !r.hora);
       if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido') {
         setStep('executing');
         const res2 = await fetch('/api/agenda/ejecutar', {
@@ -107,6 +109,7 @@ export default function AgendaNLP() {
           if (d2.error === 'multiple' && d2.eventos) { setEventos(d2.eventos); setStep('disambiguate'); return; }
           throw new Error(d2.error ?? 'Error al ejecutar');
         }
+        if (d2.consulta) { setEventos(d2.eventos ?? []); setMensaje(d2.mensaje ?? ''); setStep('consulta'); return; }
         setMensaje(d2.mensaje ?? 'Listo');
         setStep('done');
       } else {
@@ -136,6 +139,7 @@ export default function AgendaNLP() {
         }
         throw new Error(data.error ?? 'Error al ejecutar');
       }
+      if (data.consulta) { setEventos(data.eventos ?? []); setMensaje(data.mensaje ?? ''); setStep('consulta'); return; }
       setMensaje(data.mensaje ?? 'Listo');
       setStep('done');
     } catch (e) {
@@ -299,6 +303,43 @@ export default function AgendaNLP() {
           </div>
         )}
 
+        {/* Consulta resultados */}
+        {step === 'consulta' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-gray-900">
+                {eventos.length > 0 ? `${eventos.length} clase${eventos.length > 1 ? 's' : ''} agendada${eventos.length > 1 ? 's' : ''}` : 'Sin clases'}
+              </p>
+              <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600">Nueva consulta</button>
+            </div>
+            {mensaje && eventos.length === 0 && (
+              <p className="text-sm text-gray-500">{mensaje}</p>
+            )}
+            {eventos.map(ev => (
+              <div key={ev.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-3 py-2.5 gap-2">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{ev.alumno}</p>
+                  <p className="text-xs text-gray-500">{formatEventDate(ev.inicio)}</p>
+                </div>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setStep('confirm'); }}
+                    className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
+                  >
+                    Mover
+                  </button>
+                  <button
+                    onClick={async () => { setParsed({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }); await handleEjecutar(ev.id); }}
+                    className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Executing */}
         {step === 'executing' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
@@ -342,12 +383,12 @@ export default function AgendaNLP() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ejemplos</p>
             {[
+              '¿Qué hay mañana?',
+              '¿Quién tiene clase el viernes?',
               'Pásale a Juan al jueves 4pm',
-              'Nuevo Pedro Ramírez, automático, sábado 9',
-              'Cancela a María López',
-              'Súbele las clases de Luis al gc',
-              'Jala a Carlos al miércoles 10',
               'Ya no viene Roberto mañana',
+              'Nuevo Pedro Ramírez, automático, sábado 9',
+              'Súbele las clases de Luis al gc',
             ].map(ej => (
               <button
                 key={ej}
