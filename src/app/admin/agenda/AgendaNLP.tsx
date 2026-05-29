@@ -112,7 +112,7 @@ export default function AgendaNLP() {
       if (!data.ok) throw new Error(data.error ?? 'Error al parsear');
       const r: ParseResult = data.resultado;
       setParsed(r);
-      const soloNombreRequerido = r.accion === 'cancelar_clase' || r.accion === 'agendar_ficha';
+      const soloNombreRequerido = r.accion === 'cancelar_clase' || r.accion === 'agendar_ficha' || r.accion === 'consultar_alumno';
       const soloFechaRequerida = r.accion === 'consultar_agenda';
       const criticos = (!soloNombreRequerido && !soloFechaRequerida && !r.alumno) ||
         (!soloNombreRequerido && !soloFechaRequerida && !r.fecha && !r.hora);
@@ -141,14 +141,15 @@ export default function AgendaNLP() {
     }
   }
 
-  async function handleEjecutar(eventId?: string) {
-    if (!parsed) return;
+  async function handleEjecutar(eventId?: string, overrideParsed?: ParseResult) {
+    const payload = overrideParsed ?? parsed;
+    if (!payload) return;
     setStep('executing');
     try {
       const res = await fetch('/api/agenda/ejecutar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...parsed, eventId }),
+        body: JSON.stringify({ ...payload, eventId }),
       });
       const data = await res.json();
       if (!data.ok) {
@@ -294,7 +295,7 @@ export default function AgendaNLP() {
                   onClick={() => handleEjecutar()}
                   disabled={
                     !parsed.alumno ||
-                    (parsed.accion !== 'cancelar_clase' && parsed.accion !== 'agendar_ficha' && (!parsed.fecha || !parsed.hora))
+                    (parsed.accion !== 'cancelar_clase' && parsed.accion !== 'agendar_ficha' && parsed.accion !== 'consultar_alumno' && (!parsed.fecha || !parsed.hora))
                   }
                   className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
                 >
@@ -351,7 +352,7 @@ export default function AgendaNLP() {
                     Mover
                   </button>
                   <button
-                    onClick={async () => { setParsed({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }); await handleEjecutar(ev.id); }}
+                    onClick={() => handleEjecutar(ev.id, { accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] })}
                     className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
                   >
                     Cancelar
@@ -424,7 +425,7 @@ export default function AgendaNLP() {
                         Mover
                       </button>
                       <button
-                        onClick={async () => { setParsed({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }); await handleEjecutar(ev.id); }}
+                        onClick={() => handleEjecutar(ev.id, { accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] })}
                         className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
                       >
                         Cancelar
