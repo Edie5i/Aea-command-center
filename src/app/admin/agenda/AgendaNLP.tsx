@@ -246,7 +246,10 @@ export default function AgendaNLP() {
                 </button>
                 <button
                   onClick={() => handleEjecutar()}
-                  disabled={parsed.falta_info.length > 0}
+                  disabled={
+                    !parsed.alumno ||
+                    (parsed.accion !== 'cancelar_clase' && (!parsed.fecha || !parsed.hora))
+                  }
                   className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
                 >
                   Ejecutar
