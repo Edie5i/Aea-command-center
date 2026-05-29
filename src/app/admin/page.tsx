@@ -70,6 +70,12 @@ export default async function AdminPage() {
               Conversaciones
             </Link>
             <Link
+              href="/admin/agenda"
+              className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-semibold"
+            >
+              Agenda NLP
+            </Link>
+            <Link
               href="/admin/metricas"
               className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-semibold"
             >

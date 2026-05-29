@@ -82,6 +82,7 @@ function getCalendarAuth(): JWT {
     try {
         const calendarKey = Buffer.from(calendarKeyBase64, 'base64').toString('utf-8');
         credentials = JSON.parse(calendarKey);
+        credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
     } catch (error) {
         throw new Error('CONFIGURACIÓN REQUERIDA: La credencial CALENDAR_KEY es inválida. Asegúrate de haber copiado el contenido completo del archivo JSON y que esté codificado en Base64 correctamente.');
     }
@@ -191,6 +192,38 @@ export async function createFichaEvent(details: {
       end: { dateTime: endLocal, timeZone: 'America/Mexico_City' },
     },
   });
+}
+
+export async function buscarEventosPorAlumno(nombre: string): Promise<EventoCalendario[]> {
+  const todos = await getEventosProximos(30);
+  const q = nombre.toLowerCase();
+  return todos.filter(e => e.alumno.toLowerCase().includes(q));
+}
+
+export async function moverEvento(eventId: string, nuevaFecha: string, nuevaHora: string): Promise<void> {
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID!;
+
+  const startTimeLocal = `${nuevaFecha}T${nuevaHora}:00`;
+  const tempEnd = new Date(new Date(startTimeLocal + 'Z').getTime() + 9000000);
+  const endTimeLocal = tempEnd.toISOString().substring(0, 19);
+
+  await calendar.events.patch({
+    calendarId,
+    eventId,
+    requestBody: {
+      start: { dateTime: startTimeLocal, timeZone: 'America/Mexico_City' },
+      end:   { dateTime: endTimeLocal,   timeZone: 'America/Mexico_City' },
+    },
+  });
+}
+
+export async function cancelarEvento(eventId: string): Promise<void> {
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID!;
+  await calendar.events.delete({ calendarId, eventId });
 }
 
 interface EventDetails {
