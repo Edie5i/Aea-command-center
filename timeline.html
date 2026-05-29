@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEA + UrbDriver Timeline</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AEA Timeline">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(120deg, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            font-weight: 900;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1em;
+            font-weight: 300;
+        }
+
+        .timeline-container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #3b82f6, #10b981, #f59e0b);
+            z-index: 0;
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 20px;
+            }
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: 0;
+            margin-right: auto;
+            width: 45%;
+            text-align: right;
+            padding-right: 50px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: auto;
+            margin-right: 0;
+            width: 45%;
+            text-align: left;
+            padding-left: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-item:nth-child(odd) .timeline-content,
+            .timeline-item:nth-child(even) .timeline-content {
+                width: 100%;
+                padding: 0 0 0 60px;
+                text-align: left;
+                margin: 0;
+            }
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: #0f172a;
+            border: 4px solid #3b82f6;
+            border-radius: 50%;
+            top: 20px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-marker {
+            border-color: #10b981;
+        }
+
+        .timeline-item:nth-child(3n) .timeline-marker {
+            border-color: #f59e0b;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-marker {
+                left: 20px;
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+        }
+
+        .timeline-content {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            border-color: rgba(59, 130, 246, 0.8);
+            background: rgba(30, 41, 59, 0.95);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .timeline-content h3 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #3b82f6;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content h3 {
+            color: #10b981;
+        }
+
+        .timeline-item:nth-child(3n) .timeline-content h3 {
+            color: #f59e0b;
+        }
+
+        .timeline-date {
+            color: #94a3b8;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .timeline-content p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+
+        .action-list {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .action-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #cbd5e1;
+        }
+
+        .action-item::before {
+            content: '✓';
+            color: #10b981;
+            margin-right: 8px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .impact {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid #10b981;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #a7f3d0;
+        }
+
+        .phase-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #93c5fd;
+            margin-bottom: 12px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            background: rgba(30, 41, 59, 0.5);
+            border-top: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+        }
+
+        .footer h2 {
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+
+        .footer p {
+            color: #94a3b8;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .success-banner {
+            background: linear-gradient(120deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .success-banner h2 {
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+
+        .success-banner p {
+            color: #a7f3d0;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            body {
+                padding: 15px;
+            }
+
+            .timeline-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚗 AEA + UrbDriver</h1>
+        <p>Timeline de Automatización & Crecimiento</p>
+    </div>
+
+    <div class="success-banner">
+        <h2>🎯 OBJETIVO: E2E Automation + 3x Ingresos</h2>
+        <p>Lead entra WhatsApp → Ale cierra → Instructor confirma → Pago automático</p>
+    </div>
+
+    <div class="timeline-container">
+        <div class="timeline">
+            <!-- SEMANA 1-2 -->
+            <div class="timeline-item">
+                <div class="timeline-marker">⚙️</div>
+                <div class="timeline-content">
+                    <span class="phase-tag">FASE 1: SETUP</span>
+                    <h3>Semana 1-2: Automatización E2E</h3>
+                    <p class="timeline-date">📅 Ahora → 2 semanas</p>
+                    <p>Armar la máquina: Ale + Calendar + Sheets integrados.</p>
+                    <div class="action-list">
+                        <div class="action-item">Mejorar prompt de Ale (venta agresiva)</div>
+                        <div class="action-item">Conectar Calendar API</div>
+                        <div class="action-item">Hoja INSTRUCTORES en Sheets</div>
+                        <div class="action-item">Fórmulas de disponibilidad</div>
+                        <div class="action-item">Asignación automática instructor</div>
+                    </div>
+                    <div class="impact">
+                        💡 Impacto: 80% automatizado. Leads no se pierden.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEMANA 3-4 -->
+            <div class="timeline-item">
+                <div class="timeline-marker">🧪</div>
+                <div class="timeline-content">
+                    <span class="phase-tag">FASE 1: TESTING</span>
+                    <h3>Semana 3-4: Testing & Optimización</h3>
+                    <p class="timeline-date">📅 Semana 3-4</p>
+                    <p>Tú como primer usuario. Verifica que Ale cierre sin fallos.</p>
+                    <div class="action-list">
+                        <div class="action-item">Tú envías 20 mensajes de prueba</div>
+                        <div class="action-item">Verifica asignación de instructores</div>
+                        <div class="action-item">Checkea sync Calendar</div>
+                        <div class="action-item">Ajusta prompts según feedback</div>
+                        <div class="action-item">Test con equipo real</div>
+                    </div>
+                    <div class="impact">
+                        💡 Impacto: Conversión sube a 45%+. Sistema estable.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEMANA 5-6 -->
+            <div class="timeline-item">
+                <div class="timeline-marker">🚀</div>
+                <div class="timeline-content">
+                    <span class="phase-tag">FASE 2: LANZAMIENTO</span>
+                    <h3>Semana 5-6: Lanzar en Vivo</h3>
+                    <p class="timeline-date">📅 Semana 5-6</p>
+                    <p>Ale empieza a recibir leads reales. Monitorea primeros 50.</p>
+                    <div class="action-list">
+                        <div class="action-item">Ale como "segundo atendedor" en WhatsApp</div>
+                        <div class="action-item">Monitorea métricas: conversion, tiempo respuesta</div>
+                        <div class="action-item">Recibe feedback de instructores</div>
+                        <div class="action-item">Ajusta en tiempo real</div>
+                        <div class="action-item">Documenta learnings</div>
+                    </div>
+                    <div class="impact">
+                        💡 Impacto: 100-150 leads/mes procesados. Tú: 20 min/día admin.
+                    </div>
+                </div>
+            </div>
+
+            <!-- MES 2 -->
+            <div class="timeline-item">
+                <div class="timeline-marker">📈</div>
+                <div class="timeline-content">
+                    <span class="phase-tag">FASE 2: ESCALABILIDAD</span>
+                    <h3>Mes 2: Escalar Instructores</h3>
+                    <p class="timeline-date">📅 Mes 2 (Semana 7-10)</p>
+                    <p>Sistema probado. Ahora crece la flotilla sin perder control.</p>
+                    <div class="action-list">
+                        <div class="action-item">Sistema de bonificación (40% base + bonus)</div>
+                        <div class="action-item">Ratings automáticos (de estudiantes)</div>
+                        <div class="action-item">Performance tracking por instructor</div>
+                        <div class="action-item">Reclutar 5-10 instructores nuevos</div>
+                        <div class="action-item">Training automático vía NotebookLM</div>
+                    </div>
+                    <div class="impact">
+                        💡 Impacto: 10-15 instructores. Margen = 60% (sin crecimiento de costos). Ingresos: +$30k/mes.
+                    </div>
+                </div>
+            </div>
+
+            <!-- MES 3 -->
+            <div class="timeline-item">
+                <div class="timeline-marker">🎯</div>
+                <div class="timeline-content">
+                    <span class="phase-tag">FASE 3: URBDRIVER PREP</span>
+                    <h3>Mes 3: Preparar UrbDriver</h3>
+                    <p class="timeline-date">📅 Mes 3 (Semana 11-14)</p>
+                    <p>AEA está en autopiloto. Armas el modelo para drivers Uber.</p>
+                    <div class="action-list">
+                        <div class="action-item">Adaptar Ale para drivers Uber</div>
+                        <div class="action-item">Crear landing page UrbDriver</div>
+                        <div class="action-item">Documentar modelo replicable</div>
+                        <div class="action-item">Recruitment de 20 drivers potenciales</div>
+                        <div class="action-item">Setup Sheets + Calendar para UrbDriver</div>
+                    </div>
+                    <div class="impact">
+                        💡 Impacto: Modelo listo para replicar. UrbDriver lista para lanzar.
+                    </div>
+                </div>
+            </div>
+
+            <!-- MES 4+ -->
+            <div class="timeline-item">
+                <div class="timeline-marker">💰</div>
+                <div class="timeline-content">
+                    <span class="phase-tag">FASE 3: CRECIMIENTO</span>
+                    <h3>Mes 4+: Lanzar UrbDriver</h3>
+                    <p class="timeline-date">📅 Mes 4+ (Semana 15+)</p>
+                    <p>Replicar AEA model con drivers. 2x negocio sin 2x trabajo.</p>
+                    <div class="action-list">
+                        <div class="action-item">Lanzar UrbDriver en vivo</div>
+                        <div class="action-item">Mismo Ale (versión drivers)</div>
+                        <div class="action-item">Escalar a 30 drivers instructores</div>
+                        <div class="action-item">AEA: 200-300 leads/mes</div>
+                        <div class="action-item">UrbDriver: 100-150 leads/mes (mes 4)</div>
+                    </div>
+                    <div class="impact">
+                        💡 Impacto: AEA + UrbDriver = $80-120k/mes ingresos. Tú: 30 min/día (monitoreo nada más).
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <h2>📊 Resumen de Impacto</h2>
+        <p><strong>Ingresos AEA:</strong> $20k → $50-60k/mes</p>
+        <p><strong>Tiempo admin:</strong> 1h/día → 20 min/día</p>
+        <p><strong>Instructores:</strong> 3-4 → 15+</p>
+        <p><strong>UrbDriver:</strong> $0 → $30-40k/mes (mes 4+)</p>
+        <p style="margin-top: 20px; color: #10b981; font-weight: bold;">
+            🎯 Total potencial: $80-100k/mes en 4 meses
+        </p>
+        <p style="margin-top: 15px; font-size: 0.9em; color: #94a3b8;">
+            Última actualización: Mayo 2026 | Roadmap oficial AEA
+        </p>
+    </div>
+</body>
+</html>
