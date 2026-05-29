@@ -25,6 +25,7 @@ const ACCION_LABEL: Record<string, string> = {
   nueva_ficha: 'Nueva ficha',
   mover_clase: 'Mover clase',
   cancelar_clase: 'Cancelar clase',
+  agendar_ficha: 'Agendar ficha en Calendar',
   desconocido: 'Desconocido',
 };
 
@@ -92,7 +93,8 @@ export default function AgendaNLP() {
       if (!data.ok) throw new Error(data.error ?? 'Error al parsear');
       const r: ParseResult = data.resultado;
       setParsed(r);
-      const criticos = !r.alumno || (r.accion !== 'cancelar_clase' && (!r.fecha || !r.hora));
+      const soloNombreRequerido = r.accion === 'cancelar_clase' || r.accion === 'agendar_ficha';
+      const criticos = !r.alumno || (!soloNombreRequerido && (!r.fecha || !r.hora));
       if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido') {
         setStep('executing');
         const res2 = await fetch('/api/agenda/ejecutar', {
@@ -266,7 +268,7 @@ export default function AgendaNLP() {
                   onClick={() => handleEjecutar()}
                   disabled={
                     !parsed.alumno ||
-                    (parsed.accion !== 'cancelar_clase' && (!parsed.fecha || !parsed.hora))
+                    (parsed.accion !== 'cancelar_clase' && parsed.accion !== 'agendar_ficha' && (!parsed.fecha || !parsed.hora))
                   }
                   className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
                 >

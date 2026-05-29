@@ -21,6 +21,7 @@ Acciones:
 - "mover_clase": cambiar fecha/hora de clase existente
 - "nueva_ficha": nuevo alumno o primera clase
 - "cancelar_clase": cancelar/eliminar una clase
+- "agendar_ficha": mandar/pasar/subir la ficha de un alumno al calendario (cuando ya existe la inscripción)
 - "desconocido": no encaja en ninguna
 
 Reglas de parseo:

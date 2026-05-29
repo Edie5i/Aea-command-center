@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buscarEventosPorAlumno, moverEvento, cancelarEvento } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
-import { saveInscripcionData } from '@/lib/firestore';
+import { saveInscripcionData, buscarInscripcionPorNombre } from '@/lib/firestore';
 
 function normalizePhone(raw: string): string {
   let p = raw.replace(/\D/g, '');
@@ -79,6 +79,33 @@ export async function POST(request: NextRequest) {
       }
       await cancelarEvento(eventos[0].id);
       return NextResponse.json({ ok: true, mensaje: `Clase de ${alumno} cancelada.` });
+    }
+
+    // ── agendar_ficha ────────────────────────────────────────────
+    if (accion === 'agendar_ficha') {
+      if (!alumno) return NextResponse.json({ ok: false, error: 'Falta el nombre del alumno.' });
+
+      const inscripciones = await buscarInscripcionPorNombre(alumno);
+      if (inscripciones.length === 0) {
+        return NextResponse.json({ ok: false, error: `No se encontró ficha de inscripción para "${alumno}". Verifica el nombre.` });
+      }
+
+      const ins = inscripciones[0];
+      const result = await scheduleAndCreateEvents({
+        name: ins.nombre,
+        phone: ins.telefono,
+        address: ins.zona || 'Por confirmar',
+        transmission: ins.transmision,
+        dates: ins.fechas.map(f => ({
+          date: new Date(f.date + 'T12:00:00').toISOString(),
+          time: f.time,
+        })),
+      });
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: `${ins.fechas.length} clase(s) de ${ins.nombre} agendadas en Calendar.`,
+      });
     }
 
     return NextResponse.json({ ok: false, error: `Acción desconocida: ${accion}` });

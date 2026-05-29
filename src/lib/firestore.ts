@@ -206,6 +206,27 @@ export async function saveInscripcionData(
     );
 }
 
+export async function buscarInscripcionPorNombre(nombre: string): Promise<(InscripcionData & { phone: string })[]> {
+  const snap = await db.collection('conversations').get();
+  const q = nombre.toLowerCase();
+  const results: (InscripcionData & { phone: string })[] = [];
+  for (const doc of snap.docs) {
+    const ins = doc.data().inscripcion;
+    if (ins?.nombre?.toLowerCase().includes(q) && ins.fechas?.length > 0) {
+      results.push({
+        nombre: ins.nombre,
+        telefono: ins.telefono ?? doc.id,
+        zona: ins.zona ?? '',
+        transmision: ins.transmision ?? 'Estándar',
+        fechas: ins.fechas ?? [],
+        fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
+        phone: doc.id,
+      });
+    }
+  }
+  return results;
+}
+
 export async function getInscripcionData(phone: string): Promise<InscripcionData | null> {
   const snap = await db.collection('conversations').doc(phone).get();
   const ins = snap.data()?.inscripcion;
