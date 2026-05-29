@@ -23,11 +23,21 @@ Acciones:
 - "cancelar_clase": cancelar/eliminar una clase
 - "desconocido": no encaja en ninguna
 
-Reglas:
-- fecha: ISO YYYY-MM-DD calculada desde HOY. "mañana","el jueves","el sábado","el lunes" → fecha absoluta.
-- hora: "HH:MM" 24h. "4"/"4pm"→"16:00". "10am"→"10:00". "en la tarde"→null (ambiguo). null si falta.
-- confianza: 0.0–1.0 según qué tan completa y clara es la instrucción.
-- falta_info: campos que faltan para ejecutar la acción. Ej: ["hora","curso"].
+Reglas de parseo:
+- fecha: ISO YYYY-MM-DD calculada SIEMPRE desde HOY=${HOY}.
+  "mañana"→${new Date(new Date().getTime() + 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' })}.
+  "el lunes/martes/miércoles/jueves/viernes/sábado/domingo" → próximo día de esa semana desde HOY.
+  Si la fecha ya pasó esta semana, usa la de la semana siguiente.
+  null solo si es imposible inferirla.
+- hora: "HH:MM" 24h. "4"/"4pm"/"4 de la tarde"→"16:00". "10"/"10am"→"10:00". "7"→"07:00".
+  "en la tarde" sin número→null. null solo si es imposible inferirla.
+- curso: solo incluir en falta_info si la acción es "nueva_ficha". Para mover/cancelar, curso no es requerido.
+- confianza: 0.0–1.0.
+  0.9–1.0: acción clara, alumno identificado, fecha y hora resueltas.
+  0.7–0.89: falta un dato menor (ej. curso en nueva_ficha) pero lo esencial está.
+  0.5–0.69: falta fecha u hora.
+  <0.5: muy ambiguo.
+- falta_info: SOLO campos verdaderamente bloqueantes. Para mover_clase/cancelar_clase: nunca incluir "curso".
 
 Devuelve SOLO JSON puro sin markdown:
 {"accion":"...","alumno":null,"curso":null,"fecha":null,"hora":null,"confianza":0.0,"falta_info":[]}`;

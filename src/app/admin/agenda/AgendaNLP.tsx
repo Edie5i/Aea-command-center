@@ -90,8 +90,26 @@ export default function AgendaNLP() {
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error ?? 'Error al parsear');
-      setParsed(data.resultado);
-      setStep('confirm');
+      const r: ParseResult = data.resultado;
+      setParsed(r);
+      const criticos = !r.alumno || (r.accion !== 'cancelar_clase' && (!r.fecha || !r.hora));
+      if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido') {
+        setStep('executing');
+        const res2 = await fetch('/api/agenda/ejecutar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(r),
+        });
+        const d2 = await res2.json();
+        if (!d2.ok) {
+          if (d2.error === 'multiple' && d2.eventos) { setEventos(d2.eventos); setStep('disambiguate'); return; }
+          throw new Error(d2.error ?? 'Error al ejecutar');
+        }
+        setMensaje(d2.mensaje ?? 'Listo');
+        setStep('done');
+      } else {
+        setStep('confirm');
+      }
     } catch (e) {
       setMensaje(e instanceof Error ? e.message : 'Error');
       setStep('error');
