@@ -61,10 +61,13 @@ Reglas de parseo:
   0.75: nueva_ficha con fecha y hora pero sin curso.
   0.5–0.69: falta fecha u hora para mover_clase o nueva_ficha.
   <0.5: intención realmente ambigua o nombre de alumno no identificable.
-- falta_info: SOLO lo bloqueante. agendar_ficha→[] si hay alumno. cancelar_clase→[] si hay alumno.
-  consultar_agenda→[] si hay fecha (o se entiende que es hoy/mañana/esta semana).
-  consultar_alumno→[] si hay alumno.
-  mover_clase/nueva_ficha→["fecha"] si falta fecha, ["hora"] si falta hora. Nunca incluir "curso" para mover/cancelar.
+- falta_info: REGLA ESTRICTA:
+  cancelar_clase → SIEMPRE [] si hay alumno. Nunca incluir hora ni curso.
+  agendar_ficha → SIEMPRE [] si hay alumno.
+  consultar_alumno → SIEMPRE [] si hay alumno.
+  consultar_agenda → SIEMPRE [] si hay fecha o se entiende el día.
+  mover_clase → ["fecha"] si falta fecha, ["hora"] si falta hora. NUNCA "curso".
+  nueva_ficha → ["fecha"] si falta fecha, ["hora"] si falta hora. "curso" solo si realmente falta.
 
 Devuelve SOLO JSON puro sin markdown:
 {"accion":"...","alumno":null,"curso":null,"fecha":null,"hora":null,"confianza":0.0,"falta_info":[]}`;

@@ -14,6 +14,10 @@ function normalizePhone(raw: string): string {
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { accion, alumno, curso, fecha, hora, telefono, eventId } = body;
+  // Normalizar: cancelar/consultar/agendar nunca necesitan fecha u hora
+  if (['cancelar_clase','consultar_alumno','agendar_ficha'].includes(accion) && !alumno) {
+    return NextResponse.json({ ok: false, error: 'Falta el nombre del alumno.' });
+  }
 
   try {
     // ── nueva_ficha ──────────────────────────────────────────────
