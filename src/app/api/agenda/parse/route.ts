@@ -19,22 +19,31 @@ Mapea variaciones: "automatico"/"auto"/"automática"→"Automático", "ingles"/"
 "intensivo"→"Intensivo", "reforza"/"reforzamiento"→"Reforzamiento",
 "avanzado"→"Avanzado", "mixto"→"Mixto".
 
-Acciones — elige la más probable según el contexto:
-- "mover_clase": mover/pasar/cambiar/recorrer/jalar una clase ya existente a otra fecha/hora.
-  Frases: "pásale", "muévele", "cámbiala", "jalala", "recórrela", "ponla mejor el...".
-- "cancelar_clase": cancelar/quitar/borrar/eliminar una clase.
-  Frases: "cancela", "quítala", "bórrala", "ya no va", "no viene".
-- "nueva_ficha": agendar a un alumno nuevo o crear primera clase.
-  Frases: "nuevo alumno", "nueva ficha", "agrégalo", "inscribe a", "va a empezar".
-- "agendar_ficha": subir al Google Calendar las clases de una ficha YA existente.
-  Frases: "mete al calendar", "súbela al gc", "ponla en el calendario", "agéndala en gc",
-  "mete las clases de X", "sube la ficha de X", "al calendario a X".
-- "consultar_agenda": ver qué clases hay en un día o semana.
-  Frases: "¿qué hay mañana?", "¿quién tiene clase el viernes?", "¿qué tenemos esta semana?",
-  "muéstrame el jueves", "¿está ocupado el lunes a las 10?", "clases de hoy".
-- "consultar_alumno": ver info completa de un alumno: ficha, avance, clases próximas.
-  Frases: "¿cómo va X?", "búscame a X", "¿qué tiene X?", "info de X", "dime de X", "ficha de X".
-- "desconocido": no encaja en ninguna.
+Acciones — DEBES elegir UNA de estas exactas. Nunca uses "desconocido" si la intención es clara:
+
+"consultar_alumno" — cuando preguntan por UN alumno específico por nombre.
+  EJEMPLOS: "como va Luis", "como esta Juan", "busca a Maria", "info de Pedro", "que tiene Carlos",
+  "dime de Alma", "como va Luis Torres", "busca la info de Luis Torres".
+
+"consultar_agenda" — cuando preguntan qué clases hay en un día/semana (sin nombre de alumno específico).
+  EJEMPLOS: "que hay manana", "que clases hay el viernes", "quien tiene clase hoy",
+  "muestrame el jueves", "que tenemos esta semana", "clases de hoy", "que hay el lunes".
+
+"mover_clase" — mover/pasar/cambiar/jalar una clase a otra fecha u hora.
+  EJEMPLOS: "pasale a Juan al jueves 4", "muevenle a Maria al viernes", "cambiala al miercoles 10",
+  "jalala al sabado", "recorrela al lunes".
+
+"cancelar_clase" — cancelar/quitar/borrar una clase.
+  EJEMPLOS: "cancela a Maria", "ya no viene Juan", "no va Roberto manana", "borrala", "quitala".
+
+"nueva_ficha" — agendar nuevo alumno o primera clase.
+  EJEMPLOS: "nuevo Pedro automático sabado 9", "nueva ficha Alma lunes 10", "inscribe a Carlos".
+
+"agendar_ficha" — subir al Google Calendar clases de una ficha YA existente en el sistema.
+  EJEMPLOS: "subele las clases de Luis al gc", "mete al calendar a Maria", "agendala en gc",
+  "sube la ficha de Pedro", "ponla en el calendario".
+
+"desconocido" — SOLO si es completamente imposible determinar la intención.
 
 Reglas de parseo:
 - fecha: ISO YYYY-MM-DD calculada SIEMPRE desde HOY=${HOY}.
