@@ -44,6 +44,8 @@ const ACCION_LABEL: Record<string, string> = {
   mover_clase: 'Mover clase',
   cancelar_clase: 'Cancelar clase',
   agendar_ficha: 'Agendar ficha en Calendar',
+  consultar_alumno: 'Consultar alumno',
+  consultar_agenda: 'Consultar agenda',
   desconocido: 'Desconocido',
 };
 
@@ -60,6 +62,8 @@ function formatEventDate(iso: string): string {
   });
 }
 
+const HISTORIAL_KEY = 'agenda_nlp_historial';
+
 export default function AgendaNLP() {
   const [texto, setTexto] = useState('');
   const [step, setStep] = useState<Step>('idle');
@@ -68,12 +72,29 @@ export default function AgendaNLP() {
   const [alumnoData, setAlumnoData] = useState<AlumnoData | null>(null);
   const [mensaje, setMensaje] = useState('');
   const [listening, setListening] = useState(false);
+  const [historial, setHistorial] = useState<string[]>([]);
+  // Inline edit fields for confirm card
+  const [editFecha, setEditFecha] = useState('');
+  const [editHora, setEditHora] = useState('');
+  // Context: remember last alumno for pronoun resolution
+  const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (textareaRef.current) textareaRef.current.focus();
+    try {
+      const h = localStorage.getItem(HISTORIAL_KEY);
+      if (h) setHistorial(JSON.parse(h));
+    } catch {}
   }, []);
+
+  function saveHistorial(cmd: string) {
+    const next = [cmd, ...historial.filter((x: string) => x !== cmd)].slice(0, 6);
+    setHistorial(next);
+    try { localStorage.setItem(HISTORIAL_KEY, JSON.stringify(next)); } catch {}
+  }
 
   function startVoice() {
     const SR = window.SpeechRecognition ?? (window as any).webkitSpeechRecognition;
@@ -85,7 +106,7 @@ export default function AgendaNLP() {
     rec.onend = () => setListening(false);
     rec.onresult = (e: SpeechRecognitionEvent) => {
       const transcript = e.results[0][0].transcript;
-      setTexto(prev => prev ? prev + ' ' + transcript : transcript);
+      setTexto((prev: string) => prev ? prev + ' ' + transcript : transcript);
     };
     rec.start();
     recognitionRef.current = rec;
@@ -102,36 +123,27 @@ export default function AgendaNLP() {
     setParsed(null);
     setEventos([]);
     setMensaje('');
+    setEditFecha('');
+    setEditHora('');
     try {
       const res = await fetch('/api/agenda/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto }),
+        body: JSON.stringify({ texto, contexto: lastContext }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error ?? 'Error al parsear');
       const r: ParseResult = data.resultado;
+      // Pre-fill edit fields if already parsed
+      setEditFecha(r.fecha ?? '');
+      setEditHora(r.hora ?? '');
       setParsed(r);
       const soloNombreRequerido = r.accion === 'cancelar_clase' || r.accion === 'agendar_ficha' || r.accion === 'consultar_alumno';
       const soloFechaRequerida = r.accion === 'consultar_agenda';
       const criticos = (!soloNombreRequerido && !soloFechaRequerida && !r.alumno) ||
         (!soloNombreRequerido && !soloFechaRequerida && !r.fecha && !r.hora);
       if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido') {
-        setStep('executing');
-        const res2 = await fetch('/api/agenda/ejecutar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(r),
-        });
-        const d2 = await res2.json();
-        if (!d2.ok) {
-          if (d2.error === 'multiple' && d2.eventos) { setEventos(d2.eventos); setStep('disambiguate'); return; }
-          throw new Error(d2.error ?? 'Error al ejecutar');
-        }
-        if (d2.consulta) { setEventos(d2.eventos ?? []); setMensaje(d2.mensaje ?? ''); setStep('consulta'); return; }
-        if (d2.alumno) { setAlumnoData(d2.data); setStep('alumno'); return; }
-        setMensaje(d2.mensaje ?? 'Listo');
-        setStep('done');
+        await executeAction(r);
       } else {
         setStep('confirm');
       }
@@ -141,9 +153,7 @@ export default function AgendaNLP() {
     }
   }
 
-  async function handleEjecutar(eventId?: string, overrideParsed?: ParseResult) {
-    const payload = overrideParsed ?? parsed;
-    if (!payload) return;
+  async function executeAction(payload: ParseResult, eventId?: string) {
     setStep('executing');
     try {
       const res = await fetch('/api/agenda/ejecutar', {
@@ -160,6 +170,9 @@ export default function AgendaNLP() {
         }
         throw new Error(data.error ?? 'Error al ejecutar');
       }
+      // Update context with the alumno used
+      if (payload.alumno) setLastContext({ alumno: payload.alumno });
+      saveHistorial(texto);
       if (data.consulta) { setEventos(data.eventos ?? []); setMensaje(data.mensaje ?? ''); setStep('consulta'); return; }
       if (data.alumno) { setAlumnoData(data.data); setStep('alumno'); return; }
       setMensaje(data.mensaje ?? 'Listo');
@@ -170,20 +183,50 @@ export default function AgendaNLP() {
     }
   }
 
+  async function handleEjecutar(eventId?: string, overrideParsed?: ParseResult) {
+    const base = overrideParsed ?? parsed;
+    if (!base) return;
+    // Merge inline edits
+    const payload: ParseResult = {
+      ...base,
+      fecha: editFecha || base.fecha,
+      hora: editHora || base.hora,
+    };
+    await executeAction(payload, eventId);
+  }
+
   function reset() {
     setTexto('');
     setParsed(null);
     setEventos([]);
     setAlumnoData(null);
     setMensaje('');
+    setEditFecha('');
+    setEditHora('');
     setStep('idle');
     setTimeout(() => textareaRef.current?.focus(), 50);
   }
 
   const confianzaColor =
     !parsed ? '' :
-    parsed.confianza >= 0.8 ? 'text-green-600' :
-    parsed.confianza >= 0.5 ? 'text-yellow-600' : 'text-red-500';
+    parsed.confianza >= 0.9 ? 'text-green-600' :
+    parsed.confianza >= 0.7 ? 'text-yellow-600' : 'text-red-500';
+
+  // Compute effective fields for confirm card
+  const efectivaFecha = editFecha || parsed?.fecha || '';
+  const efectivaHora = editHora || parsed?.hora || '';
+
+  const canExecute = parsed && parsed.accion !== 'desconocido' && (
+    parsed.accion === 'cancelar_clase' ? !!parsed.alumno :
+    parsed.accion === 'agendar_ficha' ? !!parsed.alumno :
+    parsed.accion === 'consultar_alumno' ? !!parsed.alumno :
+    parsed.accion === 'consultar_agenda' ? true :
+    // mover_clase / nueva_ficha need alumno + fecha + hora
+    !!(parsed.alumno && efectivaFecha && efectivaHora)
+  );
+
+  const needsFecha = parsed && !parsed.fecha && ['mover_clase', 'nueva_ficha'].includes(parsed.accion);
+  const needsHora = parsed && !parsed.hora && ['mover_clase', 'nueva_ficha'].includes(parsed.accion);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -193,8 +236,21 @@ export default function AgendaNLP() {
           <Link href="/admin" className="text-gray-400 hover:text-gray-700 text-xl">←</Link>
           <div>
             <h1 className="text-lg font-bold text-gray-900">Agenda NLP</h1>
-            <p className="text-xs text-gray-400">Comandos en lenguaje natural</p>
+            <p className="text-xs text-gray-400">
+              Comandos en lenguaje natural
+              {lastContext.alumno && (
+                <span className="ml-2 text-blue-500">· contexto: {lastContext.alumno}</span>
+              )}
+            </p>
           </div>
+          {lastContext.alumno && (
+            <button
+              onClick={() => setLastContext({})}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-2 py-1"
+            >
+              Limpiar contexto
+            </button>
+          )}
         </div>
       </header>
 
@@ -208,7 +264,7 @@ export default function AgendaNLP() {
             value={texto}
             onChange={e => setTexto(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleParse(); } }}
-            placeholder="Ej: pásale a Juan al jueves 4pm"
+            placeholder={lastContext.alumno ? `Ej: muévela al viernes 4pm` : 'Ej: pásale a Juan al jueves 4pm'}
             rows={3}
             disabled={step !== 'idle' && step !== 'error'}
             className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
@@ -247,7 +303,7 @@ export default function AgendaNLP() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-y-2 text-sm">
+            <div className="grid grid-cols-2 gap-y-2 text-sm items-center">
               {parsed.alumno && (
                 <>
                   <span className="text-gray-500">Alumno</span>
@@ -260,25 +316,40 @@ export default function AgendaNLP() {
                   <span className="font-medium">{parsed.curso}</span>
                 </>
               )}
-              {parsed.fecha && (
-                <>
-                  <span className="text-gray-500">Fecha</span>
-                  <span className="font-medium">{parsed.fecha}</span>
-                </>
+              {/* Fecha: parsed or inline picker */}
+              <span className="text-gray-500">Fecha</span>
+              {parsed.fecha ? (
+                <span className="font-medium">{parsed.fecha}</span>
+              ) : needsFecha ? (
+                <input
+                  type="date"
+                  value={editFecha}
+                  onChange={e => setEditFecha(e.target.value)}
+                  className="text-sm border border-yellow-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-yellow-50"
+                />
+              ) : (
+                <span className="text-gray-400 text-xs">—</span>
               )}
-              {parsed.hora && (
-                <>
-                  <span className="text-gray-500">Hora</span>
-                  <span className="font-medium">{parsed.hora}</span>
-                </>
+              {/* Hora: parsed or inline picker */}
+              <span className="text-gray-500">Hora</span>
+              {parsed.hora ? (
+                <span className="font-medium">{parsed.hora}</span>
+              ) : needsHora ? (
+                <input
+                  type="time"
+                  value={editHora}
+                  onChange={e => setEditHora(e.target.value)}
+                  className="text-sm border border-yellow-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-yellow-50"
+                />
+              ) : (
+                <span className="text-gray-400 text-xs">—</span>
               )}
             </div>
 
-            {parsed.falta_info.filter(f => f !== 'curso').length > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-                <p className="text-xs text-yellow-800 font-semibold mb-1">Falta información:</p>
-                <p className="text-xs text-yellow-700">{parsed.falta_info.filter(f => f !== 'curso').join(', ')}</p>
-              </div>
+            {(needsFecha || needsHora) && (
+              <p className="text-xs text-yellow-700 bg-yellow-50 rounded-xl px-3 py-2">
+                Completa {[needsFecha && 'la fecha', needsHora && 'la hora'].filter(Boolean).join(' y ')} para ejecutar.
+              </p>
             )}
 
             {parsed.accion === 'desconocido' ? (
@@ -293,10 +364,7 @@ export default function AgendaNLP() {
                 </button>
                 <button
                   onClick={() => handleEjecutar()}
-                  disabled={
-                    !parsed.alumno ||
-                    (parsed.accion !== 'cancelar_clase' && parsed.accion !== 'agendar_ficha' && parsed.accion !== 'consultar_alumno' && (!parsed.fecha || !parsed.hora))
-                  }
+                  disabled={!canExecute}
                   className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
                 >
                   Ejecutar
@@ -310,7 +378,7 @@ export default function AgendaNLP() {
         {step === 'disambiguate' && eventos.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
             <p className="text-sm font-semibold text-gray-900">Se encontraron varias clases. ¿Cuál?</p>
-            {eventos.map(ev => (
+            {eventos.map((ev: Evento) => (
               <button
                 key={ev.id}
                 onClick={() => handleEjecutar(ev.id)}
@@ -338,7 +406,7 @@ export default function AgendaNLP() {
             {mensaje && eventos.length === 0 && (
               <p className="text-sm text-gray-500">{mensaje}</p>
             )}
-            {eventos.map(ev => (
+            {eventos.map((ev: Evento) => (
               <div key={ev.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-3 py-2.5 gap-2">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{ev.alumno}</p>
@@ -346,7 +414,7 @@ export default function AgendaNLP() {
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button
-                    onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setStep('confirm'); }}
+                    onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
                     className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
                   >
                     Mover
@@ -403,7 +471,7 @@ export default function AgendaNLP() {
                 {alumnoData.ultimaFicha.pendingTopics.length > 0 && (
                   <div>
                     <p className="text-xs text-blue-600 font-semibold mb-1">Pendientes:</p>
-                    {alumnoData.ultimaFicha.pendingTopics.map(t => (
+                    {alumnoData.ultimaFicha.pendingTopics.map((t: string) => (
                       <p key={t} className="text-xs text-blue-700">• {t}</p>
                     ))}
                   </div>
@@ -414,12 +482,12 @@ export default function AgendaNLP() {
             {alumnoData.proximasClases.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Próximas clases</p>
-                {alumnoData.proximasClases.map(ev => (
+                {alumnoData.proximasClases.map((ev: Evento) => (
                   <div key={ev.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
                     <p className="text-xs text-gray-700">{formatEventDate(ev.inicio)}</p>
                     <div className="flex gap-1.5">
                       <button
-                        onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setStep('confirm'); }}
+                        onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
                         className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
                       >
                         Mover
@@ -439,6 +507,35 @@ export default function AgendaNLP() {
             {alumnoData.proximasClases.length === 0 && !alumnoData.ultimaFicha && (
               <p className="text-xs text-gray-400 text-center">Sin clases próximas ni fichas de progreso.</p>
             )}
+
+            {/* Quick actions */}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => {
+                  const nombre = alumnoData.inscripcion?.nombre ?? parsed?.alumno ?? '';
+                  setTexto(`súbele las clases de ${nombre} al gc`);
+                  reset();
+                  setTimeout(() => {
+                    setTexto(`súbele las clases de ${nombre} al gc`);
+                    setStep('idle');
+                  }, 60);
+                }}
+                className="flex-1 text-xs bg-purple-100 text-purple-700 px-3 py-2 rounded-xl font-semibold hover:bg-purple-200"
+              >
+                Subir al Calendar
+              </button>
+              <button
+                onClick={() => {
+                  const nombre = alumnoData.inscripcion?.nombre ?? parsed?.alumno ?? '';
+                  setParsed({ accion: 'mover_clase', alumno: nombre, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] });
+                  setEditFecha(''); setEditHora('');
+                  setStep('confirm');
+                }}
+                className="flex-1 text-xs bg-blue-100 text-blue-700 px-3 py-2 rounded-xl font-semibold hover:bg-blue-200"
+              >
+                Mover próxima
+              </button>
+            </div>
           </div>
         )}
 
@@ -480,9 +577,25 @@ export default function AgendaNLP() {
           </div>
         )}
 
-        {/* Examples */}
+        {/* Historial + Examples */}
         {step === 'idle' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
+            {historial.length > 0 ? (
+              <>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Recientes</p>
+                {historial.map((cmd: string) => (
+                  <button
+                    key={cmd}
+                    onClick={() => setTexto(cmd)}
+                    className="w-full text-left text-xs text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg px-2 py-1.5 transition-colors flex items-center gap-2"
+                  >
+                    <span className="text-gray-400">↩</span>
+                    <span>"{cmd}"</span>
+                  </button>
+                ))}
+                <hr className="my-1 border-gray-100" />
+              </>
+            ) : null}
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ejemplos</p>
             {[
               '¿Cómo va Luis Torres?',

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const CURSOS = ['Reforzamiento', 'Avanzado', 'Estándar', 'Automático', 'Moto', 'Inglés', 'Intensivo', 'Mixto'];
 
 export async function POST(request: NextRequest) {
-  const { texto } = await request.json();
+  const { texto, contexto } = await request.json();
   if (!texto?.trim()) return NextResponse.json({ error: 'Texto vacío' }, { status: 400 });
 
   const HOY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
@@ -70,7 +70,11 @@ Reglas de parseo:
   nueva_ficha → ["fecha"] si falta fecha, ["hora"] si falta hora. "curso" solo si realmente falta.
 
 Devuelve SOLO JSON puro sin markdown:
-{"accion":"...","alumno":null,"curso":null,"fecha":null,"hora":null,"confianza":0.0,"falta_info":[]}`;
+{"accion":"...","alumno":null,"curso":null,"fecha":null,"hora":null,"confianza":0.0,"falta_info":[]}${
+  contexto?.alumno
+    ? `\n\nCONTEXTO DE SESIÓN — último alumno mencionado: "${contexto.alumno}". Si el comando hace referencia implícita (ej. "muévela", "cancélala", "su clase", "su ficha", "a él/ella") sin nombrar a nadie, usa este alumno automáticamente.`
+    : ''
+}`;
 
   const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? '';
 
