@@ -54,20 +54,22 @@ Reglas de parseo:
   "7"/"siete"→"07:00". "mediodía"→"12:00". "en la tarde" sin número→null.
 - alumno: nombre completo o parcial. Si dice "la de Juan" o "el de Pérez", extrae el nombre.
 - curso: mapear solo si se menciona. Para agendar_ficha/mover_clase/cancelar_clase no es requerido.
+- hora default para nueva_ficha: Si el comando NO especifica hora, usa "10:00" como valor por defecto.
+  Nunca devuelvas hora:null para nueva_ficha si la fecha está clara — siempre pon "10:00" como mínimo.
 - confianza — sé generoso, no conservador:
-  1.0: acción clara + alumno + fecha resuelta + hora resuelta.
+  1.0: acción clara + alumno + fecha resuelta. (hora puede ser default "10:00")
+  1.0: nueva_ficha con alumno + fecha (con o sin curso, con o sin hora explícita).
   0.95: acción clara + alumno + fecha resuelta, hora ambigua pero inferible (ej. "a las 4" = 16:00).
   0.9: acción solo requiere alumno (consultar_alumno, cancelar_clase, agendar_ficha) y alumno está claro.
-  0.75: nueva_ficha con fecha y hora pero sin curso.
-  0.5–0.69: falta fecha u hora para mover_clase o nueva_ficha.
+  0.5–0.69: falta fecha para mover_clase o nueva_ficha.
   <0.5: intención realmente ambigua o nombre de alumno no identificable.
 - falta_info: REGLA ESTRICTA:
   cancelar_clase → SIEMPRE [] si hay alumno. Nunca incluir hora ni curso.
   agendar_ficha → SIEMPRE [] si hay alumno.
   consultar_alumno → SIEMPRE [] si hay alumno.
   consultar_agenda → SIEMPRE [] si hay fecha o se entiende el día.
-  mover_clase → ["fecha"] si falta fecha, ["hora"] si falta hora. NUNCA "curso".
-  nueva_ficha → ["fecha"] si falta fecha, ["hora"] si falta hora. "curso" solo si realmente falta.
+  mover_clase → ["fecha"] si falta fecha, ["hora"] si falta hora explícita. NUNCA "curso".
+  nueva_ficha → ["fecha"] si falta fecha. NUNCA incluir "hora" ni "curso" — tienen defaults.
 
 Devuelve SOLO JSON puro sin markdown:
 {"accion":"...","alumno":null,"curso":null,"fecha":null,"hora":null,"confianza":0.0,"falta_info":[]}${
