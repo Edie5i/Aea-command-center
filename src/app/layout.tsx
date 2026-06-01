@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   keywords: "clases de manejo CDMX, autoescuela Ciudad de México, aprender a manejar CDMX, escuela de manejo Roma Sur, clases de manejo personalizadas",
   robots: "index, follow",
   alternates: {
-    canonical: "https://www.autoescuelaamericana.com/",
+    canonical: "https://www.autoescuelaamericana.com",
   },
   openGraph: {
     title: "Auto Escuela Americana — Clases de Manejo en CDMX",

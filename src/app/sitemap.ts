@@ -36,22 +36,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/evaluacion`,
+      url: `${BASE_URL}/instructores`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/examen-teorico`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/chatbot`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
     },
     {
       url: `${BASE_URL}/terminos`,
