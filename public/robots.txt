@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /test-calendar/
+Disallow: /webhook/
+Disallow: /ficha
+Disallow: /notas-alumno/
+Disallow: /pagos/
+Disallow: /encuesta-satisfaccion/
+
+Sitemap: https://www.autoescuelaamericana.com/sitemap.xml
