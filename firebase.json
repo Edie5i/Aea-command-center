@@ -4,6 +4,10 @@
       "backendId": "studio"
     }
   ],
+  "hosting": {
+    "source": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  },
   "firestore": {
     "indexes": "firestore.indexes.json"
   }
