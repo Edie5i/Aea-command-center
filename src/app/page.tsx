@@ -6,6 +6,45 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppFooter } from '@/components/footer';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { JsonLd } from '@/components/json-ld';
+
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'DrivingSchool',
+  name: 'Auto Escuela Americana',
+  description: 'Escuela de manejo en CDMX con instructores certificados. Clases personalizadas 1 a 1 en Roma Sur y a domicilio en toda la ciudad.',
+  url: 'https://www.autoescuelaamericana.com',
+  telephone: '+525634433212',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Torreón #49',
+    addressLocality: 'Roma Sur',
+    addressRegion: 'Ciudad de México',
+    addressCountry: 'MX',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: '19.4140064',
+    longitude: '-99.1663567',
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+      opens: '07:00',
+      closes: '21:00',
+    },
+  ],
+  priceRange: '$$',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.8',
+    reviewCount: '220',
+    bestRating: '5',
+    worstRating: '1',
+  },
+  sameAs: ['https://www.google.com/maps?cid=2053648174540417035'],
+};
 
 // Este componente recrea tu logo usando CSS puro para que sea escalable
 const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
@@ -47,6 +86,7 @@ const LogoDigital = ({ size = "large" }: { size?: "large" | "small" }) => {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center">
+      <JsonLd data={localBusinessSchema} />
       <div className="w-full max-w-7xl mx-auto rounded-xl border-t border-l border-r border-border shadow-2xl">
         <header className="flex flex-col items-center text-center my-8 px-4">
           <LogoDigital size="large" />

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { posts, getPost } from '@/lib/blog-data';
 import { AppFooter } from '@/components/footer';
 import { Clock, ArrowLeft } from 'lucide-react';
+import { JsonLd } from '@/components/json-ld';
 
 interface Props {
   params: { slug: string };
@@ -158,8 +159,29 @@ export default function BlogPostPage({ params }: Props) {
 
   const otherPosts = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: post.date,
+    url: `https://www.autoescuelaamericana.com/blog/${post.slug}`,
+    author: {
+      '@type': 'Organization',
+      name: 'Auto Escuela Americana',
+      url: 'https://www.autoescuelaamericana.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Auto Escuela Americana',
+      url: 'https://www.autoescuelaamericana.com',
+    },
+  };
+
   return (
     <main className="flex min-h-screen flex-col">
+      <JsonLd data={articleSchema} />
       <div className="flex-1 max-w-3xl mx-auto w-full px-6 py-16">
         <nav className="mb-8 text-xs text-muted-foreground">
           <Link href="/" className="hover:underline">Inicio</Link>

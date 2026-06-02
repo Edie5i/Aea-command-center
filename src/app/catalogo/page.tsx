@@ -15,6 +15,21 @@ import { getCourses, type Course } from '@/services/courseService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AppFooter } from '@/components/footer';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { JsonLd } from '@/components/json-ld';
+
+const catalogoSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Cursos de Manejo — Auto Escuela Americana',
+  url: 'https://www.autoescuelaamericana.com/catalogo',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, item: { '@type': 'Course', name: 'Curso Principiante (Automático)', description: 'Aprende a conducir un coche automático desde cero. Clases personalizadas en CDMX.', provider: { '@type': 'Organization', name: 'Auto Escuela Americana' }, offers: { '@type': 'Offer', price: '3900', priceCurrency: 'MXN', availability: 'https://schema.org/InStock' } } },
+    { '@type': 'ListItem', position: 2, item: { '@type': 'Course', name: 'Curso Principiante (Estándar)', description: 'Aprende a dominar la transmisión manual desde cero, incluyendo control de clutch y cambios de marcha.', provider: { '@type': 'Organization', name: 'Auto Escuela Americana' }, offers: { '@type': 'Offer', price: '3400', priceCurrency: 'MXN', availability: 'https://schema.org/InStock' } } },
+    { '@type': 'ListItem', position: 3, item: { '@type': 'Course', name: 'Curso Intermedio', description: 'Para quienes dejaron de manejar y quieren retomar confianza. 3 sesiones de 2.5h.', provider: { '@type': 'Organization', name: 'Auto Escuela Americana' }, offers: { '@type': 'Offer', price: '2900', priceCurrency: 'MXN', availability: 'https://schema.org/InStock' } } },
+    { '@type': 'ListItem', position: 4, item: { '@type': 'Course', name: 'Curso Intensivo', description: '6 sesiones intensivas para aprender a manejar en poco tiempo. Ideal si tienes prisa o pocos días disponibles.', provider: { '@type': 'Organization', name: 'Auto Escuela Americana' }, offers: { '@type': 'Offer', price: '5100', priceCurrency: 'MXN', availability: 'https://schema.org/InStock' } } },
+    { '@type': 'ListItem', position: 5, item: { '@type': 'Course', name: 'English Driving Course', description: 'Complete driving lessons for all levels, taught entirely in English. CDMX.', provider: { '@type': 'Organization', name: 'Auto Escuela Americana' }, offers: { '@type': 'Offer', price: '4300', priceCurrency: 'MXN', availability: 'https://schema.org/InStock' } } },
+  ],
+};
 
 export default function CatalogoPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -41,6 +56,7 @@ export default function CatalogoPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-secondary">
+      <JsonLd data={catalogoSchema} />
       <header className="sticky top-0 z-10 w-full border-b bg-background/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
