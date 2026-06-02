@@ -368,14 +368,7 @@ function AgendaContent() {
     <main className="flex min-h-screen flex-col bg-background">
       <section className="relative w-full bg-muted py-12">
         <div className="relative z-10 flex flex-col items-center text-center px-4">
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <Button asChild variant="outline" className="bg-background/80 backdrop-blur-sm hover:bg-background">
-              <a href="https://app.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
-                <Globe className="mr-2 h-4 w-4" />
-                app.autoescuelaamericana.com
-              </a>
-            </Button>
-          </div>
+
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
             Agenda tu Curso
           </h1>

@@ -79,9 +79,9 @@ export default function TerminosPage() {
       <div className="flex flex-col items-center text-center my-8 px-4">
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           <Button asChild variant="outline">
-            <a href="https://app.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer">
+            <a href="/agenda">
               <Globe className="mr-2 h-4 w-4" />
-              app.autoescuelaamericana.com
+              Agendar clase
             </a>
           </Button>
         </div>

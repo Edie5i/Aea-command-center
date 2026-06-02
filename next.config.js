@@ -7,11 +7,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   serverExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
-  async redirects() {
-    return [
-      { source: '/ficha', destination: '/ficha.html', permanent: false },
-    ];
-  },
+
   async headers() {
     return [
       {
