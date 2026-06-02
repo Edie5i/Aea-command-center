@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { FloatingWhatsappButton } from "@/components/floating-whatsapp-button";
 import { lexend, noto_sans } from "@/lib/fonts";
 import Script from "next/script";
+import { Analytics } from "@/components/analytics";
 
 export const metadata: Metadata = {
   title: "Auto Escuela Americana — Clases de Manejo en CDMX",
@@ -40,18 +40,26 @@ export default function RootLayout({
     <html lang="es-MX" className={`${lexend.variable} ${noto_sans.variable}`}>
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
+        {/* GA4 — init sincrónico en <head> garantiza que dataLayer exista antes de que gtag.js ejecute */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-LMZBQ47D8K');
+              gtag('config', 'AW-11300877997');
+            `,
+          }}
+        />
       </head>
       <body className="font-body antialiased h-full">
-        <Script strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=G-LMZBQ47D8K" />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-LMZBQ47D8K');
-            gtag('config', 'AW-11300877997');
-          `}
-        </Script>
+        {/* gtag.js carga async — después de que dataLayer ya está definido en <head> */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-LMZBQ47D8K"
+        />
+        <Analytics />
         {children}
         <Toaster />
         <FloatingWhatsappButton />
