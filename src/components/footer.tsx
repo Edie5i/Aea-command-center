@@ -1,45 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Link2, Shield } from 'lucide-react';
 
 export function AppFooter() {
-  const { toast } = useToast();
-
-  const handleCopyLink = () => {
-    const appUrl = "https://app.autoescuelaamericana.com";
-    navigator.clipboard.writeText(appUrl)
-      .then(() => {
-        toast({ title: '¡Enlace copiado!', description: 'El enlace de la app ha sido copiado al portapapeles.' });
-      })
-      .catch(err => {
-        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo copiar el enlace.' });
-        console.error('Failed to copy link: ', err);
-      });
-  };
-
   return (
     <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
-        <div className="mb-4">
-            <Button variant="ghost" onClick={handleCopyLink}>
-                <Link2 className="mr-2 h-4 w-4" />
-                Copiar enlace de la app
-            </Button>
-        </div>
-      <p>
-        <a href="https://app.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
-          app.autoescuelaamericana.com
-        </a>
-      </p>
-      <div className="mt-4 flex justify-center items-center gap-4 flex-wrap">
+      <div className="flex justify-center items-center gap-4 flex-wrap">
         <Link href="/blog" className="hover:underline">Blog</Link>
         <Link href="/terminos" className="hover:underline">Términos y Condiciones</Link>
         <Link href="/aviso-privacidad" className="hover:underline">Aviso de Privacidad</Link>
         <a href="/privacidad" className="hover:underline">Privacidad (LFPDPPP)</a>
       </div>
-      {/* Redes sociales */}
       <div className="mt-5 flex justify-center items-center gap-3">
         <a href="https://www.facebook.com/autoescuelaamericana" target="_blank" rel="noopener noreferrer nofollow" aria-label="Facebook" className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted-foreground/20 transition-colors">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
@@ -55,7 +26,7 @@ export function AppFooter() {
         </a>
       </div>
       <p className="mt-5 text-xs text-muted-foreground/50">
-        Powered by Next.js and Genkit.
+        © 2025 Auto Escuela Americana · CDMX
       </p>
     </footer>
   );
