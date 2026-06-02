@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { Suspense } from 'react';
 
-const GA_ID = 'G-LMZBQ47D8K';
+const GA_ID = 'G-8HSMYTSFJP';
 
 function PageViewTracker() {
   const pathname = usePathname();

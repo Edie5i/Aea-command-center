@@ -47,7 +47,7 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-LMZBQ47D8K');
+              gtag('config', 'G-8HSMYTSFJP');
               gtag('config', 'AW-11300877997');
             `,
           }}
@@ -57,7 +57,7 @@ export default function RootLayout({
         {/* gtag.js carga async — después de que dataLayer ya está definido en <head> */}
         <Script
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-LMZBQ47D8K"
+          src="https://www.googletagmanager.com/gtag/js?id=G-8HSMYTSFJP"
         />
         <Analytics />
         {children}
