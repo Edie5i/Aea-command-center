@@ -5,6 +5,7 @@ import { FloatingWhatsappButton } from "@/components/floating-whatsapp-button";
 import { lexend, noto_sans } from "@/lib/fonts";
 import Script from "next/script";
 import { Analytics } from "@/components/analytics";
+import { StaleDeploymentGuard } from "@/components/stale-deployment-guard";
 
 export const metadata: Metadata = {
   title: "Auto Escuela Americana — Clases de Manejo en CDMX",
@@ -60,6 +61,7 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=G-8HSMYTSFJP"
         />
         <Analytics />
+        <StaleDeploymentGuard />
         {children}
         <Toaster />
         <FloatingWhatsappButton />
