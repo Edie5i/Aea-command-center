@@ -48,17 +48,17 @@ export const botContextData = {
     },
     {
       nombre: "Curso para Personas Nerviosas",
-      precioMXN: 5100.00,
+      precioMXN: 5600.00,
       descripcion: "Un programa especial con paciencia y técnicas para superar la ansiedad al volante.",
     },
     {
       nombre: "Curso Mixto (Automático y Estándar)",
-      precioMXN: 5100.00,
+      precioMXN: 5600.00,
       descripcion: "Aprende a dominar ambos tipos de transmisión y amplía tus habilidades de conducción.",
     },
     {
       nombre: "Curso Intensivo",
-      precioMXN: 5100.00,
+      precioMXN: 5600.00,
       descripcion: "6 sesiones intensivas para aprender a manejar en poco tiempo. Ideal si tienes prisa o pocos días disponibles.",
     },
     {

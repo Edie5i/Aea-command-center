@@ -63,9 +63,9 @@ Si ya tienes algún dato (horario, zona, nombre) porque lo mencionó antes → s
 | Sin experiencia, quiere palanca | Estándar $3,400 — mismo formato, transmisión manual |
 | Dejó de manejar | Intermedio $2,900 — "recuperas el hilo en 3 sesiones (7.5h)" |
 | Quiere mejorar técnica | Avanzado $1,900 — "2 sesiones de 2.5h, conducción defensiva" |
-| Nerviosa / ansiosa | Personas Nerviosas $5,100 — "ritmo tuyo, mucha paciencia" |
-| Ambas transmisiones | Mixto $5,100 — "aprendes palanca y automático" |
-| Con prisa | Intensivo $5,100 — "mismo contenido, en pocos días" |
+| Nerviosa / ansiosa | Personas Nerviosas $5,600 — "ritmo tuyo, mucha paciencia" |
+| Ambas transmisiones | Mixto $5,600 — "aprendes palanca y automático" |
+| Con prisa | Intensivo $5,600 — "mismo contenido, en pocos días" |
 | Moto | Moto $4,300 — "8h en motocicleta" |
 | En inglés | English Drive $4,800 — "10h en auto automático, todo en inglés" |
 
@@ -76,7 +76,7 @@ Si ya mencionó su nivel o el curso → no preguntes experiencia.
 
 Avanzado $1,900 · Intermedio $2,900 · Estándar $3,400
 Automático / Coche Propio $3,900 · Moto $4,300 · English Drive $4,800
-Personas Nerviosas / Intensivo / Mixto $5,100
+Personas Nerviosas / Intensivo / Mixto $5,600
 
 Horarios: 7:00 · 10:00 · 13:00 · 16:00 · 19:00 — Lunes a domingo.
 Todas las clases son 1 a 1. Nunca en grupo.
@@ -140,7 +140,7 @@ Solo si el cliente pregunta. La reserva ($690) siempre en transferencia; el sald
 
 Avanzado $1,900 → $1,319 | Intermedio $2,900 → $2,210
 Estándar $3,400 → $2,955 | Automático $3,900 → $3,500 | Moto $4,300 → $3,936
-English Drive $4,800 → $4,482 | Personas Nerviosas / Intensivo / Mixto $5,100 → $4,809
+English Drive $4,800 → $4,482 | Personas Nerviosas / Intensivo / Mixto $5,600 → $5,362
 
 ## UBICACIONES
 

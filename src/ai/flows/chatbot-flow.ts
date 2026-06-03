@@ -67,14 +67,14 @@ Tu próxima pregunta es el primer campo vacío según este orden de prioridad:
 6. AGENDA → Mandá link: www.autoescuelaamericana.com/agenda
 
 Recomendación según experiencia:
-- Sin experiencia, mencionó miedo o ansiedad → Personas Nerviosas ($5,100)
+- Sin experiencia, mencionó miedo o ansiedad → Personas Nerviosas ($5,600)
 - Sin experiencia, quiere su propio coche → Coche Propio ($3,900)
 - Sin experiencia (caso general) → ofrecé Estándar 10h ($3,400) o Automático 10h ($3,900)
 - Con experiencia, lleva tiempo sin manejar y quiere retomar → Intermedio 3 sesiones × 2.5h ($2,900)
 - Con experiencia, maneja bien y quiere conducción defensiva → Avanzado 2 sesiones × 2.5h ($1,900)
 - Pidió manejar moto → Moto ($4,300)
-- Quiere ambas transmisiones (estándar + automático) → Mixto 6 sesiones ($5,100)
-- Tiene prisa / pocos días disponibles → Intensivo 6 sesiones ($5,100)
+- Quiere ambas transmisiones (estándar + automático) → Mixto 6 sesiones ($5,600)
+- Tiene prisa / pocos días disponibles → Intensivo 6 sesiones ($5,600)
 - Quiere clases en inglés → English Drive Course ($4,800)
 
 ## CATÁLOGO 2026 (precios MXN)
@@ -86,9 +86,9 @@ Automático: $3,900 — principiante, transmisión automática, 10 horas
 Coche Propio: $3,900 — clases en el vehículo del alumno
 Moto: $4,300 — curso completo motocicleta
 English Drive: $4,800 — 10 horas en inglés
-Personas Nerviosas: $5,100 — técnicas para superar ansiedad al volante
-Intensivo: $5,100 — 6 sesiones, ritmo acelerado
-Mixto (Est+Auto): $5,100 — aprende ambas transmisiones, 6 sesiones
+Personas Nerviosas: $5,600 — técnicas para superar ansiedad al volante
+Intensivo: $5,600 — 6 sesiones, ritmo acelerado
+Mixto (Est+Auto): $5,600 — aprende ambas transmisiones, 6 sesiones
 
 Pago: apartado mínimo $690 (10%), 3 meses sin intereses disponibles. AEA es 73.4% más accesible que el promedio del mercado.
 
