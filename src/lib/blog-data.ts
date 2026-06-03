@@ -275,6 +275,268 @@ Nada especial. El vehículo de enseñanza es nuestro. Solo necesitas ropa cómod
 Escríbenos por WhatsApp con tu colonia y el horario que te acomoda. Te confirmamos disponibilidad en menos de 24 horas.
     `,
   },
+  {
+    slug: 'precio-clases-de-manejo-cdmx',
+    title: '¿Cuánto cuestan las clases de manejo en CDMX? Precios 2026',
+    description:
+      'Comparamos los precios de clases de manejo en la Ciudad de México en 2026. Cuánto cuesta un curso completo, sesiones sueltas y qué incluye cada opción.',
+    date: '2026-06-01',
+    readingTime: '4 min',
+    content: `
+## El rango general de precios en CDMX
+
+Las clases de manejo en la Ciudad de México varían bastante según la escuela, el tipo de curso y si son a domicilio o en sede. En 2026, el rango habitual es:
+
+| Tipo de servicio | Precio aproximado |
+|-----------------|------------------|
+| Sesión suelta (2.5 hrs) | $500 – $900 MXN |
+| Curso completo Automático (4 sesiones) | $2,500 – $4,000 MXN |
+| Curso completo Estándar (4–5 sesiones) | $2,800 – $4,500 MXN |
+| Curso Intensivo (4 sesiones seguidas) | $3,000 – $5,000 MXN |
+| Clases a domicilio | Mismo precio o ligero extra |
+
+## ¿Qué incluye el precio?
+
+No todos los cursos son iguales. Antes de contratar, verifica que incluya:
+
+- **Vehículo con doble freno.** El coche debe tener pedal de freno en el lado del copiloto — es un requisito de seguridad, no un lujo.
+- **Instructor certificado.** Pide ver su certificación. Un instructor sin formación puede reforzar malos hábitos o crear situaciones peligrosas.
+- **Ruta real en CDMX.** Las clases deben ser en calles reales, no en estacionamientos privados durante toda la instrucción.
+- **Flexibilidad de horario.** Si solo ofrecen horarios fijos de lunes a viernes de 9 a 5, puede ser difícil coordinarlo con tu vida.
+
+## ¿Por qué algunos son más baratos?
+
+El precio bajo generalmente implica uno de estos trade-offs:
+
+- Instructor sin certificación formal
+- Coche sin doble freno o en mal estado
+- Clases muy cortas (menos de 2 horas)
+- Sin seguimiento personalizado — el mismo guion para todos
+
+## ¿Vale la pena pagar más?
+
+Depende de tus objetivos. Si quieres aprender correctamente desde el principio, un curso bien estructurado con instructor certificado ahorra tiempo (y nervios) a largo plazo. Las clases baratas a veces resultan más caras porque terminas tomando más sesiones o desarrollando hábitos que luego tienes que corregir.
+
+## Nuestros precios en Auto Escuela Americana
+
+Aparta tu lugar desde **$690 MXN** por sesión suelta. Los cursos completos tienen precio especial — consúltanos por WhatsApp y te explicamos las opciones según tu nivel y objetivos.
+
+Todos nuestros cursos incluyen instructor certificado, vehículo con doble freno y clases en rutas reales de CDMX. Sin costos ocultos.
+    `,
+  },
+  {
+    slug: 'clases-de-manejo-para-adultos-cdmx',
+    title: 'Clases de manejo para adultos en CDMX: nunca es tarde para aprender',
+    description:
+      'Aprender a manejar de adulto tiene sus propias ventajas y retos. Te explicamos qué esperar, cómo funciona el proceso y por qué muchos adultos aprenden más rápido de lo que creen.',
+    date: '2026-05-28',
+    readingTime: '5 min',
+    content: `
+## La pregunta que muchos adultos se hacen
+
+*"¿No es muy tarde para aprender a manejar?"*
+
+No. Y no es una frase motivacional vacía — hay razones concretas por las que los adultos mayores de 25, 30, 40 o incluso 50 años aprenden a manejar con buenos resultados.
+
+## Por qué los adultos aprenden bien
+
+### Madurez para tomar decisiones
+El manejo seguro no es solo técnica — es criterio. Los adultos tienen más capacidad natural para anticipar situaciones, respetar distancias y no dejarse llevar por el ego al volante. Eso vale mucho.
+
+### Motivación clara
+Un adulto que decide aprender generalmente tiene una razón concreta: independencia, trabajo, familia. Esa motivación acelera el aprendizaje más que cualquier técnica pedagógica.
+
+### Menos miedo al ridículo
+Paradójicamente, muchos adultos tienen menos vergüenza de preguntar, de ir despacio y de reconocer cuando algo no les quedó claro. Eso hace las clases más productivas.
+
+## Los retos reales (y cómo los manejamos)
+
+### El cuerpo tarda más en automatizar
+Los reflejos y la coordinación toman un poco más de tiempo en convertirse en hábitos. La solución es sesiones más enfocadas — no más largas, sino mejor diseñadas.
+
+### La ansiedad puede ser más intensa
+Quien lleva años sin aprender algo nuevo puede sentir más presión. Por eso trabajamos con progresión gradual: empezamos despacio, en calles tranquilas, y avanzamos cuando el alumno se siente listo — no cuando el instructor decide.
+
+### Los hábitos de copiloto
+Muchos adultos han pasado años como pasajeros y tienen nociones vagas (y a veces equivocadas) de cómo se maneja. El primer trabajo es identificar esas ideas y reemplazarlas con técnica correcta.
+
+## ¿A qué edad es "demasiado tarde"?
+
+No existe esa edad. En Auto Escuela Americana hemos enseñado a alumnos de 55 y 60 años que hoy manejan solos en CDMX. El factor limitante nunca fue la edad — fue encontrar el ambiente correcto para aprender.
+
+## ¿Cuántas clases necesito si soy adulto?
+
+Depende de tu punto de partida. Si no has manejado nunca, generalmente entre 4 y 6 sesiones son suficientes para manejar con confianza. Puedes hacer nuestra [evaluación gratuita](/evaluacion) para saber exactamente dónde estás antes de empezar.
+
+¿Tienes dudas sobre si las clases son para ti? Escríbenos por WhatsApp — sin compromiso y sin prisa.
+    `,
+  },
+  {
+    slug: 'consejos-para-manejar-en-cdmx',
+    title: '10 consejos para manejar en CDMX por primera vez',
+    description:
+      'Manejar en la Ciudad de México puede parecer caótico al principio. Estos 10 consejos prácticos te ayudan a navegar el tráfico, los microbuses y las señales con más confianza.',
+    date: '2026-05-22',
+    readingTime: '5 min',
+    content: `
+## La Ciudad de México tiene sus propias reglas
+
+No escritas, claro. Pero quien maneja aquí sabe que hay una lógica detrás del aparente caos. Estos consejos te ayudarán a entenderla más rápido.
+
+## 1. Los microbuses mandan (prácticamente)
+
+Los microbuses y combis paran donde quieren, cambian de carril sin señalar y arrancan abruptamente. No es que tengan prioridad legal — es que su tamaño y masa les da ventaja física. Anticípalos siempre y dales espacio.
+
+## 2. El carril izquierdo es para rebasar, no para ir rápido
+
+En México, el carril izquierdo de una vialidad de varios carriles está reservado para adelantamientos. Circular ahí constantemente genera conflictos. Ocupa el carril de en medio o el derecho para velocidad de crucero.
+
+## 3. Aprende a leer los semáforos peatonales
+
+Los semáforos para peatones te adelantan cuánto tiempo queda en tu luz verde. Si el semáforo peatonal ya empezó a parpadear en rojo, tu verde está a punto de cambiar — ve reduciendo velocidad.
+
+## 4. Señaliza siempre, aunque "no haya nadie"
+
+El hábito de señalizar antes de cada cambio de carril o vuelta debe volverse automático. No es solo una regla — es comunicación con el resto de los conductores y peatones.
+
+## 5. Cuidado con las calles de sentido único
+
+El centro histórico, la Roma, la Condesa y muchas colonias tienen abundantes calles de un solo sentido. Antes de arrancar, verifica la dirección con los señalamientos — o con el mapa.
+
+## 6. Distancia de seguimiento: más de lo que crees
+
+En ciudad, la tendencia es ir muy pegado al coche de adelante. Mantén al menos dos segundos de distancia — más en lluvia. Si puedes ver los neumáticos traseros del coche de adelante tocando el pavimento, estás demasiado cerca.
+
+## 7. Los topes son sorpresa
+
+Las topes en CDMX no siempre están señalizados y varían enormemente en altura. En colonias residenciales, reduce velocidad preventivamente. Los que no están pintados son los más peligrosos.
+
+## 8. Lluvia = doble tiempo de reacción
+
+Cuando llueve fuerte en la ciudad, las calles se inundan, la visibilidad baja y el tiempo de frenado aumenta. Reduce velocidad, enciende luces y añade distancia. No es exageración — es física.
+
+## 9. El uso de bocina: menos es más
+
+En CDMX la bocina se usa mucho, pero tiene un solo uso legítimo: avisar de tu presencia en situaciones de peligro. Usarla por frustración no acelera el tráfico y sube el estrés de todos.
+
+## 10. Confía en tu espejo retrovisor más que en el lateral
+
+Muchos conductores nuevos sobre-usan los espejos laterales y descuidan el retrovisor central. Los tres son necesarios, pero el retrovisor central te da la imagen más clara de lo que viene detrás.
+
+---
+
+¿Quieres practicar estos conceptos en calles reales de CDMX con un instructor certificado? Escríbenos por WhatsApp y agendamos tu primera clase.
+    `,
+  },
+  {
+    slug: 'clases-de-manejo-moto-cdmx',
+    title: 'Clases de manejo en moto en CDMX: todo lo que necesitas saber',
+    description:
+      'Aprende a manejar moto en la Ciudad de México de forma segura. Te explicamos cómo son las clases, qué cubre el curso y por qué la técnica importa más de lo que crees.',
+    date: '2026-05-18',
+    readingTime: '4 min',
+    content: `
+## Moto en CDMX: libertad con responsabilidad
+
+La moto es el vehículo que más ha crecido en la ciudad en los últimos años — delivery, movilidad personal, evitar el tráfico. Pero también es el que tiene la curva de aprendizaje más delicada si no se aprende bien desde el principio.
+
+## ¿Qué cubre un curso de moto?
+
+Un curso bien diseñado no es solo "cómo no caerse". Cubre:
+
+### Control del vehículo
+- Posición correcta del cuerpo
+- Manejo del embrague y el cambio de velocidades
+- Frenado combinado (freno delantero + trasero)
+- Maniobras a baja velocidad: el punto donde más caídas ocurren
+
+### Manejo en ciudad
+- Visibilidad y puntos ciegos de otros conductores
+- Cómo te ven (o no te ven) los coches
+- Distancias de seguridad en moto — son diferentes a las del coche
+- Intersecciones: el momento de más riesgo para motociclistas
+
+### Técnica de curvas
+- Controdirección: el movimiento que confunde a la mayoría al principio
+- Peso del cuerpo y posición en curva
+- Velocidad de entrada y salida
+
+## ¿Necesito experiencia previa?
+
+No. Nuestro curso de moto está diseñado para alumnos sin ninguna experiencia previa. Si ya tienes algo de base, lo evaluamos al inicio y ajustamos el programa.
+
+## ¿Qué moto se usa en las clases?
+
+Usamos motocicletas de cilindrada media, apropiadas para aprendizaje en ciudad. No empezamos en motos de alta cilindrada — la técnica correcta en una moto mediana se transfiere directamente a cualquier otra.
+
+## ¿Se necesita licencia especial?
+
+Sí. Para circular en moto en la CDMX se requiere la **licencia tipo A**, que expide la SEMOVI. El trámite es similar al de la licencia tipo B (automóvil) — requiere examen médico y teórico.
+
+Nuestro [simulador de examen teórico](/examen-teorico) incluye preguntas sobre motos y reglamento general.
+
+## ¿Por qué aprender con instructor y no solo?
+
+La moto es un vehículo que perdona poco. Los errores de técnica que en coche se manifiestan como incomodidad, en moto pueden ser caídas. Un instructor al costado — en coche o en moto paralela — puede corregir en tiempo real antes de que el error se consolide como hábito.
+
+¿Quieres saber más sobre el curso de moto? Escríbenos por WhatsApp con tus preguntas.
+    `,
+  },
+  {
+    slug: 'autoescuela-roma-sur-cdmx',
+    title: 'Autoescuela en Roma Sur, CDMX: clases de manejo en tu colonia',
+    description:
+      'Auto Escuela Americana tiene su sede en Roma Sur y cubre toda la CDMX a domicilio. Conoce cómo funcionan las clases, las rutas que practicamos y por qué la ubicación importa.',
+    date: '2026-05-12',
+    readingTime: '3 min',
+    content: `
+## Roma Sur como punto de partida
+
+Nuestra sede está en **Torreón 49, Roma Sur**, en el corazón de una de las colonias con más mezcla de tráfico de la ciudad: calles angostas, ciclistas, peatones frecuentes, avenidas principales y zonas de alto flujo peatonal como el Mercado de Medellín.
+
+Eso no es accidental. Aprender a manejar en Roma Sur significa enfrentarte desde el principio a situaciones reales — no en estacionamientos vacíos ni en vialidades de baja complejidad.
+
+## Las rutas que recorremos
+
+Dependiendo de tu nivel, las clases pueden incluir:
+
+**Nivel básico**
+- Calles interiores de la Roma y la Condesa
+- Práctica de arranque, frenado y reversa en zonas residenciales
+- Primeras intersecciones con semáforo
+
+**Nivel intermedio**
+- Avenida Insurgentes (uno de los corredores más largos de la ciudad)
+- Álvaro Obregón y Eje 1 Sur
+- Rotondas y glorietas
+
+**Nivel avanzado**
+- Periferico y vías rápidas
+- Incorporaciones y cambios de carril a velocidad
+- Estacionamiento en paralelo en calle real
+
+## ¿Y si no vivo en Roma Sur?
+
+No importa. El **75% de nuestras clases son a domicilio** — el instructor va a donde estés. Cubrimos:
+
+- Condesa, Hipódromo, Del Valle
+- Narvarte, Doctores, Obrera
+- Coyoacán, Benito Juárez
+- Cuauhtémoc y colonias colindantes
+
+Para zonas fuera del área central, consúltanos — evaluamos caso por caso.
+
+## ¿Por qué importa la ubicación de la autoescuela?
+
+Porque las calles donde aprendes son las calles donde vas a manejar. Aprender en una ciudad diferente a la tuya o en condiciones artificiales crea una brecha entre la clase y la realidad. En Roma Sur y las colonias aledañas te enseñamos a manejar en el mismo contexto donde lo vas a usar.
+
+## ¿Cómo empezar?
+
+Escríbenos por WhatsApp con tu colonia y el horario que te acomoda. Te respondemos en menos de 24 horas y agendamos tu primera clase sin compromiso.
+
+¿Quieres saber primero qué nivel tienes? Haz nuestra [evaluación gratuita](/evaluacion) — tarda menos de 5 minutos.
+    `,
+  },
 ];
 
 export function getPost(slug: string): BlogPost | undefined {
