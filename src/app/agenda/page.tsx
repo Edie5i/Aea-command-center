@@ -366,42 +366,26 @@ function AgendaContent() {
 
   return (
     <main className="flex min-h-screen flex-col bg-background">
-      <section className="relative w-full bg-muted py-12">
+      <section className="relative w-full bg-muted py-8 md:py-12">
         <div className="relative z-10 flex flex-col items-center text-center px-4">
-
-          <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
+          <h1 className="text-3xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
             Agenda tu Curso
           </h1>
-          <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tu inscripción y agenda están completas!' : 'Selecciona las fechas para tu curso y completa el formulario.'}
+          <p className="mt-2 max-w-xl text-base md:text-lg text-muted-foreground">
+            {courseScheduled ? '¡Tu inscripción y agenda están completas!' : 'Selecciona fechas, horario y llena tus datos.'}
           </p>
         </div>
       </section>
       <div className="container px-4 sm:px-6 md:px-8 py-8 flex flex-col items-center">
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Inicio
-            </Link>
+        <div className="mb-6 flex justify-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/"><ArrowLeft className="mr-1.5 h-4 w-4" />Inicio</Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/pagos">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Pagos
-            </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/pagos"><CreditCard className="mr-1.5 h-4 w-4" />Pagos</Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/catalogo">
-                <List className="mr-2 h-4 w-4" />
-                Catálogo
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos
-            </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/catalogo"><List className="mr-1.5 h-4 w-4" />Cursos</Link>
           </Button>
         </div>
         
@@ -500,13 +484,13 @@ function AgendaContent() {
                                </CardHeader>
                                <div className="space-y-3">
                                 {selectedDates.map((item, index) => (
-                                    <div key={item.date.toISOString()} className="flex items-center justify-between gap-4 p-2 border rounded-md">
-                                        <p className="text-sm font-medium">
+                                    <div key={item.date.toISOString()} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-xl bg-muted/30">
+                                        <p className="text-sm font-medium capitalize">
                                             {format(item.date, "EEEE, d 'de' MMMM", { locale: es })}
                                         </p>
                                         <Select onValueChange={(value) => handleTimeChange(index, value)} defaultValue={item.time}>
-                                            <SelectTrigger className="w-[180px]">
-                                                <SelectValue placeholder="Selecciona horario" />
+                                            <SelectTrigger className="w-full sm:w-[160px]">
+                                                <SelectValue placeholder="Elige hora" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{format(parse(slot, 'HH:mm', new Date()), 'h:mm a')}</SelectItem>)}
