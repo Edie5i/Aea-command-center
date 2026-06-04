@@ -8,10 +8,12 @@ const nextConfig = {
   },
   serverExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
 
-  async redirects() {
-    return [
-      { source: '/ficha', destination: '/agenda', permanent: true },
-    ];
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: '/ficha', destination: '/ficha.html' },
+      ],
+    };
   },
 
   async headers() {
