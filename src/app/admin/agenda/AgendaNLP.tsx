@@ -80,6 +80,7 @@ export default function AgendaNLP() {
   const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
 
   const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -96,28 +97,63 @@ export default function AgendaNLP() {
     try { localStorage.setItem(HISTORIAL_KEY, JSON.stringify(next)); } catch {}
   }
 
+  function autoSubmit(transcript: string) {
+    setTexto(transcript);
+    setTimeout(() => document.getElementById('btn-analizar')?.click(), 100);
+  }
+
   function startVoice() {
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-    if (!SR) { alert('Tu navegador no soporta reconocimiento de voz.'); return; }
-    const rec = new SR();
-    rec.lang = 'es-MX';
-    rec.interimResults = false;
-    rec.onstart = () => setListening(true);
-    rec.onend = () => setListening(false);
-    rec.onresult = (e: any) => {
-      const transcript: string = e.results[0][0].transcript;
-      setTexto(transcript);
-      // Auto-submit: parsear y ejecutar inmediatamente al terminar de hablar
-      setTimeout(() => {
-        document.getElementById('btn-analizar')?.click();
-      }, 100);
-    };
-    rec.start();
-    recognitionRef.current = rec;
+
+    // Chrome / Safari — SpeechRecognition nativo (instantáneo)
+    if (SR) {
+      const rec = new SR();
+      rec.lang = 'es-MX';
+      rec.interimResults = false;
+      rec.onstart = () => setListening(true);
+      rec.onend = () => setListening(false);
+      rec.onresult = (e: any) => {
+        autoSubmit(e.results[0][0].transcript);
+      };
+      rec.start();
+      recognitionRef.current = rec;
+      return;
+    }
+
+    // Firefox — MediaRecorder + Gemini transcripción
+    if (!navigator.mediaDevices?.getUserMedia) {
+      alert('Tu navegador no soporta micrófono.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const chunks: BlobPart[] = [];
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        setListening(false);
+        const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+        const form = new FormData();
+        form.append('audio', blob, 'audio.webm');
+        try {
+          const res = await fetch('/api/transcribe', { method: 'POST', body: form });
+          const data = await res.json();
+          if (data.ok && data.text) autoSubmit(data.text);
+          else setMensaje('No se pudo transcribir. Intenta de nuevo.');
+        } catch {
+          setMensaje('Error al transcribir el audio.');
+        }
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setListening(true);
+    }).catch(() => alert('No se pudo acceder al micrófono.'));
   }
 
   function stopVoice() {
     recognitionRef.current?.stop();
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
     setListening(false);
   }
 
