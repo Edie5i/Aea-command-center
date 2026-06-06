@@ -79,7 +79,7 @@ export default function AgendaNLP() {
   // Context: remember last alumno for pronoun resolution
   const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -97,16 +97,20 @@ export default function AgendaNLP() {
   }
 
   function startVoice() {
-    const SR = window.SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Tu navegador no soporta reconocimiento de voz.'); return; }
     const rec = new SR();
     rec.lang = 'es-MX';
     rec.interimResults = false;
     rec.onstart = () => setListening(true);
     rec.onend = () => setListening(false);
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = e.results[0][0].transcript;
-      setTexto((prev: string) => prev ? prev + ' ' + transcript : transcript);
+    rec.onresult = (e: any) => {
+      const transcript: string = e.results[0][0].transcript;
+      setTexto(transcript);
+      // Auto-submit: parsear y ejecutar inmediatamente al terminar de hablar
+      setTimeout(() => {
+        document.getElementById('btn-analizar')?.click();
+      }, 100);
     };
     rec.start();
     recognitionRef.current = rec;
@@ -282,6 +286,7 @@ export default function AgendaNLP() {
               {listening ? '⏹ Detener' : '🎤 Voz'}
             </button>
             <button
+              id="btn-analizar"
               onClick={handleParse}
               disabled={(step !== 'idle' && step !== 'error') || !texto.trim()}
               className="flex-1 text-sm bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
