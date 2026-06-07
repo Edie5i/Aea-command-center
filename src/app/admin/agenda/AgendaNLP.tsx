@@ -112,6 +112,12 @@ export default function AgendaNLP() {
       rec.interimResults = false;
       rec.onstart = () => setListening(true);
       rec.onend = () => setListening(false);
+      rec.onerror = (e: any) => {
+        setListening(false);
+        // not-allowed = permiso denegado o diálogo cancelado — silencioso
+        if (e.error === 'not-allowed') return;
+        setMensaje('Error de micrófono: ' + e.error);
+      };
       rec.onresult = (e: any) => {
         autoSubmit(e.results[0][0].transcript);
       };
