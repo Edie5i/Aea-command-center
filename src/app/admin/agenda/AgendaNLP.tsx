@@ -629,38 +629,34 @@ export default function AgendaNLP() {
           </div>
         )}
 
-        {/* Historial + Examples */}
+        {/* Comandos fijos */}
         {step === 'idle' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
-            {historial.length > 0 ? (
-              <>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Recientes</p>
-                {historial.map((cmd: string) => (
-                  <button
-                    key={cmd}
-                    onClick={() => setTexto(cmd)}
-                    className="w-full text-left text-xs text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg px-2 py-1.5 transition-colors flex items-center gap-2"
-                  >
-                    <span className="text-gray-400">↩</span>
-                    <span>"{cmd}"</span>
-                  </button>
-                ))}
-                <hr className="my-1 border-gray-100" />
-              </>
-            ) : null}
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ejemplos</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-1">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Comandos</p>
             {[
-              '¿Cómo va Luis Torres?',
-              '¿Qué hay mañana?',
-              'Pásale a Juan al jueves 4pm',
-              'Ya no viene Roberto mañana',
-              'Nuevo Pedro Ramírez, automático, sábado 9',
-              'Súbele las clases de Luis al gc',
-            ].map(ej => (
+              { label: 'Buscar alumno', cmd: 'Busca a [nombre]' },
+              { label: 'Qué hay mañana', cmd: '¿Qué hay mañana?' },
+              { label: 'Nueva ficha', cmd: 'Nueva ficha [nombre] [curso] el [día] [hora]' },
+              { label: 'Mover clase', cmd: 'Pásale a [nombre] al [día] [hora]' },
+              { label: 'Cancelar clase', cmd: 'Cancela a [nombre]' },
+              { label: 'Eliminar evento', cmd: 'Elimina [nombre] [día] [hora]' },
+              { label: 'Subir al GC', cmd: 'Súbele las clases de [nombre] al gc' },
+            ].map(({ label, cmd }) => (
+              <button
+                key={cmd}
+                onClick={() => { setTexto(cmd); setTimeout(() => textareaRef.current?.focus(), 50); }}
+                className="w-full text-left text-xs hover:bg-blue-50 rounded-lg px-2 py-2 transition-colors flex items-center justify-between group"
+              >
+                <span className="font-medium text-gray-700 group-hover:text-blue-700">{label}</span>
+                <span className="text-gray-400 group-hover:text-blue-400 truncate ml-2 max-w-[55%]">{cmd}</span>
+              </button>
+            ))}
+            {/* Ejemplos legacy ocultos — solo los fijos */}
+            {[].map(ej => (
               <button
                 key={ej}
                 onClick={() => setTexto(ej)}
-                className="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg px-2 py-1.5 transition-colors"
+                className="hidden"
               >
                 "{ej}"
               </button>
