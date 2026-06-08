@@ -782,15 +782,23 @@
     return 'Automático';
   }
 
+  let lastCalendarSlots = null; // para reintentar sin re-descargar PDF
+
   async function scheduleCalendar(slots) {
     const filledSlots = slots.filter(s => s.date && s.time);
     if (filledSlots.length === 0) return;
+    lastCalendarSlots = filledSlots;
 
     const btn = document.querySelector('button.primary');
-    const originalText = btn.querySelector('.arrow').previousSibling.textContent;
     btn.disabled = true;
     btn.querySelector('.arrow').previousSibling.textContent = 'Agendando en Calendar… ';
+    btn.querySelector('.arrow').textContent = '⏳';
 
+    // Ocultar botón de reintento si existía
+    const oldRetry = document.getElementById('btn-retry-calendar');
+    if (oldRetry) oldRetry.remove();
+
+    let calendarOk = false;
     try {
       const payload = {
         name:         $('f-nombre').value.trim(),
@@ -810,20 +818,33 @@
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+      calendarOk = !!(data.ok && data.created > 0);
 
-      btn.querySelector('.arrow').textContent = data.ok ? '✓' : '⚠';
-      btn.querySelector('.arrow').previousSibling.textContent = data.ok
+      btn.querySelector('.arrow').textContent = calendarOk ? '✓' : '⚠';
+      btn.querySelector('.arrow').previousSibling.textContent = calendarOk
         ? `PDF + ${data.created} evento${data.created !== 1 ? 's' : ''} en Calendar `
-        : 'PDF ok — error en Calendar ';
+        : 'PDF ok — Calendar falló ';
     } catch (e) {
       btn.querySelector('.arrow').textContent = '⚠';
       btn.querySelector('.arrow').previousSibling.textContent = 'PDF ok — sin conexión ';
     } finally {
       btn.disabled = false;
-      setTimeout(() => {
-        btn.querySelector('.arrow').textContent = '↓';
-        btn.querySelector('.arrow').previousSibling.textContent = 'Descargar PDF ';
-      }, 4000);
+      if (calendarOk) {
+        // Éxito: resetear después de 5 s
+        setTimeout(() => {
+          btn.querySelector('.arrow').textContent = '↓';
+          btn.querySelector('.arrow').previousSibling.textContent = 'Descargar PDF ';
+        }, 5000);
+      } else {
+        // Error: mostrar botón de reintento persistente
+        const retryBtn = document.createElement('button');
+        retryBtn.id = 'btn-retry-calendar';
+        retryBtn.className = 'ghost';
+        retryBtn.style.marginTop = '8px';
+        retryBtn.innerHTML = 'Reintentar Calendar <span class="arrow">↻</span>';
+        retryBtn.onclick = () => scheduleCalendar(lastCalendarSlots);
+        btn.parentNode.insertBefore(retryBtn, btn.nextSibling);
+      }
     }
   }
 

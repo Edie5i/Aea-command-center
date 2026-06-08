@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { InscripcionData } from '@/lib/firestore';
 import { format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,7 +14,44 @@ const DASH_GRAY  = [180, 180, 180] as const;
 
 const MAX_SESSIONS = 6;
 
+type CalStatus = 'idle' | 'loading' | 'ok' | 'error';
+
 export default function FichaButton({ data }: { data: InscripcionData }) {
+  const [calStatus, setCalStatus] = useState<CalStatus>('idle');
+  const [calMsg, setCalMsg] = useState('');
+
+  async function syncCalendar() {
+    setCalStatus('loading');
+    setCalMsg('');
+    try {
+      const res = await fetch('/api/ficha/calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.nombre,
+          phone: data.telefono,
+          address: data.zona || 'Torreón 49, Roma Sur',
+          transmission: data.transmision,
+          dates: data.fechas.map(f => ({
+            date: new Date(f.date + 'T12:00:00').toISOString(),
+            time: f.time,
+          })),
+        }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setCalStatus('ok');
+        setCalMsg(`${json.created} evento${json.created !== 1 ? 's' : ''}`);
+      } else {
+        setCalStatus('error');
+        setCalMsg(json.error ?? 'Error');
+      }
+    } catch {
+      setCalStatus('error');
+      setCalMsg('Sin conexión');
+    }
+  }
+
   async function handleDownload() {
     const fechasIncompletas = data.fechas.filter(f => !f.date || !f.time);
     if (fechasIncompletas.length > 0) {
@@ -227,11 +265,33 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
   }
 
   return (
-    <button
-      onClick={handleDownload}
-      className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors shrink-0"
-    >
-      ↓ Ficha PDF
-    </button>
+    <div className="flex gap-2 items-center shrink-0">
+      <button
+        onClick={handleDownload}
+        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
+      >
+        ↓ Ficha PDF
+      </button>
+      <button
+        onClick={syncCalendar}
+        disabled={calStatus === 'loading'}
+        title="Crear/sincronizar clases en Google Calendar"
+        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+          calStatus === 'ok'
+            ? 'bg-emerald-500 text-white'
+            : calStatus === 'error'
+            ? 'bg-red-500 text-white'
+            : 'bg-white/20 text-white hover:bg-white/30'
+        }`}
+      >
+        {calStatus === 'loading'
+          ? '⏳'
+          : calStatus === 'ok'
+          ? `✅ ${calMsg}`
+          : calStatus === 'error'
+          ? `⚠️ ${calMsg}`
+          : '📅 Calendar'}
+      </button>
+    </div>
   );
 }
