@@ -309,6 +309,11 @@ export default function AgendaNLP() {
             ref={textareaRef}
             value={texto}
             onChange={e => setTexto(e.target.value)}
+            onPaste={e => {
+              e.preventDefault();
+              const pasted = e.clipboardData.getData('text').replace(/[\r\n]+/g, ' ').trim();
+              setTexto(pasted);
+            }}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleParse(); } }}
             placeholder={lastContext.alumno ? `Ej: muévela al viernes 4pm` : 'Ej: pásale a Juan al jueves 4pm'}
             rows={3}
