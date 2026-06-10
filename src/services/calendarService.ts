@@ -253,9 +253,24 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
     const tempEndDate = new Date(tempStartDate.getTime() + 9000000); // Add 2.5 hours (9,000,000 ms)
     const endTimeLocal = tempEndDate.toISOString().substring(0, 19); // Extracts "YYYY-MM-DDTHH:mm:ss"
 
+    const colorMap: Record<string, string> = {
+        'automático': '7',   // Peacock (azul-verde)
+        'estándar':   '8',   // Blueberry (azul oscuro)
+        'moto':       '6',   // Tangerine (naranja)
+        'english':    '2',   // Sage (verde)
+        'intensivo':  '10',  // Tomato (rojo)
+        'nerviosas':  '1',   // Lavender (lila)
+        'mixto':      '3',   // Grape (morado)
+        'avanzado':   '5',   // Banana (amarillo)
+        'intermedio': '9',   // Basil (verde oscuro)
+    };
+    const txKey = details.transmission.toLowerCase();
+    const colorId = Object.entries(colorMap).find(([k]) => txKey.includes(k))?.[1] ?? '7';
+
     const event: calendar_v3.Params$Resource$Events$Insert['requestBody'] = {
         summary: `Clase: ${details.studentName}`,
         location: details.studentAddress,
+        colorId,
         description: `<b>Alumno:</b> ${details.studentName}<br><b>Teléfono:</b> ${details.studentPhone}<br><b>Transmisión:</b> ${details.transmission}${details.isMinor ? '<br><b>Modalidad:</b> MENOR DE EDAD' : ''}${details.notes ? `<br><b>Notas:</b> ${details.notes}` : ''}<br><br><i>Evento creado automáticamente por la App de AEA.</i>`,
         start: {
             dateTime: startTimeLocal,
