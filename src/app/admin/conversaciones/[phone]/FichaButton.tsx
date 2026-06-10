@@ -262,6 +262,9 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    // Auto-sync GC siempre que se descarga la ficha
+    if (calStatus !== 'loading') syncCalendar();
   }
 
   return (

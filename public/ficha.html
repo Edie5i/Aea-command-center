@@ -612,7 +612,7 @@
   }
 
   // ── PDF ─────────────────────────────────────────────────────────────
-  function generatePDF() {
+  async function generatePDF() {
     if (!$('f-nombre').value.trim()) { alert('Ingresa el nombre del alumno antes de generar.'); return; }
     if (!$('f-curso').value) { alert('Selecciona un curso antes de generar.'); return; }
     const slots = getSlots();
@@ -771,8 +771,8 @@
     doc.setTextColor(...BLUE); doc.setFont('courier','bold');
     doc.text('app.autoescuelaamericana.com', W-M, fy+5, {align:'right'});
 
+    await scheduleCalendar(slots);
     savePDF(doc, `${currentFolio}-${($('f-nombre').value||'alumno').replace(/\s+/g,'_')}.pdf`);
-    scheduleCalendar(slots);
   }
 
   function inferTransmission(curso) {
@@ -818,11 +818,15 @@
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+      const allCreated = data.ok && data.created > 0 && data.created >= data.total;
+      const someCreated = data.ok && data.created > 0 && data.created < data.total;
       calendarOk = !!(data.ok && data.created > 0);
 
-      btn.querySelector('.arrow').textContent = calendarOk ? '✓' : '⚠';
-      btn.querySelector('.arrow').previousSibling.textContent = calendarOk
+      btn.querySelector('.arrow').textContent = allCreated ? '✓' : '⚠';
+      btn.querySelector('.arrow').previousSibling.textContent = allCreated
         ? `PDF + ${data.created} evento${data.created !== 1 ? 's' : ''} en Calendar `
+        : someCreated
+        ? `PDF + ${data.created}/${data.total} en Calendar — reintenta `
         : 'PDF ok — Calendar falló ';
     } catch (e) {
       btn.querySelector('.arrow').textContent = '⚠';

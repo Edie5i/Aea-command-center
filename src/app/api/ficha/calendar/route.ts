@@ -13,25 +13,28 @@ function normalizePhone(raw: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const result = await scheduleAndCreateEvents(body);
-
-    // Guardar en Firestore para que aparezca el botón de Ficha PDF en el admin
-    if (body.phone && body.name) {
-      const phone = normalizePhone(body.phone);
-      const fechas = (body.dates ?? [])
-        .filter((d: { date: string; time?: string }) => d.date && d.time)
-        .map((d: { date: string; time: string }) => ({
-          date: new Date(d.date).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }),
-          time: d.time,
-        }));
-      saveInscripcionData(phone, {
-        nombre: body.name,
-        telefono: phone,
-        zona: body.address ?? '',
-        transmision: body.transmission ?? 'Automático',
-        fechas,
-      }).catch(e => console.error('[FICHA] Error guardando en Firestore:', e));
-    }
+    const [result] = await Promise.all([
+      scheduleAndCreateEvents(body),
+      // Guardar inscripción en Firestore en paralelo con GC
+      (body.phone && body.name)
+        ? (() => {
+            const phone = normalizePhone(body.phone);
+            const fechas = (body.dates ?? [])
+              .filter((d: { date: string; time?: string }) => d.date && d.time)
+              .map((d: { date: string; time: string }) => ({
+                date: new Date(d.date).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }),
+                time: d.time,
+              }));
+            return saveInscripcionData(phone, {
+              nombre: body.name,
+              telefono: phone,
+              zona: body.address ?? '',
+              transmision: body.transmission ?? 'Automático',
+              fechas,
+            }).catch(e => console.error('[FICHA] Error guardando en Firestore:', e));
+          })()
+        : Promise.resolve(),
+    ]);
 
     return NextResponse.json({ ok: true, created: result.created, total: result.total });
   } catch (error) {
