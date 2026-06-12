@@ -27,7 +27,7 @@ export const CreateEventInputSchema = z.object({
 export type CreateEventInput = z.infer<typeof CreateEventInputSchema>;
 
 export async function scheduleAndCreateEvents(input: CreateEventInput) {
-    const promises = input.dates.map(classItem => {
+    const promises = input.dates.map((classItem, i) => {
         if (!classItem.time) {
             console.warn(`Skipping event creation for date ${classItem.date} due to missing time.`);
             return Promise.resolve(null);
@@ -39,8 +39,9 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
             transmission: input.transmission,
             isMinor: !!input.isMinor,
             notes: input.notes,
-            classDate: new Date(classItem.date), // The service handles the ISO string
+            classDate: new Date(classItem.date),
             classTime: classItem.time,
+            sessionIndex: i,
         });
     });
 

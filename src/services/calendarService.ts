@@ -235,6 +235,7 @@ interface EventDetails {
   notes?: string;
   classDate: Date; // This is a Date object from the flow
   classTime: string; // "HH:mm"
+  sessionIndex?: number; // para alternar colores entre sesiones
 }
 
 export async function createCalendarEvent(details: EventDetails): Promise<string | null> {
@@ -253,19 +254,21 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
     const tempEndDate = new Date(tempStartDate.getTime() + 9000000); // Add 2.5 hours (9,000,000 ms)
     const endTimeLocal = tempEndDate.toISOString().substring(0, 19); // Extracts "YYYY-MM-DDTHH:mm:ss"
 
-    const colorMap: Record<string, string> = {
-        'automático': '7',   // Peacock (azul-verde)
-        'estándar':   '8',   // Blueberry (azul oscuro)
-        'moto':       '6',   // Tangerine (naranja)
-        'english':    '2',   // Sage (verde)
-        'intensivo':  '10',  // Tomato (rojo)
-        'nerviosas':  '1',   // Lavender (lila)
-        'mixto':      '3',   // Grape (morado)
-        'avanzado':   '5',   // Banana (amarillo)
-        'intermedio': '9',   // Basil (verde oscuro)
+    // Pares de colores alternados por transmisión [par, impar]
+    const colorPairs: Record<string, [string, string]> = {
+        'automático': ['7', '8'],   // Peacock ↔ Blueberry (azules)
+        'estándar':   ['6', '5'],   // Tangerine ↔ Banana (cálidos)
+        'moto':       ['6', '4'],   // Tangerine ↔ Flamingo
+        'english':    ['2', '9'],   // Sage ↔ Basil (verdes)
+        'intensivo':  ['10', '4'],  // Tomato ↔ Flamingo (rojos)
+        'nerviosas':  ['1', '3'],   // Lavender ↔ Grape (lilas)
+        'mixto':      ['3', '1'],   // Grape ↔ Lavender
+        'avanzado':   ['5', '6'],   // Banana ↔ Tangerine
+        'intermedio': ['9', '2'],   // Basil ↔ Sage
     };
     const txKey = details.transmission.toLowerCase();
-    const colorId = Object.entries(colorMap).find(([k]) => txKey.includes(k))?.[1] ?? '7';
+    const pair = Object.entries(colorPairs).find(([k]) => txKey.includes(k))?.[1] ?? ['7', '8'];
+    const colorId = pair[(details.sessionIndex ?? 0) % 2];
 
     const event: calendar_v3.Params$Resource$Events$Insert['requestBody'] = {
         summary: `Clase: ${details.studentName}`,
