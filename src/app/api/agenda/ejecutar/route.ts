@@ -89,27 +89,34 @@ export async function POST(request: NextRequest) {
     if (accion === 'agendar_ficha') {
       if (!alumno) return NextResponse.json({ ok: false, error: 'Falta el nombre del alumno.' });
 
+      // Si ya se seleccionó inscripción específica por phone
+      if (body.inscripcionPhone) {
+        const { getInscripcionData } = await import('@/lib/firestore');
+        const ins = await getInscripcionData(body.inscripcionPhone);
+        if (!ins) return NextResponse.json({ ok: false, error: 'No se encontró la inscripción seleccionada.' });
+        await scheduleAndCreateEvents({
+          name: ins.nombre, phone: ins.telefono,
+          address: ins.zona || 'Por confirmar', transmission: ins.transmision,
+          dates: ins.fechas.map(f => ({ date: new Date(f.date + 'T12:00:00').toISOString(), time: f.time })),
+        });
+        return NextResponse.json({ ok: true, mensaje: `${ins.fechas.length} clase(s) de ${ins.nombre} agendadas en Calendar.` });
+      }
+
       const inscripciones = await buscarInscripcionPorNombre(alumno);
       if (inscripciones.length === 0) {
         return NextResponse.json({ ok: false, error: `No se encontró ficha de inscripción para "${alumno}". Verifica el nombre.` });
       }
+      if (inscripciones.length > 1) {
+        return NextResponse.json({ ok: false, error: 'multiple_inscripciones', inscripciones: inscripciones.map(i => ({ nombre: i.nombre, telefono: i.telefono, transmision: i.transmision, sesiones: i.fechas.length, phone: i.phone })) });
+      }
 
       const ins = inscripciones[0];
-      const result = await scheduleAndCreateEvents({
-        name: ins.nombre,
-        phone: ins.telefono,
-        address: ins.zona || 'Por confirmar',
-        transmission: ins.transmision,
-        dates: ins.fechas.map(f => ({
-          date: new Date(f.date + 'T12:00:00').toISOString(),
-          time: f.time,
-        })),
+      await scheduleAndCreateEvents({
+        name: ins.nombre, phone: ins.telefono,
+        address: ins.zona || 'Por confirmar', transmission: ins.transmision,
+        dates: ins.fechas.map(f => ({ date: new Date(f.date + 'T12:00:00').toISOString(), time: f.time })),
       });
-
-      return NextResponse.json({
-        ok: true,
-        mensaje: `${ins.fechas.length} clase(s) de ${ins.nombre} agendadas en Calendar.`,
-      });
+      return NextResponse.json({ ok: true, mensaje: `${ins.fechas.length} clase(s) de ${ins.nombre} agendadas en Calendar.` });
     }
 
     // ── consultar_alumno ─────────────────────────────────────────

@@ -37,7 +37,7 @@ interface AlumnoData {
   proximasClases: Evento[];
 }
 
-type Step = 'idle' | 'parsing' | 'confirm' | 'disambiguate' | 'executing' | 'done' | 'consulta' | 'alumno' | 'error';
+type Step = 'idle' | 'parsing' | 'confirm' | 'disambiguate' | 'disambiguate_inscripcion' | 'executing' | 'done' | 'consulta' | 'alumno' | 'error';
 
 const ACCION_LABEL: Record<string, string> = {
   nueva_ficha: 'Nueva ficha',
@@ -80,6 +80,8 @@ export default function AgendaNLP() {
   const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
   // Inline delete confirmation
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  // Disambiguation for multiple inscriptions (agendar_ficha)
+  const [pendingInscripciones, setPendingInscripciones] = useState<{ nombre: string; telefono: string; transmision: string; sesiones: number; phone: string }[]>([]);
 
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -190,7 +192,7 @@ export default function AgendaNLP() {
       const soloFechaRequerida = r.accion === 'consultar_agenda';
       const criticos = (!soloNombreRequerido && !soloFechaRequerida && !r.alumno) ||
         (!soloNombreRequerido && !soloFechaRequerida && !r.fecha && !r.hora);
-      if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido' && r.accion !== 'cancelar_clase') {
+      if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido' && r.accion !== 'cancelar_clase' && r.accion !== 'mover_clase') {
         await executeAction(r);
       } else {
         setStep('confirm');
@@ -214,6 +216,11 @@ export default function AgendaNLP() {
         if (data.error === 'multiple' && data.eventos) {
           setEventos(data.eventos);
           setStep('disambiguate');
+          return;
+        }
+        if (data.error === 'multiple_inscripciones' && data.inscripciones) {
+          setPendingInscripciones(data.inscripciones);
+          setStep('disambiguate_inscripcion');
           return;
         }
         throw new Error(data.error ?? 'Error al ejecutar');
@@ -252,6 +259,7 @@ export default function AgendaNLP() {
     setEditFecha('');
     setEditHora('');
     setPendingDeleteId(null);
+    setPendingInscripciones([]);
     setStep('idle');
     setTimeout(() => textareaRef.current?.focus(), 50);
   }
@@ -414,7 +422,10 @@ export default function AgendaNLP() {
             )}
 
             {parsed.accion === 'desconocido' ? (
-              <p className="text-xs text-gray-500 text-center">No se reconoció la acción. Intenta de nuevo.</p>
+              <div className="text-xs text-gray-500 space-y-1">
+                <p className="font-semibold text-center">No se reconoció la acción.</p>
+                <p className="text-gray-400 text-center">Ejemplos: "cancela a Juan", "pásale a María al viernes 4pm", "súbele las clases de Pedro al gc"</p>
+              </div>
             ) : (
               <div className="flex gap-2">
                 <button
@@ -439,7 +450,7 @@ export default function AgendaNLP() {
           </div>
         )}
 
-        {/* Disambiguation */}
+        {/* Disambiguation — eventos calendario */}
         {step === 'disambiguate' && eventos.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
             <p className="text-sm font-semibold text-gray-900">Se encontraron varias clases. ¿Cuál?</p>
@@ -453,9 +464,39 @@ export default function AgendaNLP() {
                 <span className="text-gray-500 text-xs">{formatEventDate(ev.inicio)}</span>
               </button>
             ))}
-            <button onClick={reset} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">
-              Cancelar
-            </button>
+            <button onClick={reset} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">Cancelar</button>
+          </div>
+        )}
+
+        {/* Disambiguation — inscripciones (agendar_ficha) */}
+        {step === 'disambiguate_inscripcion' && pendingInscripciones.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+            <p className="text-sm font-semibold text-gray-900">Hay varias fichas con ese nombre. ¿Cuál agendas?</p>
+            {pendingInscripciones.map(ins => (
+              <button
+                key={ins.phone}
+                onClick={() => {
+                  if (!parsed) return;
+                  setStep('executing');
+                  fetch('/api/agenda/ejecutar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...parsed, inscripcionPhone: ins.phone }),
+                  }).then(r => r.json()).then(data => {
+                    if (!data.ok) { setMensaje(data.error ?? 'Error'); setStep('error'); return; }
+                    if (parsed.alumno) setLastContext({ alumno: parsed.alumno });
+                    saveHistorial(texto);
+                    setMensaje(data.mensaje ?? 'Listo');
+                    setStep('done');
+                  }).catch(() => { setMensaje('Error al ejecutar'); setStep('error'); });
+                }}
+                className="w-full text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl px-4 py-3 text-sm transition-colors"
+              >
+                <span className="font-medium block">{ins.nombre}</span>
+                <span className="text-gray-500 text-xs">{ins.transmision} · {ins.sesiones} sesiones · {ins.telefono}</span>
+              </button>
+            ))}
+            <button onClick={reset} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">Cancelar</button>
           </div>
         )}
 
