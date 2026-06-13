@@ -188,7 +188,7 @@ export default function AgendaNLP() {
       const soloFechaRequerida = r.accion === 'consultar_agenda';
       const criticos = (!soloNombreRequerido && !soloFechaRequerida && !r.alumno) ||
         (!soloNombreRequerido && !soloFechaRequerida && !r.fecha && !r.hora);
-      if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido') {
+      if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido' && r.accion !== 'cancelar_clase') {
         await executeAction(r);
       } else {
         setStep('confirm');
@@ -417,9 +417,13 @@ export default function AgendaNLP() {
                 <button
                   onClick={() => handleEjecutar()}
                   disabled={!canExecute}
-                  className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
+                  className={`flex-1 text-sm text-white px-4 py-2 rounded-xl font-semibold disabled:opacity-40 transition-colors ${
+                    parsed.accion === 'cancelar_clase'
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
                 >
-                  Ejecutar
+                  {parsed.accion === 'cancelar_clase' ? 'Sí, borrar clase' : 'Ejecutar'}
                 </button>
               </div>
             )}
