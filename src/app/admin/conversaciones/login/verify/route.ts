@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   res.cookies.set('admin_pin', ADMIN_PIN, {
     httpOnly: true,
     secure: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 30, // 30 días
     path: '/admin',
   });
