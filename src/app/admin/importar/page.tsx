@@ -193,9 +193,13 @@ export default function ImportarFichaPage() {
             )}
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-4 pt-4 pb-2 border-b">
-                <p className="text-sm font-semibold text-gray-700">Datos extraídos — revisa y corrige</p>
-                <p className="text-xs text-gray-400 mt-0.5">La IA puede equivocarse, confirma antes de agendar</p>
+              <div className="px-4 pt-4 pb-3 border-b bg-blue-50">
+                <p className="text-xs text-blue-500 font-semibold uppercase tracking-wide mb-0.5">Ficha de</p>
+                <p className="text-xl font-bold text-gray-900">{data.nombre || '—'}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{data.curso} · {data.fechas.filter((f: FechaRow) => f.date).length} sesiones</p>
+              </div>
+              <div className="px-4 py-2 border-b">
+                <p className="text-xs text-gray-400">Revisa y corrige antes de agendar</p>
               </div>
 
               <div className="p-4 space-y-4">
