@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     // ── consultar_agenda ─────────────────────────────────────────
     if (accion === 'consultar_agenda') {
-      const todos = await getEventosProximos(14);
+      const todos = await getEventosProximos(30);
 
       let eventosFiltrados = todos;
       if (fecha) {

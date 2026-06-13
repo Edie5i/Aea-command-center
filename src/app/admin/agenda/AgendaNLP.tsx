@@ -78,6 +78,8 @@ export default function AgendaNLP() {
   const [editHora, setEditHora] = useState('');
   // Context: remember last alumno for pronoun resolution
   const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
+  // Inline delete confirmation
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -249,8 +251,15 @@ export default function AgendaNLP() {
     setMensaje('');
     setEditFecha('');
     setEditHora('');
+    setPendingDeleteId(null);
     setStep('idle');
     setTimeout(() => textareaRef.current?.focus(), 50);
+  }
+
+  async function confirmarBorrar(ev: Evento) {
+    setEventos(prev => prev.filter(e => e.id !== ev.id));
+    setPendingDeleteId(null);
+    await executeAction({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }, ev.id);
   }
 
   const confianzaColor =
@@ -463,24 +472,43 @@ export default function AgendaNLP() {
               <p className="text-sm text-gray-500">{mensaje}</p>
             )}
             {eventos.map((ev: Evento) => (
-              <div key={ev.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-3 py-2.5 gap-2">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{ev.alumno}</p>
-                  <p className="text-xs text-gray-500">{formatEventDate(ev.inicio)}</p>
-                </div>
-                <div className="flex gap-1.5 flex-shrink-0">
-                  <button
-                    onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
-                    className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
-                  >
-                    Mover
-                  </button>
-                  <button
-                    onClick={() => handleEjecutar(ev.id, { accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] })}
-                    className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
-                  >
-                    Cancelar
-                  </button>
+              <div key={ev.id} className="bg-gray-50 rounded-xl px-3 py-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{ev.alumno}</p>
+                    <p className="text-xs text-gray-500">{formatEventDate(ev.inicio)}</p>
+                  </div>
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
+                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
+                    >
+                      Mover
+                    </button>
+                    {pendingDeleteId === ev.id ? (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => confirmarBorrar(ev)}
+                          className="text-xs bg-red-600 text-white px-2 py-1 rounded-lg font-semibold"
+                        >
+                          Sí, borrar
+                        </button>
+                        <button
+                          onClick={() => setPendingDeleteId(null)}
+                          className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setPendingDeleteId(ev.id)}
+                        className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
+                      >
+                        Borrar
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -539,21 +567,40 @@ export default function AgendaNLP() {
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Próximas clases</p>
                 {alumnoData.proximasClases.map((ev: Evento) => (
-                  <div key={ev.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
-                    <p className="text-xs text-gray-700">{formatEventDate(ev.inicio)}</p>
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
-                        className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
-                      >
-                        Mover
-                      </button>
-                      <button
-                        onClick={() => handleEjecutar(ev.id, { accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] })}
-                        className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
-                      >
-                        Cancelar
-                      </button>
+                  <div key={ev.id} className="bg-gray-50 rounded-xl px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-gray-700">{formatEventDate(ev.inicio)}</p>
+                      <div className="flex gap-1.5 flex-shrink-0">
+                        <button
+                          onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
+                          className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
+                        >
+                          Mover
+                        </button>
+                        {pendingDeleteId === ev.id ? (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => confirmarBorrar(ev)}
+                              className="text-xs bg-red-600 text-white px-2 py-1 rounded-lg font-semibold"
+                            >
+                              Sí, borrar
+                            </button>
+                            <button
+                              onClick={() => setPendingDeleteId(null)}
+                              className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setPendingDeleteId(ev.id)}
+                            className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
+                          >
+                            Borrar
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -638,6 +685,7 @@ export default function AgendaNLP() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Comandos</p>
             {[
+              { label: 'Ver agenda completa', cmd: '¿Qué hay los próximos 30 días?' },
               { label: 'Buscar alumno', cmd: 'Busca a [nombre]' },
               { label: 'Qué hay mañana', cmd: '¿Qué hay mañana?' },
               { label: 'Nueva ficha', cmd: 'Nueva ficha [nombre] [curso] el [día] [hora]' },
