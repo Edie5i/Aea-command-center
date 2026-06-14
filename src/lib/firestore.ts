@@ -241,6 +241,27 @@ export async function getInscripcionData(phone: string): Promise<InscripcionData
   };
 }
 
+export async function getRecentInscripciones(limit = 50): Promise<(InscripcionData & { phone: string })[]> {
+  const snap = await db.collection('conversations').get();
+  const results: (InscripcionData & { phone: string })[] = [];
+  for (const doc of snap.docs) {
+    const ins = doc.data().inscripcion;
+    if (ins?.nombre && ins.fechas?.length > 0) {
+      results.push({
+        nombre: ins.nombre,
+        telefono: ins.telefono ?? doc.id,
+        zona: ins.zona ?? '',
+        transmision: ins.transmision ?? 'Estándar',
+        fechas: ins.fechas ?? [],
+        fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
+        phone: doc.id,
+      });
+    }
+  }
+  results.sort((a, b) => b.fechaConfirmacion - a.fechaConfirmacion);
+  return results.slice(0, limit);
+}
+
 // ── Fichas de progreso ─────────────────────────────────────────────────────────
 
 export interface Ficha {

@@ -461,6 +461,7 @@ export async function POST(request: NextRequest) {
     const history = await getHistory(from);
     let syntheticMsg: string;
     let inscriptionOk = false;
+    let fichaClienteMsg: string | null = null;
 
     // Extraer nombre del lead del historial para la notificación inicial
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
@@ -518,6 +519,29 @@ export async function POST(request: NextRequest) {
           )
           .catch(e => console.error('[WEBHOOK] Error guardando inscripcion:', e));
 
+        // Ficha de inscripción para el cliente (WhatsApp)
+        const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
+          ? leadInfo.telefono.slice(2) : leadInfo.telefono;
+        const fichaLineas = [
+          `📋 *Tu Ficha de Inscripción — Auto Escuela Americana*`,
+          ``,
+          `👤 *${leadInfo.nombre}*`,
+          `📱 ${displayTel}`,
+          `🚗 Curso ${leadInfo.transmision}`,
+          `📍 ${leadInfo.zona}`,
+          ``,
+          `📅 *Tus clases:*`,
+          ...pickedSlots.slice(0, 4).map((s, i) => {
+            const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
+            const d = new Date(yyyy, mm - 1, dd);
+            const label = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+            return `${i + 1}. ${label} · ${s.time}`;
+          }),
+          ``,
+          `Guarda este mensaje 📌 El día antes de tu primera clase te mandamos los datos del instructor.`,
+        ];
+        fichaClienteMsg = fichaLineas.join('\n');
+
         inscriptionOk = true;
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
       } else {
@@ -547,6 +571,11 @@ export async function POST(request: NextRequest) {
       .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
 
     if (inscriptionOk) {
+      // Ficha de inscripción al cliente
+      if (fichaClienteMsg) {
+        sendMessage(from, fichaClienteMsg).catch(e => console.error('[WEBHOOK] Error enviando ficha cliente:', e));
+      }
+
       // Enviar términos y condiciones + aviso de privacidad al alumno
       sendMessage(from,
         `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\napp.autoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\napp.autoescuelaamericana.com/aviso-privacidad`

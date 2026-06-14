@@ -76,6 +76,12 @@ export default async function AdminPage() {
               Agenda NLP
             </Link>
             <Link
+              href="/admin/fichas"
+              className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold"
+            >
+              Fichas
+            </Link>
+            <Link
               href="/admin/metricas"
               className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-semibold"
             >
