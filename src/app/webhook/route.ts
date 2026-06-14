@@ -320,6 +320,7 @@ function getSystemPrompt(clientPhone?: string): string {
 async function generateReply(userMessage: string, history: HistoryItem[], clientPhone?: string): Promise<string> {
   const geminiCall = ai.generate({
     model: 'googleai/gemini-2.5-flash',
+    config: { thinkingBudget: 8192 },
     system: getSystemPrompt(clientPhone),
     tools: AEA_TOOLS,
     messages: history.map((h) => ({
