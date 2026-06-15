@@ -504,6 +504,7 @@ export async function POST(request: NextRequest) {
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     // Reenviar la imagen del comprobante al admin para verificar monto y banco
+    sendMessage(ADMIN_PHONE, `[debug] imageMediaId="${imageMediaId}" from="${from}"`).catch(() => {});
     if (imageMediaId) {
       sendImageMessage(ADMIN_PHONE, imageMediaId, `Comprobante de +${from}`).catch(
         (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
