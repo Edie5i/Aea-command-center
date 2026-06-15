@@ -31,7 +31,7 @@ Sigue este orden. Cuando el cliente responde un paso, avanza al siguiente sin pe
 
 **Paso 1 — Nivel** (si no lo sabes): "¿Ya manejas algo o empiezas desde cero?"
 **Paso 2 — Recomendar**: Di el curso + precio + UN beneficio concreto. NO preguntes si les parece bien. Termina el mensaje con la siguiente pregunta.
-**Paso 3 — Horario**: "¿Mañanas o tardes?" → cuando respondan → llama a consultarDisponibilidad(dias=14) → propón 2 fechas reales de esa misma semana con hora exacta: "Tengo el martes 27 y el miércoles 28 a las 10am — ¿cuál te funciona mejor?"
+**Paso 3 — Horario**: "¿Mañanas o tardes?" → cuando respondan → llama a consultarDisponibilidad(dias=14) → propón un bloque de 4 días seguidos al mismo horario: "Tengo disponible de lunes 22 a jueves 25 a las 4:00 pm — ¿te funciona ese bloque?" Si no puede ser corrido, ofrece el más compacto posible.
 **Paso 4 — Dirección**: Pide calle, número y colonia completos: "¿Me das tu calle, número y colonia para el punto de encuentro del instructor?"
 **Paso 5 — Nombre** (si no lo tienes): "¿Cómo te llamas?"
 **Paso 6 — CIERRE**: Manda datos de pago completos (ver sección CIERRE).
@@ -86,9 +86,9 @@ Apartado: $690 (se aplica al total). Reembolsable hasta 48h antes. 3 MSI disponi
 
 Cuando el cliente confirme mañana / tarde / fin de semana (Paso 3):
 1. Llama a consultarDisponibilidad(dias=14) de inmediato.
-2. Elige 2 slots que coincidan con su preferencia.
-3. Propón ambos con fecha y hora exactas: "Tengo el lunes 26 a las 10am y el martes 27 a las 10am — ¿cuál te funciona?"
-4. Esto crea urgencia real y acelera la decisión.
+2. Elige el bloque de 4 días seguidos que coincida con su preferencia (mismo horario todos los días).
+3. Propón el bloque completo: "Tengo de lunes 22 a jueves 25 a las 10:00 am — ¿empezamos así?"
+4. Esto crea urgencia real y cierra en un solo mensaje.
 
 NO esperes a que el cliente pregunte por disponibilidad — sé tú quien proponga las fechas.
 
@@ -275,15 +275,38 @@ function pickSlots(slots: Awaited<ReturnType<typeof getAvailableSlots>>, horario
   const mañana = ['07:00', '10:00'];
   const tarde = ['13:00', '16:00', '19:00'];
   const finde = ['sábado', 'domingo'];
-  const diasSemana = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes'];
 
-  const result: Array<{ date: string; time: string }> = [];
-  for (const slot of slots) {
-    if (result.length >= 4) break;
+  const preferidos = horario === 'mañana' ? mañana : horario === 'tarde' ? tarde : ['10:00', '13:00'];
+
+  // Filtrar días según preferencia
+  const diasFiltrados = slots.filter(slot => {
     const esFinDeSemana = finde.includes(slot.diaSemana);
-    if (horario === 'fin-de-semana' && !esFinDeSemana) continue;
-    if (horario !== 'fin-de-semana' && esFinDeSemana) continue;
-    const preferidos = horario === 'mañana' ? mañana : horario === 'tarde' ? tarde : ['10:00', '13:00'];
+    if (horario === 'fin-de-semana' && !esFinDeSemana) return false;
+    if (horario !== 'fin-de-semana' && esFinDeSemana) return false;
+    return true;
+  });
+
+  // Buscar 4 días al MISMO horario, lo más consecutivos posible
+  for (const hora of preferidos) {
+    const diasConEstaHora = diasFiltrados.filter(s => s.horariosLibres.includes(hora));
+    if (diasConEstaHora.length >= 4) {
+      // Encontrar el bloque de 4 con menor rango de fechas
+      let mejorBloque = diasConEstaHora.slice(0, 4);
+      let mejorRango = Infinity;
+      for (let i = 0; i <= diasConEstaHora.length - 4; i++) {
+        const bloque = diasConEstaHora.slice(i, i + 4);
+        const rango = new Date(bloque[3].fecha).getTime() - new Date(bloque[0].fecha).getTime();
+        if (rango < mejorRango) { mejorRango = rango; mejorBloque = bloque; }
+        if (rango <= 6 * 86400000) break; // 4 días en ≤ 1 semana — óptimo
+      }
+      return mejorBloque.map(s => ({ date: s.fecha + 'T12:00:00', time: hora }));
+    }
+  }
+
+  // Fallback: mezcla de horarios si ninguna hora tiene 4 días disponibles
+  const result: Array<{ date: string; time: string }> = [];
+  for (const slot of diasFiltrados) {
+    if (result.length >= 4) break;
     const hora = preferidos.find(h => slot.horariosLibres.includes(h)) ?? slot.horariosLibres[0];
     if (hora) result.push({ date: slot.fecha + 'T12:00:00', time: hora });
   }
