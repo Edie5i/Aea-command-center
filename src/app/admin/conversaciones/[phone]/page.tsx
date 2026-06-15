@@ -102,16 +102,27 @@ export default async function ConversacionPage({
           return (
             <div key={i} className={`flex ${isLead ? 'justify-start' : 'justify-end'}`}>
               <div
-                className={`max-w-[82%] px-4 py-3 rounded-2xl shadow-sm text-xl leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[82%] rounded-2xl shadow-sm overflow-hidden ${
                   isLead
                     ? 'bg-white text-gray-900 rounded-tl-sm'
                     : 'bg-[#d9fdd3] text-gray-900 rounded-tr-sm'
                 }`}
               >
-                {!isLead && (
-                  <p className="text-xs text-[#128c7e] font-bold mb-1">Luz</p>
+                {msg.mediaType === 'image' && msg.mediaId && msg.mediaId !== 'unknown' ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`/api/media/${msg.mediaId}`}
+                    alt="Comprobante de pago"
+                    className="max-w-full max-h-72 object-contain bg-gray-100"
+                  />
+                ) : (
+                  <div className="px-4 py-3 text-xl leading-relaxed whitespace-pre-wrap">
+                    {!isLead && (
+                      <p className="text-xs text-[#128c7e] font-bold mb-1">Luz</p>
+                    )}
+                    {msg.text}
+                  </div>
                 )}
-                {msg.text}
               </div>
             </div>
           );

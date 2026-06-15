@@ -43,6 +43,8 @@ export interface ChatMessage {
   role: 'user' | 'bot';
   text: string;
   timestamp: Timestamp;
+  mediaId?: string;
+  mediaType?: 'image';
 }
 
 export interface Conversation {
@@ -70,6 +72,20 @@ export interface Conversation {
   closedAt?: Timestamp | null;
   closedOutcome?: 'ganado' | 'perdido' | null;
   contactName?: string | null;
+}
+
+export async function saveImageMessage(phone: string, mediaId: string, botText: string): Promise<void> {
+  const now = Timestamp.now();
+  const convRef = db.collection('conversations').doc(phone);
+  const messagesRef = convRef.collection('messages');
+  const batch = db.batch();
+  batch.set(convRef, {
+    phone, lastActivity: now, lastMessage: botText,
+    lastSender: 'bot', messageCount: FieldValue.increment(2),
+  }, { merge: true });
+  batch.set(messagesRef.doc(), { role: 'user', text: '[imagen]', mediaId, mediaType: 'image', timestamp: now });
+  batch.set(messagesRef.doc(), { role: 'bot', text: botText, timestamp: now });
+  await batch.commit();
 }
 
 export async function saveUserMessage(phone: string, text: string): Promise<void> {
