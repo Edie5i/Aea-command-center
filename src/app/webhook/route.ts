@@ -382,6 +382,8 @@ async function sendImageMessage(to: string, mediaId: string, caption?: string): 
   const responseText = await res.text();
   if (!res.ok) {
     console.error('[WEBHOOK] WhatsApp image API error:', res.status, responseText);
+    // Diagnóstico: manda el error al admin en texto para verlo en WhatsApp
+    sendMessage(to, `⚠️ [debug] No se pudo reenviar imagen: ${res.status} — ${responseText.slice(0, 200)}`).catch(() => {});
   } else {
     console.log('[WEBHOOK] Imagen reenviada OK:', responseText.slice(0, 120));
   }
