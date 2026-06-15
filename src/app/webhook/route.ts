@@ -307,6 +307,43 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
   return params;
 }
 
+// Alcaldías y colonias con servicio a domicilio
+const ZONAS_DOMICILIO = [
+  // Alcaldías cubiertas
+  'miguel hidalgo', 'cuauhtémoc', 'cuauhtemoc', 'benito juárez', 'benito juarez',
+  'álvaro obregón', 'alvaro obregon', 'coyoacán', 'coyoacan',
+  // Colonias frecuentes en esas alcaldías
+  'polanco', 'lomas de chapultepec', 'chapultepec', 'condesa', 'hipódromo', 'hipodromo',
+  'roma norte', 'roma sur', 'roma', 'centro histórico', 'centro historico', 'centro',
+  'doctores', 'obrera', 'guerrero', 'tepito', 'santa maría la ribera', 'santa maria la ribera',
+  'nonoalco', 'tlatelolco', 'anzures', 'escandón', 'escandon', 'tacubaya',
+  'del valle', 'narvarte', 'nápoles', 'napoles', 'insurgentes', 'mixcoac',
+  'san ángel', 'san angel', 'pedregal', 'jardines del pedregal', 'florida',
+  'actipan', 'xoco', 'portales', 'letrán valle', 'letran valle', 'general anaya',
+  'churubusco', 'axotla', 'tizapán', 'tizapan', 'chimalistac', 'copilco',
+  'villa coyoacán', 'villa coyoacan', 'peña pobre', 'peña verde',
+  'juárez', 'juarez', 'tabacalera', 'santa fe', 'lomas de bezares',
+  'bosque de las lomas', 'interlomas', 'tecamachalco', 'granada', 'irrigación',
+];
+
+function checkCoverage(zona: string): { covered: boolean; nota: string } {
+  const z = zona.toLowerCase();
+  const covered = ZONAS_DOMICILIO.some(keyword => z.includes(keyword));
+  if (covered) {
+    return {
+      covered: true,
+      nota: '✅ *Zona con cobertura a domicilio* — el instructor puede llegar directo.',
+    };
+  }
+  return {
+    covered: false,
+    nota:
+      '⚠️ *Posible fuera de zona* — considera ofrecer sucursal:\n' +
+      '• *Roma Sur*: Torreón 49 (Metro Sonora)\n' +
+      '• *Viveros*: Av. Universidad 1407 (Metro Viveros)',
+  };
+}
+
 async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]): Promise<void> {
   // Mínimo 3 mensajes del cliente para que haya podido dar nombre y dirección
   if (history.filter(h => h.role === 'user').length < 3) return;
@@ -318,13 +355,14 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
     // Solo notificar si tenemos datos reales (no defaults)
     if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') return;
     const dp = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    const { nota } = checkCoverage(leadInfo.zona);
     await sendMessage(ADMIN_PHONE,
       `🔥 *Lead calificado — listo para cierre*\n\n` +
       `👤 ${leadInfo.nombre}\n` +
       `📱 +${dp}\n` +
       `📍 ${leadInfo.zona}\n` +
       `🚗 ${leadInfo.transmision}\n\n` +
-      `Luz ya tiene nombre y dirección 💰`
+      `${nota}`
     );
     await db.collection('conversations').doc(phone).set(
       { leadCalificadoNotificado: true },
