@@ -1,24 +1,24 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ReciboPage() {
-  const folioRef = useRef('');
-  const fechaRef = useRef('');
-  const [mounted, setMounted] = useState(false);
+  const [folio, setFolio] = useState('');
+  const [fecha, setFecha] = useState('');
   const [nombre, setNombre] = useState('');
   const [monto, setMonto] = useState('');
   const [concepto, setConcepto] = useState('');
 
   useEffect(() => {
     const rand = Math.floor(1000 + Math.random() * 9000);
-    folioRef.current = `REC-${new Date().getFullYear()}-${rand}`;
-    fechaRef.current = new Date().toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
-    setMounted(true);
+    setFolio(`REC-${new Date().getFullYear()}-${rand}`);
+    setFecha(
+      new Date().toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    );
   }, []);
 
   return (
@@ -55,11 +55,11 @@ export default function ReciboPage() {
             <div className="flex justify-between text-sm mb-8 pb-4 border-b border-gray-200">
               <div>
                 <span className="text-gray-500">Folio:</span>{' '}
-                <span className="font-semibold text-gray-800">{mounted ? folioRef.current : ''}</span>
+                <span className="font-semibold text-gray-800">{folio}</span>
               </div>
               <div>
                 <span className="text-gray-500">Fecha:</span>{' '}
-                <span className="font-semibold text-gray-800">{mounted ? fechaRef.current : ''}</span>
+                <span className="font-semibold text-gray-800">{fecha}</span>
               </div>
             </div>
 
