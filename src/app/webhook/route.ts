@@ -365,20 +365,25 @@ async function sendMessage(to: string, text: string): Promise<void> {
 
 async function sendImageMessage(to: string, mediaId: string, caption?: string): Promise<void> {
   const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
-  const body: Record<string, unknown> = {
+  const imagePayload: Record<string, string> = { id: mediaId };
+  if (caption) imagePayload.caption = caption;
+  const payload = {
     messaging_product: 'whatsapp',
     to,
     type: 'image',
-    image: { id: mediaId },
+    image: imagePayload,
   };
-  if (caption) (body.image as Record<string, string>).caption = caption;
+  console.log('[WEBHOOK] sendImageMessage →', to, '| mediaId:', mediaId);
   const res = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
+  const responseText = await res.text();
   if (!res.ok) {
-    console.error('[WEBHOOK] WhatsApp image API error:', res.status, await res.text());
+    console.error('[WEBHOOK] WhatsApp image API error:', res.status, responseText);
+  } else {
+    console.log('[WEBHOOK] Imagen reenviada OK:', responseText.slice(0, 120));
   }
 }
 
@@ -443,7 +448,10 @@ export async function POST(request: NextRequest) {
     from = normalizePhone(message.from ?? '');
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
-    if (messageType === 'image') imageMediaId = message?.image?.id ?? '';
+    if (messageType === 'image') {
+      imageMediaId = message?.image?.id ?? '';
+      console.log('[WEBHOOK] Imagen recibida — mediaId:', imageMediaId, '| mime:', message?.image?.mime_type);
+    }
 
     // Nombre del contacto de WhatsApp (si lo tiene configurado)
     waDisplayName = body?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name ?? null;
