@@ -31,7 +31,7 @@ Sigue este orden. Cuando el cliente responde un paso, avanza al siguiente sin pe
 
 **Paso 1 — Nivel** (si no lo sabes): "¿Ya manejas algo o empiezas desde cero?"
 **Paso 2 — Recomendar**: Di el curso + precio + UN beneficio concreto. NO preguntes si les parece bien. Termina el mensaje con la siguiente pregunta.
-**Paso 3 — Horario**: "¿Mañanas o tardes?" → cuando respondan → llama a consultarDisponibilidad(dias=14) → propón un bloque de 4 días seguidos al mismo horario: "Tengo disponible de lunes 22 a jueves 25 a las 4:00 pm — ¿te funciona ese bloque?" Si no puede ser corrido, ofrece el más compacto posible.
+**Paso 3 — Horario**: "¿Mañanas o tardes?" → cuando respondan → llama a consultarDisponibilidad(dias=14) → propón un bloque de 4 días corridos al mismo horario (ej. lunes a jueves, o martes a viernes): "Tengo disponible de lunes 22 a jueves 25 a las 4:00 pm — ¿te funciona ese bloque?" Para cursos de principiante (Estándar, Automático, Personas Nerviosas, Intensivo, Mixto) los días deben ser literalmente consecutivos — es la forma en que organizamos la agenda. Si el sistema da 4 días seguidos, preséntalos siempre como bloque corrido, nunca como fechas sueltas.
 **Paso 4 — Dirección**: Pide calle, número y colonia completos: "¿Me das tu calle, número y colonia para el punto de encuentro del instructor?"
 **Paso 5 — Nombre** (si no lo tienes): "¿Cómo te llamas?"
 **Paso 6 — CIERRE**: Manda datos de pago completos (ver sección CIERRE).
@@ -286,21 +286,32 @@ function pickSlots(slots: Awaited<ReturnType<typeof getAvailableSlots>>, horario
     return true;
   });
 
-  // Buscar 4 días al MISMO horario, lo más consecutivos posible
+  // Buscar 4 días al MISMO horario, preferencia: 4 días literalmente corridos (diff 1 día entre cada par)
   for (const hora of preferidos) {
     const diasConEstaHora = diasFiltrados.filter(s => s.horariosLibres.includes(hora));
-    if (diasConEstaHora.length >= 4) {
-      // Encontrar el bloque de 4 con menor rango de fechas
-      let mejorBloque = diasConEstaHora.slice(0, 4);
-      let mejorRango = Infinity;
-      for (let i = 0; i <= diasConEstaHora.length - 4; i++) {
-        const bloque = diasConEstaHora.slice(i, i + 4);
-        const rango = new Date(bloque[3].fecha).getTime() - new Date(bloque[0].fecha).getTime();
-        if (rango < mejorRango) { mejorRango = rango; mejorBloque = bloque; }
-        if (rango <= 6 * 86400000) break; // 4 días en ≤ 1 semana — óptimo
-      }
-      return mejorBloque.map(s => ({ date: s.fecha + 'T12:00:00', time: hora }));
+    if (diasConEstaHora.length < 4) continue;
+
+    // Prioridad 1: 4 días completamente corridos (cada par con diff exacto de 1 día)
+    for (let i = 0; i <= diasConEstaHora.length - 4; i++) {
+      const bloque = diasConEstaHora.slice(i, i + 4);
+      const corrido = bloque.every((s, idx) => {
+        if (idx === 0) return true;
+        const prev = new Date(bloque[idx - 1].fecha).getTime();
+        const curr = new Date(s.fecha).getTime();
+        return (curr - prev) === 86400000; // exactamente 1 día
+      });
+      if (corrido) return bloque.map(s => ({ date: s.fecha + 'T12:00:00', time: hora }));
     }
+
+    // Prioridad 2: bloque más compacto (menor rango total de fechas)
+    let mejorBloque = diasConEstaHora.slice(0, 4);
+    let mejorRango = Infinity;
+    for (let i = 0; i <= diasConEstaHora.length - 4; i++) {
+      const bloque = diasConEstaHora.slice(i, i + 4);
+      const rango = new Date(bloque[3].fecha).getTime() - new Date(bloque[0].fecha).getTime();
+      if (rango < mejorRango) { mejorRango = rango; mejorBloque = bloque; }
+    }
+    return mejorBloque.map(s => ({ date: s.fecha + 'T12:00:00', time: hora }));
   }
 
   // Fallback: mezcla de horarios si ninguna hora tiene 4 días disponibles
