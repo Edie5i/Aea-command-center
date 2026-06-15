@@ -253,7 +253,7 @@ async function extractLeadInfo(history: HistoryItem[], phone: string) {
   const conversation = history.map(h => `${h.role === 'user' ? 'Cliente' : 'Luz'}: ${h.text}`).join('\n');
   const result = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
-    prompt: `De esta conversación extrae en JSON plano: "nombre" (nombre completo del cliente), "zona" (calle, número, colonia y alcaldía mencionados por el cliente; si falta algún dato pon lo que haya), "transmision" ("Estándar" o "Automático", default "Estándar"), "horario" ("mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente). Solo JSON sin texto extra.\n\n${conversation}`,
+    prompt: `De esta conversación extrae en JSON plano:\n- "nombre": nombre completo del cliente\n- "zona": calle, número, colonia y alcaldía que mencionó el cliente; si falta algo pon lo que haya\n- "curso": nombre exacto del curso que Luz ofreció o el cliente eligió. Opciones: Estándar, Automático, Avanzado, Intermedio, Personas Nerviosas, Intensivo, Mixto, Moto, English Drive. Default "Estándar"\n- "transmision": tipo de vehículo: "Estándar" si el curso es de palanca (Estándar, Avanzado, Intermedio, Intensivo, Moto), "Automático" si es automático (Automático, Personas Nerviosas, Mixto, English Drive, Coche Propio). Default "Estándar"\n- "horario": "mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente\nSolo JSON sin texto extra.\n\n${conversation}`,
   });
   try {
     const json = JSON.parse(result.text?.trim() || '{}');
@@ -261,13 +261,14 @@ async function extractLeadInfo(history: HistoryItem[], phone: string) {
     return {
       nombre: String(json.nombre || 'Alumno'),
       zona: String(json.zona || 'Por confirmar'),
+      curso: String(json.curso || 'Estándar'),
       transmision: String(json.transmision || 'Estándar'),
       horario: (json.horario || 'mañana') as 'mañana' | 'tarde' | 'fin-de-semana',
       telefono: tel,
     };
   } catch {
     const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
-    return { nombre: 'Alumno', zona: 'Por confirmar', transmision: 'Estándar', horario: 'mañana' as const, telefono: tel };
+    return { nombre: 'Alumno', zona: 'Por confirmar', curso: 'Estándar', transmision: 'Estándar', horario: 'mañana' as const, telefono: tel };
   }
 }
 
@@ -395,7 +396,7 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
       `👤 ${leadInfo.nombre}\n` +
       `📱 +${dp}\n` +
       `📍 ${leadInfo.zona}\n` +
-      `🚗 ${leadInfo.transmision}\n\n` +
+      `🚗 ${leadInfo.curso}\n\n` +
       `${nota}`
     );
     await db.collection('conversations').doc(phone).set(
@@ -696,22 +697,19 @@ export async function POST(request: NextRequest) {
         await sendMessage(ADMIN_PHONE,
           `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
           `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
-          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.transmision}\n\n` +
+          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
           `📅 Clases agendadas:\n  ${fechasTexto}`
         ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
-        // Persiste datos de inscripción para ficha PDF en admin panel
-        import('@/lib/firestore')
-          .then(({ saveInscripcionData }) =>
-            saveInscripcionData(from, {
-              nombre: leadInfo.nombre,
-              telefono: from,
-              zona: leadInfo.zona,
-              transmision: leadInfo.transmision,
-              fechas: pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time })),
-            })
-          )
-          .catch(e => console.error('[WEBHOOK] Error guardando inscripcion:', e));
+        // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
+        const { saveInscripcionData } = await import('@/lib/firestore');
+        await saveInscripcionData(from, {
+          nombre: leadInfo.nombre,
+          telefono: from,
+          zona: leadInfo.zona,
+          transmision: leadInfo.curso,  // nombre real del curso (Automático, Personas Nerviosas, etc.)
+          fechas: pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time })),
+        });
 
         // Ficha de inscripción para el cliente (WhatsApp)
         const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
@@ -721,7 +719,7 @@ export async function POST(request: NextRequest) {
           ``,
           `👤 *${leadInfo.nombre}*`,
           `📱 ${displayTel}`,
-          `🚗 Curso ${leadInfo.transmision}`,
+          `🚗 Curso ${leadInfo.curso}`,
           `📍 ${leadInfo.zona}`,
           ``,
           `📅 *Tus clases:*`,
@@ -742,7 +740,7 @@ export async function POST(request: NextRequest) {
         sendMessage(ADMIN_PHONE,
           `⚠️ *COMPROBANTE RECIBIDO — Horario pendiente*\n\n` +
           `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
-          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.transmision}\n\n` +
+          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
           `No había suficientes slots disponibles. Asigna horario manualmente.`
         ).catch((e) => console.error('[WEBHOOK] Error notificando admin (sin slots):', e));
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
