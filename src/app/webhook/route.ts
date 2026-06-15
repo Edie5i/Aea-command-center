@@ -307,6 +307,34 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
   return params;
 }
 
+async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]): Promise<void> {
+  // Mínimo 3 mensajes del cliente para que haya podido dar nombre y dirección
+  if (history.filter(h => h.role === 'user').length < 3) return;
+  try {
+    const { getConversation, db } = await import('@/lib/firestore');
+    const conv = await getConversation(phone);
+    if (conv?.leadCalificadoNotificado) return; // ya notificado, no repetir
+    const leadInfo = await extractLeadInfo(history, phone);
+    // Solo notificar si tenemos datos reales (no defaults)
+    if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') return;
+    const dp = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    await sendMessage(ADMIN_PHONE,
+      `🔥 *Lead calificado — listo para cierre*\n\n` +
+      `👤 ${leadInfo.nombre}\n` +
+      `📱 +${dp}\n` +
+      `📍 ${leadInfo.zona}\n` +
+      `🚗 ${leadInfo.transmision}\n\n` +
+      `Luz ya tiene nombre y dirección 💰`
+    );
+    await db.collection('conversations').doc(phone).set(
+      { leadCalificadoNotificado: true },
+      { merge: true }
+    );
+  } catch (e) {
+    console.error('[WEBHOOK] Error en maybeNotifyLeadCalificado:', e);
+  }
+}
+
 function getSystemPrompt(clientPhone?: string): string {
   const hoy = new Date().toLocaleDateString('es-MX', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -774,6 +802,12 @@ export async function POST(request: NextRequest) {
       .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_cliente'))
       .catch(e => console.error('[WEBHOOK] recalculate error:', e));
     console.log('[CHAT] 🤖 Luz →', from, ':', reply);
+
+    // Notificar al admin cuando Luz ya tiene nombre + dirección del lead (una sola vez)
+    maybeNotifyLeadCalificado(
+      from,
+      [...history, { role: 'user', text: textBody }, { role: 'bot', text: reply }]
+    ).catch(e => console.error('[WEBHOOK] maybeNotifyLeadCalificado error:', e));
 
     if (reply.includes('autoescuelaamericana.com/agenda')) {
       const resumen = history

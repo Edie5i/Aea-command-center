@@ -72,6 +72,7 @@ export interface Conversation {
   closedAt?: Timestamp | null;
   closedOutcome?: 'ganado' | 'perdido' | null;
   contactName?: string | null;
+  leadCalificadoNotificado?: boolean;
 }
 
 export async function saveImageMessage(phone: string, mediaId: string, botText: string): Promise<void> {
