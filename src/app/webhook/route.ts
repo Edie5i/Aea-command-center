@@ -363,6 +363,25 @@ async function sendMessage(to: string, text: string): Promise<void> {
   }
 }
 
+async function sendImageMessage(to: string, mediaId: string, caption?: string): Promise<void> {
+  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+  const body: Record<string, unknown> = {
+    messaging_product: 'whatsapp',
+    to,
+    type: 'image',
+    image: { id: mediaId },
+  };
+  if (caption) (body.image as Record<string, string>).caption = caption;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    console.error('[WEBHOOK] WhatsApp image API error:', res.status, await res.text());
+  }
+}
+
 /**
  * Normaliza cualquier variación de número mexicano a 52XXXXXXXXXX (12 dígitos).
  * Cubre: 521XXXXXXXXXX, +52XXXXXXXXXX, +521XXXXXXXXXX, 10 dígitos sin código.
@@ -407,6 +426,7 @@ export async function POST(request: NextRequest) {
   let from = '';
   let textBody = '';
   let messageType = 'text';
+  let imageMediaId = '';
   let leadSource: string | null = null;
   let waDisplayName: string | null = null;
 
@@ -423,6 +443,7 @@ export async function POST(request: NextRequest) {
     from = normalizePhone(message.from ?? '');
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
+    if (messageType === 'image') imageMediaId = message?.image?.id ?? '';
 
     // Nombre del contacto de WhatsApp (si lo tiene configurado)
     waDisplayName = body?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name ?? null;
@@ -467,10 +488,17 @@ export async function POST(request: NextRequest) {
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
 
     sendMessage(ADMIN_PHONE,
-      `🔴 *COMPROBANTE RECIBIDO — ACCIÓN REQUERIDA*\n\n` +
+      `🔴 *COMPROBANTE RECIBIDO*\n\n` +
       `👤 ${nombreRapido}\n📱 +${from}\n\n` +
-      `⏳ Procesando inscripción automática...`
+      `⏳ Procesando inscripción...`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
+
+    // Reenviar la imagen del comprobante al admin para verificar monto y banco
+    if (imageMediaId) {
+      sendImageMessage(ADMIN_PHONE, imageMediaId, `Comprobante de +${from}`).catch(
+        (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
+      );
+    }
 
     try {
       const leadInfo = await extractLeadInfo(history, from);
