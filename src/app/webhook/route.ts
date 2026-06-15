@@ -382,10 +382,32 @@ async function sendImageMessage(to: string, mediaId: string, caption?: string): 
   const responseText = await res.text();
   if (!res.ok) {
     console.error('[WEBHOOK] WhatsApp image API error:', res.status, responseText);
-    // Diagnóstico: manda el error al admin en texto para verlo en WhatsApp
-    sendMessage(to, `⚠️ [debug] No se pudo reenviar imagen: ${res.status} — ${responseText.slice(0, 200)}`).catch(() => {});
   } else {
     console.log('[WEBHOOK] Imagen reenviada OK:', responseText.slice(0, 120));
+  }
+}
+
+async function sendLocationRequest(to: string, direccionConocida: string): Promise<void> {
+  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+  const payload = {
+    messaging_product: 'whatsapp',
+    to,
+    type: 'interactive',
+    interactive: {
+      type: 'location_request_message',
+      body: {
+        text: `Un último paso: comparte tu ubicación exacta para que el instructor llegue directo a tu puerta 📍\n\n_Dirección registrada: ${direccionConocida}_`,
+      },
+      action: { name: 'send_location' },
+    },
+  };
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    console.error('[WEBHOOK] Location request error:', res.status, await res.text());
   }
 }
 
@@ -434,6 +456,7 @@ export async function POST(request: NextRequest) {
   let textBody = '';
   let messageType = 'text';
   let imageMediaId = '';
+  let locationData: { latitude?: number; longitude?: number; name?: string; address?: string } = {};
   let leadSource: string | null = null;
   let waDisplayName: string | null = null;
 
@@ -454,6 +477,9 @@ export async function POST(request: NextRequest) {
       imageMediaId = message?.image?.id ?? '';
       console.log('[WEBHOOK] Imagen recibida — mediaId:', imageMediaId, '| mime:', message?.image?.mime_type);
     }
+    if (messageType === 'location') {
+      locationData = message?.location ?? {};
+    }
 
     // Nombre del contacto de WhatsApp (si lo tiene configurado)
     waDisplayName = body?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name ?? null;
@@ -471,7 +497,7 @@ export async function POST(request: NextRequest) {
       if (esApertura) leadSource = 'Google Ads (probable)';
     }
 
-    if (!from || (messageType !== 'image' && !textBody)) {
+    if (!from || (messageType !== 'image' && messageType !== 'location' && !textBody)) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
 
@@ -487,31 +513,61 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
+  // Ubicación GPS compartida por el cliente
+  if (messageType === 'location') {
+    const { latitude, longitude, name: locName, address: locAddress } = locationData;
+    const mapsUrl = latitude && longitude ? `https://maps.google.com/?q=${latitude},${longitude}` : null;
+    const resumen = [locName, locAddress].filter(Boolean).join(' — ') || 'Sin nombre';
+
+    // Notificar al admin con el pin de Maps
+    sendMessage(ADMIN_PHONE,
+      `📍 *Ubicación confirmada — +${from}*\n\n${resumen}${mapsUrl ? `\n\n🗺️ ${mapsUrl}` : ''}`
+    ).catch(e => console.error('[WEBHOOK] Error enviando ubicación al admin:', e));
+
+    // Guardar coordenadas en Firestore (zona actualizada)
+    if (mapsUrl) {
+      import('@/lib/firestore')
+        .then(({ db }) =>
+          db.collection('conversations').doc(from).set(
+            { ubicacionGPS: { latitude, longitude, address: locAddress ?? resumen, mapsUrl } },
+            { merge: true }
+          )
+        )
+        .catch(e => console.error('[WEBHOOK] Error guardando ubicación:', e));
+    }
+
+    // Confirmar al cliente
+    await sendMessage(from, `¡Listo! Guardé tu ubicación 📍 El instructor llegará ahí el día de tu primera clase.`);
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
   // Comprobante de pago (imagen) — inscripción automática
   if (messageType === 'image') {
     const history = await getHistory(from);
     let syntheticMsg: string;
     let inscriptionOk = false;
     let fichaClienteMsg: string | null = null;
+    let leadNombre = '';
+    let leadZona = 'Por confirmar';
 
     // Extraer nombre del lead del historial para la notificación inicial
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
 
     sendMessage(ADMIN_PHONE,
-      `🔴 *COMPROBANTE RECIBIDO*\n\n` +
-      `👤 ${nombreRapido}\n📱 +${from}\n\n` +
-      `⏳ Procesando inscripción...`
+      `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     // Reenviar la imagen del comprobante al admin para verificar monto y banco
     if (imageMediaId) {
-      sendImageMessage(ADMIN_PHONE, imageMediaId, `Comprobante de +${from}`).catch(
+      sendImageMessage(ADMIN_PHONE, imageMediaId, `${nombreRapido} · +${from}`).catch(
         (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
       );
     }
 
     try {
       const leadInfo = await extractLeadInfo(history, from);
+      leadNombre = leadInfo.nombre;
+      leadZona = leadInfo.zona;
       console.log('[WEBHOOK] Lead info extraída:', JSON.stringify(leadInfo));
 
       console.log('[WEBHOOK] Consultando slots disponibles...');
@@ -618,6 +674,9 @@ export async function POST(request: NextRequest) {
       sendMessage(from,
         `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\napp.autoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\napp.autoescuelaamericana.com/aviso-privacidad`
       ).catch(e => console.error('[WEBHOOK] Error enviando T&C:', e));
+
+      // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
+      sendLocationRequest(from, leadZona).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
 
       // Inscripción confirmada → cerrar lead como ganado directamente
       import('@/lib/firestore')
