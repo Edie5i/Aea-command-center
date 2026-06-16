@@ -564,6 +564,13 @@ async function transcribeAudio(mediaId: string, mimeType = 'audio/ogg'): Promise
   return result.text?.trim() ?? '';
 }
 
+async function resolveDocId(db: FirebaseFirestore.Firestore, phone: string): Promise<string> {
+  const snap = await db.collection('conversations').doc(phone).get();
+  if (snap.exists) return phone;
+  const alt = phone.startsWith('52') ? phone.slice(2) : '52' + phone;
+  return alt;
+}
+
 async function handleAdminCommand(cmd: string, targetPhone: string): Promise<string> {
   const { db } = await import('@/lib/firestore');
 
@@ -584,23 +591,23 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
     ? targetPhone.slice(2) : targetPhone;
 
   if (cmd === '!pausa') {
-    await db.collection('conversations').doc(targetPhone).set(
-      { botPaused: true },
-      { merge: true }
-    );
+    const docId = await resolveDocId(db, targetPhone);
+    await db.collection('conversations').doc(docId).set({ botPaused: true }, { merge: true });
     return `⏸️ Luz pausada para +${dp}\n\nAhora puedes responderle tú directamente. Usa *!reanudar ${dp}* cuando quieras que Luz retome.`;
   }
 
   if (cmd === '!reanudar') {
-    await db.collection('conversations').doc(targetPhone).set(
-      { botPaused: false },
-      { merge: true }
-    );
+    const docId = await resolveDocId(db, targetPhone);
+    await db.collection('conversations').doc(docId).set({ botPaused: false }, { merge: true });
     return `▶️ Luz reanudada para +${dp}\n\nEl próximo mensaje del lead lo responderá Luz automáticamente.`;
   }
 
   if (cmd === '!estado') {
-    const snap = await db.collection('conversations').doc(targetPhone).get();
+    let snap = await db.collection('conversations').doc(targetPhone).get();
+    if (!snap.exists) {
+      const alt = targetPhone.startsWith('52') ? targetPhone.slice(2) : '52' + targetPhone;
+      snap = await db.collection('conversations').doc(alt).get();
+    }
     if (!snap.exists) return `❓ No encontré conversación con +${dp}`;
     const d = snap.data()!;
     const estado = d.chatState ?? 'desconocido';
@@ -616,9 +623,10 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
   }
 
   if (cmd === '!cerrar') {
+    const docId = await resolveDocId(db, targetPhone);
     const { updateChatState } = await import('@/lib/firestore');
     const { Timestamp } = await import('firebase-admin/firestore');
-    await updateChatState(targetPhone, {
+    await updateChatState(docId, {
       chatState: 'cerrado',
       chatReason: 'Cerrado manualmente por admin',
       chatUrgency: 'ninguna',
@@ -747,8 +755,9 @@ export async function POST(request: NextRequest) {
     const cmd = parts[0].toLowerCase();
     const rawPhone = parts[1] ?? '';
     const targetPhone = rawPhone ? normalizePhone(rawPhone) : '';
-
+    console.log('[ADMIN] Comando recibido:', cmd, '| target:', targetPhone || '(sin número)');
     const reply = await handleAdminCommand(cmd, targetPhone);
+    console.log('[ADMIN] Respuesta:', reply.slice(0, 100));
     await sendMessage(ADMIN_PHONE, reply);
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
