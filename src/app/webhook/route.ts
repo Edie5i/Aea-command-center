@@ -564,6 +564,73 @@ async function transcribeAudio(mediaId: string, mimeType = 'audio/ogg'): Promise
   return result.text?.trim() ?? '';
 }
 
+async function handleAdminCommand(cmd: string, targetPhone: string): Promise<string> {
+  const { db } = await import('@/lib/firestore');
+
+  if (cmd === '!ayuda' || !targetPhone) {
+    return [
+      '📋 *Comandos disponibles:*',
+      '',
+      '`!pausa <número>` — Luz deja de responder al lead',
+      '`!reanudar <número>` — Luz vuelve a responder al lead',
+      '`!estado <número>` — Ver estado actual del lead',
+      '`!cerrar <número>` — Marcar conversación como cerrada',
+      '',
+      '_El número puede ser con o sin código de país (ej: 5512345678 o 525512345678)_',
+    ].join('\n');
+  }
+
+  const dp = targetPhone.startsWith('52') && targetPhone.length === 12
+    ? targetPhone.slice(2) : targetPhone;
+
+  if (cmd === '!pausa') {
+    await db.collection('conversations').doc(targetPhone).set(
+      { botPaused: true },
+      { merge: true }
+    );
+    return `⏸️ Luz pausada para +${dp}\n\nAhora puedes responderle tú directamente. Usa *!reanudar ${dp}* cuando quieras que Luz retome.`;
+  }
+
+  if (cmd === '!reanudar') {
+    await db.collection('conversations').doc(targetPhone).set(
+      { botPaused: false },
+      { merge: true }
+    );
+    return `▶️ Luz reanudada para +${dp}\n\nEl próximo mensaje del lead lo responderá Luz automáticamente.`;
+  }
+
+  if (cmd === '!estado') {
+    const snap = await db.collection('conversations').doc(targetPhone).get();
+    if (!snap.exists) return `❓ No encontré conversación con +${dp}`;
+    const d = snap.data()!;
+    const estado = d.chatState ?? 'desconocido';
+    const pausa = d.botPaused ? '⏸️ Luz pausada' : '▶️ Luz activa';
+    const nombre = d.contactName ? `👤 ${d.contactName}` : '';
+    const curso = d.courseInterest ? `🚗 ${d.courseInterest}` : '';
+    const preview = d.chatLastPreview ? `💬 "${String(d.chatLastPreview).slice(0, 100)}"` : '';
+    return [
+      `📊 *Estado de +${dp}*`,
+      '',
+      nombre, curso, `🏷️ ${estado}`, pausa, preview,
+    ].filter(Boolean).join('\n');
+  }
+
+  if (cmd === '!cerrar') {
+    const { updateChatState } = await import('@/lib/firestore');
+    const { Timestamp } = await import('firebase-admin/firestore');
+    await updateChatState(targetPhone, {
+      chatState: 'cerrado',
+      chatReason: 'Cerrado manualmente por admin',
+      chatUrgency: 'ninguna',
+      closedAt: Timestamp.now(),
+      closedOutcome: 'perdido',
+    }, 'manual');
+    return `✅ Conversación con +${dp} marcada como cerrada.`;
+  }
+
+  return `❓ Comando desconocido: *${cmd}*\n\nEscribe *!ayuda* para ver los comandos disponibles.`;
+}
+
 /**
  * Normaliza cualquier variación de número mexicano a 52XXXXXXXXXX (12 dígitos).
  * Cubre: 521XXXXXXXXXX, +52XXXXXXXXXX, +521XXXXXXXXXX, 10 dígitos sin código.
@@ -670,6 +737,19 @@ export async function POST(request: NextRequest) {
     }
     seen.set(msgId, now);
   } catch {
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // ── Comandos del admin ────────────────────────────────────────────────────
+  // Si el mensaje viene del número admin, procesar comandos y no pasar a Luz
+  if (from === ADMIN_PHONE && textBody.startsWith('!')) {
+    const parts = textBody.trim().split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const rawPhone = parts[1] ?? '';
+    const targetPhone = rawPhone ? normalizePhone(rawPhone) : '';
+
+    const reply = await handleAdminCommand(cmd, targetPhone);
+    await sendMessage(ADMIN_PHONE, reply);
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
