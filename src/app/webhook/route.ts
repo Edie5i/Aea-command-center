@@ -226,7 +226,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - NUNCA repitas la oferta de asesor humano si ya la hiciste
 - SIEMPRE usa consultarDisponibilidad antes de proponer fechas concretas`;
 
-const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
+const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525586163794').trim();
 const MSG_FALLBACK = 'Permíteme un momento — te pongo en contacto con el encargado para que te ayude con eso 🙂';
 const GEMINI_TIMEOUT_MS = 90_000;
 
