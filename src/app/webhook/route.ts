@@ -540,6 +540,30 @@ async function sendLocationRequest(to: string, direccionConocida: string): Promi
   }
 }
 
+async function transcribeAudio(mediaId: string, mimeType = 'audio/ogg'): Promise<string> {
+  const metaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaId}`, {
+    headers: { Authorization: `Bearer ${WA_TOKEN}` },
+  });
+  if (!metaRes.ok) throw new Error(`Media info error: ${metaRes.status}`);
+  const metaData = (await metaRes.json()) as { url?: string };
+  if (!metaData.url) throw new Error('No URL in WhatsApp media response');
+
+  const audioRes = await fetch(metaData.url, {
+    headers: { Authorization: `Bearer ${WA_TOKEN}` },
+  });
+  if (!audioRes.ok) throw new Error(`Audio download error: ${audioRes.status}`);
+  const base64Audio = Buffer.from(await audioRes.arrayBuffer()).toString('base64');
+
+  const result = await ai.generate({
+    model: 'googleai/gemini-2.5-flash',
+    prompt: [
+      { media: { url: `data:${mimeType};base64,${base64Audio}`, contentType: mimeType } },
+      { text: 'Transcribe este audio en español. Solo devuelve el texto transcrito, sin explicaciones ni comillas.' },
+    ],
+  });
+  return result.text?.trim() ?? '';
+}
+
 /**
  * Normaliza cualquier variación de número mexicano a 52XXXXXXXXXX (12 dígitos).
  * Cubre: 521XXXXXXXXXX, +52XXXXXXXXXX, +521XXXXXXXXXX, 10 dígitos sin código.
@@ -585,6 +609,8 @@ export async function POST(request: NextRequest) {
   let textBody = '';
   let messageType = 'text';
   let imageMediaId = '';
+  let audioMediaId = '';
+  let audioMimeType = 'audio/ogg';
   let locationData: { latitude?: number; longitude?: number; name?: string; address?: string } = {};
   let leadSource: string | null = null;
   let waDisplayName: string | null = null;
@@ -606,6 +632,11 @@ export async function POST(request: NextRequest) {
       imageMediaId = message?.image?.id ?? '';
       console.log('[WEBHOOK] Imagen recibida — mediaId:', imageMediaId, '| mime:', message?.image?.mime_type);
     }
+    if (messageType === 'audio') {
+      audioMediaId = message?.audio?.id ?? '';
+      audioMimeType = message?.audio?.mime_type ?? 'audio/ogg';
+      console.log('[WEBHOOK] Audio recibido — mediaId:', audioMediaId, '| mime:', audioMimeType);
+    }
     if (messageType === 'location') {
       locationData = message?.location ?? {};
     }
@@ -626,7 +657,7 @@ export async function POST(request: NextRequest) {
       if (esApertura) leadSource = 'Google Ads (probable)';
     }
 
-    if (!from || (messageType !== 'image' && messageType !== 'location' && !textBody)) {
+    if (!from || (messageType !== 'image' && messageType !== 'location' && messageType !== 'audio' && !textBody)) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
 
@@ -640,6 +671,25 @@ export async function POST(request: NextRequest) {
     seen.set(msgId, now);
   } catch {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // Nota de voz — transcribir con Gemini antes de pasar al flujo normal
+  if (messageType === 'audio' && audioMediaId) {
+    try {
+      const transcription = await transcribeAudio(audioMediaId, audioMimeType);
+      if (transcription) {
+        console.log('[WEBHOOK] 🎤 Transcripción:', transcription.slice(0, 200));
+        textBody = transcription;
+        messageType = 'text';
+      } else {
+        await sendMessage(from, 'No pude escuchar bien tu nota de voz — ¿me lo puedes escribir? 🙏');
+        return new NextResponse('EVENT_RECEIVED', { status: 200 });
+      }
+    } catch (e) {
+      console.error('[WEBHOOK] Error transcribiendo audio:', e);
+      await sendMessage(from, 'No pude escuchar bien tu nota de voz — ¿me lo puedes escribir? 🙏');
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
   }
 
   // Ubicación GPS compartida por el cliente
