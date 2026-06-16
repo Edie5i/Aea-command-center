@@ -227,7 +227,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - SIEMPRE usa consultarDisponibilidad antes de proponer fechas concretas`;
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-const MSG_FALLBACK = 'Déjame verificarlo con el equipo y te escribo en un momento.';
+const MSG_FALLBACK = 'Permíteme un momento — te pongo en contacto con el encargado para que te ayude con eso 🙂';
 const GEMINI_TIMEOUT_MS = 90_000;
 
 // Dedup de mensajes recibidos
