@@ -742,8 +742,8 @@ export async function POST(request: NextRequest) {
 
   // ── Comandos del admin ────────────────────────────────────────────────────
   // Si el mensaje viene del número admin, procesar comandos y no pasar a Luz
-  if (from === ADMIN_PHONE && textBody.startsWith('!')) {
-    const parts = textBody.trim().split(/\s+/);
+  if (from === ADMIN_PHONE && /^[!¡]/.test(textBody.trim())) {
+    const parts = textBody.trim().replace(/^¡/, '!').split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const rawPhone = parts[1] ?? '';
     const targetPhone = rawPhone ? normalizePhone(rawPhone) : '';
