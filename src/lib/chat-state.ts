@@ -176,10 +176,13 @@ export async function recalculateChatState(
       }
     }
 
-    // Notificar al admin solo cuando el estado transiciona A tu_turno
-    if (newState === 'tu_turno' && currentState !== 'tu_turno') {
+    // Notificar al admin cuando transiciona A tu_turno o atascado
+    if (
+      (newState === 'tu_turno' && currentState !== 'tu_turno') ||
+      (newState === 'atascado' && currentState !== 'atascado')
+    ) {
       notifyAdminTuTurno(phone, reason, contactName, lastMsg?.text ?? '').catch(
-        e => console.error('[CHAT-STATE] Error notificando admin tu_turno:', e)
+        e => console.error('[CHAT-STATE] Error notificando admin:', e)
       );
     }
 

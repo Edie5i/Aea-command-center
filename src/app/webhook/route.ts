@@ -464,6 +464,9 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
   const result = await Promise.race([geminiCall, timeout]);
   if (!result) {
     console.error('[WEBHOOK] Gemini timeout after', GEMINI_TIMEOUT_MS, 'ms');
+    sendMessage(ADMIN_PHONE,
+      `⚠️ *Luz se congeló* — timeout ${GEMINI_TIMEOUT_MS / 1000}s\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nRevisa y responde tú.`
+    ).catch(e => console.error('[WEBHOOK] Error notificando timeout:', e));
     return MSG_FALLBACK;
   }
   return result.text?.trim() || MSG_FALLBACK;
