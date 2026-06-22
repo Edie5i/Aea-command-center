@@ -274,21 +274,45 @@ function saveHistory(phone: string, userText: string, botText: string) {
   conversations.set(phone, existing);
 }
 
+function isValidName(val: unknown): boolean {
+  if (!val || typeof val !== 'string') return false;
+  const v = val.trim().toLowerCase();
+  if (v.length < 2) return false;
+  const invalid = ['alumno', 'cliente', 'usuario', 'null', 'none', 'no sé', 'no se', 'n/a', 'na', 'desconocido', 'sin nombre', 'no dio'];
+  return !invalid.includes(v);
+}
+
 async function extractLeadInfo(history: HistoryItem[], phone: string) {
   const conversation = history.map(h => `${h.role === 'user' ? 'Cliente' : 'Luz'}: ${h.text}`).join('\n');
   const result = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
-    prompt: `De esta conversación extrae en JSON plano:\n- "nombre": nombre completo del cliente\n- "zona": calle, número, colonia y alcaldía que mencionó el cliente; si falta algo pon lo que haya\n- "curso": nombre exacto del curso que Luz ofreció o el cliente eligió. Opciones: Estándar, Automático, Avanzado, Intermedio, Personas Nerviosas, Intensivo, Mixto, Moto, English Drive. Default "Estándar"\n- "transmision": tipo de vehículo: "Estándar" si el curso es de palanca (Estándar, Avanzado, Intermedio, Intensivo, Moto), "Automático" si es automático (Automático, Personas Nerviosas, Mixto, English Drive, Coche Propio). Default "Estándar"\n- "horario": "mañana", "tarde" o "fin-de-semana" según lo que pidió el cliente\nSolo JSON sin texto extra.\n\n${conversation}`,
+    prompt: `De esta conversación extrae en JSON plano los datos del cliente. Si un dato no está claro, devuelve null — no inventes ni uses valores genéricos.
+
+- "nombre": nombre o apodo que mencionó el cliente. Apodos cortos como "Ale", "Fer", "Santi" son válidos. Si no dio nombre, null.
+- "zona": dirección (calle + número + colonia). Si solo dio colonia, ponla. Si no dio ninguna, null.
+- "curso": uno exactamente de: Estándar | Automático | Avanzado | Intermedio | Personas Nerviosas | Intensivo | Mixto | Moto | English Drive. Si no queda claro, null.
+- "transmision": "Estándar" para palanca (Estándar, Avanzado, Intermedio, Intensivo, Moto), "Automático" para automático (Automático, Personas Nerviosas, Mixto, English Drive, Coche Propio). Si no queda claro, null.
+- "horario":
+  * "mañana" → mañana, temprano, antes del mediodía, 7am, 10am, por la mañana
+  * "tarde" → tarde, después del mediodía, noche, 1pm, 4pm, 7pm, 13:00, 16:00, 19:00, por la tarde, por la noche
+  * "fin-de-semana" → sábado, domingo, fin de semana, finde, weekend
+  * null → ambiguo o no especificó (cualquier hora, me da igual, cuando haya lugar)
+Solo JSON sin texto extra ni bloques de código.
+
+${conversation}`,
   });
   try {
-    const json = JSON.parse(result.text?.trim() || '{}');
+    const raw = result.text?.trim() ?? '{}';
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    const json = JSON.parse(cleaned);
     const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    const validHorarios = ['mañana', 'tarde', 'fin-de-semana'];
     return {
-      nombre: String(json.nombre || 'Alumno'),
-      zona: String(json.zona || 'Por confirmar'),
-      curso: String(json.curso || 'Estándar'),
-      transmision: String(json.transmision || 'Estándar'),
-      horario: (json.horario || 'mañana') as 'mañana' | 'tarde' | 'fin-de-semana',
+      nombre: isValidName(json.nombre) ? String(json.nombre).trim() : 'Alumno',
+      zona: json.zona ? String(json.zona).trim() : 'Por confirmar',
+      curso: json.curso ? String(json.curso).trim() : 'Estándar',
+      transmision: json.transmision ? String(json.transmision).trim() : 'Estándar',
+      horario: (validHorarios.includes(json.horario) ? json.horario : 'mañana') as 'mañana' | 'tarde' | 'fin-de-semana',
       telefono: tel,
     };
   } catch {
@@ -837,6 +861,11 @@ export async function POST(request: NextRequest) {
       leadNombre = leadInfo.nombre;
       leadZona = leadInfo.zona;
       console.log('[WEBHOOK] Lead info extraída:', JSON.stringify(leadInfo));
+
+      if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') {
+        console.warn('[WEBHOOK] Datos insuficientes para crear ficha — nombre o zona faltantes. Abortando agendamiento.');
+        return new NextResponse('EVENT_RECEIVED', { status: 200 });
+      }
 
       console.log('[WEBHOOK] Consultando slots disponibles...');
       const slots = await getAvailableSlots(21);
