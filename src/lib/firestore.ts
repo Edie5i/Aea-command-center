@@ -10,6 +10,9 @@ initAdmin();
 
 export const db = getFirestore(getApp());
 
+const convDoc = (phone: string) => db.collection('conversations').doc(phone);
+const messagesCol = (phone: string) => convDoc(phone).collection('messages');
+
 // ── Chat state types ───────────────────────────────────────────────────────────
 
 export type ChatState =
@@ -57,7 +60,6 @@ export interface Conversation {
   reminder1hSent: boolean;
   reminder23hSent: boolean;
   source?: string;
-  // ── Pipeline state fields (added in feature/chat-states) ──────────────────
   chatState?: ChatState;
   chatReason?: string;
   chatUrgency?: ChatUrgency;
@@ -75,82 +77,66 @@ export interface Conversation {
   leadCalificadoNotificado?: boolean;
 }
 
+async function appendMessage(
+  phone: string,
+  role: 'user' | 'bot',
+  text: string,
+  lastSender: 'lead' | 'bot',
+): Promise<void> {
+  const now = Timestamp.now();
+  const batch = db.batch();
+  batch.set(
+    convDoc(phone),
+    { lastActivity: now, lastMessage: text, lastSender, messageCount: FieldValue.increment(1) },
+    { merge: true }
+  );
+  batch.set(messagesCol(phone).doc(), { role, text, timestamp: now });
+  await batch.commit();
+}
+
 export async function saveImageMessage(phone: string, mediaId: string, botText: string): Promise<void> {
   const now = Timestamp.now();
-  const convRef = db.collection('conversations').doc(phone);
-  const messagesRef = convRef.collection('messages');
   const batch = db.batch();
-  batch.set(convRef, {
+  batch.set(convDoc(phone), {
     phone, lastActivity: now, lastMessage: botText,
     lastSender: 'bot', messageCount: FieldValue.increment(2),
   }, { merge: true });
-  batch.set(messagesRef.doc(), { role: 'user', text: '[imagen]', mediaId, mediaType: 'image', timestamp: now });
-  batch.set(messagesRef.doc(), { role: 'bot', text: botText, timestamp: now });
+  batch.set(messagesCol(phone).doc(), { role: 'user', text: '[imagen]', mediaId, mediaType: 'image', timestamp: now });
+  batch.set(messagesCol(phone).doc(), { role: 'bot', text: botText, timestamp: now });
   await batch.commit();
 }
 
 export async function saveUserMessage(phone: string, text: string): Promise<void> {
-  const now = Timestamp.now();
-  const convRef = db.collection('conversations').doc(phone);
-  const batch = db.batch();
-  batch.set(
-    convRef,
-    { lastActivity: now, lastMessage: text, lastSender: 'lead', messageCount: FieldValue.increment(1) },
-    { merge: true }
-  );
-  batch.set(convRef.collection('messages').doc(), { role: 'user', text, timestamp: now });
-  await batch.commit();
+  return appendMessage(phone, 'user', text, 'lead');
 }
 
 export async function saveBotMessage(phone: string, text: string): Promise<void> {
-  const now = Timestamp.now();
-  const convRef = db.collection('conversations').doc(phone);
-  const batch = db.batch();
-  batch.set(
-    convRef,
-    { lastActivity: now, lastMessage: text, lastSender: 'bot', messageCount: FieldValue.increment(1) },
-    { merge: true }
-  );
-  batch.set(convRef.collection('messages').doc(), { role: 'bot', text, timestamp: now });
-  await batch.commit();
+  return appendMessage(phone, 'bot', text, 'bot');
 }
 
 export async function saveConversationMessage(
   phone: string,
   userText: string,
   botText: string
-) {
+): Promise<void> {
   const now = Timestamp.now();
-  const convRef = db.collection('conversations').doc(phone);
-  const messagesRef = convRef.collection('messages');
-
   const batch = db.batch();
-
-  batch.set(
-    convRef,
-    {
-      phone,
-      lastActivity: now,
-      lastMessage: botText,
-      lastSender: 'bot',
-      messageCount: FieldValue.increment(2),
-    },
-    { merge: true }
-  );
-
-  batch.set(messagesRef.doc(), { role: 'user', text: userText, timestamp: now });
-  batch.set(messagesRef.doc(), { role: 'bot', text: botText, timestamp: now });
-
+  batch.set(convDoc(phone), {
+    phone, lastActivity: now, lastMessage: botText,
+    lastSender: 'bot', messageCount: FieldValue.increment(2),
+  }, { merge: true });
+  batch.set(messagesCol(phone).doc(), { role: 'user', text: userText, timestamp: now });
+  batch.set(messagesCol(phone).doc(), { role: 'bot', text: botText, timestamp: now });
   await batch.commit();
 }
 
 export async function saveLeadSource(phone: string, source: string): Promise<void> {
-  await db.collection('conversations').doc(phone).set({ source }, { merge: true });
+  await convDoc(phone).set({ source }, { merge: true });
 }
 
 export async function updateLeadActivity(phone: string): Promise<void> {
   const now = Timestamp.now();
-  await db.collection('conversations').doc(phone).set(
+  await convDoc(phone).set(
     { phone, lastLeadActivity: now, reminder1hSent: false, reminder23hSent: false },
     { merge: true }
   );
@@ -164,7 +150,7 @@ export async function getPendingReminders(type: '1h' | '23h'): Promise<Conversat
   const cutoffMin = Timestamp.fromMillis(now - ms - windowMs);
   const sentField = type === '1h' ? 'reminder1hSent' : 'reminder23hSent';
 
-  // Solo filtra por rango de tiempo para evitar índice compuesto
+  // Filter by time range only to avoid a composite index requirement
   const snap = await db.collection('conversations')
     .where('lastLeadActivity', '<=', cutoffMax)
     .where('lastLeadActivity', '>=', cutoffMin)
@@ -177,27 +163,19 @@ export async function getPendingReminders(type: '1h' | '23h'): Promise<Conversat
 
 export async function markReminderSent(phone: string, type: '1h' | '23h'): Promise<void> {
   const field = type === '1h' ? 'reminder1hSent' : 'reminder23hSent';
-  await db.collection('conversations').doc(phone).set({ [field]: true }, { merge: true });
+  await convDoc(phone).set({ [field]: true }, { merge: true });
 }
 
 export async function getConversations(): Promise<Conversation[]> {
-  const snap = await db
-    .collection('conversations')
+  const snap = await db.collection('conversations')
     .orderBy('lastActivity', 'desc')
     .limit(50)
     .get();
-
   return snap.docs.map(d => d.data() as Conversation);
 }
 
 export async function getConversationMessages(phone: string): Promise<ChatMessage[]> {
-  const snap = await db
-    .collection('conversations')
-    .doc(phone)
-    .collection('messages')
-    .orderBy('timestamp', 'asc')
-    .get();
-
+  const snap = await messagesCol(phone).orderBy('timestamp', 'asc').get();
   return snap.docs.map(d => d.data() as ChatMessage);
 }
 
@@ -211,17 +189,27 @@ export interface InscripcionData {
   fechaConfirmacion: number; // millis — serializable para Client Components
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rawToInscripcion(ins: Record<string, any>, fallbackPhone: string): InscripcionData {
+  return {
+    nombre: ins.nombre ?? '',
+    telefono: ins.telefono ?? fallbackPhone,
+    zona: ins.zona ?? '',
+    curso: ins.curso ?? ins.transmision ?? 'Estándar',
+    transmision: ins.transmision ?? 'Estándar',
+    fechas: ins.fechas ?? [],
+    fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
+  };
+}
+
 export async function saveInscripcionData(
   phone: string,
   data: Omit<InscripcionData, 'fechaConfirmacion'>
 ): Promise<void> {
-  await db
-    .collection('conversations')
-    .doc(phone)
-    .set(
-      { inscripcion: { ...data, fechaConfirmacion: Timestamp.now() } },
-      { merge: true }
-    );
+  await convDoc(phone).set(
+    { inscripcion: { ...data, fechaConfirmacion: Timestamp.now() } },
+    { merge: true }
+  );
 }
 
 export async function buscarInscripcionPorNombre(nombre: string): Promise<(InscripcionData & { phone: string })[]> {
@@ -231,34 +219,17 @@ export async function buscarInscripcionPorNombre(nombre: string): Promise<(Inscr
   for (const doc of snap.docs) {
     const ins = doc.data().inscripcion;
     if (ins?.nombre?.toLowerCase().includes(q) && ins.fechas?.length > 0) {
-      results.push({
-        nombre: ins.nombre,
-        telefono: ins.telefono ?? doc.id,
-        zona: ins.zona ?? '',
-        curso: ins.curso ?? ins.transmision ?? 'Estándar',
-        transmision: ins.transmision ?? 'Estándar',
-        fechas: ins.fechas ?? [],
-        fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
-        phone: doc.id,
-      });
+      results.push({ ...rawToInscripcion(ins, doc.id), phone: doc.id });
     }
   }
   return results;
 }
 
 export async function getInscripcionData(phone: string): Promise<InscripcionData | null> {
-  const snap = await db.collection('conversations').doc(phone).get();
+  const snap = await convDoc(phone).get();
   const ins = snap.data()?.inscripcion;
   if (!ins) return null;
-  return {
-    nombre: ins.nombre ?? '',
-    telefono: ins.telefono ?? phone,
-    zona: ins.zona ?? '',
-    curso: ins.curso ?? ins.transmision ?? 'Estándar',
-    transmision: ins.transmision ?? 'Estándar',
-    fechas: ins.fechas ?? [],
-    fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
-  };
+  return rawToInscripcion(ins, phone);
 }
 
 export async function getRecentInscripciones(limit = 50): Promise<(InscripcionData & { phone: string })[]> {
@@ -267,16 +238,7 @@ export async function getRecentInscripciones(limit = 50): Promise<(InscripcionDa
   for (const doc of snap.docs) {
     const ins = doc.data().inscripcion;
     if (ins?.nombre && ins.fechas?.length > 0) {
-      results.push({
-        nombre: ins.nombre,
-        telefono: ins.telefono ?? doc.id,
-        zona: ins.zona ?? '',
-        curso: ins.curso ?? ins.transmision ?? 'Estándar',
-        transmision: ins.transmision ?? 'Estándar',
-        fechas: ins.fechas ?? [],
-        fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
-        phone: doc.id,
-      });
+      results.push({ ...rawToInscripcion(ins, doc.id), phone: doc.id });
     }
   }
   results.sort((a, b) => b.fechaConfirmacion - a.fechaConfirmacion);
@@ -306,6 +268,8 @@ export interface CandidatoInstructor {
   razonRechazo?: string;
   evaluacionFecha?: string;
   evaluacionHora?: string;
+  portalOtp?: string;
+  portalOtpExpires?: number;
   creadoEn: number;
   actualizadoEn: number;
 }
@@ -327,6 +291,28 @@ export async function upsertCandidato(
   } else {
     await ref.set({ phone, estado: 'nuevo', ...data, creadoEn: Date.now(), actualizadoEn: Date.now() });
   }
+}
+
+export async function generateInstructorOTP(phone: string): Promise<string> {
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  await db.collection('candidatos_instructor').doc(phone).set(
+    { portalOtp: otp, portalOtpExpires: Date.now() + 60 * 60 * 1000 },
+    { merge: true }
+  );
+  return otp;
+}
+
+export async function validateAndConsumeOTP(otp: string): Promise<string | null> {
+  const snap = await db.collection('candidatos_instructor')
+    .where('portalOtp', '==', otp)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  const doc = snap.docs[0];
+  const data = doc.data() as CandidatoInstructor;
+  if (!data.portalOtpExpires || Date.now() > data.portalOtpExpires) return null;
+  await doc.ref.set({ portalOtp: null, portalOtpExpires: null }, { merge: true });
+  return doc.id;
 }
 
 export async function getCandidatos(estado?: EstadoCandidato): Promise<CandidatoInstructor[]> {
@@ -353,6 +339,11 @@ export interface FichaWithId extends Ficha {
   dateMillis: number;
 }
 
+function toFichaWithId(d: FirebaseFirestore.QueryDocumentSnapshot): FichaWithId {
+  const data = d.data() as Ficha;
+  return { ...data, id: d.id, dateMillis: data.date.toMillis() };
+}
+
 export async function saveFicha(data: Omit<Ficha, 'date'>): Promise<string> {
   const ref = db.collection('fichas').doc();
   await ref.set({ ...data, date: Timestamp.now() });
@@ -361,10 +352,7 @@ export async function saveFicha(data: Omit<Ficha, 'date'>): Promise<string> {
 
 export async function getRecentFichas(limit = 20): Promise<FichaWithId[]> {
   const snap = await db.collection('fichas').orderBy('date', 'desc').limit(limit).get();
-  return snap.docs.map(d => {
-    const data = d.data() as Ficha;
-    return { ...data, id: d.id, dateMillis: data.date.toMillis() };
-  });
+  return snap.docs.map(toFichaWithId);
 }
 
 export async function getFichasByPhone(phone: string): Promise<FichaWithId[]> {
@@ -372,10 +360,7 @@ export async function getFichasByPhone(phone: string): Promise<FichaWithId[]> {
     .where('phone', '==', phone)
     .orderBy('date', 'desc')
     .get();
-  return snap.docs.map(d => {
-    const data = d.data() as Ficha;
-    return { ...data, id: d.id, dateMillis: data.date.toMillis() };
-  });
+  return snap.docs.map(toFichaWithId);
 }
 
 export async function getFichasStats(): Promise<{
@@ -510,10 +495,6 @@ export async function updateClaseEstado(id: string, estado: EstadoClase): Promis
 
 // ── Chat state management ──────────────────────────────────────────────────────
 
-/**
- * Logs a state transition to conversations/{phone}/state_history.
- * Called by updateChatState whenever the state actually changes.
- */
 export async function logStateChange(
   phone: string,
   from: ChatState | null,
@@ -521,24 +502,11 @@ export async function logStateChange(
   reason: string,
   trigger: StateChangeTrigger
 ): Promise<void> {
-  const entry: StateHistoryEntry = {
-    from,
-    to,
-    reason,
-    timestamp: Timestamp.now(),
-    trigger,
-  };
-  await db
-    .collection('conversations')
-    .doc(phone)
-    .collection('state_history')
-    .add(entry);
+  const entry: StateHistoryEntry = { from, to, reason, timestamp: Timestamp.now(), trigger };
+  await convDoc(phone).collection('state_history').add(entry);
 }
 
-/**
- * Updates pipeline state fields on a conversation document.
- * Logs to state_history if the state actually changed.
- */
+// Logs to state_history when state actually changes.
 export async function updateChatState(
   phone: string,
   update: {
@@ -557,54 +525,38 @@ export async function updateChatState(
   },
   trigger: StateChangeTrigger
 ): Promise<void> {
-  const convRef = db.collection('conversations').doc(phone);
-  const snap = await convRef.get();
+  const ref = convDoc(phone);
+  const snap = await ref.get();
   const prev = (snap.data()?.chatState ?? null) as ChatState | null;
 
-  await convRef.set(update, { merge: true });
+  await ref.set(update, { merge: true });
 
   if (prev !== update.chatState) {
     await logStateChange(phone, prev, update.chatState, update.chatReason, trigger);
   }
 }
 
-/**
- * Returns conversations ordered by lastActivity, optionally filtered by chatState.
- * Uninitialized docs (no chatState) are treated as 'luz_atendiendo'.
- */
+// Uninitialized docs (no chatState) are treated as 'luz_atendiendo'.
 export async function getConversationsFiltered(
   state?: ChatState
 ): Promise<Conversation[]> {
-  let query = db.collection('conversations').orderBy('lastActivity', 'desc').limit(100);
-
-  const snap = await query.get();
+  const snap = await db.collection('conversations').orderBy('lastActivity', 'desc').limit(100).get();
   const all = snap.docs.map(d => d.data() as Conversation);
-
   if (!state) return all;
-
   return all.filter(c => (c.chatState ?? 'luz_atendiendo') === state);
 }
 
-/**
- * Returns a single conversation document, or null if it doesn't exist.
- */
 export async function getConversation(phone: string): Promise<Conversation | null> {
-  const snap = await db.collection('conversations').doc(phone).get();
+  const snap = await convDoc(phone).get();
   if (!snap.exists) return null;
   return snap.data() as Conversation;
 }
 
-/**
- * Returns the last N messages from a conversation, newest first.
- */
+// Returns messages in ascending order (newest read last).
 export async function getRecentMessages(phone: string, limit = 6): Promise<ChatMessage[]> {
-  const snap = await db
-    .collection('conversations')
-    .doc(phone)
-    .collection('messages')
+  const snap = await messagesCol(phone)
     .orderBy('timestamp', 'desc')
     .limit(limit)
     .get();
-
   return snap.docs.map(d => d.data() as ChatMessage).reverse();
 }
