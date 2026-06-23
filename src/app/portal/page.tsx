@@ -9,17 +9,12 @@ const TX_LABEL: Record<string, string> = {
   estandar: 'Estándar', automatico: 'Automático', ambas: 'Ambas',
 };
 
-const ESTADO_LABEL: Record<string, string> = {
-  pendiente: 'Pendiente', confirmada: 'Confirmada', completada: 'Completada',
-  alumno_ausente: 'Alumno ausente', cancelada: 'Cancelada',
-};
-
-const ESTADO_COLOR: Record<string, string> = {
-  pendiente: 'bg-yellow-100 text-yellow-700',
-  confirmada: 'bg-emerald-100 text-emerald-700',
-  completada: 'bg-gray-100 text-gray-500',
-  alumno_ausente: 'bg-red-100 text-red-600',
-  cancelada: 'bg-gray-100 text-gray-400 line-through',
+const ESTADO_CONFIG: Record<string, { label: string; dot: string; border: string }> = {
+  pendiente:      { label: 'Pendiente',       dot: 'bg-yellow-400', border: 'border-l-yellow-500' },
+  confirmada:     { label: 'Confirmada',      dot: 'bg-emerald-400', border: 'border-l-emerald-500' },
+  completada:     { label: 'Completada',      dot: 'bg-gray-600',   border: 'border-l-gray-600' },
+  alumno_ausente: { label: 'Alumno ausente',  dot: 'bg-red-500',    border: 'border-l-red-500' },
+  cancelada:      { label: 'Cancelada',       dot: 'bg-gray-700',   border: 'border-l-gray-700' },
 };
 
 function formatFecha(iso: string) {
@@ -29,19 +24,29 @@ function formatFecha(iso: string) {
   });
 }
 
-function ClaseCard({ clase, isToday }: { clase: ClaseAsignada; isToday: boolean }) {
+function ClaseCard({ clase }: { clase: ClaseAsignada }) {
+  const cfg = ESTADO_CONFIG[clase.estado] ?? ESTADO_CONFIG.pendiente;
+
   return (
-    <div className={`bg-white rounded-2xl border p-4 space-y-2 ${isToday ? 'border-indigo-200 shadow-sm' : 'border-gray-100'}`}>
-      <div className="flex items-start justify-between gap-2">
+    <div className={`bg-gray-900 rounded-2xl border border-gray-800 border-l-4 ${cfg.border} p-4`}>
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <p className="font-semibold text-gray-900">{clase.alumnoNombre}</p>
-          <p className="text-sm text-gray-500">{clase.hora} · {clase.zona}</p>
+          <p className="font-semibold text-white text-base">{clase.alumnoNombre}</p>
+          <p className="text-gray-400 text-sm mt-0.5">{clase.hora} · {clase.zona}</p>
         </div>
-        <span className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${ESTADO_COLOR[clase.estado]}`}>
-          {ESTADO_LABEL[clase.estado]}
+        <span className="flex items-center gap-1.5 shrink-0 mt-0.5">
+          <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+          <span className="text-xs text-gray-500">{cfg.label}</span>
         </span>
       </div>
-      <p className="text-xs text-gray-400">{TX_LABEL[clase.transmision] ?? clase.transmision} · {clase.curso}</p>
+      <div className="flex gap-2">
+        <span className="text-xs bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">
+          {TX_LABEL[clase.transmision] ?? clase.transmision}
+        </span>
+        <span className="text-xs bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">
+          {clase.curso}
+        </span>
+      </div>
       <ClaseActions clase={clase} />
     </div>
   );
@@ -59,44 +64,74 @@ export default async function PortalPage() {
   if (!candidato || candidato.estado !== 'activo') redirect('/portal/login');
 
   const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
-  const clases7dias = new Date();
-  clases7dias.setDate(clases7dias.getDate() + 7);
-  const limite = clases7dias.toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+  const limite = new Date();
+  limite.setDate(limite.getDate() + 7);
+  const limiteStr = limite.toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
 
   const clasesHoy = todasLasClases.filter(c => c.fecha === hoy && c.estado !== 'cancelada');
   const proximas = todasLasClases.filter(
     (c): c is ClaseAsignada =>
-      c.fecha > hoy &&
-      c.fecha <= limite &&
-      ['pendiente', 'confirmada'].includes(c.estado)
+      c.fecha > hoy && c.fecha <= limiteStr && ['pendiente', 'confirmada'].includes(c.estado)
   );
 
   const nombre = candidato.nombre ?? `+${phone.slice(2)}`;
+  const inicial = nombre[0].toUpperCase();
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
-      <div className="bg-indigo-600 text-white px-4 pt-10 pb-6">
-        <p className="text-indigo-200 text-sm">Bienvenido,</p>
-        <h1 className="text-2xl font-bold">{nombre}</h1>
-        <div className="flex gap-3 mt-3 text-sm text-indigo-100">
-          {candidato.zonas && <span>📍 {candidato.zonas}</span>}
-          {candidato.transmisiones && <span>🔧 {TX_LABEL[candidato.transmisiones] ?? candidato.transmisiones}</span>}
-          {candidato.rating && <span>⭐ {candidato.rating}</span>}
+      <div className="bg-gradient-to-b from-indigo-950 to-gray-950 px-5 pt-12 pb-8">
+        <div className="flex items-center gap-4 mb-5">
+          <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-900/50 shrink-0">
+            <span className="text-2xl font-bold text-white">{inicial}</span>
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs uppercase tracking-widest mb-0.5">Instructor activo</p>
+            <h1 className="text-xl font-bold text-white">{nombre}</h1>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {candidato.zonas && (
+            <span className="text-xs bg-white/10 text-gray-300 px-3 py-1.5 rounded-full">
+              📍 {candidato.zonas}
+            </span>
+          )}
+          {candidato.transmisiones && (
+            <span className="text-xs bg-white/10 text-gray-300 px-3 py-1.5 rounded-full">
+              🔧 {TX_LABEL[candidato.transmisiones] ?? candidato.transmisiones}
+            </span>
+          )}
+          {candidato.rating && (
+            <span className="text-xs bg-white/10 text-gray-300 px-3 py-1.5 rounded-full">
+              ⭐ {candidato.rating}
+            </span>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mt-5">
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+            <p className="text-3xl font-bold text-white">{clasesHoy.length}</p>
+            <p className="text-gray-500 text-sm mt-0.5">Clases hoy</p>
+          </div>
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+            <p className="text-3xl font-bold text-white">{proximas.length}</p>
+            <p className="text-gray-500 text-sm mt-0.5">Esta semana</p>
+          </div>
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
-        {/* Clases de hoy */}
+      <div className="px-5 py-6 space-y-6 max-w-lg mx-auto">
+        {/* Hoy */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Hoy</h2>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Hoy</p>
           {clasesHoy.length > 0 ? (
             <div className="space-y-3">
-              {clasesHoy.map(c => <ClaseCard key={c.id} clase={c} isToday />)}
+              {clasesHoy.map(c => <ClaseCard key={c.id} clase={c} />)}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center text-gray-400 text-sm">
-              Sin clases asignadas para hoy
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center">
+              <p className="text-gray-600 text-sm">Sin clases asignadas hoy</p>
             </div>
           )}
         </section>
@@ -104,25 +139,27 @@ export default async function PortalPage() {
         {/* Próximas */}
         {proximas.length > 0 && (
           <section>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Próximos 7 días</h2>
-            <div className="space-y-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Próximos 7 días</p>
+            <div className="space-y-4">
               {proximas.map(c => (
                 <div key={c.id}>
-                  <p className="text-xs text-gray-400 mb-1 ml-1">{formatFecha(c.fecha)}</p>
-                  <ClaseCard clase={c} isToday={false} />
+                  <p className="text-xs text-gray-600 mb-2 ml-1 capitalize">{formatFecha(c.fecha)}</p>
+                  <ClaseCard clase={c} />
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* Ayuda */}
-        <section className="bg-white rounded-2xl border border-gray-100 p-4 text-sm text-gray-500 space-y-1">
-          <p className="font-medium text-gray-700 mb-2">Comandos por WhatsApp</p>
-          <p>📅 <strong>!agenda</strong> — ver clases</p>
-          <p>✅ <strong>confirmada</strong> — aceptar clase</p>
-          <p>🏁 <strong>llegué</strong> — marcar completada</p>
-          <p>❌ <strong>no llegó</strong> — alumno ausente</p>
+        {/* Comandos WA */}
+        <section className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Comandos WhatsApp</p>
+          <div className="space-y-2 text-sm text-gray-400">
+            <p>📅 <span className="text-gray-300 font-medium">!agenda</span> — ver clases</p>
+            <p>✅ <span className="text-gray-300 font-medium">confirmada</span> — aceptar clase</p>
+            <p>🏁 <span className="text-gray-300 font-medium">llegué</span> — marcar completada</p>
+            <p>❌ <span className="text-gray-300 font-medium">no llegó</span> — alumno ausente</p>
+          </div>
         </section>
 
         <LogoutButton />

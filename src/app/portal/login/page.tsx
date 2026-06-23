@@ -26,7 +26,7 @@ export default function PortalLogin() {
     if (res.ok) {
       setStep('otp');
     } else if (res.status === 403) {
-      setError('Este número no está registrado como instructor activo.');
+      setError('Número no registrado como instructor activo.');
     } else {
       setError('Error al enviar el código. Intenta de nuevo.');
     }
@@ -52,72 +52,79 @@ export default function PortalLogin() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-sm border p-8 w-full max-w-xs text-center space-y-6">
-        <div>
-          <div className="text-4xl mb-3">🚗</div>
-          <h1 className="text-xl font-bold text-gray-900">Portal Instructor</h1>
-          <p className="text-sm text-gray-500 mt-1">UrbDriver · AEA</p>
+    <main className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-900/50">
+            <span className="text-3xl">🚗</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white">Portal Instructor</h1>
+          <p className="text-gray-500 text-sm mt-1">UrbDriver · AEA</p>
         </div>
 
-        {step === 'phone' ? (
-          <form onSubmit={requestOtp} className="space-y-4">
-            <div className="text-left">
-              <label className="text-sm font-medium text-gray-700 block mb-1">
-                Número de WhatsApp
-              </label>
-              <input
-                type="tel"
-                inputMode="numeric"
-                placeholder="55 1234 5678"
-                value={phone}
-                onChange={e => { setPhone(e.target.value); setError(''); }}
-                className="w-full border rounded-xl px-4 py-3 text-lg outline-none focus:ring-2 focus:ring-indigo-500"
-                autoFocus
-              />
-            </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={phone.length < 8 || loading}
-              className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl disabled:opacity-40 active:bg-indigo-700 transition-colors"
-            >
-              {loading ? 'Enviando…' : 'Enviar código por WhatsApp'}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={verifyOtp} className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Te enviamos un código de 6 dígitos al <strong>{phone}</strong>.
-            </p>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              placeholder="000000"
-              value={otp}
-              onChange={e => { setOtp(e.target.value); setError(''); }}
-              className="w-full text-center text-3xl tracking-widest border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
-              autoFocus
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={otp.length < 6 || loading}
-              className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl disabled:opacity-40 active:bg-indigo-700 transition-colors"
-            >
-              {loading ? 'Verificando…' : 'Entrar'}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Cambiar número
-            </button>
-          </form>
-        )}
+        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-xl">
+          {step === 'phone' ? (
+            <form onSubmit={requestOtp} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-400 block mb-2">
+                  Número de WhatsApp
+                </label>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="55 1234 5678"
+                  value={phone}
+                  onChange={e => { setPhone(e.target.value); setError(''); }}
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 text-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-gray-600"
+                  autoFocus
+                />
+              </div>
+              {error && <p className="text-red-400 text-sm">{error}</p>}
+              <button
+                type="submit"
+                disabled={phone.length < 8 || loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors"
+              >
+                {loading ? 'Enviando…' : 'Enviar código por WhatsApp'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={verifyOtp} className="space-y-4">
+              <div className="text-center">
+                <p className="text-gray-400 text-sm mb-4">
+                  Código enviado al <span className="text-white font-medium">{phone}</span>
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={otp}
+                  onChange={e => { setOtp(e.target.value); setError(''); }}
+                  className="w-full bg-gray-800 border border-gray-700 text-white text-center text-3xl tracking-[0.5em] rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-gray-700"
+                  autoFocus
+                />
+              </div>
+              {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+              <button
+                type="submit"
+                disabled={otp.length < 6 || loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors"
+              >
+                {loading ? 'Verificando…' : 'Entrar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
+                className="w-full text-sm text-gray-600 hover:text-gray-400 transition-colors py-1"
+              >
+                Cambiar número
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </main>
   );
