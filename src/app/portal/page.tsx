@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getCandidato, getClasesDeInstructor } from '@/lib/firestore';
 import type { ClaseAsignada } from '@/lib/firestore';
 import { ClaseActions } from './ClaseActions';
+import { LogoutButton } from './LogoutButton';
 
 const TX_LABEL: Record<string, string> = {
   estandar: 'Estándar', automatico: 'Automático', ambas: 'Ambas',
@@ -124,14 +125,7 @@ export default async function PortalPage() {
           <p>❌ <strong>no llegó</strong> — alumno ausente</p>
         </section>
 
-        <form action="/api/portal/logout" method="POST">
-          <button
-            type="submit"
-            className="w-full text-sm text-gray-400 py-2 hover:text-gray-600 transition-colors"
-          >
-            Cerrar sesión
-          </button>
-        </form>
+        <LogoutButton />
       </div>
     </main>
   );
