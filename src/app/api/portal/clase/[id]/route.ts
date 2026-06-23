@@ -7,7 +7,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const phone = (await cookies()).get('instructor_phone')?.value;
+  const phone = cookies().get('instructor_phone')?.value;
   if (!phone) return new NextResponse('Unauthorized', { status: 401 });
 
   const { estado } = (await request.json()) as { estado: EstadoClase };

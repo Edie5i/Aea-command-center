@@ -47,7 +47,7 @@ function ClaseCard({ clase, isToday }: { clase: ClaseAsignada; isToday: boolean 
 }
 
 export default async function PortalPage() {
-  const phone = (await cookies()).get('instructor_phone')?.value;
+  const phone = cookies().get('instructor_phone')?.value;
   if (!phone) redirect('/portal/login');
 
   const [candidato, todasLasClases] = await Promise.all([
