@@ -1060,6 +1060,16 @@ export async function POST(request: NextRequest) {
     }
 
     await sendMessage(from, reply);
+
+    if (reply.includes('56 3443 3212')) {
+      import('@/lib/firestore')
+        .then(({ db }) => db.collection('conversations').doc(from).set({ botPaused: true }, { merge: true }))
+        .catch(e => console.error('[WEBHOOK] Auto-pause error:', e));
+      sendMessage(ADMIN_PHONE,
+        `🤝 *Luz cedió el turno*\n\n📱 +${from}\n\nLuz está ⏸️ pausada. Respóndele tú directamente.\nCuando termines: *!reanudar ${from}*`
+      ).catch(e => console.error('[WEBHOOK] Error notif hand-off:', e));
+    }
+
     saveHistory(from, textBody, reply);
     import('@/lib/firestore')
       .then(({ saveConversationMessage }) => saveConversationMessage(from, textBody, reply))
