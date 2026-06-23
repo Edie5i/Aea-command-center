@@ -454,6 +454,60 @@ export async function getMetricsData(): Promise<MetricsData> {
   };
 }
 
+// ── UrbDriver — Clases asignadas ──────────────────────────────────────────────
+
+export type EstadoClase =
+  | 'pendiente'
+  | 'confirmada'
+  | 'completada'
+  | 'alumno_ausente'
+  | 'cancelada';
+
+export interface ClaseAsignada {
+  id: string;
+  alumnoPhone: string;
+  alumnoNombre: string;
+  instructorPhone: string;
+  instructorNombre: string;
+  fecha: string;       // YYYY-MM-DD
+  hora: string;        // HH:mm
+  zona: string;
+  transmision: string;
+  curso: string;
+  estado: EstadoClase;
+  calendarEventId?: string;
+  notificadoEn?: number;
+  creadoEn: number;
+}
+
+export async function createClaseAsignada(
+  data: Omit<ClaseAsignada, 'id' | 'creadoEn'>
+): Promise<string> {
+  const ref = db.collection('clases_asignadas').doc();
+  await ref.set({ ...data, id: ref.id, creadoEn: Date.now() });
+  return ref.id;
+}
+
+export async function getClasesDeInstructor(phone: string): Promise<ClaseAsignada[]> {
+  const snap = await db.collection('clases_asignadas')
+    .where('instructorPhone', '==', phone)
+    .orderBy('creadoEn', 'desc')
+    .get();
+  return snap.docs.map(d => d.data() as ClaseAsignada);
+}
+
+export async function getClasesActivas(): Promise<ClaseAsignada[]> {
+  const snap = await db.collection('clases_asignadas')
+    .where('estado', 'in', ['pendiente', 'confirmada'])
+    .orderBy('creadoEn', 'desc')
+    .get();
+  return snap.docs.map(d => d.data() as ClaseAsignada);
+}
+
+export async function updateClaseEstado(id: string, estado: EstadoClase): Promise<void> {
+  await db.collection('clases_asignadas').doc(id).set({ estado }, { merge: true });
+}
+
 // ── Chat state management ──────────────────────────────────────────────────────
 
 /**

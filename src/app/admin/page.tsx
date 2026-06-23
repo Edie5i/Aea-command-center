@@ -273,6 +273,14 @@ export default async function AdminPage() {
             <p className="text-2xl mb-1">💬</p>
             <p className="text-sm font-semibold text-gray-700">Conversaciones</p>
           </Link>
+          <Link
+            href="/admin/instructores"
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors col-span-2"
+          >
+            <p className="text-2xl mb-1">🚗</p>
+            <p className="text-sm font-semibold text-gray-700">Instructores UrbDriver</p>
+            <p className="text-xs text-gray-400 mt-0.5">Pipeline de candidatos Marco</p>
+          </Link>
         </div>
 
         <p className="text-center text-xs text-gray-300 pb-4">
