@@ -173,6 +173,16 @@ async function handleInstructor(
 
   const clases = await getClasesDeInstructor(phone);
 
+  // portal / acceso web
+  if (/portal|entrar|acceso|web/i.test(text)) {
+    const { generateInstructorOTP } = await import('@/lib/firestore');
+    const otp = await generateInstructorOTP(phone);
+    await sendWA(phone,
+      `Tu código de acceso al portal:\n\n*${otp}*\n\nEntra en: app.autoescuelaamericana.com/portal\nVálido por 1 hora.`
+    );
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
   // !agenda — resumen de clases
   if (/^(!agenda|!mis clases|agenda)$/i.test(text)) {
     const hoyClases = clases.filter(c => c.fecha === hoy && c.estado !== 'cancelada');
