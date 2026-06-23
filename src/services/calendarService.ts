@@ -317,3 +317,35 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
         throw new Error(`Error al crear evento: ${message}`);
     }
 }
+
+export async function createEvaluacionEvent(
+  nombre: string,
+  phone: string,
+  fecha: string,
+  hora: string
+): Promise<boolean> {
+  try {
+    const auth = getCalendarAuth();
+    const calendar = google.calendar({ version: 'v3', auth });
+    const startISO = `${fecha}T${hora}:00`;
+    const endDate = new Date(startISO + 'Z');
+    endDate.setTime(endDate.getTime() + 30 * 60 * 1000);
+    const endISO = endDate.toISOString().substring(0, 19);
+    await calendar.events.insert({
+      calendarId: process.env.GOOGLE_CALENDAR_ID!,
+      requestBody: {
+        summary: `🚗 Evaluación instructor — ${nombre}`,
+        description: `Candidato UrbDriver\nTel: +${phone}`,
+        location: 'Av. Universidad 1404, Col. Axotla, CDMX',
+        colorId: '9',
+        start: { dateTime: startISO, timeZone: 'America/Mexico_City' },
+        end:   { dateTime: endISO,   timeZone: 'America/Mexico_City' },
+        reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 30 }] },
+      },
+    });
+    return true;
+  } catch (e) {
+    console.error('[MARCO] Error creando evento evaluación:', e);
+    return false;
+  }
+}

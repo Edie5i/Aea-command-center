@@ -283,6 +283,59 @@ export async function getRecentInscripciones(limit = 50): Promise<(InscripcionDa
   return results.slice(0, limit);
 }
 
+// ── UrbDriver — Candidatos a instructor ───────────────────────────────────────
+
+export type EstadoCandidato =
+  | 'nuevo'
+  | 'calificando'
+  | 'calificado'
+  | 'evaluacion_agendada'
+  | 'activo'
+  | 'rechazado';
+
+export interface CandidatoInstructor {
+  phone: string;
+  nombre?: string;
+  aniosManejando?: number;
+  rating?: number;
+  transmisiones?: 'estandar' | 'automatico' | 'ambas';
+  licenciaB?: boolean;
+  zonas?: string;
+  disponibilidad?: string;
+  estado: EstadoCandidato;
+  razonRechazo?: string;
+  evaluacionFecha?: string;
+  evaluacionHora?: string;
+  creadoEn: number;
+  actualizadoEn: number;
+}
+
+export async function getCandidato(phone: string): Promise<CandidatoInstructor | null> {
+  const snap = await db.collection('candidatos_instructor').doc(phone).get();
+  if (!snap.exists) return null;
+  return snap.data() as CandidatoInstructor;
+}
+
+export async function upsertCandidato(
+  phone: string,
+  data: Partial<Omit<CandidatoInstructor, 'phone' | 'creadoEn'>>
+): Promise<void> {
+  const ref = db.collection('candidatos_instructor').doc(phone);
+  const snap = await ref.get();
+  if (snap.exists) {
+    await ref.set({ ...data, actualizadoEn: Date.now() }, { merge: true });
+  } else {
+    await ref.set({ phone, estado: 'nuevo', ...data, creadoEn: Date.now(), actualizadoEn: Date.now() });
+  }
+}
+
+export async function getCandidatos(estado?: EstadoCandidato): Promise<CandidatoInstructor[]> {
+  let q: FirebaseFirestore.Query = db.collection('candidatos_instructor');
+  if (estado) q = q.where('estado', '==', estado);
+  const snap = await q.orderBy('creadoEn', 'desc').get();
+  return snap.docs.map(d => d.data() as CandidatoInstructor);
+}
+
 // ── Fichas de progreso ─────────────────────────────────────────────────────────
 
 export interface Ficha {

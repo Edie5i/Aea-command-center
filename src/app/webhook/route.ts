@@ -787,6 +787,16 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
+  // ── Routing UrbDriver / Marco ────────────────────────────────────────────
+  {
+    const { esIntentInstructor, esCandidatoExistente, handleMarco } = await import('./marco');
+    const esCandidato = await esCandidatoExistente(from);
+    const esInstructor = esCandidato || (messageType === 'text' && esIntentInstructor(textBody));
+    if (esInstructor) {
+      return handleMarco(from, textBody, !esCandidato);
+    }
+  }
+
   // Nota de voz — transcribir con Gemini antes de pasar al flujo normal
   if (messageType === 'audio' && audioMediaId) {
     try {
