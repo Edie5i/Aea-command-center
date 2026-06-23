@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firestore';
 
-const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
-
 export async function POST(req: NextRequest) {
-  const { pin, phone, nombre } = await req.json();
-  if (pin !== ADMIN_PIN) return new NextResponse('Unauthorized', { status: 401 });
+  const { phone, nombre } = await req.json();
 
   const normalized = phone.startsWith('52') ? phone : `52${phone}`;
   await db.collection('candidatos_instructor').doc(normalized).set({
