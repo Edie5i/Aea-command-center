@@ -5,7 +5,13 @@
 
 import { NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
-import { getCandidato, upsertCandidato } from '@/lib/firestore';
+import {
+  getCandidato,
+  upsertCandidato,
+  getClasesDeInstructor,
+  updateClaseEstado,
+} from '@/lib/firestore';
+import type { CandidatoInstructor } from '@/lib/firestore';
 
 const WA_TOKEN  = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID  = process.env.META_PHONE_NUMBER_ID ?? '';
@@ -154,6 +160,132 @@ async function generateMarcoReply(
   return Promise.race([generate, timeout]);
 }
 
+// ── Handler para instructores activos ───────────────────────────────────────
+
+async function handleInstructor(
+  phone: string,
+  msg: string,
+  instructor: CandidatoInstructor
+): Promise<NextResponse> {
+  const nombre = instructor.nombre ?? `+${phone.slice(2)}`;
+  const text = msg.trim().toLowerCase();
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+
+  const clases = await getClasesDeInstructor(phone);
+
+  // !agenda — resumen de clases
+  if (/^(!agenda|!mis clases|agenda)$/i.test(text)) {
+    const hoyClases = clases.filter(c => c.fecha === hoy && c.estado !== 'cancelada');
+    const proximas  = clases
+      .filter(c => c.fecha > hoy && ['pendiente', 'confirmada'].includes(c.estado))
+      .slice(0, 3);
+
+    if (hoyClases.length === 0 && proximas.length === 0) {
+      await sendWA(phone, `📅 Sin clases asignadas próximamente, ${nombre}. 🙌`);
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+
+    const ICON: Record<string, string> = {
+      confirmada: '✅', completada: '🏁', pendiente: '⏳', alumno_ausente: '❌', cancelada: '🚫',
+    };
+
+    let reply = `📅 *Tu agenda — UrbDriver*\n\n`;
+    if (hoyClases.length > 0) {
+      reply += `*Hoy:*\n`;
+      for (const c of hoyClases) {
+        reply += `${ICON[c.estado] ?? '•'} ${c.hora} · ${c.alumnoNombre} · ${c.zona} · ${c.transmision}\n`;
+      }
+    } else {
+      reply += `Sin clases hoy.\n`;
+    }
+    if (proximas.length > 0) {
+      reply += `\n*Próximas:*\n`;
+      for (const c of proximas) {
+        reply += `📌 ${c.fecha} ${c.hora} · ${c.alumnoNombre}\n`;
+      }
+    }
+    reply += `\n_Comandos: *confirmada* · *llegué* · *no llegó*_`;
+
+    await sendWA(phone, reply);
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // confirmada / acepto
+  if (/^(confirmada|acepto|s[ií])$/i.test(text)) {
+    const pendiente = clases.find(c => c.estado === 'pendiente');
+    if (!pendiente) {
+      await sendWA(phone, 'No hay clase pendiente de confirmar. Escribe *!agenda* para ver tu agenda.');
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+    await updateClaseEstado(pendiente.id, 'confirmada');
+    await sendWA(phone,
+      `✅ Confirmado. Clase con *${pendiente.alumnoNombre}* el ${pendiente.fecha} a las ${pendiente.hora} en ${pendiente.zona}.\n\nEscribe *llegué* cuando termines.`
+    );
+    sendWA(ADMIN_PHONE,
+      `✅ *Clase confirmada*\n👤 ${nombre} → ${pendiente.alumnoNombre}\n📅 ${pendiente.fecha} ${pendiente.hora}`
+    ).catch(() => {});
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // no puedo / rechazo
+  if (/^(no puedo|rechazada|rechazar|no puedo ir)$/i.test(text)) {
+    const pendiente = clases.find(c => c.estado === 'pendiente');
+    if (!pendiente) {
+      await sendWA(phone, 'No hay clase pendiente. Escribe *!agenda* para ver tu agenda.');
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+    await updateClaseEstado(pendiente.id, 'cancelada');
+    await sendWA(phone, 'Entendido. Eduardo buscará otro instructor para esa clase.');
+    sendWA(ADMIN_PHONE,
+      `⚠️ *Clase rechazada*\n👤 ${nombre} no puede\n📅 ${pendiente.fecha} ${pendiente.hora} · ${pendiente.alumnoNombre}\n\nHay que reasignar.`
+    ).catch(() => {});
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // llegué / completada / terminé
+  if (/lleg[ué]e?|complet[ao]da?|termin[eé]/i.test(text)) {
+    const activa = clases.find(c => c.fecha === hoy && c.estado === 'confirmada');
+    if (!activa) {
+      await sendWA(phone, 'No encontré una clase confirmada para hoy. Escribe *!agenda* para ver tu agenda.');
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+    await updateClaseEstado(activa.id, 'completada');
+    await sendWA(phone, `🏁 ¡Excelente! Clase con *${activa.alumnoNombre}* registrada como completada.`);
+    sendWA(ADMIN_PHONE,
+      `🏁 *Clase completada*\n👤 ${nombre} → ${activa.alumnoNombre}\n📅 hoy ${activa.hora}`
+    ).catch(() => {});
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // no llegó / alumno ausente / faltó
+  if (/no lleg[oó]|ausente|falt[oó]|no se present/i.test(text)) {
+    const activa = clases.find(c => c.fecha === hoy && c.estado === 'confirmada');
+    if (!activa) {
+      await sendWA(phone, 'No encontré una clase confirmada para hoy. Escribe *!agenda* para ver tu agenda.');
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+    await updateClaseEstado(activa.id, 'alumno_ausente');
+    await sendWA(phone, `📝 Registrado. ${activa.alumnoNombre} no se presentó. Le mandamos mensaje de seguimiento.`);
+    sendWA(ADMIN_PHONE,
+      `⚠️ *Alumno ausente*\n👤 ${activa.alumnoNombre} (+${activa.alumnoPhone})\n📅 hoy ${activa.hora}\nInstructor: ${nombre}`
+    ).catch(() => {});
+    sendWA(activa.alumnoPhone,
+      `Hola ${activa.alumnoNombre} 👋, tu instructor llegó al punto de encuentro pero no te encontró. ¿Está todo bien? Escríbeme aquí para reagendar tu clase sin problema.`
+    ).catch(() => {});
+    return new NextResponse('EVENT_RECEIVED', { status: 200 });
+  }
+
+  // Fallback — mini-ayuda
+  await sendWA(phone,
+    `Hola ${nombre} 👋\n\n` +
+    `📅 *!agenda* — ver tus clases\n` +
+    `✅ *confirmada* — aceptar clase asignada\n` +
+    `🏁 *llegué* — clase completada\n` +
+    `❌ *no llegó* — alumno ausente`
+  );
+  return new NextResponse('EVENT_RECEIVED', { status: 200 });
+}
+
 // ── Detector de intent: ¿es candidato a instructor? ─────────────────────────
 
 const INSTRUCTOR_REGEX = /instructor|ser maestro|dar clases|ense[ñn]ar|trabajar.*manejo|conductor.*trabajo|uber.*trabajo|didi.*trabajo|quiero aplicar|reclutar/i;
@@ -177,6 +309,11 @@ export async function handleMarco(
   try {
     const history = getChat(phone);
     const candidato = await getCandidato(phone);
+
+    // Instructores activos tienen su propio flujo de comandos
+    if (candidato?.estado === 'activo') {
+      return handleInstructor(phone, userMsg, candidato);
+    }
 
     // Primer contacto — crear registro y notificar admin
     if (!candidato) {
