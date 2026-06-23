@@ -270,6 +270,7 @@ function saveHistory(phone: string, userText: string, botText: string) {
   const existing = conversations.get(phone) ?? { messages: [], lastActivity: now };
   existing.messages.push({ role: 'user', text: userText });
   existing.messages.push({ role: 'bot', text: botText });
+  if (existing.messages.length > 60) existing.messages = existing.messages.slice(-60);
   existing.lastActivity = now;
   conversations.set(phone, existing);
 }
