@@ -904,7 +904,8 @@ export async function POST(request: NextRequest) {
           nombre: leadInfo.nombre,
           telefono: from,
           zona: leadInfo.zona,
-          transmision: leadInfo.curso,  // nombre real del curso (Automático, Personas Nerviosas, etc.)
+          curso: leadInfo.curso,
+          transmision: leadInfo.transmision,
           fechas: pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time })),
         });
 

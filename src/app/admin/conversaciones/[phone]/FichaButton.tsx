@@ -179,10 +179,11 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     // ── Sección 02 — Curso (card azul) ──────────────────────────
     section('02', 'Curso elegido');
 
+    const cursoLabel = data.curso ?? data.transmision;
     const txLabel =
-      data.transmision === 'Estándar'   ? 'ESTÁNDAR 10H'   :
-      data.transmision === 'Automático' ? 'AUTOMÁTICO 10H' :
-      data.transmision.toUpperCase();
+      cursoLabel === 'Estándar'   ? 'ESTÁNDAR 10H'   :
+      cursoLabel === 'Automático' ? 'AUTOMÁTICO 10H' :
+      cursoLabel.toUpperCase();
 
     const firstFecha = data.fechas[0];
     const firstDateStr = firstFecha ? fmtDate(firstFecha.date).toUpperCase() : '—';

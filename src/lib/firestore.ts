@@ -205,6 +205,7 @@ export interface InscripcionData {
   nombre: string;
   telefono: string;
   zona: string;
+  curso: string;
   transmision: string;
   fechas: Array<{ date: string; time: string }>;
   fechaConfirmacion: number; // millis — serializable para Client Components
@@ -234,6 +235,7 @@ export async function buscarInscripcionPorNombre(nombre: string): Promise<(Inscr
         nombre: ins.nombre,
         telefono: ins.telefono ?? doc.id,
         zona: ins.zona ?? '',
+        curso: ins.curso ?? ins.transmision ?? 'Estándar',
         transmision: ins.transmision ?? 'Estándar',
         fechas: ins.fechas ?? [],
         fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
@@ -252,6 +254,7 @@ export async function getInscripcionData(phone: string): Promise<InscripcionData
     nombre: ins.nombre ?? '',
     telefono: ins.telefono ?? phone,
     zona: ins.zona ?? '',
+    curso: ins.curso ?? ins.transmision ?? 'Estándar',
     transmision: ins.transmision ?? 'Estándar',
     fechas: ins.fechas ?? [],
     fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
@@ -268,6 +271,7 @@ export async function getRecentInscripciones(limit = 50): Promise<(InscripcionDa
         nombre: ins.nombre,
         telefono: ins.telefono ?? doc.id,
         zona: ins.zona ?? '',
+        curso: ins.curso ?? ins.transmision ?? 'Estándar',
         transmision: ins.transmision ?? 'Estándar',
         fechas: ins.fechas ?? [],
         fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
