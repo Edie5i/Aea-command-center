@@ -57,11 +57,12 @@ export async function POST(req: NextRequest) {
   await ref.set({
     phone,
     studentName: nombreCompleto.trim(),
+    contactName: nombreCompleto.trim(),
     alcaldia,
     source: 'registro_landing',
     chatState: 'frio',
     lastActivity: Timestamp.now(),
-    lastMessage: '',
+    lastMessage: `Registro web — ${alcaldia}`,
     lastSender: 'lead',
     messageCount: snap.data()?.messageCount ?? 0,
     reminder1hSent: false,
