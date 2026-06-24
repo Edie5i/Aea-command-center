@@ -13,18 +13,19 @@ function normalizePhone(raw: string): string {
   return p;
 }
 
-async function sendWelcomeWA(phone: string, nombre: string): Promise<void> {
+const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
+
+async function notifyAdmin(nombre: string, alcaldia: string, phone: string): Promise<void> {
   if (!WA_TOKEN || !PHONE_ID) return;
-  const firstName = nombre.split(' ')[0];
   await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to: phone,
+      to: ADMIN_PHONE,
       type: 'text',
       text: {
-        body: `¡Hola ${firstName}! 👋 Soy Luz, de Auto Escuela Americana. Ya recibimos tus datos — en un momento te cuento todo sobre nuestros cursos y te ayudo a elegir el que mejor te queda. 🚗`,
+        body: `📋 *Nuevo registro en /registro*\n\n👤 ${nombre}\n📍 ${alcaldia}\n📱 +${phone.replace('52', '')}`,
       },
     }),
   });
@@ -62,9 +63,9 @@ export async function POST(req: NextRequest) {
     welcomeRegistroSent: true,
   }, { merge: true });
 
-  // Enviar bienvenida solo una vez por registro
+  // Notificar al admin solo una vez por registro
   if (!welcomeAlreadySent) {
-    sendWelcomeWA(phone, nombreCompleto.trim()).catch(() => {});
+    notifyAdmin(nombreCompleto.trim(), alcaldia, phone).catch(() => {});
   }
 
   return NextResponse.json({ ok: true });
