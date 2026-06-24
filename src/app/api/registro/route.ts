@@ -63,10 +63,8 @@ export async function POST(req: NextRequest) {
     welcomeRegistroSent: true,
   }, { merge: true });
 
-  // Notificar al admin solo una vez por registro
-  if (!welcomeAlreadySent) {
-    notifyAdmin(nombreCompleto.trim(), alcaldia, phone).catch(() => {});
-  }
+  // Siempre notificar al admin — cada envío del form es intencional
+  notifyAdmin(nombreCompleto.trim(), alcaldia, phone).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }
