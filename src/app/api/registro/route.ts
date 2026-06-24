@@ -45,9 +45,8 @@ export async function POST(req: NextRequest) {
 
   const ref = db.collection('conversations').doc(phone);
   const snap = await ref.get();
-  const alreadyExists = snap.exists;
+  const welcomeAlreadySent = snap.data()?.welcomeRegistroSent === true;
 
-  // Upsert — no duplicar si ya existe
   await ref.set({
     phone,
     studentName: nombreCompleto.trim(),
@@ -57,13 +56,14 @@ export async function POST(req: NextRequest) {
     lastActivity: Timestamp.now(),
     lastMessage: '',
     lastSender: 'lead',
-    messageCount: 0,
+    messageCount: snap.data()?.messageCount ?? 0,
     reminder1hSent: false,
     reminder23hSent: false,
+    welcomeRegistroSent: true,
   }, { merge: true });
 
-  // Bienvenida WA solo si es registro nuevo (no spam a leads existentes)
-  if (!alreadyExists) {
+  // Enviar bienvenida solo una vez por registro
+  if (!welcomeAlreadySent) {
     sendWelcomeWA(phone, nombreCompleto.trim()).catch(() => {});
   }
 
