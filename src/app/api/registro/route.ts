@@ -16,8 +16,12 @@ function normalizePhone(raw: string): string {
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 
 async function notifyAdmin(nombre: string, alcaldia: string, phone: string): Promise<void> {
-  if (!WA_TOKEN || !PHONE_ID) return;
-  await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
+  if (!WA_TOKEN || !PHONE_ID) {
+    console.error('[REGISTRO] WA_TOKEN o PHONE_ID no configurados');
+    return;
+  }
+  console.log(`[REGISTRO] Enviando notificación admin a ${ADMIN_PHONE}`);
+  const res = await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -29,6 +33,8 @@ async function notifyAdmin(nombre: string, alcaldia: string, phone: string): Pro
       },
     }),
   });
+  const data = await res.json();
+  console.log(`[REGISTRO] Meta respuesta:`, JSON.stringify(data));
 }
 
 export async function POST(req: NextRequest) {
