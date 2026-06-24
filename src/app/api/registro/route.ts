@@ -54,20 +54,23 @@ export async function POST(req: NextRequest) {
   const snap = await ref.get();
   const welcomeAlreadySent = snap.data()?.welcomeRegistroSent === true;
 
+  const now = Timestamp.now();
   await ref.set({
     phone,
     studentName: nombreCompleto.trim(),
     contactName: nombreCompleto.trim(),
     alcaldia,
     source: 'registro_landing',
+    status: 'nuevo_lead',
     chatState: 'frio',
-    lastActivity: Timestamp.now(),
+    lastActivity: now,
     lastMessage: `Registro web — ${alcaldia}`,
     lastSender: 'lead',
     messageCount: snap.data()?.messageCount ?? 0,
     reminder1hSent: false,
     reminder23hSent: false,
     welcomeRegistroSent: true,
+    ...(snap.exists ? {} : { createdAt: now }),
   }, { merge: true });
 
   // Siempre notificar al admin — cada envío del form es intencional
