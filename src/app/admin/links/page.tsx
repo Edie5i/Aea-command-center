@@ -74,6 +74,22 @@ export default function LinksPage() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Links del equipo</h1>
+
+      {/* Botón principal */}
+      <a
+        href="https://app.autoescuelaamericana.com/ficha"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between w-full bg-[#004aad] hover:bg-blue-700 text-white rounded-2xl px-6 py-5 mb-6 transition-colors group"
+      >
+        <div>
+          <p className="text-xs text-blue-200 mb-0.5">Sistema interno</p>
+          <p className="text-lg font-bold">Generador de Fichas</p>
+          <p className="text-sm text-blue-200 mt-0.5">app.autoescuelaamericana.com/ficha</p>
+        </div>
+        <span className="text-3xl group-hover:translate-x-1 transition-transform">→</span>
+      </a>
+
       <div className="space-y-6">
         {SECTIONS.map((section) => (
           <div key={section.title} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
