@@ -87,6 +87,12 @@ export default async function AdminPage() {
             >
               Métricas
             </Link>
+            <Link
+              href="/admin/links"
+              className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-semibold"
+            >
+              🔗 Links
+            </Link>
           </div>
         </div>
       </header>
