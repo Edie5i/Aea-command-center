@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import type { InscripcionData } from '@/lib/firestore';
-import { format, parse } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 const BLUE       = [0, 74, 173]    as const;
 const INK        = [20, 24, 31]    as const;
@@ -15,10 +13,12 @@ const DASH_GRAY  = [180, 180, 180] as const;
 const MAX_SESSIONS = 6;
 
 type CalStatus = 'idle' | 'loading' | 'ok' | 'error';
+type WaStatus = 'idle' | 'loading' | 'ok' | 'error';
 
 export default function FichaButton({ data }: { data: InscripcionData }) {
   const [calStatus, setCalStatus] = useState<CalStatus>('idle');
   const [calMsg, setCalMsg] = useState('');
+  const [waStatus, setWaStatus] = useState<WaStatus>('idle');
 
   async function syncCalendar() {
     setCalStatus('loading');
@@ -58,8 +58,20 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       alert(`⚠️ ${fechasIncompletas.length} sesión(es) sin fecha u horario completo. Corrige los datos antes de generar la ficha.`);
       return;
     }
-    const { default: jsPDF } = await import('jspdf');
+    const { blob, filename } = await buildPdfBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    if (calStatus !== 'loading') syncCalendar();
+  }
 
+  async function buildPdfBlob(): Promise<{ blob: Blob; folio: string; filename: string }> {
+    const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF({ unit: 'mm', format: 'letter' });
     const W = 215.9, H = 279.4;
     const M = 18;
@@ -74,28 +86,24 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       .toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
       .toUpperCase();
 
+    const { format: fmt, parse: prs } = await import('date-fns');
+    const { es } = await import('date-fns/locale');
     const fmtDate = (d: string) =>
-      format(new Date(d + 'T12:00:00'), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
-
+      fmt(new Date(d + 'T12:00:00'), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
     const fmtTime = (t: string) =>
-      t ? format(parse(t, 'HH:mm', new Date()), 'h:mm a') : '—';
+      t ? fmt(prs(t, 'HH:mm', new Date()), 'h:mm a') : '—';
 
-    // ── Banda azul superior ──────────────────────────────────────
+    // Reutilizar misma lógica de renderizado
     doc.setFillColor(...BLUE); doc.rect(0, 0, W, 5, 'F');
-
-    // ── Header ──────────────────────────────────────────────────
     let y = M + 4;
-
     doc.setFillColor(...BLUE); doc.rect(M, y, 14, 14, 'F');
     doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
     doc.text('A', M + 7, y + 9.5, { align: 'center' });
-
     doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
     doc.text('AUTO ESCUELA', M + 18, y + 5);
     doc.text('AMERICANA', M + 18, y + 9.5);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...MUTED);
     doc.text('APRENDE A MANEJAR · CDMX', M + 18, y + 13);
-
     doc.setFontSize(7); doc.setTextColor(...BLUE); doc.setFont('helvetica', 'bold');
     doc.text('FOLIO', W - M, y + 3, { align: 'right' });
     doc.setTextColor(...INK); doc.setFont('courier', 'normal'); doc.setFontSize(9);
@@ -104,23 +112,21 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     doc.text('FECHA', W - M, y + 12, { align: 'right' });
     doc.setTextColor(...INK); doc.setFont('courier', 'normal'); doc.setFontSize(9);
     doc.text(fechaEmision, W - M, y + 16, { align: 'right' });
-
     y += 20;
     doc.setDrawColor(...INK); doc.setLineWidth(0.6); doc.line(M, y, W - M, y);
-
-    // ── Título ──────────────────────────────────────────────────
     y += 10;
+    const esPreReserva = data.status === 'pre_reserva';
     doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(28);
-    doc.text('FICHA DE', M, y);
-    doc.text('INSCRIPCIÓN', M, y + 9);
+    doc.text(esPreReserva ? 'FICHA DE' : 'FICHA DE', M, y);
+    doc.text(esPreReserva ? 'PRE-RESERVA' : 'INSCRIPCIÓN', M, y + 9);
     doc.setFont('helvetica', 'italic'); doc.setFontSize(10); doc.setTextColor(...MUTED);
-    doc.text('Documento oficial de registro', W - M, y + 6, { align: 'right' });
+    doc.text(
+      esPreReserva ? 'Aparta tu lugar con $690 para confirmar fechas' : 'Documento oficial de registro',
+      W - M, y + 6, { align: 'right' }
+    );
     y += 22;
-
-    // Helper: encabezado de sección
     const section = (num: string, title: string) => {
-      doc.setFillColor(...BLUE);
-      doc.rect(M, y - 3, 7, 4.5, 'F');
+      doc.setFillColor(...BLUE); doc.rect(M, y - 3, 7, 4.5, 'F');
       doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
       doc.text(num, M + 3.5, y + 0.2, { align: 'center' });
       doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
@@ -130,8 +136,6 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       doc.line(end, y - 0.5, W - M, y - 0.5);
       y += 6;
     };
-
-    // Helper: línea de campo con label encima y valor abajo
     const field = (label: string, value: string, x: number, w: number) => {
       doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
       doc.text(label, x, y);
@@ -141,11 +145,7 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
       doc.line(x, y + 6, x + w, y + 6); doc.setLineDashPattern([], 0);
     };
-
-    // ── Sección 01 — Datos del alumno ───────────────────────────
     section('01', 'Datos del alumno');
-
-    // Nombre (ancho completo)
     doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     doc.text('NOMBRE', M, y);
     doc.setTextColor(...INK); doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
@@ -153,16 +153,12 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
     doc.line(M, y + 6, W - M, y + 6); doc.setLineDashPattern([], 0);
     y += 12;
-
-    // Teléfono | Email (opcional)
     const colW = (W - 2 * M - 8) / 2;
     const displayPhone = data.telefono.startsWith('52') && data.telefono.length === 12
       ? data.telefono.slice(2) : data.telefono;
     field('TELÉFONO', displayPhone, M, colW);
     field('EMAIL  (opcional)', '', M + colW + 8, colW);
     y += 12;
-
-    // Dirección / Punto de encuentro (ancho completo)
     doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     doc.text('DIRECCIÓN / PUNTO DE ENCUENTRO', M, y);
     if (data.zona) {
@@ -172,81 +168,72 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     }
     doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
     doc.line(M, y + 6, W - M, y + 6);
-    doc.line(M, y + 11, W - M, y + 11); // segunda línea para dirección larga
+    doc.line(M, y + 11, W - M, y + 11);
     doc.setLineDashPattern([], 0);
     y += 16;
-
-    // ── Sección 02 — Curso (card azul) ──────────────────────────
     section('02', 'Curso elegido');
-
     const cursoLabel = data.curso ?? data.transmision;
     const txLabel =
       cursoLabel === 'Estándar'   ? 'ESTÁNDAR 10H'   :
       cursoLabel === 'Automático' ? 'AUTOMÁTICO 10H' :
       cursoLabel.toUpperCase();
-
     const firstFecha = data.fechas[0];
     const firstDateStr = firstFecha ? fmtDate(firstFecha.date).toUpperCase() : '—';
     const firstTimeStr = firstFecha ? fmtTime(firstFecha.time) : '—';
-
     doc.setFillColor(...BLUE); doc.rect(M, y, W - 2 * M, 20, 'F');
     doc.setTextColor(...WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
     doc.text(txLabel, M + 5, y + 8);
     doc.setFont('courier', 'normal'); doc.setFontSize(8); doc.setTextColor(180, 200, 240);
-    doc.text(
-      `Inicio: ${firstDateStr}  ·  ${firstTimeStr}  ·  ${data.fechas.length} sesiones`,
-      M + 5, y + 15
-    );
+    const subtitleCurso = esPreReserva && data.fechas.length === 0
+      ? 'Fechas por confirmar  ·  Apartado $690'
+      : `Inicio: ${firstDateStr}  ·  ${firstTimeStr}  ·  ${data.fechas.length} sesiones`;
+    doc.text(subtitleCurso, M + 5, y + 15);
     y += 26;
-
-    // ── Sección 03 — Fechas (siempre 6 espacios) ────────────────
     section('03', 'Fechas y horarios');
-
     doc.setFont('courier', 'normal'); doc.setFontSize(9);
-
-    for (let i = 0; i < MAX_SESSIONS; i++) {
-      if (y > H - 65) { doc.addPage(); y = 20; }
-      const f = data.fechas[i];
-      if (f) {
-        doc.setTextColor(...INK);
-        doc.text(`${i + 1}.  ${fmtDate(f.date)}  ·  ${fmtTime(f.time)}`, M, y);
-      } else {
-        // Espacio en blanco para anotación manual
-        doc.setTextColor(...MUTED);
-        doc.text(`${i + 1}.`, M, y);
+    if (esPreReserva && data.fechas.length === 0) {
+      // Pre-reserva sin fechas asignadas aún
+      doc.setFillColor(235, 243, 255);
+      doc.rect(M, y - 2, W - 2 * M, 14, 'F');
+      doc.setFillColor(...BLUE); doc.rect(M, y - 2, 1, 14, 'F');
+      doc.setTextColor(...BLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.text('Tus fechas se confirman al realizar el apartado de $690', M + 4, y + 4);
+      doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+      doc.text('El instructor se asigna 24h antes de tu primera clase.', M + 4, y + 9);
+      y += 18;
+    } else {
+      for (let i = 0; i < MAX_SESSIONS; i++) {
+        if (y > H - 65) { doc.addPage(); y = 20; }
+        const f = data.fechas[i];
+        if (f) {
+          doc.setTextColor(...INK);
+          doc.text(`${i + 1}.  ${fmtDate(f.date)}  ·  ${fmtTime(f.time)}`, M, y);
+        } else {
+          doc.setTextColor(...MUTED);
+          doc.text(`${i + 1}.`, M, y);
+        }
+        doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
+        doc.line(M + 5, y + 1.5, W - M, y + 1.5); doc.setLineDashPattern([], 0);
+        y += 7;
       }
-      doc.setDrawColor(...DASH_GRAY); doc.setLineDashPattern([0.5, 0.5], 0);
-      doc.line(M + 5, y + 1.5, W - M, y + 1.5); doc.setLineDashPattern([], 0);
-      y += 7;
     }
-
     y += 4;
-
-    // ── Términos y aceptación ────────────────────────────────────
     doc.setFillColor(...LIGHT_BLUE); doc.rect(M, y, W - 2 * M, 20, 'F');
     doc.setFillColor(...BLUE);       doc.rect(M, y, 1, 20, 'F');
-
     doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
     doc.text('Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:', M + 4, y + 5);
     doc.setTextColor(...BLUE); doc.setFont('courier', 'bold'); doc.setFontSize(8);
     doc.text('app.autoescuelaamericana.com/terminos', M + 4, y + 10);
-
     doc.setTextColor(...MUTED); doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5);
-    const termsText =
-      'El apartado garantiza el lugar y fecha de inicio. Cancelaciones con menos de 24 hrs ' +
-      'de anticipación no son reembolsables. Documento generado electrónicamente.';
+    const termsText = 'El apartado garantiza el lugar y fecha de inicio. Cancelaciones con menos de 24 hrs de anticipación no son reembolsables. Documento generado electrónicamente.';
     doc.text(doc.splitTextToSize(termsText, W - 2 * M - 6), M + 4, y + 15);
     y += 26;
-
-    // ── Firmas ──────────────────────────────────────────────────
     doc.setDrawColor(...INK); doc.setLineWidth(0.4);
     doc.line(M, y, M + 70, y);
     doc.line(W - M - 70, y, W - M, y);
     doc.setFont('courier', 'normal'); doc.setFontSize(7); doc.setTextColor(...MUTED);
     doc.text('FIRMA DEL ALUMNO', M, y + 4);
     doc.text('ASESOR / SELLO AEA', W - M, y + 4, { align: 'right' });
-
-    // ── Footer ──────────────────────────────────────────────────
     const fy = H - 14;
     doc.setDrawColor(...INK); doc.setLineWidth(0.4); doc.line(M, fy, W - M, fy);
     doc.setFont('courier', 'normal'); doc.setFontSize(8); doc.setTextColor(...MUTED);
@@ -255,26 +242,60 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     doc.text('app.autoescuelaamericana.com', W - M, fy + 5, { align: 'right' });
 
     const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${folio}-${data.nombre.replace(/\s+/g, '_')}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    const filename = `${folio}-${data.nombre.replace(/\s+/g, '_')}.pdf`;
+    return { blob, folio, filename };
+  }
 
-    // Auto-sync GC siempre que se descarga la ficha
-    if (calStatus !== 'loading') syncCalendar();
+  async function handleSendWA() {
+    setWaStatus('loading');
+    try {
+      const { blob, filename } = await buildPdfBlob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const pdfBase64 = btoa(binary);
+      const isPreReserva = data.status === 'pre_reserva';
+      const res = await fetch('/api/ficha/send-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: data.telefono,
+          pdfBase64,
+          filename,
+          caption: isPreReserva
+            ? '📋 Tu ficha de pre-reserva — Auto Escuela Americana\n\nAparta tu lugar con $690 y te asignamos fechas de inmediato 🚗'
+            : '📋 Tu ficha de inscripción — Auto Escuela Americana\n\nGuárdala, ahí están tus clases y datos.',
+        }),
+      });
+      const json = await res.json();
+      setWaStatus(json.ok ? 'ok' : 'error');
+    } catch {
+      setWaStatus('error');
+    }
   }
 
   return (
-    <div className="flex gap-2 items-center shrink-0">
+    <div className="flex gap-2 items-center shrink-0 flex-wrap">
       <button
         onClick={handleDownload}
         className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
       >
         ↓ Ficha PDF
+      </button>
+      <button
+        onClick={handleSendWA}
+        disabled={waStatus === 'loading'}
+        title="Enviar ficha PDF por WhatsApp al lead"
+        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+          waStatus === 'ok'
+            ? 'bg-emerald-500 text-white'
+            : waStatus === 'error'
+            ? 'bg-red-500 text-white'
+            : 'bg-green-600 text-white hover:bg-green-700'
+        }`}
+      >
+        {waStatus === 'loading' ? '⏳' : waStatus === 'ok' ? '✅ Enviado' : waStatus === 'error' ? '⚠️ Error' : '📤 Enviar WA'}
       </button>
       <button
         onClick={syncCalendar}

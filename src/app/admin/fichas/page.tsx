@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getRecentInscripciones } from '@/lib/firestore';
 import type { InscripcionData } from '@/lib/firestore';
+import FichaButton from '@/app/admin/conversaciones/[phone]/FichaButton';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -64,9 +65,15 @@ export default async function FichasPage() {
             ? ins.telefono.slice(2) : ins.telefono;
           const txColor = TX_COLORS[ins.transmision] ?? 'bg-gray-100 text-gray-600';
           const primerFecha = ins.fechas[0];
+          const esPreReserva = ins.status === 'pre_reserva';
 
           return (
-            <div key={ins.phone} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div key={ins.phone} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${esPreReserva ? 'border-amber-200' : 'border-gray-100'}`}>
+              {esPreReserva && (
+                <div className="bg-amber-50 border-b border-amber-100 px-4 py-1.5 flex items-center gap-2">
+                  <span className="text-amber-600 text-xs font-semibold">⏳ Pre-reserva — pendiente de pago</span>
+                </div>
+              )}
               {/* Header de la tarjeta */}
               <div className="flex items-start gap-3 px-4 pt-4 pb-3 border-b">
                 <div className="flex-1 min-w-0">
@@ -105,18 +112,15 @@ export default async function FichasPage() {
               </div>
 
               {/* Acciones */}
-              <div className="px-4 pb-4 flex gap-2">
+              <div className="px-4 pb-4 space-y-2">
+                <div className="bg-gray-50 rounded-xl p-2">
+                  <FichaButton data={ins} />
+                </div>
                 <Link
                   href={`/admin/conversaciones/${ins.phone}`}
-                  className="flex-1 text-center text-xs bg-blue-600 text-white rounded-xl py-2 font-semibold hover:bg-blue-700 transition-colors"
+                  className="block text-center text-xs text-blue-600 font-medium py-1 hover:underline"
                 >
-                  Ver conversación
-                </Link>
-                <Link
-                  href={`/admin/importar`}
-                  className="text-xs border border-gray-200 text-gray-600 rounded-xl px-3 py-2 font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  + Ficha PDF
+                  Ver conversación →
                 </Link>
               </div>
             </div>

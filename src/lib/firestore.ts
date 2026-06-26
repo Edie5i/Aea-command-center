@@ -187,6 +187,7 @@ export interface InscripcionData {
   transmision: string;
   fechas: Array<{ date: string; time: string }>;
   fechaConfirmacion: number; // millis — serializable para Client Components
+  status?: 'pre_reserva' | 'confirmado'; // undefined = confirmado (retrocompat)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -199,6 +200,7 @@ function rawToInscripcion(ins: Record<string, any>, fallbackPhone: string): Insc
     transmision: ins.transmision ?? 'Estándar',
     fechas: ins.fechas ?? [],
     fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
+    status: ins.status ?? undefined,
   };
 }
 
@@ -207,7 +209,21 @@ export async function saveInscripcionData(
   data: Omit<InscripcionData, 'fechaConfirmacion'>
 ): Promise<void> {
   await convDoc(phone).set(
-    { inscripcion: { ...data, fechaConfirmacion: Timestamp.now() } },
+    { inscripcion: { ...data, status: 'confirmado', fechaConfirmacion: Timestamp.now() } },
+    { merge: true }
+  );
+}
+
+export async function savePreReserva(
+  phone: string,
+  data: Omit<InscripcionData, 'fechaConfirmacion' | 'status'>
+): Promise<void> {
+  const snap = await convDoc(phone).get();
+  const existing = snap.data()?.inscripcion;
+  // No sobreescribir si ya hay una inscripción confirmada
+  if (existing && (!existing.status || existing.status === 'confirmado')) return;
+  await convDoc(phone).set(
+    { inscripcion: { ...data, status: 'pre_reserva', fechaConfirmacion: Timestamp.now() } },
     { merge: true }
   );
 }
@@ -237,7 +253,7 @@ export async function getRecentInscripciones(limit = 50): Promise<(InscripcionDa
   const results: (InscripcionData & { phone: string })[] = [];
   for (const doc of snap.docs) {
     const ins = doc.data().inscripcion;
-    if (ins?.nombre && ins.fechas?.length > 0) {
+    if (ins?.nombre && (ins.fechas?.length > 0 || ins.status === 'pre_reserva')) {
       results.push({ ...rawToInscripcion(ins, doc.id), phone: doc.id });
     }
   }
