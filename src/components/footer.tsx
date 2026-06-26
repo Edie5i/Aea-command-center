@@ -6,9 +6,9 @@ export function AppFooter() {
   return (
     <footer className="w-full mt-auto py-8 text-center text-sm text-muted-foreground border-t">
       <div className="flex justify-center items-center gap-4 flex-wrap">
-        <Link href="/blog" className="hover:underline">Blog</Link>
-        <Link href="/terminos" className="hover:underline">Términos y Condiciones</Link>
-        <Link href="/aviso-privacidad" className="hover:underline">Aviso de Privacidad</Link>
+        <a href="https://autoescuelaamericana.com/blog" className="hover:underline">Blog</a>
+        <a href="https://autoescuelaamericana.com/terminos" className="hover:underline">Términos y Condiciones</a>
+        <a href="https://autoescuelaamericana.com/aviso-privacidad" className="hover:underline">Aviso de Privacidad</a>
         <a href="/privacidad" className="hover:underline">Privacidad (LFPDPPP)</a>
       </div>
       <div className="mt-5 flex justify-center items-center gap-3">

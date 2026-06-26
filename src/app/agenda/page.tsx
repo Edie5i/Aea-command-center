@@ -385,7 +385,7 @@ function AgendaContent() {
             <Link href="/pagos"><CreditCard className="mr-1.5 h-4 w-4" />Pagos</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href="/catalogo"><List className="mr-1.5 h-4 w-4" />Cursos</Link>
+            <Link href="https://autoescuelaamericana.com/cursos"><List className="mr-1.5 h-4 w-4" />Cursos</Link>
           </Button>
         </div>
         
@@ -563,7 +563,7 @@ function AgendaContent() {
                                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
                                                     <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <div className="space-y-1 leading-none">
-                                                        <FormLabel>Acepto los <Link href="/terminos" target="_blank" className="text-primary hover:underline">Términos y Condiciones</Link>.</FormLabel>
+                                                        <FormLabel>Acepto los <Link href="https://autoescuelaamericana.com/terminos" target="_blank" className="text-primary hover:underline">Términos y Condiciones</Link>.</FormLabel>
                                                         <FormMessage />
                                                     </div>
                                                 </FormItem>

@@ -8,6 +8,19 @@ const nextConfig = {
   },
   serverExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
 
+  async redirects() {
+    const WWW = 'https://autoescuelaamericana.com';
+    return [
+      { source: '/catalogo',          destination: `${WWW}/cursos`,           permanent: true },
+      { source: '/english-course',    destination: `${WWW}/english`,          permanent: true },
+      { source: '/programa',          destination: `${WWW}/programa`,         permanent: true },
+      { source: '/blog',              destination: `${WWW}/blog`,             permanent: true },
+      { source: '/blog/:slug*',       destination: `${WWW}/blog/:slug*`,      permanent: true },
+      { source: '/terminos',          destination: `${WWW}/terminos`,         permanent: true },
+      { source: '/aviso-privacidad',  destination: `${WWW}/aviso-privacidad`, permanent: true },
+    ];
+  },
+
   async rewrites() {
     return {
       beforeFiles: [

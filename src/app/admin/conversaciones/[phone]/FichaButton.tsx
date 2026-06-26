@@ -223,7 +223,7 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
     doc.text('Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:', M + 4, y + 5);
     doc.setTextColor(...BLUE); doc.setFont('courier', 'bold'); doc.setFontSize(8);
-    doc.text('app.autoescuelaamericana.com/terminos', M + 4, y + 10);
+    doc.text('autoescuelaamericana.com/terminos', M + 4, y + 10);
     doc.setTextColor(...MUTED); doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5);
     const termsText = 'El apartado garantiza el lugar y fecha de inicio. Cancelaciones con menos de 24 hrs de anticipación no son reembolsables. Documento generado electrónicamente.';
     doc.text(doc.splitTextToSize(termsText, W - 2 * M - 6), M + 4, y + 15);

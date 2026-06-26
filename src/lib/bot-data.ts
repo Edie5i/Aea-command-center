@@ -15,9 +15,9 @@ export const botContextData = {
     whatsappContacto: "525634433212",
     enlaces: {
       agenda: "/agenda",
-      catalogo: "/catalogo",
+      catalogo: "https://autoescuelaamericana.com/cursos",
       pagos: "/pagos",
-      terminos: "/terminos",
+      terminos: "https://autoescuelaamericana.com/terminos",
     },
   },
   catalogoCursos: [
@@ -107,7 +107,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Los precios ya incluyen IVA?",
-      respuesta: "Sí, todos los precios que ves en nuestro catálogo en /catalogo ya incluyen el IVA. No hay costos ocultos."
+      respuesta: "Sí, todos los precios que ves en nuestro catálogo en https://autoescuelaamericana.com/cursos ya incluyen el IVA. No hay costos ocultos."
     },
     {
       pregunta: "¿Puedo tomar clases en fines de semana?",
@@ -163,7 +163,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Dan clases de moto?",
-      respuesta: "Sí, tenemos un curso de 8 horas para aprender a manejar motocicleta de forma segura. Puedes ver los detalles y el precio en nuestro catálogo /catalogo."
+      respuesta: "Sí, tenemos un curso de 8 horas para aprender a manejar motocicleta de forma segura. Puedes ver los detalles y el precio en nuestro catálogo https://autoescuelaamericana.com/cursos."
     },
     {
       pregunta: "¿Qué tipo de coches usan? / ¿Tienen automáticos o estándar?",
@@ -171,7 +171,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Cuánto cuestan los cursos? / ¿Cuáles son los precios?",
-      respuesta: "Tenemos varios cursos para adaptarnos a tus necesidades. Por ejemplo, el Curso Principiante Estándar cuesta $3400 MXN. Te recomiendo ver todos nuestros cursos y precios actualizados en nuestro catálogo en la página /catalogo."
+      respuesta: "Tenemos varios cursos para adaptarnos a tus necesidades. Por ejemplo, el Curso Principiante Estándar cuesta $3400 MXN. Te recomiendo ver todos nuestros cursos y precios actualizados en nuestro catálogo en la página https://autoescuelaamericana.com/cursos."
     },
     {
       pregunta: "¿Dónde están ubicados? / ¿Cuál es su dirección?",

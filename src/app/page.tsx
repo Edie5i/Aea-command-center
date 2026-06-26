@@ -153,7 +153,7 @@ export default function Home() {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full">
-                  <Link href="/catalogo">Ver Catálogo</Link>
+                  <a href="https://autoescuelaamericana.com/cursos">Ver Catálogo</a>
                 </Button>
               </CardFooter>
             </Card>
@@ -166,7 +166,7 @@ export default function Home() {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full">
-                  <Link href="/programa">Ver Programa</Link>
+                  <a href="https://autoescuelaamericana.com/programa">Ver Programa</a>
                 </Button>
               </CardFooter>
             </Card>
@@ -179,7 +179,7 @@ export default function Home() {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full">
-                  <Link href="/english-course">View Course</Link>
+                  <a href="https://autoescuelaamericana.com/english">View Course</a>
                 </Button>
               </CardFooter>
             </Card>

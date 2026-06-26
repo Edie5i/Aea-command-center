@@ -285,7 +285,7 @@ export default function EvaluacionPage() {
             </Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/terminos">
+            <Link href="https://autoescuelaamericana.com/terminos">
                 <FileText className="mr-2 h-4 w-4" />
                 Términos
             </Link>

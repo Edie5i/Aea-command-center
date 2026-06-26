@@ -983,7 +983,7 @@ export async function POST(request: NextRequest) {
 
       // Enviar términos y condiciones + aviso de privacidad al alumno
       sendMessage(from,
-        `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\napp.autoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\napp.autoescuelaamericana.com/aviso-privacidad`
+        `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\nautoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\nautoescuelaamericana.com/aviso-privacidad`
       ).catch(e => console.error('[WEBHOOK] Error enviando T&C:', e));
 
       // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
