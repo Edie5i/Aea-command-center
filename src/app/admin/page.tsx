@@ -93,6 +93,12 @@ export default async function AdminPage() {
             >
               🔗 Links
             </Link>
+            <Link
+              href="/ficha"
+              className="text-xs bg-[#004aad] text-white px-3 py-1.5 rounded-lg font-semibold"
+            >
+              📋 Fichas
+            </Link>
           </div>
         </div>
       </header>
