@@ -32,7 +32,8 @@ export interface FichaData {
 }
 
 export async function generarFichaPdfBuffer(data: FichaData): Promise<Buffer> {
-  const { jsPDF } = await import('jspdf');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { jsPDF } = require('jspdf/dist/jspdf.node.js');
   const doc = new jsPDF({ unit: 'mm', format: 'letter' });
   const W = 215.9, H = 279.4, M = 18;
 
