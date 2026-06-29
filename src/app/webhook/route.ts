@@ -33,8 +33,9 @@ Sigue este orden. Cuando el cliente responde un paso, avanza al siguiente sin pe
 **Paso 2 — Recomendar**: Di el curso + precio + UN beneficio concreto. NO preguntes si les parece bien. Termina el mensaje con la siguiente pregunta.
 **Paso 3 — Horario**: "¿Mañanas o tardes?" → cuando respondan → llama a consultarDisponibilidad(dias=14) → para cursos de principiante (Estándar, Automático, Personas Nerviosas, Intensivo, Mixto, English Drive, Moto) propón SOLO la fecha de inicio del bloque: "Tengo el lunes 22 a las 4:00 pm para arrancar — ¿te funciona?" NO listes las 4 fechas — solo di cuándo empieza. Las demás clases quedan agendadas automáticamente en días consecutivos al mismo horario.
 **Paso 4 — Dirección**: Pide calle, número y colonia completos: "¿Me das tu calle, número y colonia para el punto de encuentro del instructor?" Si el cliente da solo colonia o alcaldía (ej: "Del Valle", "Coyoacán", "Narvarte") → NO avances. Pregunta: "¿Y la calle y número?" Necesitas los tres datos antes de continuar.
-- Si la colonia es **Cuajimalpa, Contadero, Zentlapatl o Lomas de Santa Fe**: el punto de encuentro es *Parque La Mexicana (Av. Prolongación Reforma s/n)*. Infórmale: "En tu zona el punto de encuentro es el Parque La Mexicana — ¿te queda bien?"
-- Si la colonia es **Santa Fe** (sin especificar más): dile "Estamos verificando el punto de encuentro en tu zona — el equipo te confirma en breve" y NO avances al cierre hasta que el admin confirme.
+- Si la colonia es **Cuajimalpa, Santa Fe, Contadero, Zentlapatl o Lomas de Santa Fe**: el punto de encuentro es *Parque La Mexicana (Av. Prolongación Reforma s/n)*. Infórmale: "En tu zona el punto de encuentro es el Parque La Mexicana — ¿te queda bien?"
+- Si la colonia es de **Azcapotzalco, Vallejo o Tlalnepantla**: el punto de encuentro es *Colonia Irrigación o Metro Polanco*. Infórmale: "Para tu zona el punto de encuentro es Colonia Irrigación o Metro Polanco — ¿cuál te queda más cerca?"
+- Si la colonia es de **Iztapalapa, Iztacalco o Tláhuac**: el punto de encuentro es *Av. Universidad 1407, a pasos de Metro Viveros*. Infórmale: "Para tu zona el punto de encuentro es Av. Universidad 1407 junto a Metro Viveros — ¿te queda bien?"
 - Si la colonia está en zona no reconocida: dile "Déjame verificar cobertura en tu zona — el equipo te confirma en breve." El admin recibirá un aviso para coordinarse contigo.
 **Paso 5 — Nombre** (si no lo tienes): "¿Cómo te llamas?"
 **Paso 6 — CIERRE**: Manda datos de pago completos (ver sección CIERRE).
@@ -434,11 +435,21 @@ const ZONAS_DOMICILIO = [
 
 // Zonas con punto de encuentro fijo (no a domicilio)
 const ZONAS_PUNTO_FIJO: Record<string, string> = {
+  // Poniente
   'cuajimalpa': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
-  'santa fe': 'Por confirmar — el equipo coordina punto de encuentro',
   'lomas de santa fe': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
   'contadero': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
   'zentlapatl': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
+  'santa fe': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
+  // Norte
+  'azcapotzalco': 'Colonia Irrigación o Metro Polanco (acordar con el alumno)',
+  'vallejo': 'Colonia Irrigación o Metro Polanco (acordar con el alumno)',
+  'tlalnepantla': 'Colonia Irrigación o Metro Polanco (acordar con el alumno)',
+  // Oriente / Sur-Oriente
+  'iztapalapa': 'Av. Universidad 1407, Col. Copilco (a pasos de Metro Viveros)',
+  'iztacalco': 'Av. Universidad 1407, Col. Copilco (a pasos de Metro Viveros)',
+  'tláhuac': 'Av. Universidad 1407, Col. Copilco (a pasos de Metro Viveros)',
+  'tlahuac': 'Av. Universidad 1407, Col. Copilco (a pasos de Metro Viveros)',
 };
 
 type CoverageResult =
