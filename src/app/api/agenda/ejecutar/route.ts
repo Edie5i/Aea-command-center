@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       if (telefono) {
         saveInscripcionData(normalizePhone(telefono), {
           nombre: alumno, telefono: normalizePhone(telefono),
-          zona: 'Por confirmar', transmision: curso ?? 'Automático',
+          zona: 'Por confirmar', curso: curso ?? 'Automático', transmision: curso ?? 'Automático',
           fechas: [{ date: fecha, time: hora }],
         }).catch(() => {});
       }

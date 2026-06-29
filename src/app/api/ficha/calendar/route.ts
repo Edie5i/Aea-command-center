@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
               nombre: body.name,
               telefono: phone,
               zona: body.address ?? '',
+              curso: body.transmission ?? 'Automático',
               transmision: body.transmission ?? 'Automático',
               fechas,
             }).catch(e => console.error('[FICHA] Error guardando en Firestore:', e));

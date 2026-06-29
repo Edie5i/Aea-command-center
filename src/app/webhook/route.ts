@@ -33,6 +33,9 @@ Sigue este orden. Cuando el cliente responde un paso, avanza al siguiente sin pe
 **Paso 2 — Recomendar**: Di el curso + precio + UN beneficio concreto. NO preguntes si les parece bien. Termina el mensaje con la siguiente pregunta.
 **Paso 3 — Horario**: "¿Mañanas o tardes?" → cuando respondan → llama a consultarDisponibilidad(dias=14) → para cursos de principiante (Estándar, Automático, Personas Nerviosas, Intensivo, Mixto, English Drive, Moto) propón SOLO la fecha de inicio del bloque: "Tengo el lunes 22 a las 4:00 pm para arrancar — ¿te funciona?" NO listes las 4 fechas — solo di cuándo empieza. Las demás clases quedan agendadas automáticamente en días consecutivos al mismo horario.
 **Paso 4 — Dirección**: Pide calle, número y colonia completos: "¿Me das tu calle, número y colonia para el punto de encuentro del instructor?" Si el cliente da solo colonia o alcaldía (ej: "Del Valle", "Coyoacán", "Narvarte") → NO avances. Pregunta: "¿Y la calle y número?" Necesitas los tres datos antes de continuar.
+- Si la colonia es **Cuajimalpa, Contadero, Zentlapatl o Lomas de Santa Fe**: el punto de encuentro es *Parque La Mexicana (Av. Prolongación Reforma s/n)*. Infórmale: "En tu zona el punto de encuentro es el Parque La Mexicana — ¿te queda bien?"
+- Si la colonia es **Santa Fe** (sin especificar más): dile "Estamos verificando el punto de encuentro en tu zona — el equipo te confirma en breve" y NO avances al cierre hasta que el admin confirme.
+- Si la colonia está en zona no reconocida: dile "Déjame verificar cobertura en tu zona — el equipo te confirma en breve." El admin recibirá un aviso para coordinarse contigo.
 **Paso 5 — Nombre** (si no lo tienes): "¿Cómo te llamas?"
 **Paso 6 — CIERRE**: Manda datos de pago completos (ver sección CIERRE).
 
@@ -425,26 +428,50 @@ const ZONAS_DOMICILIO = [
   'actipan', 'xoco', 'portales', 'letrán valle', 'letran valle', 'general anaya',
   'churubusco', 'axotla', 'tizapán', 'tizapan', 'chimalistac', 'copilco',
   'villa coyoacán', 'villa coyoacan', 'peña pobre', 'peña verde',
-  'juárez', 'juarez', 'tabacalera', 'santa fe', 'lomas de bezares',
+  'juárez', 'juarez', 'tabacalera', 'lomas de bezares',
   'bosque de las lomas', 'interlomas', 'tecamachalco', 'granada', 'irrigación',
 ];
 
-function checkCoverage(zona: string, colonia?: string | null): { covered: boolean; nota: string } {
+// Zonas con punto de encuentro fijo (no a domicilio)
+const ZONAS_PUNTO_FIJO: Record<string, string> = {
+  'cuajimalpa': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
+  'santa fe': 'Por confirmar — el equipo coordina punto de encuentro',
+  'lomas de santa fe': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
+  'contadero': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
+  'zentlapatl': 'Parque La Mexicana (Av. Prolongación Reforma s/n)',
+};
+
+type CoverageResult =
+  | { tipo: 'domicilio'; nota: string }
+  | { tipo: 'punto_fijo'; punto: string; nota: string }
+  | { tipo: 'dudosa'; nota: string }
+  | { tipo: 'fuera'; nota: string };
+
+function checkCoverage(zona: string, colonia?: string | null): CoverageResult {
   // Preferir colonia estructurada para match más preciso; fallback al texto libre de zona
   const z = (colonia ?? zona).toLowerCase();
-  const covered = ZONAS_DOMICILIO.some(keyword => z.includes(keyword));
-  if (covered) {
+
+  if (ZONAS_DOMICILIO.some(k => z.includes(k))) {
     return {
-      covered: true,
+      tipo: 'domicilio',
       nota: '✅ *Zona con cobertura a domicilio* — el instructor puede llegar directo.',
     };
   }
+
+  const puntoFijoKey = Object.keys(ZONAS_PUNTO_FIJO).find(k => z.includes(k));
+  if (puntoFijoKey) {
+    const punto = ZONAS_PUNTO_FIJO[puntoFijoKey];
+    return {
+      tipo: 'punto_fijo',
+      punto,
+      nota: `📍 *Zona con punto de encuentro fijo*\nEl instructor espera en: ${punto}`,
+    };
+  }
+
+  // Sin match claro → dudosa, escalar al equipo
   return {
-    covered: false,
-    nota:
-      '⚠️ *Posible fuera de zona* — considera ofrecer sucursal:\n' +
-      '• *Roma Sur*: Torreón 49 (Metro Sonora)\n' +
-      '• *Viveros*: Av. Universidad 1407 (Metro Viveros)',
+    tipo: 'dudosa',
+    nota: '❓ *Zona no identificada* — el equipo debe confirmar punto de encuentro.',
   };
 }
 
@@ -459,17 +486,22 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
     // Solo notificar si tenemos datos reales (no defaults)
     if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') return;
     const dp = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
-    const { nota } = checkCoverage(leadInfo.zona, leadInfo.colonia);
-    const dirCompleta = leadInfo.calle && leadInfo.colonia
-      ? `${leadInfo.zona}` // zona ya fue reconstruida con partes
-      : `${leadInfo.zona}${!leadInfo.colonia ? ' ⚠️ *falta colonia*' : ''}${!leadInfo.calle ? ' ⚠️ *falta calle/número*' : ''}`;
+    const coverage = checkCoverage(leadInfo.zona, leadInfo.colonia);
+    const dirCompleta = leadInfo.zona +
+      (!leadInfo.colonia ? ' ⚠️ *falta colonia*' : '') +
+      (!leadInfo.calle ? ' ⚠️ *falta calle/número*' : '');
+
+    const emoji = coverage.tipo === 'domicilio' ? '🔥' : coverage.tipo === 'punto_fijo' ? '📍' : '❓';
+    const urgencia = coverage.tipo === 'dudosa'
+      ? '\n\n*Zona no identificada — coordinar punto de encuentro con el lead antes de cerrar.*'
+      : '';
     await sendMessage(ADMIN_PHONE,
-      `🔥 *Lead calificado — listo para cierre*\n\n` +
+      `${emoji} *Lead calificado — listo para cierre*\n\n` +
       `👤 ${leadInfo.nombre}\n` +
       `📱 +${dp}\n` +
       `📍 ${dirCompleta}\n` +
       `🚗 ${leadInfo.curso}\n\n` +
-      `${nota}`
+      `${coverage.nota}${urgencia}`
     );
     await db.collection('conversations').doc(phone).set(
       { leadCalificadoNotificado: true },

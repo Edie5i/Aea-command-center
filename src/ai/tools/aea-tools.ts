@@ -195,8 +195,9 @@ export const confirmarInscripcionTool = ai.defineTool(
         nombre,
         telefono,
         zona,
+        curso: transmision ?? 'Estándar',
         transmision: transmision ?? 'Estándar',
-        fechas: fechasCalculadas,
+        fechas: fechasCalculadas.map(({ date, time }) => ({ date, time })),
       });
       console.log('[TOOL] Inscripción guardada en Firestore para', telefono);
       // Enviar ficha PDF al admin y al alumno

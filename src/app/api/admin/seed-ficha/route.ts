@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     nombre: 'Fernando Martinez',
     telefono: phone,
     zona: 'Calle Puebla 345, Colonia Roma',
+    curso: 'Automático',
     transmision: 'Automático',
     fechas: [
       { date: '2026-05-11', time: '10:00' },

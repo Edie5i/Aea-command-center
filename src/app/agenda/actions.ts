@@ -69,7 +69,8 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
       nombre: input.name,
       telefono: phone,
       zona: input.address,
-      transmision: input.transmission,
+      curso: input.transmission ?? 'Estándar',
+      transmision: input.transmission ?? 'Estándar',
       fechas,
     }).catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
 
