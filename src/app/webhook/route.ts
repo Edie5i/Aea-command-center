@@ -662,17 +662,6 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
   return `❓ Comando desconocido: *${cmd}*\n\nEscribe *!ayuda* para ver los comandos disponibles.`;
 }
 
-/**
- * Normaliza cualquier variación de número mexicano a 52XXXXXXXXXX (12 dígitos).
- * Cubre: 521XXXXXXXXXX, +52XXXXXXXXXX, +521XXXXXXXXXX, 10 dígitos sin código.
- */
-function normalizePhone(raw: string): string {
-  let p = raw.replace(/\D/g, ''); // solo dígitos
-  if (p.startsWith('521') && p.length === 13) p = '52' + p.slice(3); // 521→52
-  if (p.startsWith('52') && p.length === 12) return p;               // ya correcto
-  if (p.length === 10) return '52' + p;                              // sin código país
-  return p; // internacional no mexicano — dejar como está
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
