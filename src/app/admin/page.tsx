@@ -56,51 +56,9 @@ export default async function AdminPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b px-4 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">AEA Admin</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Auto Escuela Americana</p>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href="/admin/conversaciones"
-              className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold"
-            >
-              Conversaciones
-            </Link>
-            <Link
-              href="/admin/agenda"
-              className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-semibold"
-            >
-              Agenda NLP
-            </Link>
-            <Link
-              href="/admin/fichas"
-              className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold"
-            >
-              Fichas
-            </Link>
-            <Link
-              href="/admin/metricas"
-              className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-semibold"
-            >
-              Métricas
-            </Link>
-            <Link
-              href="/admin/links"
-              className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-semibold"
-            >
-              🔗 Links
-            </Link>
-            <Link
-              href="/ficha"
-              className="text-xs bg-[#004aad] text-white px-3 py-1.5 rounded-lg font-semibold"
-            >
-              📋 Fichas
-            </Link>
-          </div>
-        </div>
+      <header className="bg-[#004aad] px-4 py-4">
+        <h1 className="text-lg font-bold text-white">AEA Admin</h1>
+        <p className="text-xs text-blue-200 mt-0.5">Auto Escuela Americana</p>
       </header>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
@@ -242,58 +200,37 @@ export default async function AdminPage() {
           )}
         </div>
 
-        {/* Importar ficha — botón prominente para móvil */}
-        <Link
-          href="/admin/importar"
-          className="flex items-center justify-center gap-3 bg-blue-600 text-white rounded-2xl p-4 shadow-sm hover:bg-blue-700 active:bg-blue-800 transition-colors"
-        >
-          <span className="text-2xl">📥</span>
-          <div className="text-left">
-            <p className="font-bold text-base leading-tight">Importar ficha</p>
-            <p className="text-blue-200 text-xs mt-0.5">Sube foto o PDF → Calendar automático</p>
-          </div>
-          <span className="ml-auto text-white/60 text-xl">→</span>
-        </Link>
-
-        {/* Nav rápida */}
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            href="/notas-alumno"
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors"
-          >
-            <p className="text-2xl mb-1">📋</p>
-            <p className="text-sm font-semibold text-gray-700">Notas de alumno</p>
-          </Link>
-          <Link
-            href="/admin/alumnos"
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors"
-          >
-            <p className="text-2xl mb-1">👥</p>
-            <p className="text-sm font-semibold text-gray-700">Historial alumnos</p>
-          </Link>
-          <Link
-            href="/agenda"
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors"
-          >
-            <p className="text-2xl mb-1">📅</p>
-            <p className="text-sm font-semibold text-gray-700">Agendar clase</p>
-          </Link>
-          <Link
-            href="/admin/conversaciones"
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors"
-          >
-            <p className="text-2xl mb-1">💬</p>
-            <p className="text-sm font-semibold text-gray-700">Conversaciones</p>
-          </Link>
-          <Link
-            href="/admin/instructores"
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:bg-gray-50 transition-colors col-span-2"
-          >
-            <p className="text-2xl mb-1">🚗</p>
-            <p className="text-sm font-semibold text-gray-700">Instructores UrbDriver</p>
-            <p className="text-xs text-gray-400 mt-0.5">Pipeline de candidatos Marco</p>
-          </Link>
-        </div>
+        {/* Nav cuadrícula 3x3 */}
+        {(() => {
+          const items = [
+            { href: '/admin/conversaciones', icon: '💬', label: 'Conversaciones', color: 'bg-blue-600'    },
+            { href: '/ficha',                icon: '📋', label: 'Nueva ficha',     color: 'bg-[#004aad]'  },
+            { href: '/admin/fichas',         icon: '🗂️', label: 'Fichas',          color: 'bg-emerald-600'},
+            { href: '/admin/metricas',       icon: '📊', label: 'Métricas',        color: 'bg-violet-600' },
+            { href: '/admin/alumnos',        icon: '👥', label: 'Alumnos',         color: 'bg-indigo-500' },
+            { href: '/notas-alumno',         icon: '📝', label: 'Notas alumno',    color: 'bg-teal-600'   },
+            { href: '/admin/importar',       icon: '📥', label: 'Importar ficha',  color: 'bg-orange-500' },
+            { href: '/admin/agenda',         icon: '🗓️', label: 'Agenda NLP',      color: 'bg-purple-600' },
+            { href: '/admin/instructores',   icon: '🚗', label: 'Instructores',    color: 'bg-gray-600'   },
+            { href: '/agenda',               icon: '📅', label: 'Agendar clase',   color: 'bg-cyan-600'   },
+            { href: '/admin/links',          icon: '🔗', label: 'Links equipo',    color: 'bg-gray-500'   },
+            { href: '/chatbot',              icon: '🤖', label: 'Chatbot Luz',     color: 'bg-pink-500'   },
+          ];
+          return (
+            <div className="grid grid-cols-3 gap-3">
+              {items.map(({ href, icon, label, color }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`${color} rounded-2xl p-4 text-center text-white active:opacity-80 transition-opacity`}
+                >
+                  <p className="text-2xl mb-1">{icon}</p>
+                  <p className="text-xs font-semibold leading-tight">{label}</p>
+                </Link>
+              ))}
+            </div>
+          );
+        })()}
 
         <p className="text-center text-xs text-gray-300 pb-4">
           Auto Escuela Americana · {new Date().getFullYear()}
