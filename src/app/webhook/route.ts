@@ -915,14 +915,26 @@ export async function POST(request: NextRequest) {
 
         // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
         const { saveInscripcionData } = await import('@/lib/firestore');
+        const fichaFechas = pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time }));
         await saveInscripcionData(from, {
           nombre: leadInfo.nombre,
           telefono: from,
           zona: leadInfo.zona,
           curso: leadInfo.curso,
           transmision: leadInfo.transmision,
-          fechas: pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time })),
+          fechas: fichaFechas,
         });
+
+        // Enviar ficha PDF al admin
+        import('@/lib/ficha-pdf-server')
+          .then(({ enviarFichaAdminWhatsApp }) => enviarFichaAdminWhatsApp({
+            nombre: leadInfo.nombre,
+            telefono: from,
+            zona: leadInfo.zona,
+            transmision: leadInfo.transmision,
+            fechas: fichaFechas,
+          }))
+          .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al admin:', e));
 
         // Ficha de inscripción para el cliente (WhatsApp)
         const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
