@@ -207,14 +207,25 @@ export async function generarFichaPdfBuffer(data: FichaData): Promise<Buffer> {
   return Buffer.from(doc.output('arraybuffer'));
 }
 
-export async function enviarFichaAdminWhatsApp(data: FichaData): Promise<void> {
+export async function enviarFichaAdminWhatsApp(data: FichaData, to?: string): Promise<void> {
   const waToken  = process.env.META_WHATSAPP_TOKEN ?? '';
   const phoneId  = process.env.META_PHONE_NUMBER_ID ?? '';
-  const adminPhone = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
+  const adminPhone = to ?? (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 
-  if (!waToken || !phoneId) return;
+  console.log('[ficha-admin] iniciando envío para', data.nombre, '→', adminPhone, '| token:', waToken ? 'ok' : 'FALTA', '| phoneId:', phoneId || 'FALTA');
+  if (!waToken || !phoneId) {
+    console.error('[ficha-admin] Faltan credenciales WhatsApp');
+    return;
+  }
 
-  const pdfBuffer = await generarFichaPdfBuffer(data);
+  let pdfBuffer: Buffer;
+  try {
+    pdfBuffer = await generarFichaPdfBuffer(data);
+    console.log('[ficha-admin] PDF generado:', pdfBuffer.length, 'bytes');
+  } catch (e) {
+    console.error('[ficha-admin] Error generando PDF:', e);
+    return;
+  }
   const folio = data.folio ?? 'AEA';
   const filename = `${folio}-${data.nombre.replace(/\s+/g, '_')}.pdf`;
 
@@ -230,11 +241,12 @@ export async function enviarFichaAdminWhatsApp(data: FichaData): Promise<void> {
   });
 
   if (!uploadRes.ok) {
-    console.error('[ficha-pdf-server] Upload error:', await uploadRes.text());
+    console.error('[ficha-admin] Upload error:', await uploadRes.text());
     return;
   }
 
   const { id: mediaId } = await uploadRes.json() as { id: string };
+  console.log('[ficha-admin] PDF subido, mediaId:', mediaId);
 
   await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
     method: 'POST',
@@ -249,5 +261,6 @@ export async function enviarFichaAdminWhatsApp(data: FichaData): Promise<void> {
         caption: `📋 Nueva ficha — ${data.nombre}\n📱 +${data.telefono}\n📍 ${data.zona}`,
       },
     }),
-  }).catch(e => console.error('[ficha-pdf-server] Send error:', e));
+  }).then(r => r.json()).then(j => console.log('[ficha-admin] Send result:', JSON.stringify(j)))
+    .catch(e => console.error('[ficha-admin] Send error:', e));
 }

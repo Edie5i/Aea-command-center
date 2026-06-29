@@ -199,15 +199,19 @@ export const confirmarInscripcionTool = ai.defineTool(
         fechas: fechasCalculadas,
       });
       console.log('[TOOL] Inscripción guardada en Firestore para', telefono);
-      // Enviar ficha PDF automáticamente al admin
+      // Enviar ficha PDF al admin y al alumno
       const { enviarFichaAdminWhatsApp } = await import('@/lib/ficha-pdf-server');
-      enviarFichaAdminWhatsApp({
+      const fichaPayload = {
         nombre,
         telefono,
         zona,
         transmision: transmision ?? 'Estándar',
         fechas: fechasCalculadas.map(({ date, time }) => ({ date, time })),
-      }).catch(e => console.error('[TOOL] Error enviando ficha admin:', e));
+      };
+      enviarFichaAdminWhatsApp(fichaPayload)
+        .catch(e => console.error('[TOOL] Error enviando ficha al admin:', e));
+      enviarFichaAdminWhatsApp(fichaPayload, telefono)
+        .catch(e => console.error('[TOOL] Error enviando ficha al alumno:', e));
       await updateChatState(telefono, {
         chatState: 'cerrado',
         chatReason: 'Inscripción confirmada por Luz',
