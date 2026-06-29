@@ -183,6 +183,9 @@ export interface InscripcionData {
   nombre: string;
   telefono: string;
   zona: string;
+  calle?: string;
+  numero?: string;
+  colonia?: string;
   curso: string;
   transmision: string;
   fechas: Array<{ date: string; time: string }>;

@@ -295,7 +295,10 @@ async function extractLeadInfo(history: HistoryItem[], phone: string) {
     prompt: `De esta conversación extrae en JSON plano los datos del cliente. Si un dato no está claro, devuelve null — no inventes ni uses valores genéricos.
 
 - "nombre": nombre o apodo que mencionó el cliente. Apodos cortos como "Ale", "Fer", "Santi" son válidos. Si no dio nombre, null.
-- "zona": dirección (calle + número + colonia). Si solo dio colonia, ponla. Si no dio ninguna, null.
+- "calle": nombre de la calle del punto de encuentro. Solo el nombre de la calle, sin número. Si no dio calle, null.
+- "numero": número exterior de la dirección (ej: "23", "1407 Int. 5"). Si no dio número, null.
+- "colonia": nombre de la colonia o alcaldía (ej: "Narvarte", "Roma Norte", "Del Valle"). Si no dio colonia, null.
+- "zona": dirección completa tal como la dio el cliente (calle + número + colonia juntos). Si solo dio colonia, ponla. Si no dio ninguna, null.
 - "curso": uno exactamente de: Estándar | Automático | Avanzado | Intermedio | Personas Nerviosas | Intensivo | Mixto | Moto | English Drive. Si no queda claro, null.
 - "transmision": "Estándar" para palanca (Estándar, Avanzado, Intermedio, Intensivo, Moto), "Automático" para automático (Automático, Personas Nerviosas, Mixto, English Drive, Coche Propio). Si no queda claro, null.
 - "horario":
@@ -313,9 +316,19 @@ ${conversation}`,
     const json = JSON.parse(cleaned);
     const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
     const validHorarios = ['mañana', 'tarde', 'fin-de-semana'];
+    const calle   = json.calle  ? String(json.calle).trim()  : null;
+    const numero  = json.numero ? String(json.numero).trim() : null;
+    const colonia = json.colonia ? String(json.colonia).trim() : null;
+    // Zona completa: usar lo que el cliente dio; si tenemos las partes estructuradas, reconstruirla
+    const zonaCompleta = calle && numero && colonia
+      ? `${calle} ${numero}, ${colonia}`
+      : (json.zona ? String(json.zona).trim() : (colonia ?? 'Por confirmar'));
     return {
       nombre: isValidName(json.nombre) ? String(json.nombre).trim() : 'Alumno',
-      zona: json.zona ? String(json.zona).trim() : 'Por confirmar',
+      zona: zonaCompleta,
+      calle,
+      numero,
+      colonia,
       curso: json.curso ? String(json.curso).trim() : 'Estándar',
       transmision: json.transmision ? String(json.transmision).trim() : 'Estándar',
       horario: (validHorarios.includes(json.horario) ? json.horario : 'mañana') as 'mañana' | 'tarde' | 'fin-de-semana',
@@ -323,7 +336,7 @@ ${conversation}`,
     };
   } catch {
     const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
-    return { nombre: 'Alumno', zona: 'Por confirmar', curso: 'Estándar', transmision: 'Estándar', horario: 'mañana' as const, telefono: tel };
+    return { nombre: 'Alumno', zona: 'Por confirmar', calle: null, numero: null, colonia: null, curso: 'Estándar', transmision: 'Estándar', horario: 'mañana' as const, telefono: tel };
   }
 }
 
@@ -416,8 +429,9 @@ const ZONAS_DOMICILIO = [
   'bosque de las lomas', 'interlomas', 'tecamachalco', 'granada', 'irrigación',
 ];
 
-function checkCoverage(zona: string): { covered: boolean; nota: string } {
-  const z = zona.toLowerCase();
+function checkCoverage(zona: string, colonia?: string | null): { covered: boolean; nota: string } {
+  // Preferir colonia estructurada para match más preciso; fallback al texto libre de zona
+  const z = (colonia ?? zona).toLowerCase();
   const covered = ZONAS_DOMICILIO.some(keyword => z.includes(keyword));
   if (covered) {
     return {
@@ -445,12 +459,15 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
     // Solo notificar si tenemos datos reales (no defaults)
     if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') return;
     const dp = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
-    const { nota } = checkCoverage(leadInfo.zona);
+    const { nota } = checkCoverage(leadInfo.zona, leadInfo.colonia);
+    const dirCompleta = leadInfo.calle && leadInfo.colonia
+      ? `${leadInfo.zona}` // zona ya fue reconstruida con partes
+      : `${leadInfo.zona}${!leadInfo.colonia ? ' ⚠️ *falta colonia*' : ''}${!leadInfo.calle ? ' ⚠️ *falta calle/número*' : ''}`;
     await sendMessage(ADMIN_PHONE,
       `🔥 *Lead calificado — listo para cierre*\n\n` +
       `👤 ${leadInfo.nombre}\n` +
       `📱 +${dp}\n` +
-      `📍 ${leadInfo.zona}\n` +
+      `📍 ${dirCompleta}\n` +
       `🚗 ${leadInfo.curso}\n\n` +
       `${nota}`
     );
@@ -883,6 +900,25 @@ export async function POST(request: NextRequest) {
         return new NextResponse('EVENT_RECEIVED', { status: 200 });
       }
 
+      // Validar dirección completa: colonia es mínimo requerido para confirmar cobertura
+      if (!leadInfo.colonia) {
+        console.warn('[WEBHOOK] Dirección incompleta — falta colonia. Abortando agendamiento.');
+        sendMessage(ADMIN_PHONE,
+          `⚠️ *Dirección incompleta — ${leadInfo.nombre}*\n📱 +${from}\n\n` +
+          `Tiene: "${leadInfo.zona}"\nFalta: colonia (y preferiblemente calle + número)\n\n` +
+          `Luz pedirá los datos faltantes.`
+        ).catch(e => console.error('[WEBHOOK] Error notificando admin dir incompleta:', e));
+        // Permitir que Luz responda al cliente pidiendo los datos faltantes
+        const reply = await generateReply(
+          `El cliente acaba de enviar su comprobante de pago pero aún falta su dirección completa (calle, número y colonia). ` +
+          `Confirma que recibiste el pago y pídele amablemente que te dé su calle, número y colonia para el punto de encuentro con el instructor.`,
+          history, from
+        );
+        await sendMessage(from, reply);
+        saveHistory(from, '[imagen: comprobante de pago]', reply);
+        return new NextResponse('EVENT_RECEIVED', { status: 200 });
+      }
+
       console.log('[WEBHOOK] Consultando slots disponibles...');
       const slots = await getAvailableSlots(21);
       console.log('[WEBHOOK] Slots totales recibidos:', slots.length);
@@ -920,6 +956,9 @@ export async function POST(request: NextRequest) {
           nombre: leadInfo.nombre,
           telefono: from,
           zona: leadInfo.zona,
+          calle: leadInfo.calle ?? undefined,
+          numero: leadInfo.numero ?? undefined,
+          colonia: leadInfo.colonia ?? undefined,
           curso: leadInfo.curso,
           transmision: leadInfo.transmision,
           fechas: fichaFechas,
