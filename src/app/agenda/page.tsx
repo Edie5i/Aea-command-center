@@ -11,11 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, Globe, FileText, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
-import { AppFooter } from '@/components/footer';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -364,236 +360,273 @@ function AgendaContent() {
   }
 
 
+  const DARK_INPUT = "bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-blue-500";
+  const DARK_LABEL = "text-slate-300 text-sm font-medium";
+
   return (
-    <main className="flex min-h-screen flex-col bg-background">
-      <section className="relative w-full bg-muted py-8 md:py-12">
-        <div className="relative z-10 flex flex-col items-center text-center px-4">
-          <h1 className="text-3xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-            Agenda tu Curso
+    <main className="flex min-h-screen flex-col" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden text-center px-4 pt-10 pb-8"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 70% 60% at 50% -10%, rgba(37,99,235,0.15) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
+          style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Link href="/" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+              <ArrowLeft className="w-3 h-3" /> Inicio
+            </Link>
+            <Link href="/pagos" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+              <CreditCard className="w-3 h-3" /> Pagos
+            </Link>
+            <a href="https://autoescuelaamericana.com/cursos" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+              <List className="w-3 h-3" /> Cursos
+            </a>
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight mb-1"
+            style={{
+              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+            {courseScheduled ? '¡Listo!' : 'Agenda tu Curso'}
           </h1>
-          <p className="mt-2 max-w-xl text-base md:text-lg text-muted-foreground">
-            {courseScheduled ? '¡Tu inscripción y agenda están completas!' : 'Selecciona fechas, horario y llena tus datos.'}
+          <p className="text-sm" style={{ color: '#475569' }}>
+            {courseScheduled ? 'Tu inscripción está completa.' : 'Selecciona fechas, horario y tus datos.'}
           </p>
         </div>
       </section>
-      <div className="container px-4 sm:px-6 md:px-8 py-8 flex flex-col items-center">
-        <div className="mb-6 flex justify-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/"><ArrowLeft className="mr-1.5 h-4 w-4" />Inicio</Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/pagos"><CreditCard className="mr-1.5 h-4 w-4" />Pagos</Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href="https://autoescuelaamericana.com/cursos"><List className="mr-1.5 h-4 w-4" />Cursos</Link>
-          </Button>
-        </div>
-        
-        <div className="w-full max-w-4xl">
-           <Card className="w-full shadow-lg rounded-xl mb-8">
-             {courseScheduled ? (
-                <CardContent className="p-6 text-center">
-                    <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <AlertTitle className="text-xl font-bold text-green-700 dark:text-green-300">
-                            ¡Inscripción y Agenda Completas!
-                        </AlertTitle>
-                        <AlertDescription className="text-foreground mt-2">
-                            Tus clases se han agendado correctamente en el calendario. Ahora puedes descargar tu ficha de inscripción o enviarla por WhatsApp para finalizar el proceso.
-                        </AlertDescription>
-                    </Alert>
-                    <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
-                        <Button onClick={handleDownloadPdf} variant="secondary" disabled={isProcessing}>
-                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                            {isProcessing ? 'Generando...' : 'Descargar Ficha PDF'}
-                        </Button>
-                         <Button asChild>
-                            <a
-                              href={whatsAppUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => {
-                                if (typeof window !== 'undefined' && (window as any).gtag) {
-                                  (window as any).gtag('event', 'whatsapp_click', { location: 'agenda_success' });
-                                }
-                              }}
-                            >
-                               <MessageSquare className="mr-2 h-4 w-4" />
-                               Enviar por WhatsApp
-                            </a>
-                        </Button>
-                        <Button onClick={handleNewSchedule} variant="ghost" className="text-muted-foreground">
-                            <CalendarCheck className="mr-2 h-4 w-4" />
-                            Generar Nueva Ficha
-                        </Button>
-                    </div>
-                </CardContent>
-             ) : (
-                <>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <CalendarIcon className="h-6 w-6 text-primary" />
-                        Paso 1: Selecciona tus Días de Clase
-                    </CardTitle>
-                    <CardDescription>
-                       Elige hasta 6 fechas. Un asesor confirmará los horarios por WhatsApp.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-6">
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setCalOpen(true)}
-                        className="w-full flex items-center justify-between bg-muted/50 border rounded-xl px-4 py-3 hover:bg-muted transition-colors text-left"
-                      >
-                        <span className="text-sm text-muted-foreground">
-                          {selectedDates.length > 0
-                            ? `${selectedDates.length} fecha${selectedDates.length !== 1 ? 's' : ''} seleccionada${selectedDates.length !== 1 ? 's' : ''}`
-                            : 'Toca para seleccionar fechas'}
-                        </span>
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                      </button>
-                      {selectedDates.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2 items-center">
-                          {selectedDates.map((item, i) => (
-                            <span key={i} className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full font-medium">
-                              {format(item.date, "EEE d MMM", { locale: es })}
-                            </span>
-                          ))}
-                          <button type="button" onClick={handleClearSelection} className="text-xs text-muted-foreground hover:text-foreground underline ml-1">
-                            Limpiar
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    {calOpen && (
-                      <CalendarModal
-                        selected={selectedDates.map(d => d.date)}
-                        onConfirm={handleCalConfirm}
-                        onClose={() => setCalOpen(false)}
-                      />
-                    )}
-                    <div className="w-full">
-                        {selectedDates.length > 0 ? (
-                            <div className="space-y-4">
-                               <CardHeader className="p-0 mb-4">
-                                  <CardTitle>Paso 2: Selecciona los Horarios</CardTitle>
-                                   <CardDescription>
-                                    Elige un horario para cada día.
-                                  </CardDescription>
-                               </CardHeader>
-                               <div className="space-y-3">
-                                {selectedDates.map((item, index) => (
-                                    <div key={item.date.toISOString()} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-xl bg-muted/30">
-                                        <p className="text-sm font-medium capitalize">
-                                            {format(item.date, "EEEE, d 'de' MMMM", { locale: es })}
-                                        </p>
-                                        <Select onValueChange={(value) => handleTimeChange(index, value)} defaultValue={item.time}>
-                                            <SelectTrigger className="w-full sm:w-[160px]">
-                                                <SelectValue placeholder="Elige hora" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {timeSlots.map(slot => <SelectItem key={slot} value={slot}>{format(parse(slot, 'HH:mm', new Date()), 'h:mm a')}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                ))}
-                                </div>
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                                        <CardHeader className="p-0">
-                                            <CardTitle>Paso 3: Completa tus Datos</CardTitle>
-                                            <CardDescription>
-                                                Llena este breve formulario para crear tu ficha.
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                          <FormField control={form.control} name="name" render={({ field }) => (
-                                              <FormItem>
-                                                  <FormLabel>Nombre Completo</FormLabel>
-                                                  <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="Tu nombre" {...field} className="pl-10" /></FormControl></div>
-                                                  <FormMessage />
-                                              </FormItem>
-                                          )}/>
-                                          <FormField control={form.control} name="phone" render={({ field }) => (
-                                              <FormItem>
-                                                  <FormLabel>Teléfono de WhatsApp</FormLabel>
-                                                  <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="55 1234 5678" {...field} className="pl-10" /></FormControl></div>
-                                                  <FormMessage />
-                                              </FormItem>
-                                          )}/>
-                                        </div>
-                                        <FormField control={form.control} name="address" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Dirección / Punto de encuentro</FormLabel>
-                                                <div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><FormControl><Input placeholder="Calle, número, colonia, etc." {...field} className="pl-10" /></FormControl></div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}/>
-                                        
-                                        <FormField control={form.control} name="transmission" render={({ field }) => (
-                                            <FormItem className="space-y-2">
-                                                <FormLabel>Transmisión</FormLabel>
-                                                <FormControl>
-                                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4 pt-2">
-                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Automático" id="auto"/></FormControl><Label htmlFor="auto" className="font-normal cursor-pointer">Automático</Label></FormItem>
-                                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Estándar" id="std"/></FormControl><Label htmlFor="std" className="font-normal cursor-pointer">Estándar</Label></FormItem>
-                                                    </RadioGroup>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}/>
-                                        
-                                        <FormField control={form.control} name="notes" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Notas Adicionales (Opcional)</FormLabel>
-                                                <div className="relative"><MessageSquare className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><FormControl><Textarea placeholder="Ej: Me da miedo incorporarme a vías rápidas" {...field} className="pl-10" /></FormControl></div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}/>
 
-                                        <div className="space-y-4">
-                                            <FormField control={form.control} name="isMinor" render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <Label htmlFor="isMinor" className="font-normal flex items-center gap-2 cursor-pointer"><UserCheck className="h-4 w-4"/>Este curso es para un menor de edad</Label>
-                                                </FormItem>
-                                            )}/>
-                                            <FormField control={form.control} name="terms" render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <div className="space-y-1 leading-none">
-                                                        <FormLabel>Acepto los <Link href="https://autoescuelaamericana.com/terminos" target="_blank" className="text-primary hover:underline">Términos y Condiciones</Link>.</FormLabel>
-                                                        <FormMessage />
-                                                    </div>
-                                                </FormItem>
-                                            )}/>
-                                        </div>
-                                        
-                                        <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
-                                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarCheck className="mr-2 h-4 w-4" />}
-                                            {isProcessing ? 'Procesando...' : 'Generar Ficha y Agendar'}
-                                        </Button>
-                                    </form>
-                                </Form>
-                            </div>
-                        ) : (
-                             <Alert>
-                                <CalendarCheck className="h-4 w-4" />
-                                <AlertTitle>Esperando selección...</AlertTitle>
-                                <AlertDescription>
-                                Toca el botón de arriba para elegir tus fechas de clase.
-                                </AlertDescription>
-                            </Alert>
-                        )}
+      <div className="flex-1 px-4 py-6 flex flex-col items-center">
+        <div className="w-full max-w-2xl">
+
+          {/* Card principal oscura */}
+          <div className="rounded-2xl overflow-hidden mb-8"
+            style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: '1px solid rgba(148,163,184,0.1)' }}>
+
+            {courseScheduled ? (
+              <div className="p-6 text-center">
+                <div className="inline-flex w-14 h-14 items-center justify-center rounded-full mb-4"
+                  style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}>
+                  <CheckCircle className="w-7 h-7" style={{ color: '#34d399' }} />
+                </div>
+                <h2 className="text-lg font-bold text-white mb-1">¡Inscripción y Agenda Completas!</h2>
+                <p className="text-sm mb-6" style={{ color: '#64748b' }}>
+                  Tus clases se agendaron en el calendario. Descarga tu ficha o envíala por WhatsApp.
+                </p>
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
+                  <button onClick={handleDownloadPdf} disabled={isProcessing}
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40"
+                    style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#cbd5e1' }}>
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    {isProcessing ? 'Generando...' : 'Descargar PDF'}
+                  </button>
+                  <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer"
+                    onClick={() => { if (typeof window !== 'undefined' && (window as any).gtag) (window as any).gtag('event', 'whatsapp_click', { location: 'agenda_success' }); }}
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                    style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}>
+                    <MessageSquare className="w-4 h-4" /> Enviar por WhatsApp
+                  </a>
+                  <button onClick={handleNewSchedule}
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all"
+                    style={{ color: '#475569' }}>
+                    <CalendarCheck className="w-4 h-4" /> Nueva ficha
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 space-y-6">
+                {/* Paso 1: Fechas */}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#475569' }}>Paso 1 — Días de clase</p>
+                  <button type="button" onClick={() => setCalOpen(true)}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors text-left"
+                    style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+                    <span>{selectedDates.length > 0
+                      ? `${selectedDates.length} fecha${selectedDates.length !== 1 ? 's' : ''} seleccionada${selectedDates.length !== 1 ? 's' : ''}`
+                      : 'Toca para seleccionar fechas'}</span>
+                    <CalendarIcon className="w-4 h-4 shrink-0" />
+                  </button>
+                  {selectedDates.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2 items-center">
+                      {selectedDates.map((item, i) => (
+                        <span key={i} className="inline-flex items-center text-xs px-3 py-1 rounded-full font-medium"
+                          style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                          {format(item.date, "EEE d MMM", { locale: es })}
+                        </span>
+                      ))}
+                      <button type="button" onClick={handleClearSelection}
+                        className="text-xs underline" style={{ color: '#475569' }}>Limpiar</button>
                     </div>
-                </CardContent>
-                </>
-             )}
-           </Card>
+                  )}
+                </div>
+
+                {calOpen && (
+                  <CalendarModal
+                    selected={selectedDates.map(d => d.date)}
+                    onConfirm={handleCalConfirm}
+                    onClose={() => setCalOpen(false)}
+                  />
+                )}
+
+                {/* Pasos 2 y 3 — solo si hay fechas */}
+                {selectedDates.length > 0 && (
+                  <>
+                    {/* Paso 2: Horarios */}
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#475569' }}>Paso 2 — Horarios</p>
+                      <div className="space-y-2">
+                        {selectedDates.map((item, index) => (
+                          <div key={item.date.toISOString()}
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-xl"
+                            style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                            <p className="text-sm font-medium capitalize" style={{ color: '#cbd5e1' }}>
+                              {format(item.date, "EEEE, d 'de' MMMM", { locale: es })}
+                            </p>
+                            <Select onValueChange={(value) => handleTimeChange(index, value)} defaultValue={item.time}>
+                              <SelectTrigger className={`w-full sm:w-[160px] ${DARK_INPUT}`}>
+                                <SelectValue placeholder="Elige hora" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-[#1e293b] border-[#334155] text-white">
+                                {timeSlots.map(slot => (
+                                  <SelectItem key={slot} value={slot} className="focus:bg-[#334155] focus:text-white">
+                                    {format(parse(slot, 'HH:mm', new Date()), 'h:mm a')}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Paso 3: Datos */}
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#475569' }}>Paso 3 — Tus datos</p>
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="name" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className={DARK_LABEL}>Nombre Completo</FormLabel>
+                                <div className="relative">
+                                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                                  <FormControl><Input placeholder="Tu nombre" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
+                                </div>
+                                <FormMessage className="text-red-400 text-xs" />
+                              </FormItem>
+                            )}/>
+                            <FormField control={form.control} name="phone" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className={DARK_LABEL}>WhatsApp</FormLabel>
+                                <div className="relative">
+                                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                                  <FormControl><Input placeholder="55 1234 5678" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
+                                </div>
+                                <FormMessage className="text-red-400 text-xs" />
+                              </FormItem>
+                            )}/>
+                          </div>
+
+                          <FormField control={form.control} name="address" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className={DARK_LABEL}>Dirección / Punto de encuentro</FormLabel>
+                              <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                                <FormControl><Input placeholder="Calle, número, colonia…" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
+                              </div>
+                              <FormMessage className="text-red-400 text-xs" />
+                            </FormItem>
+                          )}/>
+
+                          <FormField control={form.control} name="transmission" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className={DARK_LABEL}>Transmisión</FormLabel>
+                              <FormControl>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-1">
+                                  {[{ val: 'Automático', id: 'auto' }, { val: 'Estándar', id: 'std' }].map(({ val, id }) => (
+                                    <FormItem key={id} className="flex items-center space-x-2 space-y-0">
+                                      <FormControl><RadioGroupItem value={val} id={id} className="border-slate-600 text-blue-500" /></FormControl>
+                                      <Label htmlFor={id} className="font-normal cursor-pointer" style={{ color: '#94a3b8' }}>{val}</Label>
+                                    </FormItem>
+                                  ))}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage className="text-red-400 text-xs" />
+                            </FormItem>
+                          )}/>
+
+                          <FormField control={form.control} name="notes" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className={DARK_LABEL}>Notas (Opcional)</FormLabel>
+                              <div className="relative">
+                                <MessageSquare className="absolute left-3 top-3 h-4 w-4" style={{ color: '#475569' }} />
+                                <FormControl>
+                                  <Textarea placeholder="Ej: Me da miedo incorporarme a vías rápidas" {...field}
+                                    className={`pl-10 ${DARK_INPUT}`} />
+                                </FormControl>
+                              </div>
+                            </FormItem>
+                          )}/>
+
+                          <div className="space-y-3 pt-1">
+                            <FormField control={form.control} name="isMinor" render={({ field }) => (
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" /></FormControl>
+                                <Label className="font-normal cursor-pointer flex items-center gap-2" style={{ color: '#94a3b8' }}>
+                                  <UserCheck className="w-4 h-4" /> Este curso es para un menor de edad
+                                </Label>
+                              </FormItem>
+                            )}/>
+                            <FormField control={form.control} name="terms" render={({ field }) => (
+                              <FormItem className="flex items-start space-x-3 space-y-0 p-3 rounded-xl"
+                                style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 mt-0.5" /></FormControl>
+                                <div>
+                                  <FormLabel className="font-normal cursor-pointer" style={{ color: '#94a3b8' }}>
+                                    Acepto los <Link href="https://autoescuelaamericana.com/terminos" target="_blank" style={{ color: '#60a5fa' }}>Términos y Condiciones</Link>.
+                                  </FormLabel>
+                                  <FormMessage className="text-red-400 text-xs mt-1" />
+                                </div>
+                              </FormItem>
+                            )}/>
+                          </div>
+
+                          <button type="submit" disabled={isProcessing}
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40"
+                            style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: '0 4px 20px rgba(37,99,235,0.3)' }}>
+                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarCheck className="w-4 h-4" />}
+                            {isProcessing ? 'Procesando…' : 'Generar Ficha y Agendar'}
+                          </button>
+                        </form>
+                      </Form>
+                    </div>
+                  </>
+                )}
+
+                {selectedDates.length === 0 && (
+                  <div className="text-center py-8" style={{ color: '#334155' }}>
+                    <CalendarCheck className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">Selecciona tus fechas arriba para continuar</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-       <AppFooter />
+
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+        <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
+      </footer>
     </main>
   );
 }

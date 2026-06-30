@@ -3,16 +3,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Send, ArrowLeft, Bot, User, Loader2, Globe, FileText, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Send, ArrowLeft, Bot, User, Loader2, RefreshCw } from 'lucide-react';
 import { getChatbotResponseAction } from '@/app/actions';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { AppFooter } from '@/components/footer';
 
 type Message = {
   id: number;
@@ -32,194 +24,189 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('div');
-      if (scrollContainer) {
-          scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'smooth' });
-      }
-    }
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    setError(null);
 
-    const userMessage: Message = {
-      id: Date.now(),
-      role: 'user',
-      text: input,
-    };
+    const userMessage: Message = { id: Date.now(), role: 'user', text: input };
     const historySnapshot = messages.map((m: Message) => ({ role: m.role, text: m.text }));
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
       const result = await getChatbotResponseAction(input, historySnapshot);
-      
-      if (result.error || !result.response) {
-        throw new Error(result.error || 'No se pudo obtener una respuesta del bot.');
-      }
-      
-      const botMessage: Message = {
+      if (result.error || !result.response) throw new Error(result.error || 'Sin respuesta');
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: result.response! }]);
+    } catch (err: any) {
+      setError(err.message || 'Error de conexión');
+      setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'bot',
-        text: result.response,
-      };
-      setMessages((prev) => [...prev, botMessage]);
-
-    } catch (error: any) {
-       toast({
-        variant: 'destructive',
-        title: 'Algo salió mal',
-        description: error.message || 'Ocurrió un error inesperado.',
-      });
-      // Optionally add an error message to the chat
-       const errorMessage: Message = {
-        id: Date.now() + 1,
-        role: 'bot',
-        text: "Lo siento, estoy teniendo problemas para conectarme. Por favor, intenta de nuevo más tarde.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+        text: 'Lo siento, estoy teniendo problemas. Intenta de nuevo en un momento.',
+      }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResetChat = useCallback(() => {
+  const handleReset = useCallback(() => {
     setMessages(initialMessages);
-    toast({
-      title: 'Chat Reiniciado',
-      description: 'La conversación ha vuelto a empezar.',
-    });
-  }, [toast]);
+    setError(null);
+  }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col items-center text-center my-8 px-4">
-        <div className="flex flex-wrap justify-center gap-2 mb-4">
-          <Button asChild variant="outline">
-            <a href="/agenda">
-              <Globe className="mr-2 h-4 w-4" />
-              Agendar clase
-            </a>
-          </Button>
+    <main className="flex flex-col h-screen"
+      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+
+      {/* Header */}
+      <header className="shrink-0 px-4 py-3 flex items-center gap-3"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        <Link href="/" className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+          style={{ color: '#475569' }}>
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+
+        {/* Avatar Luz */}
+        <div className="relative">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{
+              background: 'conic-gradient(from 0deg, #334155, #64748b, #e2e8f0, #94a3b8, #334155)',
+              padding: 1.5,
+            }}>
+            <div className="w-full h-full rounded-full flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}>
+              <Bot className="w-4 h-4" style={{ color: '#60a5fa' }} />
+            </div>
+          </div>
+          {/* Status dot */}
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
+            style={{ background: '#34d399', borderColor: '#0f172a' }} />
         </div>
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Habla con Luz
-        </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Asesora de Auto Escuela Americana. Te ayuda a encontrar el curso que necesitas.
+
+        <div className="flex-1">
+          <p className="text-sm font-bold text-white leading-none">Luz</p>
+          <p className="text-[11px] mt-0.5" style={{ color: '#34d399' }}>En línea · AEA</p>
+        </div>
+
+        <button onClick={handleReset} className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+          style={{ color: '#475569' }} title="Reiniciar chat">
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </header>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        {messages.map((msg) => {
+          const isUser = msg.role === 'user';
+          return (
+            <div key={msg.id} className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+              {!isUser && (
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mb-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+                    border: '1px solid rgba(148,163,184,0.15)',
+                  }}>
+                  <Bot className="w-3.5 h-3.5" style={{ color: '#60a5fa' }} />
+                </div>
+              )}
+              <div className="max-w-[80%] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap"
+                style={isUser ? {
+                  background: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+                  borderRadius: '18px 18px 4px 18px',
+                  color: 'white',
+                  boxShadow: '0 2px 12px rgba(37,99,235,0.3)',
+                } : {
+                  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+                  border: '1px solid rgba(148,163,184,0.1)',
+                  borderRadius: '4px 18px 18px 18px',
+                  color: '#cbd5e1',
+                }}>
+                {msg.text}
+              </div>
+              {isUser && (
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mb-0.5"
+                  style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.15)' }}>
+                  <User className="w-3.5 h-3.5" style={{ color: '#94a3b8' }} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {isLoading && (
+          <div className="flex items-end gap-2 justify-start">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid rgba(148,163,184,0.15)' }}>
+              <Bot className="w-3.5 h-3.5" style={{ color: '#60a5fa' }} />
+            </div>
+            <div className="px-4 py-3 flex items-center gap-1.5"
+              style={{ background: 'rgba(30,41,59,0.9)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: '4px 18px 18px 18px' }}>
+              {[0, 1, 2].map(i => (
+                <span key={i} className="w-1.5 h-1.5 rounded-full animate-bounce"
+                  style={{ background: '#60a5fa', animationDelay: `${i * 150}ms` }} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <p className="text-xs text-center" style={{ color: '#ef4444' }}>{error}</p>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="shrink-0 px-4 py-3"
+        style={{ background: 'linear-gradient(180deg, #111827 0%, #0f172a 100%)', borderTop: '1px solid rgba(148,163,184,0.1)' }}>
+
+        {/* Sugerencias rápidas — solo al inicio */}
+        {messages.length === 1 && (
+          <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+            {['¿Cuánto cuesta?', '¿Tienen clases a domicilio?', '¿Cuántas clases necesito?'].map(q => (
+              <button key={q} onClick={() => setInput(q)}
+                className="shrink-0 text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors"
+                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#60a5fa' }}>
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Escribe tu pregunta…"
+            disabled={isLoading}
+            className="flex-1 text-sm px-4 py-2.5 rounded-xl outline-none transition-all"
+            style={{
+              background: 'rgba(148,163,184,0.06)',
+              border: '1px solid rgba(148,163,184,0.15)',
+              color: '#e2e8f0',
+            }}
+          />
+          <button type="submit" disabled={isLoading || !input.trim()}
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
+            {isLoading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Send className="w-4 h-4 text-white" />}
+          </button>
+        </form>
+
+        <p className="text-center text-[10px] mt-2" style={{ color: '#334155' }}>
+          Luz · IA de Auto Escuela Americana ·{' '}
+          <Link href="/agenda" style={{ color: '#475569' }}>Agendar clase</Link>
         </p>
       </div>
-
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-4xl mb-4 flex flex-wrap justify-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Inicio
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="https://autoescuelaamericana.com/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos
-            </Link>
-          </Button>
-        </div>
-
-        <Card className="w-full max-w-4xl shadow-lg rounded-xl h-[70vh] flex flex-col">
-          <CardHeader className="border-b flex-row items-center justify-between">
-            <div>
-                <CardTitle className="flex items-center gap-2">
-                <Bot className="text-primary" />
-                Luz
-                </CardTitle>
-                <CardDescription>
-                Asesora de Auto Escuela Americana
-                </CardDescription>
-            </div>
-             <Button variant="ghost" size="icon" onClick={handleResetChat} aria-label="Reiniciar chat">
-                <RefreshCw className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-hidden p-0">
-             <ScrollArea className="h-full p-6" ref={scrollAreaRef}>
-              <div className="space-y-6">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      'flex items-end gap-3',
-                      message.role === 'user' && 'justify-end'
-                    )}
-                  >
-                    {message.role === 'bot' && (
-                      <Avatar className="h-8 w-8 border">
-                        <AvatarFallback>
-                          <Bot />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div
-                      className={cn(
-                        'max-w-[85%] rounded-xl p-3 text-sm shadow-md',
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground rounded-br-none'
-                          : 'bg-muted rounded-bl-none'
-                      )}
-                    >
-                      {message.text}
-                    </div>
-                    {message.role === 'user' && (
-                       <Avatar className="h-8 w-8 border">
-                        <AvatarFallback>
-                          <User />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                  </div>
-                ))}
-                 {isLoading && (
-                  <div className="flex items-end gap-3">
-                    <Avatar className="h-8 w-8 border">
-                      <AvatarFallback>
-                        <Bot />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="bg-muted rounded-lg p-3 flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Pensando...</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-          <CardFooter className="border-t p-4">
-            <form onSubmit={handleSubmit} className="flex w-full items-center gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Escribe tu pregunta aquí..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-                <Send className="h-4 w-4" />
-                <span className="sr-only">Enviar</span>
-              </Button>
-            </form>
-          </CardFooter>
-        </Card>
-      </div>
-
-      <AppFooter />
     </main>
   );
 }
