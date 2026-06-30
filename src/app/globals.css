@@ -82,10 +82,11 @@
      @apply h-full;
   }
   body {
-    @apply bg-secondary text-foreground h-full;
+    @apply text-foreground h-full;
+    background: #0c111d;
   }
   main, header, footer {
-      @apply bg-background;
+      background: transparent;
   }
 }
 
