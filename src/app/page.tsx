@@ -127,44 +127,106 @@ export default function Home() {
       style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
       <JsonLd data={localBusinessSchema} />
 
-      {/* Header */}
-      <header className="text-center px-4 pt-12 pb-8">
-        {/* Logo circular */}
-        <div className="relative mx-auto w-44 h-44 rounded-full flex flex-col items-center justify-center mb-8"
-          style={{
-            background: 'linear-gradient(135deg, #004aad, #003580)',
-            boxShadow: '0 0 0 4px rgba(59,130,246,0.15), 0 20px 40px rgba(0,74,173,0.35)',
-            border: '2px solid rgba(59,130,246,0.3)',
-          }}>
-          <div className="absolute inset-0 rounded-full opacity-10"
-            style={{ background: 'linear-gradient(135deg, white, transparent)' }} />
-          <div className="flex items-center gap-3 mb-1 z-10">
-            <Bike className="w-7 h-7 text-black" fill="currentColor" />
-            <div className="text-center">
-              <p className="text-white font-black text-base leading-none tracking-tight">AUTO</p>
-              <p className="text-white font-black text-base leading-none tracking-tight">ESCUELA</p>
-              <p className="text-white font-black text-base leading-none tracking-tight">AMERICANA</p>
+      {/* HERO */}
+      <header className="relative overflow-hidden text-center px-4 pt-14 pb-12">
+        {/* Glow background */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37,99,235,0.18) 0%, transparent 70%)' }} />
+
+        {/* Dot grid */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+
+        {/* Logo ring */}
+        <div className="relative mx-auto mb-8" style={{ width: 148, height: 148 }}>
+          {/* Outer glow ring */}
+          <div className="absolute inset-0 rounded-full animate-pulse"
+            style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.2) 0%, transparent 70%)', transform: 'scale(1.4)' }} />
+          {/* Ring metálico */}
+          <div className="absolute inset-0 rounded-full"
+            style={{ background: 'conic-gradient(from 0deg, #334155, #64748b, #e2e8f0, #94a3b8, #334155)', padding: 2 }}>
+            <div className="w-full h-full rounded-full flex flex-col items-center justify-center"
+              style={{ background: 'linear-gradient(145deg, #0f2557, #003a99)' }}>
+              {/* Inner shine */}
+              <div className="absolute top-2 left-4 right-4 h-1/3 rounded-full opacity-20"
+                style={{ background: 'linear-gradient(180deg, white, transparent)' }} />
+              <div className="flex items-center gap-2 z-10">
+                <Bike className="w-6 h-6 text-black" fill="currentColor" />
+                <div className="text-center">
+                  <p className="text-white font-black text-[13px] leading-none tracking-tight">AUTO</p>
+                  <p className="text-white font-black text-[13px] leading-none tracking-tight">ESCUELA</p>
+                  <p className="text-white font-black text-[13px] leading-none tracking-tight">AMERICANA</p>
+                </div>
+                <Car className="w-6 h-6 text-black" fill="currentColor" />
+              </div>
+              <div className="w-3/5 h-px my-1.5 z-10" style={{ background: 'linear-gradient(90deg, transparent, #22d3ee, transparent)' }} />
+              <p className="font-bold text-[8px] tracking-widest z-10" style={{ color: '#fbbf24' }}>CDMX · DESDE 2008</p>
             </div>
-            <Car className="w-7 h-7 text-black" fill="currentColor" />
-          </div>
-          <div className="w-2/3 h-0.5 rounded-full my-1.5 z-10" style={{ background: '#22d3ee' }} />
-          <div className="text-center z-10">
-            <p className="font-bold text-[9px] tracking-wider" style={{ color: '#fbbf24' }}>CAPACITACIÓN INICIAL Y</p>
-            <p className="font-bold text-[9px] tracking-wider" style={{ color: '#fbbf24' }}>ESPECIALIZADA</p>
           </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-2">
-          Auto Escuela Americana
+        {/* Metallic headline */}
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-1"
+          style={{
+            background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 75%, #e2e8f0 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+          Auto Escuela
         </h1>
-        <p className="text-base mb-6 max-w-sm mx-auto" style={{ color: '#64748b' }}>
-          Tu camino hacia la confianza al volante comienza aquí.
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4"
+          style={{
+            background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #93c5fd 60%, #60a5fa 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+          Americana
+        </h1>
+
+        <p className="text-base mb-8 max-w-xs mx-auto" style={{ color: '#64748b' }}>
+          Aprende a manejar con instructores certificados. Clases personalizadas en CDMX.
         </p>
-        <Link href="/agenda"
-          className="inline-block px-8 py-3 rounded-xl font-semibold text-white transition-all active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: '0 4px 20px rgba(37,99,235,0.35)' }}>
-          Agendar Curso
-        </Link>
+
+        {/* Stats rápidos */}
+        <div className="flex items-center justify-center gap-6 mb-8">
+          {[
+            { value: '4.8★', label: 'Google' },
+            { value: '220+', label: 'Reseñas' },
+            { value: '15+', label: 'Años' },
+          ].map(({ value, label }) => (
+            <div key={label} className="text-center">
+              <p className="text-lg font-bold text-white leading-none">{value}</p>
+              <p className="text-[11px] mt-0.5" style={{ color: '#475569' }}>{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTAs */}
+        <div className="flex items-center justify-center gap-3">
+          <Link href="/agenda"
+            className="px-7 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95"
+            style={{
+              background: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+              boxShadow: '0 4px 24px rgba(37,99,235,0.4), 0 0 0 1px rgba(59,130,246,0.3)',
+            }}>
+            Agendar Curso
+          </Link>
+          <a href="https://autoescuelaamericana.com/cursos"
+            className="px-7 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
+            style={{
+              background: 'rgba(148,163,184,0.06)',
+              border: '1px solid rgba(148,163,184,0.2)',
+              color: '#94a3b8',
+            }}>
+            Ver cursos
+          </a>
+        </div>
+
+        {/* Divider con fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(148,163,184,0.12), transparent)' }} />
       </header>
 
       {/* Cards de módulos */}
