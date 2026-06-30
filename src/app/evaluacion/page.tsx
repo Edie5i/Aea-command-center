@@ -6,18 +6,14 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Lightbulb, BarChart3, Globe, FileText, User, Phone, Send } from 'lucide-react';
+import { ArrowLeft, Lightbulb, BarChart3, User, Phone, Send, CheckCircle } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { AppFooter } from '@/components/footer';
 
 type Question = {
-  id: keyof Answers;
+  id: string;
   text: string;
   options: { label: string; value: string; score: number }[];
 };
@@ -89,75 +85,74 @@ const questions: Question[] = [
   },
   {
     id: 'slopes',
-    text: '¿Sabes cómo arrancar en una pendiente ascendente sin que el coche se vaya para atrás (especialmente en estándar)?',
+    text: '¿Sabes cómo arrancar en una pendiente ascendente sin que el coche se vaya para atrás?',
     options: [
-        { label: 'No tengo idea, es uno de mis mayores miedos', value: 'no', score: 0 },
-        { label: 'Lo he intentado, pero me cuesta mucho trabajo y a veces se apaga', value: 'some', score: 1 },
-        { label: 'Sí, domino la técnica del clutch/freno o uso el freno de mano', value: 'yes', score: 2 },
+      { label: 'No tengo idea, es uno de mis mayores miedos', value: 'no', score: 0 },
+      { label: 'Lo he intentado, pero me cuesta mucho trabajo', value: 'some', score: 1 },
+      { label: 'Sí, domino la técnica del clutch/freno o freno de mano', value: 'yes', score: 2 },
     ],
   },
   {
     id: 'roundabouts',
-    text: 'Al llegar a una glorieta (rotonda), ¿sabes quién tiene la preferencia y cómo circular en ella?',
+    text: 'Al llegar a una glorieta, ¿sabes quién tiene preferencia y cómo circular en ella?',
     options: [
-        { label: 'No estoy seguro/a, me confunden y prefiero evitarlas', value: 'no', score: 0 },
-        { label: 'Tengo una idea, pero me siento inseguro/a al entrar o salir', value: 'some', score: 1 },
-        { label: 'Sí, cedo el paso a quien está dentro y circulo por el carril correcto', value: 'yes', score: 2 },
+      { label: 'No estoy seguro/a, me confunden y prefiero evitarlas', value: 'no', score: 0 },
+      { label: 'Tengo una idea, pero me siento inseguro/a al entrar', value: 'some', score: 1 },
+      { label: 'Sí, cedo el paso a quien está dentro y circulo correctamente', value: 'yes', score: 2 },
     ],
   },
   {
     id: 'reversing',
-    text: '¿Cómo es tu habilidad para maniobrar en reversa en línea recta o para girar en una esquina?',
+    text: '¿Cómo es tu habilidad para maniobrar en reversa?',
     options: [
-        { label: 'Muy mala, me cuesta mucho trabajo ir derecho/a', value: 'bad', score: 0 },
-        { label: 'Regular, lo hago pero necesito corregir mucho la dirección', value: 'regular', score: 1 },
-        { label: 'Buena, puedo controlar el vehículo en reversa con confianza', value: 'good', score: 2 },
+      { label: 'Muy mala, me cuesta mucho trabajo ir derecho/a', value: 'bad', score: 0 },
+      { label: 'Regular, lo hago pero necesito corregir mucho', value: 'regular', score: 1 },
+      { label: 'Buena, puedo controlar el vehículo en reversa con confianza', value: 'good', score: 2 },
     ],
   },
   {
     id: 'mirror_usage',
-    text: '¿Con qué frecuencia utilizas tus espejos retrovisores (central y laterales) mientras conduces?',
+    text: '¿Con qué frecuencia usas tus espejos retrovisores mientras conduces?',
     options: [
-        { label: 'Casi nunca, me concentro solo en lo que está enfrente', value: 'rarely', score: 0 },
-        { label: 'Solo cuando voy a cambiar de carril o dar vuelta', value: 'sometimes', score: 1 },
-        { label: 'Constantemente, para mantenerme al tanto de todo mi entorno', value: 'constantly', score: 2 },
+      { label: 'Casi nunca, me concentro solo en lo que está enfrente', value: 'rarely', score: 0 },
+      { label: 'Solo cuando voy a cambiar de carril o dar vuelta', value: 'sometimes', score: 1 },
+      { label: 'Constantemente, para mantenerme al tanto de todo mi entorno', value: 'constantly', score: 2 },
     ],
   },
   {
     id: 'highway',
-    text: '¿Te sentirías cómodo/a manejando en una carretera fuera de la ciudad a velocidades de 80-100 km/h?',
+    text: '¿Te sentirías cómodo/a manejando en carretera a 80-100 km/h?',
     options: [
-        { label: 'No, me da mucho miedo la velocidad o los otros vehículos', value: 'no', score: 0 },
-        { label: 'Podría hacerlo, pero me sentiría muy tenso/a y preferiría ir despacio', value: 'some', score: 1 },
-        { label: 'Sí, me siento capaz de manejar en carretera de forma segura', value: 'yes', score: 2 },
+      { label: 'No, me da mucho miedo la velocidad', value: 'no', score: 0 },
+      { label: 'Podría, pero me sentiría muy tenso/a', value: 'some', score: 1 },
+      { label: 'Sí, me siento capaz de manejar en carretera de forma segura', value: 'yes', score: 2 },
     ],
   },
   {
     id: 'emergency_braking',
-    text: 'Si el coche de adelante frena de repente, ¿confías en tu tiempo de reacción y distancia de seguimiento?',
+    text: 'Si el coche de adelante frena de repente, ¿confías en tu tiempo de reacción?',
     options: [
-        { label: 'No, a menudo siento que voy muy pegado/a o reacciono tarde', value: 'no', score: 0 },
-        { label: 'Creo que sí, pero no estoy completamente seguro/a', value: 'some', score: 1 },
-        { label: 'Sí, siempre mantengo una distancia segura y estoy alerta', value: 'yes', score: 2 },
+      { label: 'No, a menudo siento que voy muy pegado/a o reacciono tarde', value: 'no', score: 0 },
+      { label: 'Creo que sí, pero no estoy completamente seguro/a', value: 'some', score: 1 },
+      { label: 'Sí, siempre mantengo distancia segura y estoy alerta', value: 'yes', score: 2 },
     ],
   },
   {
     id: 'signaling',
-    text: '¿Utilizas las luces direccionales para TODAS tus maniobras (cambios de carril, vueltas, etc.)?',
+    text: '¿Usas las direccionales para TODAS tus maniobras?',
     options: [
-        { label: 'A veces se me olvida, especialmente en cambios de carril', value: 'sometimes', score: 0 },
-        { label: 'Casi siempre, pero podría ser más consistente', value: 'mostly', score: 1 },
-        { label: 'Sí, es un hábito automático para mí', value: 'always', score: 2 },
+      { label: 'A veces se me olvida, especialmente en cambios de carril', value: 'sometimes', score: 0 },
+      { label: 'Casi siempre, pero podría ser más consistente', value: 'mostly', score: 1 },
+      { label: 'Sí, es un hábito automático para mí', value: 'always', score: 2 },
     ],
   },
   {
     id: 'vehicle_knowledge',
-    text: '¿Sabes qué hacer si se enciende un testigo en el tablero como el de la batería o la temperatura?',
-    options:
-    [
-        { label: 'No, no sabría qué significa ni cómo reaccionar', value: 'no', score: 0 },
-        { label: 'Reconocería algunos, pero no sabría qué hacer en todos los casos', value: 'some', score: 1 },
-        { label: 'Sí, sé lo que indican los testigos más importantes y cómo actuar', value: 'yes', score: 2 },
+    text: '¿Sabes qué hacer si se enciende un testigo en el tablero?',
+    options: [
+      { label: 'No, no sabría qué significa ni cómo reaccionar', value: 'no', score: 0 },
+      { label: 'Reconocería algunos, pero no sabría qué hacer en todos los casos', value: 'some', score: 1 },
+      { label: 'Sí, sé lo que indican y cómo actuar', value: 'yes', score: 2 },
     ],
   },
 ];
@@ -166,41 +161,40 @@ const evaluationSchema = z.object({
   studentName: z.string().min(2, { message: 'Por favor, ingresa tu nombre completo.' }),
   phone: z.string().min(8, { message: 'Por favor, introduce un número de teléfono válido.' }),
   answers: z.record(z.string()).refine(val => Object.keys(val).length === questions.length, {
-      message: "Por favor responde todas las preguntas."
-  })
+    message: 'Por favor responde todas las preguntas.',
+  }),
 });
 
-type Answers = { [key: string]: string };
 type EvaluationFormValues = z.infer<typeof evaluationSchema>;
 
 type Result = {
   level: 'Principiante' | 'Intermedio' | 'Avanzado';
   description: string;
   recommendation: string;
+  accent: string;
 };
+
+const DARK_INPUT = "bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-blue-500";
 
 export default function EvaluacionPage() {
   const [result, setResult] = useState<Result | null>(null);
-  
+
   const form = useForm<EvaluationFormValues>({
     resolver: zodResolver(evaluationSchema),
-    defaultValues: {
-      studentName: '',
-      phone: '',
-      answers: {},
-    },
+    defaultValues: { studentName: '', phone: '', answers: {} },
   });
 
   const handleAnswerChange = (questionId: string, value: string) => {
-    const currentAnswers = form.getValues('answers');
-    form.setValue('answers', { ...currentAnswers, [questionId]: value });
+    const current = form.getValues('answers');
+    form.setValue('answers', { ...current, [questionId]: value });
   };
-  
+
   function onSubmit(data: EvaluationFormValues) {
     const beginnerResult: Result = {
       level: 'Principiante',
-      description: 'Tus respuestas indican que estás comenzando tu viaje como conductor o que aún necesitas reforzar los fundamentos.',
-      recommendation: 'Nuestro curso para principiantes es perfecto para ti. Cubrimos desde los conceptos más básicos hasta tus primeras prácticas en tráfico ligero, construyendo tu confianza paso a paso.',
+      description: 'Estás comenzando tu viaje como conductor o necesitas reforzar los fundamentos.',
+      recommendation: 'Nuestro curso para principiantes es perfecto para ti. Cubrimos desde los conceptos básicos hasta tus primeras prácticas en tráfico real.',
+      accent: '#f59e0b',
     };
 
     if (data.answers.experience === 'none') {
@@ -213,10 +207,8 @@ export default function EvaluacionPage() {
     for (const question of questions) {
       const answerValue = data.answers[question.id];
       if (answerValue) {
-        const selectedOption = question.options.find(opt => opt.value === answerValue);
-        if (selectedOption) {
-          totalScore += selectedOption.score;
-        }
+        const opt = question.options.find(o => o.value === answerValue);
+        if (opt) totalScore += opt.score;
       }
     }
 
@@ -227,175 +219,217 @@ export default function EvaluacionPage() {
       finalResult = {
         level: 'Intermedio',
         description: 'Ya tienes experiencia, pero hay áreas clave en las que puedes mejorar para sentirte más seguro en el tráfico diario.',
-        recommendation: 'Te recomendamos nuestro curso intermedio. Nos enfocaremos en perfeccionar tus habilidades en situaciones de tráfico real, estacionamiento avanzado y maniobras de precisión.',
+        recommendation: 'Te recomendamos nuestro curso intermedio. Nos enfocaremos en perfeccionar tus habilidades en situaciones de tráfico real y maniobras de precisión.',
+        accent: '#3b82f6',
       };
     } else {
       finalResult = {
         level: 'Avanzado',
-        description: 'Pareces tener una base sólida, pero siempre se pueden pulir habilidades para una conducción más segura y eficiente.',
-        recommendation: 'Nuestro curso avanzado o las clases de perfeccionamiento son ideales para ti. Podrás pulir técnicas específicas como manejo en carretera, conducción defensiva o manejo en condiciones adversas.',
+        description: 'Tienes una base sólida. Podemos pulir habilidades para una conducción más segura y eficiente.',
+        recommendation: 'Nuestro curso avanzado o clases de perfeccionamiento son ideales para ti: manejo en carretera, conducción defensiva y condiciones adversas.',
+        accent: '#34d399',
       };
     }
-    
+
     setResult(finalResult);
     sendToWhatsApp(data, finalResult);
+  }
+
+  const sendToWhatsApp = (data: EvaluationFormValues, r: Result) => {
+    const msg = `📝 *Evaluación de Habilidades*\n\n*Alumno:* ${data.studentName}\n*Teléfono:* ${data.phone}\n\n*Nivel:* ${r.level}\n\n*Recomendación:* ${r.recommendation}`;
+    window.open(`https://api.whatsapp.com/send?phone=525634433212&text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  const sendToWhatsApp = (data: EvaluationFormValues, resultData: Result) => {
-    const whatsAppNumber = "525634433212";
-    const message = `📝 *Resultado de Evaluación de Habilidades*\n\n` +
-                    `*Alumno:* ${data.studentName}\n` +
-                    `*Teléfono:* ${data.phone}\n\n` +
-                    `*Nivel Recomendado:* ${resultData.level}\n\n` +
-                    `*Sugerencia:* ${resultData.recommendation}`;
-    
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsAppNumber}&text=${encodedMessage}`;
-
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const isFormComplete = Object.keys(form.watch('answers')).length === questions.length;
+  const answeredCount = Object.keys(form.watch('answers')).length;
+  const progress = Math.round((answeredCount / questions.length) * 100);
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col items-center text-center my-8 px-4">
-        <div className="flex flex-wrap justify-center gap-2 mb-4">
-          <Button asChild variant="outline">
-            <a href="/agenda">
-              <Globe className="mr-2 h-4 w-4" />
-              Agendar clase
-            </a>
-          </Button>
-        </div>
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Evalúa tus Habilidades
-        </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Responde estas preguntas para descubrir qué curso de manejo se adapta mejor a tus necesidades.
-        </p>
-      </div>
+    <main className="min-h-screen flex flex-col"
+      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
 
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4 flex flex-wrap justify-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Inicio
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="https://autoescuelaamericana.com/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos
-            </Link>
-          </Button>
-        </div>
+      {/* Hero */}
+      <header className="relative overflow-hidden text-center px-4 pt-10 pb-8"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 70% 60% at 50% -10%, rgba(245,158,11,0.1) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
+          style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
-        <Card className="w-full max-w-3xl shadow-lg rounded-xl">
-          {!result ? (
+        <div className="relative z-10">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mb-5 transition-colors"
+            style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+            <ArrowLeft className="w-3 h-3" /> Inicio
+          </Link>
+
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}>
+            <Lightbulb className="w-6 h-6" style={{ color: '#f59e0b' }} />
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight mb-1"
+            style={{
+              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+            {result ? `Nivel: ${result.level}` : 'Evalúa tus Habilidades'}
+          </h1>
+          <p className="text-sm" style={{ color: '#475569' }}>
+            {result ? 'Tu resultado está listo.' : 'Descubre qué curso se adapta mejor a ti.'}
+          </p>
+        </div>
+      </header>
+
+      <div className="flex-1 px-4 py-6 flex flex-col items-center">
+        <div className="w-full max-w-2xl">
+
+          {result ? (
+            /* Resultado */
+            <div className="rounded-2xl p-6 text-center"
+              style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: `1px solid ${result.accent}30` }}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ background: `${result.accent}12`, border: `1px solid ${result.accent}30` }}>
+                <CheckCircle className="w-8 h-8" style={{ color: result.accent }} />
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: result.accent }}>
+                Nivel recomendado
+              </p>
+              <h2 className="text-2xl font-black text-white mb-4">{result.level}</h2>
+              <p className="text-sm mb-3 leading-relaxed" style={{ color: '#94a3b8' }}>{result.description}</p>
+              <p className="text-sm font-medium leading-relaxed mb-6" style={{ color: '#cbd5e1' }}>{result.recommendation}</p>
+              <p className="text-xs mb-6" style={{ color: '#475569' }}>
+                Se abrió WhatsApp con tu resultado para enviarlo a un asesor.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onClick={() => { setResult(null); form.reset(); }}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+                  <BarChart3 className="w-4 h-4" /> Hacer de nuevo
+                </button>
+                <Link href="/agenda"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                  style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
+                  Agendar mi curso →
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* Formulario */
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardHeader>
-                  <CardTitle>Cuestionario de Habilidades</CardTitle>
-                  <CardDescription>
-                    Sé honesto/a en tus respuestas para obtener la mejor recomendación.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-8 pt-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="studentName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label>Tu Nombre</Label>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <FormControl>
-                                <Input placeholder="Nombre completo" {...field} className="pl-10" />
-                              </FormControl>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Label>Tu Teléfono</Label>
-                            <div className="relative">
-                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <FormControl>
-                                <Input placeholder="Número de WhatsApp" {...field} className="pl-10" />
-                              </FormControl>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                   </div>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
-                  {questions.map((question, index) => (
-                    <div key={question.id}>
-                      <p className="font-semibold mb-3">{index + 1}. {question.text}</p>
+                {/* Datos personales */}
+                <div className="rounded-2xl p-5"
+                  style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: '1px solid rgba(148,163,184,0.1)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#475569' }}>Tus datos</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="studentName" render={({ field }) => (
+                      <FormItem>
+                        <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>Nombre</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                          <FormControl><Input placeholder="Tu nombre completo" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
+                        </div>
+                        <FormMessage className="text-red-400 text-xs" />
+                      </FormItem>
+                    )}/>
+                    <FormField control={form.control} name="phone" render={({ field }) => (
+                      <FormItem>
+                        <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>WhatsApp</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                          <FormControl><Input placeholder="55 1234 5678" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
+                        </div>
+                        <FormMessage className="text-red-400 text-xs" />
+                      </FormItem>
+                    )}/>
+                  </div>
+                </div>
+
+                {/* Barra de progreso */}
+                {answeredCount > 0 && (
+                  <div className="px-1">
+                    <div className="flex justify-between text-xs mb-1.5" style={{ color: '#475569' }}>
+                      <span>{answeredCount} de {questions.length} preguntas</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                      <div className="h-full rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #f59e0b, #3b82f6)' }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Preguntas */}
+                {questions.map((question, index) => {
+                  const answered = !!form.watch('answers')[question.id];
+                  return (
+                    <div key={question.id} className="rounded-2xl p-5 transition-all"
+                      style={{
+                        background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+                        border: answered ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(148,163,184,0.08)',
+                      }}>
+                      <p className="text-sm font-semibold mb-4 leading-snug" style={{ color: '#e2e8f0' }}>
+                        <span className="text-xs font-bold mr-2 px-1.5 py-0.5 rounded"
+                          style={{ background: answered ? 'rgba(59,130,246,0.15)' : 'rgba(148,163,184,0.08)', color: answered ? '#60a5fa' : '#475569' }}>
+                          {index + 1}
+                        </span>
+                        {question.text}
+                      </p>
                       <RadioGroup
-                        onValueChange={(value) => handleAnswerChange(String(question.id), value)}
-                        value={form.getValues('answers')[question.id]}
-                        className="space-y-2"
-                      >
+                        onValueChange={(value) => handleAnswerChange(question.id, value)}
+                        value={form.watch('answers')[question.id]}
+                        className="space-y-2">
                         {question.options.map((option) => (
-                          <div key={option.value} className="flex items-center space-x-3">
-                            <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
-                            <Label htmlFor={`${question.id}-${option.value}`} className="font-normal cursor-pointer">{option.label}</Label>
+                          <div key={option.value}
+                            className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer transition-colors"
+                            style={{
+                              background: form.watch('answers')[question.id] === option.value
+                                ? 'rgba(59,130,246,0.08)'
+                                : 'rgba(148,163,184,0.03)',
+                              border: form.watch('answers')[question.id] === option.value
+                                ? '1px solid rgba(59,130,246,0.2)'
+                                : '1px solid transparent',
+                            }}>
+                            <RadioGroupItem
+                              value={option.value}
+                              id={`${question.id}-${option.value}`}
+                              className="border-slate-600 text-blue-500 mt-0.5 shrink-0"
+                            />
+                            <Label
+                              htmlFor={`${question.id}-${option.value}`}
+                              className="text-sm font-normal cursor-pointer leading-snug"
+                              style={{ color: form.watch('answers')[question.id] === option.value ? '#e2e8f0' : '#94a3b8' }}>
+                              {option.label}
+                            </Label>
                           </div>
                         ))}
                       </RadioGroup>
                     </div>
-                  ))}
-                   {form.formState.errors.answers && <p className="text-sm font-medium text-destructive">{String(form.formState.errors.answers?.message || "")}</p>}
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                  <Button type="submit" disabled={!isFormComplete || form.formState.isSubmitting}>
-                     <Send className="mr-2 h-4 w-4" />
-                    Ver y Enviar Recomendación
-                  </Button>
-                </CardFooter>
+                  );
+                })}
+
+                {form.formState.errors.answers && (
+                  <p className="text-xs text-red-400 text-center">{String(form.formState.errors.answers?.message || '')}</p>
+                )}
+
+                <button type="submit"
+                  disabled={answeredCount < questions.length || form.formState.isSubmitting}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-30"
+                  style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: answeredCount === questions.length ? '0 4px 20px rgba(37,99,235,0.3)' : 'none' }}>
+                  <Send className="w-4 h-4" />
+                  Ver y Enviar mi Resultado
+                </button>
               </form>
             </Form>
-          ) : (
-             <CardContent className="pt-6">
-                <Alert variant="default" className="bg-primary/10 border-primary/50">
-                    <Lightbulb className="h-4 w-4 text-primary" />
-                    <AlertTitle className="text-primary font-bold text-xl">
-                        Nivel Recomendado: {result.level}
-                    </AlertTitle>
-                    <AlertDescription className="text-foreground mt-2 space-y-2">
-                       <p>{result.description}</p>
-                       <p className="font-semibold">{result.recommendation}</p>
-                       <p className="pt-2">Se ha preparado un mensaje con tu resultado para que lo envíes a un asesor por WhatsApp.</p>
-                    </AlertDescription>
-                </Alert>
-
-                 <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-                     <Button onClick={() => { setResult(null); form.reset(); }}>
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        Hacer de Nuevo
-                    </Button>
-                    <Button asChild variant="secondary">
-                       <Link href="/#contact-button-section">
-                           Solicitar Info
-                       </Link>
-                    </Button>
-                 </div>
-            </CardContent>
           )}
-        </Card>
+        </div>
       </div>
 
-       <AppFooter />
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+        <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
+      </footer>
     </main>
   );
 }
