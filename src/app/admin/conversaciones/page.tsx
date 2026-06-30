@@ -80,18 +80,23 @@ export default async function ConversacionesPage({
   ];
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen" style={{ background: '#0c111d' }}>
       <AutoRefresh intervalMs={30_000} />
 
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="px-4 pt-5 pb-0">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Conversaciones</h1>
+      {/* Header sticky metálico */}
+      <header className="sticky top-0 z-10"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        <div className="px-4 pt-4 pb-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
+              <h1 className="text-lg font-bold text-white">Conversaciones</h1>
+            </div>
             {counts.atencion > 0 && (
-              <span className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full px-3 py-1"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-sm font-bold text-red-700">{counts.atencion} pendientes</span>
+                <span className="text-xs font-bold" style={{ color: '#f87171' }}>{counts.atencion}</span>
               </span>
             )}
           </div>
@@ -104,18 +109,21 @@ export default async function ConversacionesPage({
                 <Link
                   key={tab.id}
                   href={`/admin/conversaciones?tab=${tab.id}`}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors whitespace-nowrap ${
-                    isActive
-                      ? 'border-blue-600 text-blue-700 bg-blue-50'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-all whitespace-nowrap"
+                  style={{
+                    borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent',
+                    color: isActive ? '#60a5fa' : '#475569',
+                    background: isActive ? 'rgba(59,130,246,0.08)' : 'transparent',
+                  }}
                 >
                   <span>{tab.emoji}</span>
                   <span>{tab.label}</span>
                   {counts[tab.id] > 0 && (
-                    <span className={`text-xs rounded-full px-2 py-0.5 font-bold ${
-                      isActive ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}>
+                    <span className="text-xs rounded-full px-2 py-0.5 font-bold"
+                      style={{
+                        background: isActive ? '#2563eb' : 'rgba(148,163,184,0.12)',
+                        color: isActive ? 'white' : '#64748b',
+                      }}>
                       {counts[tab.id]}
                     </span>
                   )}
@@ -127,13 +135,13 @@ export default async function ConversacionesPage({
       </header>
 
       {/* List */}
-      <div className="bg-white">
+      <div>
         {filtered.length === 0 ? (
-          <div className="p-16 text-center text-gray-400">
+          <div className="p-16 text-center" style={{ color: '#475569' }}>
             <p className="text-5xl mb-4">
               {activeTab === 'atencion' ? '✅' : activeTab === 'inscritos' ? '🎉' : '💬'}
             </p>
-            <p className="text-lg">
+            <p className="text-base">
               {activeTab === 'atencion'
                 ? 'Sin pendientes — Luz lo tiene cubierto'
                 : activeTab === 'inscritos'
@@ -153,72 +161,73 @@ export default async function ConversacionesPage({
             const waUrl = `https://wa.me/${conv.phone}?text=${waMsg}`;
 
             return (
-              <div key={conv.phone} className="relative flex items-stretch border-b border-gray-100 last:border-0">
-              <Link
-                href={`/admin/conversaciones/${conv.phone}`}
-                className={`flex items-start gap-4 px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors flex-1 min-w-0 ${isRegistroLead ? 'pr-16' : ''}`}
-              >
-                {/* Urgency strip */}
-                {needsAttention && (
-                  <span className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-r" />
-                )}
+              <div key={conv.phone} className="relative flex items-stretch"
+                style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
+                <Link
+                  href={`/admin/conversaciones/${conv.phone}`}
+                  className={`flex items-start gap-4 px-4 py-4 flex-1 min-w-0 transition-colors ${isRegistroLead ? 'pr-16' : ''}`}
+                  style={{ background: needsAttention ? 'rgba(239,68,68,0.04)' : 'transparent' }}
+                >
+                  {/* Urgency strip */}
+                  {needsAttention && (
+                    <span className="absolute left-0 top-0 bottom-0 w-0.5 rounded-r" style={{ background: '#ef4444' }} />
+                  )}
 
-                {/* Avatar */}
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${
-                  needsAttention ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
-                }`}>
-                  {name.charAt(0).toUpperCase()}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  {/* Row 1: name + time */}
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="font-bold text-gray-900 text-base truncate">{name}</span>
-                    <span className={`text-sm shrink-0 font-medium ${needsAttention ? 'text-red-600' : 'text-gray-400'}`}>
-                      {timeAgo(ms)}
-                    </span>
+                  {/* Avatar */}
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base shrink-0"
+                    style={needsAttention
+                      ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }
+                      : { background: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.12)' }}>
+                    {name.charAt(0).toUpperCase()}
                   </div>
 
-                  {/* Row 2: phone if we have name */}
-                  {conv.contactName && (
-                    <p className="text-sm text-gray-400 mt-0.5">{phone}</p>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="font-bold text-base truncate" style={{ color: '#e2e8f0' }}>{name}</span>
+                      <span className="text-sm shrink-0 font-medium" style={{ color: needsAttention ? '#f87171' : '#475569' }}>
+                        {timeAgo(ms)}
+                      </span>
+                    </div>
 
-                  {/* Row 3: last message */}
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">
-                    {conv.lastSender === 'bot' ? '🤖 ' : '👤 '}
-                    {conv.chatLastPreview || conv.lastMessage}
-                  </p>
+                    {conv.contactName && (
+                      <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{phone}</p>
+                    )}
 
-                  {/* Row 4: reason only when needs attention */}
-                  {needsAttention && conv.chatReason && (
-                    <p className="text-xs mt-1.5 font-semibold text-red-600">
-                      ⚡ {conv.chatReason}
+                    <p className="text-sm mt-1 line-clamp-2 leading-snug" style={{ color: '#64748b' }}>
+                      {conv.lastSender === 'bot' ? '🤖 ' : '👤 '}
+                      {conv.chatLastPreview || conv.lastMessage}
                     </p>
-                  )}
 
-                  {/* Row 5: course tag */}
-                  {conv.courseInterest && (
-                    <span className="inline-block mt-1.5 text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-100">
-                      {conv.courseInterest}{conv.coursePrice ? ` · ${conv.coursePrice}` : ''}
-                    </span>
-                  )}
-                </div>
-              </Link>
-              {isRegistroLead && (
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 transition-colors shadow-sm"
-                  title="Escribir por WhatsApp"
-                >
-                  <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.528 5.845L.057 23.617a.75.75 0 0 0 .921.921l5.773-1.471A11.943 11.943 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.896 0-3.674-.52-5.194-1.427l-.372-.22-3.862.985.999-3.754-.242-.386A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-                  </svg>
-                </a>
-              )}
+                    {needsAttention && conv.chatReason && (
+                      <p className="text-xs mt-1.5 font-semibold" style={{ color: '#f87171' }}>
+                        ⚡ {conv.chatReason}
+                      </p>
+                    )}
+
+                    {conv.courseInterest && (
+                      <span className="inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}>
+                        {conv.courseInterest}{conv.coursePrice ? ` · ${conv.coursePrice}` : ''}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+
+                {isRegistroLead && (
+                  <a
+                    href={waUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-colors shadow"
+                    style={{ background: 'rgba(22,163,74,0.85)' }}
+                    title="Escribir por WhatsApp"
+                  >
+                    <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.528 5.845L.057 23.617a.75.75 0 0 0 .921.921l5.773-1.471A11.943 11.943 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.896 0-3.674-.52-5.194-1.427l-.372-.22-3.862.985.999-3.754-.242-.386A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                    </svg>
+                  </a>
+                )}
               </div>
             );
           })

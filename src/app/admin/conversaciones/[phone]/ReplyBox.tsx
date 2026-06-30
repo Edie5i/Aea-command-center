@@ -50,29 +50,29 @@ export default function ReplyBox({ phone, botPaused: initialPaused }: Props) {
   }
 
   return (
-    <div className="bg-[#f0f2f5] border-t border-gray-200 px-4 py-3 sticky bottom-0">
+    <div className="sticky bottom-0 px-4 py-3"
+      style={{ background: 'linear-gradient(180deg, #111827 0%, #0f172a 100%)', borderTop: '1px solid rgba(148,163,184,0.1)' }}>
       {/* Bot status bar */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={`w-2.5 h-2.5 rounded-full ${paused ? 'bg-amber-400' : 'bg-emerald-500'}`} />
-          <span className="text-sm font-medium text-gray-700">
-            {paused ? 'Modo manual — escribes tú' : 'Luz está respondiendo'}
+          <div className="w-2 h-2 rounded-full"
+            style={{ background: paused ? '#f59e0b' : '#34d399' }} />
+          <span className="text-sm font-medium" style={{ color: '#94a3b8' }}>
+            {paused ? 'Modo manual' : 'Luz respondiendo'}
           </span>
         </div>
         <button
           disabled={toggling}
           onClick={handleToggle}
-          className={`text-sm px-4 py-1.5 rounded-full font-semibold transition-colors disabled:opacity-40 ${
-            paused
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-              : 'bg-amber-400 text-white hover:bg-amber-500'
-          }`}
+          className="text-xs px-4 py-1.5 rounded-full font-semibold transition-all disabled:opacity-40"
+          style={paused
+            ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }
+            : { background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' }}
         >
-          {toggling ? '...' : paused ? '▶ Reactivar Luz' : '⏸ Tomar el control'}
+          {toggling ? '...' : paused ? '▶ Reactivar Luz' : '⏸ Tomar control'}
         </button>
       </div>
 
-      {/* Reply input — only visible in manual mode */}
       {paused && (
         <div className="flex gap-2 items-end">
           <textarea
@@ -86,12 +86,18 @@ export default function ReplyBox({ phone, botPaused: initialPaused }: Props) {
             }}
             placeholder="Escribe tu mensaje…"
             rows={2}
-            className="flex-1 text-base border border-gray-300 rounded-2xl px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-[#075e54] bg-white"
+            className="flex-1 text-sm rounded-2xl px-4 py-2.5 resize-none outline-none"
+            style={{
+              background: 'rgba(148,163,184,0.06)',
+              border: '1px solid rgba(148,163,184,0.15)',
+              color: '#e2e8f0',
+            }}
           />
           <button
             disabled={sending || !text.trim()}
             onClick={handleSend}
-            className="bg-[#25D366] text-white w-12 h-12 rounded-full text-xl flex items-center justify-center hover:bg-[#1ebe5d] disabled:opacity-40 transition-colors shrink-0"
+            className="w-11 h-11 rounded-full text-lg flex items-center justify-center transition-all disabled:opacity-30 shrink-0"
+            style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', color: 'white' }}
             aria-label="Enviar"
           >
             {sending ? '…' : '↑'}

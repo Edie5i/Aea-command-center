@@ -27,11 +27,16 @@ function timeAgo(ms: number): string {
   return `${Math.floor(days / 30)}mes`;
 }
 
-const TX_COLORS: Record<string, string> = {
-  'Automático': 'bg-blue-100 text-blue-700',
-  'Estándar': 'bg-purple-100 text-purple-700',
-  'Moto': 'bg-orange-100 text-orange-700',
-  'Mixto': 'bg-teal-100 text-teal-700',
+const TX_ACCENT: Record<string, string> = {
+  'Automático': '#3b82f6',
+  'Estándar':   '#8b5cf6',
+  'Moto':       '#f97316',
+  'Mixto':      '#14b8a6',
+};
+
+const CARD: React.CSSProperties = {
+  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+  border: '1px solid rgba(148,163,184,0.1)',
 };
 
 export default async function FichasPage() {
@@ -43,68 +48,78 @@ export default async function FichasPage() {
   const inscripciones = await getRecentInscripciones(60).catch((): (InscripcionData & { phone: string })[] => []);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-4 py-3 sticky top-0 z-10">
+    <main className="min-h-screen" style={{ background: '#0c111d' }}>
+      <header className="sticky top-0 z-10 px-4 py-3"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
         <div className="flex items-center gap-3">
-          <Link href="/admin" className="text-blue-600 font-medium text-sm">← Admin</Link>
-          <h1 className="text-base font-bold text-gray-900">Fichas de Inscripción</h1>
-          <span className="ml-auto text-xs text-gray-400">{inscripciones.length} registros</span>
+          <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
+          <h1 className="text-base font-bold text-white">Fichas de Inscripción</h1>
+          <span className="ml-auto text-xs" style={{ color: '#475569' }}>{inscripciones.length} registros</span>
         </div>
       </header>
 
       <div className="max-w-2xl mx-auto p-4 space-y-3">
         {inscripciones.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-            <p className="text-gray-400 text-sm">Aún no hay inscripciones registradas.</p>
-            <p className="text-gray-300 text-xs mt-1">Aparecen aquí cuando Luz cierra una venta por WhatsApp.</p>
+          <div className="rounded-2xl p-10 text-center" style={CARD}>
+            <p className="text-sm" style={{ color: '#64748b' }}>Aún no hay inscripciones registradas.</p>
+            <p className="text-xs mt-1" style={{ color: '#334155' }}>Aparecen aquí cuando Luz cierra una venta por WhatsApp.</p>
           </div>
         )}
 
         {inscripciones.map((ins) => {
           const displayPhone = ins.telefono.startsWith('52') && ins.telefono.length === 12
             ? ins.telefono.slice(2) : ins.telefono;
-          const txColor = TX_COLORS[ins.transmision] ?? 'bg-gray-100 text-gray-600';
+          const txAccent = TX_ACCENT[ins.transmision] ?? '#64748b';
           const primerFecha = ins.fechas[0];
           const esPreReserva = ins.status === 'pre_reserva';
 
           return (
-            <div key={ins.phone} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${esPreReserva ? 'border-amber-200' : 'border-gray-100'}`}>
+            <div key={ins.phone} className="rounded-2xl overflow-hidden" style={{
+              ...CARD,
+              border: esPreReserva ? '1px solid rgba(245,158,11,0.3)' : CARD.border,
+            }}>
               {esPreReserva && (
-                <div className="bg-amber-50 border-b border-amber-100 px-4 py-1.5 flex items-center gap-2">
-                  <span className="text-amber-600 text-xs font-semibold">⏳ Pre-reserva — pendiente de pago</span>
+                <div className="px-4 py-1.5 flex items-center gap-2"
+                  style={{ background: 'rgba(245,158,11,0.08)', borderBottom: '1px solid rgba(245,158,11,0.15)' }}>
+                  <span className="text-xs font-semibold" style={{ color: '#f59e0b' }}>⏳ Pre-reserva — pendiente de pago</span>
                 </div>
               )}
-              {/* Header de la tarjeta */}
-              <div className="flex items-start gap-3 px-4 pt-4 pb-3 border-b">
+
+              {/* Header */}
+              <div className="flex items-start gap-3 px-4 pt-4 pb-3"
+                style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 text-base leading-tight">{ins.nombre}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">{displayPhone}</p>
+                  <p className="font-bold text-base leading-tight" style={{ color: '#e2e8f0' }}>{ins.nombre}</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{displayPhone}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${txColor}`}>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    style={{ background: `${txAccent}18`, color: txAccent, border: `1px solid ${txAccent}30` }}>
                     {ins.transmision}
                   </span>
-                  <span className="text-xs text-gray-400">{timeAgo(ins.fechaConfirmacion)}</span>
+                  <span className="text-xs" style={{ color: '#475569' }}>{timeAgo(ins.fechaConfirmacion)}</span>
                 </div>
               </div>
 
-              {/* Dirección */}
+              {/* Zona */}
               {ins.zona && (
-                <div className="px-4 py-2 border-b bg-gray-50">
-                  <p className="text-xs text-gray-500">📍 {ins.zona}</p>
+                <div className="px-4 py-2"
+                  style={{ borderBottom: '1px solid rgba(148,163,184,0.07)', background: 'rgba(148,163,184,0.03)' }}>
+                  <p className="text-xs" style={{ color: '#64748b' }}>📍 {ins.zona}</p>
                 </div>
               )}
 
               {/* Fechas */}
               <div className="px-4 py-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                  {ins.fechas.length} sesion{ins.fechas.length !== 1 ? 'es' : ''}
+                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#475569' }}>
+                  {ins.fechas.length} sesión{ins.fechas.length !== 1 ? 'es' : ''}
                   {primerFecha ? ` · empieza ${formatDate(primerFecha.date)} ${primerFecha.time}` : ''}
                 </p>
                 <div className="grid grid-cols-2 gap-1">
                   {ins.fechas.map((f, i) => (
-                    <div key={i} className="text-xs text-gray-600 bg-gray-50 rounded-lg px-2 py-1.5">
-                      <span className="font-medium text-gray-400 mr-1">{i + 1}.</span>
+                    <div key={i} className="text-xs rounded-lg px-2 py-1.5"
+                      style={{ background: 'rgba(148,163,184,0.06)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.08)' }}>
+                      <span className="font-medium mr-1" style={{ color: '#475569' }}>{i + 1}.</span>
                       {formatDate(f.date)} · {f.time}
                     </div>
                   ))}
@@ -113,12 +128,13 @@ export default async function FichasPage() {
 
               {/* Acciones */}
               <div className="px-4 pb-4 space-y-2">
-                <div className="bg-gray-50 rounded-xl p-2">
+                <div className="rounded-xl p-2" style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.07)' }}>
                   <FichaButton data={ins} />
                 </div>
                 <Link
                   href={`/admin/conversaciones/${ins.phone}`}
-                  className="block text-center text-xs text-blue-600 font-medium py-1 hover:underline"
+                  className="block text-center text-xs font-medium py-1"
+                  style={{ color: '#60a5fa' }}
                 >
                   Ver conversación →
                 </Link>

@@ -36,29 +36,32 @@ export default async function ConversacionPage({
   const needsAttention = state === 'tu_turno' || state === 'atascado';
 
   return (
-    <main className="min-h-screen bg-[#e5ddd5] flex flex-col">
+    <main className="min-h-screen flex flex-col" style={{ background: '#0c111d' }}>
       {/* Header */}
-      <header className="bg-[#075e54] text-white px-4 py-3 sticky top-0 z-10 shadow-md">
+      <header className="sticky top-0 z-10 px-4 py-3"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
         <div className="flex items-center gap-3">
           <Link
             href="/admin/conversaciones"
-            className="text-white/80 hover:text-white transition-colors text-2xl leading-none shrink-0"
+            className="text-xl leading-none shrink-0 transition-colors"
+            style={{ color: '#475569' }}
             aria-label="Volver"
           >
             ←
           </Link>
 
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg shrink-0">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shrink-0"
+            style={needsAttention
+              ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }
+              : { background: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.12)' }}>
             {name.charAt(0).toUpperCase()}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-base leading-tight truncate">{name}</p>
-            <p className="text-white/60 text-sm leading-none mt-0.5">{dp}</p>
+            <p className="font-bold text-base leading-tight truncate text-white">{name}</p>
+            <p className="text-sm leading-none mt-0.5" style={{ color: '#475569' }}>{dp}</p>
           </div>
 
-          {/* Ficha button in header */}
           {inscripcion && (
             <div className="shrink-0">
               <FichaButton data={inscripcion} />
@@ -66,21 +69,21 @@ export default async function ConversacionPage({
           )}
         </div>
 
-        {/* Attention banner */}
         {needsAttention && (
-          <div className="mt-2 bg-red-500/90 rounded-lg px-3 py-2 flex items-center gap-2">
-            <span className="text-lg">⚡</span>
-            <p className="text-sm font-semibold text-white">{conv?.chatReason ?? 'Requiere tu atención'}</p>
+          <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2"
+            style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <span className="text-base">⚡</span>
+            <p className="text-sm font-semibold" style={{ color: '#f87171' }}>{conv?.chatReason ?? 'Requiere tu atención'}</p>
           </div>
         )}
 
-        {/* Inscrito banner */}
         {inscripcion && (
-          <div className="mt-2 bg-green-600/80 rounded-lg px-3 py-2 flex items-center gap-2">
-            <span className="text-lg">🎉</span>
+          <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2"
+            style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
+            <span className="text-base">🎉</span>
             <div>
-              <p className="text-sm font-bold text-white">Alumno inscrito</p>
-              <p className="text-xs text-white/80">
+              <p className="text-sm font-bold" style={{ color: '#34d399' }}>Alumno inscrito</p>
+              <p className="text-xs" style={{ color: '#64748b' }}>
                 {inscripcion.nombre} · {inscripcion.transmision} · {inscripcion.zona}
               </p>
             </div>
@@ -91,7 +94,7 @@ export default async function ConversacionPage({
       {/* Messages */}
       <div className="flex-1 px-4 py-4 space-y-2 overflow-y-auto pb-6">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 pt-20">
+          <div className="text-center pt-20" style={{ color: '#475569' }}>
             <p className="text-5xl mb-3">💬</p>
             <p>No hay mensajes aún.</p>
           </div>
@@ -101,26 +104,24 @@ export default async function ConversacionPage({
           const isLead = msg.role === 'user';
           return (
             <div key={i} className={`flex ${isLead ? 'justify-start' : 'justify-end'}`}>
-              <div
-                className={`max-w-[82%] rounded-2xl shadow-sm overflow-hidden ${
-                  isLead
-                    ? 'bg-white text-gray-900 rounded-tl-sm'
-                    : 'bg-[#d9fdd3] text-gray-900 rounded-tr-sm'
-                }`}
-              >
+              <div className="max-w-[82%] rounded-2xl overflow-hidden shadow-sm"
+                style={isLead
+                  ? { background: 'rgba(30,41,59,0.9)', border: '1px solid rgba(148,163,184,0.1)', borderTopLeftRadius: 4 }
+                  : { background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(59,130,246,0.2)', borderTopRightRadius: 4 }}>
                 {msg.mediaType === 'image' && msg.mediaId && msg.mediaId !== 'unknown' ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={`/api/media/${msg.mediaId}`}
                     alt="Comprobante de pago"
-                    className="max-w-full max-h-72 object-contain bg-gray-100"
+                    className="max-w-full max-h-72 object-contain"
+                    style={{ background: 'rgba(15,23,42,0.6)' }}
                   />
                 ) : (
-                  <div className="px-4 py-3 text-xl leading-relaxed whitespace-pre-wrap">
+                  <div className="px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap">
                     {!isLead && (
-                      <p className="text-xs text-[#128c7e] font-bold mb-1">Luz</p>
+                      <p className="text-xs font-bold mb-1" style={{ color: '#60a5fa' }}>Luz</p>
                     )}
-                    {msg.text}
+                    <span style={{ color: isLead ? '#cbd5e1' : '#e2e8f0' }}>{msg.text}</span>
                   </div>
                 )}
               </div>

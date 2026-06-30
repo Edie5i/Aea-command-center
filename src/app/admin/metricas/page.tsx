@@ -15,23 +15,22 @@ const STATE_LABEL: Record<ChatState, string> = {
 };
 
 const STATE_COLOR: Record<ChatState, string> = {
-  tu_turno:          'bg-red-500',
-  atascado:          'bg-amber-500',
-  esperando_cliente: 'bg-blue-400',
-  luz_atendiendo:    'bg-emerald-500',
-  frio:              'bg-gray-300',
-  cerrado:           'bg-gray-200',
+  tu_turno:          '#ef4444',
+  atascado:          '#f59e0b',
+  esperando_cliente: '#60a5fa',
+  luz_atendiendo:    '#34d399',
+  frio:              '#475569',
+  cerrado:           '#1e293b',
 };
 
 const PIPELINE_ORDER: ChatState[] = [
   'tu_turno', 'atascado', 'esperando_cliente', 'luz_atendiendo', 'frio', 'cerrado',
 ];
 
-// Precio promedio estimado por curso (para estimado de ingresos)
-const COURSE_PRICES: Record<string, number> = {
-  'Estándar': 3400, 'Automático': 3900, 'Intermedio': 2900, 'Avanzado': 1900,
-  'Reforzamiento': 1800, 'Personas Nerviosas': 5600, 'Intensivo': 5600,
-  'Mixto': 5600, 'English Drive': 4800, 'Moto': 4300, 'Coche Propio': 3900,
+const CARD: React.CSSProperties = {
+  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+  border: '1px solid rgba(148,163,184,0.1)',
+  boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset',
 };
 
 export default async function MetricasPage() {
@@ -46,103 +45,81 @@ export default async function MetricasPage() {
     ? ((m.closedGanado / m.totalLeads) * 100).toFixed(1)
     : '0.0';
 
-  // Estimado de ingresos: ganados × $3,400 promedio (sin datos de curso → promedio)
   const avgPrice = 3400;
   const revenueEst = m.closedGanado * avgPrice;
 
-  // Fuentes ordenadas por volumen
   const sources = Object.entries(m.bySource).sort((a, b) => b[1] - a[1]);
   const maxSource = sources[0]?.[1] ?? 1;
 
-  // Cursos ordenados por volumen
   const courses = Object.entries(m.byCourse).sort((a, b) => b[1] - a[1]);
   const maxCourse = courses[0]?.[1] ?? 1;
 
-  // Pipeline activo (excluye cerrado)
   const activeTotal = m.totalLeads - (m.byState['cerrado'] ?? 0);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen" style={{ background: '#0c111d' }}>
       {/* Header */}
-      <header className="bg-white border-b px-4 py-3 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <Link href="/admin/conversaciones" className="text-blue-600 font-medium text-sm">
-            ← Conversaciones
-          </Link>
-          <h1 className="text-base font-bold text-gray-900">Métricas</h1>
-        </div>
+      <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
+        <h1 className="text-base font-bold text-white">Métricas</h1>
       </header>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
 
-        {/* KPIs principales */}
+        {/* KPIs */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-xs text-gray-400 font-medium">Total leads</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{m.totalLeads}</p>
-            <p className="text-xs text-gray-400 mt-1">{m.activeToday} hoy · {m.activeThisWeek} esta semana</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-xs text-gray-400 font-medium">Inscritos</p>
-            <p className="text-3xl font-bold text-emerald-600 mt-1">{m.closedGanado}</p>
-            <p className="text-xs text-gray-400 mt-1">{convRate}% conversión</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-xs text-gray-400 font-medium">Ingreso estimado</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              ${(revenueEst).toLocaleString('es-MX')}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">~$3,400 por inscripción</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-xs text-gray-400 font-medium">Pipeline activo</p>
-            <p className="text-3xl font-bold text-blue-600 mt-1">{activeTotal}</p>
-            <p className="text-xs text-gray-400 mt-1">{m.closedPerdido} perdidos</p>
-          </div>
+          {[
+            { label: 'Total leads',       value: m.totalLeads,    color: '#e2e8f0', sub: `${m.activeToday} hoy · ${m.activeThisWeek} esta semana` },
+            { label: 'Inscritos',         value: m.closedGanado,  color: '#34d399', sub: `${convRate}% conversión` },
+            { label: 'Ingreso estimado',  value: `$${revenueEst.toLocaleString('es-MX')}`, color: '#e2e8f0', sub: '~$3,400 por inscripción', large: false },
+            { label: 'Pipeline activo',   value: activeTotal,     color: '#60a5fa', sub: `${m.closedPerdido} perdidos` },
+          ].map(({ label, value, color, sub }) => (
+            <div key={label} className="rounded-2xl p-4" style={CARD}>
+              <p className="text-xs font-medium" style={{ color: '#475569' }}>{label}</p>
+              <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
+              <p className="text-xs mt-1" style={{ color: '#475569' }}>{sub}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Funnel */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Embudo de conversión</p>
-          <div className="space-y-2">
+        {/* Embudo */}
+        <div className="rounded-2xl p-4" style={CARD}>
+          <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Embudo de conversión</p>
+          <div className="space-y-3">
             {[
-              { label: 'Leads totales', value: m.totalLeads, color: 'bg-blue-500' },
-              { label: 'Llegaron a "Tu turno"', value: (m.byState['tu_turno'] ?? 0) + (m.closedGanado) + (m.closedPerdido), color: 'bg-amber-500' },
-              { label: 'Inscritos (ganado)', value: m.closedGanado, color: 'bg-emerald-500' },
+              { label: 'Leads totales',          value: m.totalLeads,   color: '#3b82f6' },
+              { label: 'Llegaron a "Tu turno"',  value: (m.byState['tu_turno'] ?? 0) + (m.closedGanado) + (m.closedPerdido), color: '#f59e0b' },
+              { label: 'Inscritos',              value: m.closedGanado, color: '#34d399' },
             ].map((row, i) => (
               <div key={i}>
-                <div className="flex justify-between text-xs text-gray-500 mb-1">
-                  <span>{row.label}</span>
-                  <span className="font-semibold text-gray-700">{row.value}</span>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span style={{ color: '#64748b' }}>{row.label}</span>
+                  <span className="font-semibold" style={{ color: '#cbd5e1' }}>{row.value}</span>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${row.color} rounded-full transition-all`}
-                    style={{ width: m.totalLeads > 0 ? `${(row.value / m.totalLeads) * 100}%` : '0%' }}
-                  />
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: m.totalLeads > 0 ? `${(row.value / m.totalLeads) * 100}%` : '0%', background: row.color }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Pipeline actual */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Pipeline actual</p>
-          <div className="space-y-2">
+        {/* Pipeline */}
+        <div className="rounded-2xl p-4" style={CARD}>
+          <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Pipeline actual</p>
+          <div className="space-y-2.5">
             {PIPELINE_ORDER.map(state => {
               const count = m.byState[state] ?? 0;
               const pct = m.totalLeads > 0 ? (count / m.totalLeads) * 100 : 0;
               return (
                 <div key={state} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-24 shrink-0">{STATE_LABEL[state]}</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${STATE_COLOR[state]} rounded-full`}
-                      style={{ width: `${pct}%` }}
-                    />
+                  <span className="text-xs w-24 shrink-0" style={{ color: '#64748b' }}>{STATE_LABEL[state]}</span>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: STATE_COLOR[state] }} />
                   </div>
-                  <span className="text-xs font-semibold text-gray-700 w-6 text-right">{count}</span>
+                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#94a3b8' }}>{count}</span>
                 </div>
               );
             })}
@@ -151,19 +128,16 @@ export default async function MetricasPage() {
 
         {/* Por fuente */}
         {sources.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Por fuente</p>
-            <div className="space-y-2">
+          <div className="rounded-2xl p-4" style={CARD}>
+            <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Por fuente</p>
+            <div className="space-y-2.5">
               {sources.map(([src, count]) => (
                 <div key={src} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 flex-1 truncate">{src}</span>
-                  <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-400 rounded-full"
-                      style={{ width: `${(count / maxSource) * 100}%` }}
-                    />
+                  <span className="text-xs flex-1 truncate" style={{ color: '#64748b' }}>{src}</span>
+                  <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${(count / maxSource) * 100}%`, background: '#3b82f6' }} />
                   </div>
-                  <span className="text-xs font-semibold text-gray-700 w-6 text-right">{count}</span>
+                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#94a3b8' }}>{count}</span>
                 </div>
               ))}
             </div>
@@ -172,26 +146,23 @@ export default async function MetricasPage() {
 
         {/* Por curso */}
         {courses.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Interés por curso</p>
-            <div className="space-y-2">
+          <div className="rounded-2xl p-4" style={CARD}>
+            <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Interés por curso</p>
+            <div className="space-y-2.5">
               {courses.map(([course, count]) => (
                 <div key={course} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 flex-1 truncate">{course}</span>
-                  <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-400 rounded-full"
-                      style={{ width: `${(count / maxCourse) * 100}%` }}
-                    />
+                  <span className="text-xs flex-1 truncate" style={{ color: '#64748b' }}>{course}</span>
+                  <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${(count / maxCourse) * 100}%`, background: '#8b5cf6' }} />
                   </div>
-                  <span className="text-xs font-semibold text-gray-700 w-6 text-right">{count}</span>
+                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#94a3b8' }}>{count}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        <p className="text-center text-xs text-gray-300 pb-4">
+        <p className="text-center text-[11px] pb-4" style={{ color: '#334155' }}>
           Datos en tiempo real desde Firestore
         </p>
       </div>
