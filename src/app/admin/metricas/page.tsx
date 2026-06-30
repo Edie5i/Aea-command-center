@@ -57,7 +57,7 @@ export default async function MetricasPage() {
   const activeTotal = m.totalLeads - (m.byState['cerrado'] ?? 0);
 
   return (
-    <main className="min-h-screen" style={{ background: '#0c111d' }}>
+    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
         style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>

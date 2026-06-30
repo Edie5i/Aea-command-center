@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 const SECTIONS = [
   {
@@ -43,6 +44,11 @@ const SECTIONS = [
   },
 ];
 
+const CARD: React.CSSProperties = {
+  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+  border: '1px solid rgba(148,163,184,0.1)',
+};
+
 function LinkRow({ url, label }: { url: string; label: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -53,17 +59,22 @@ function LinkRow({ url, label }: { url: string; label: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-0">
-      <div className="min-w-0">
-        <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline break-all">
+    <div className="flex items-center justify-between gap-3 py-2.5"
+      style={{ borderBottom: '1px solid rgba(148,163,184,0.06)' }}>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs mb-0.5" style={{ color: '#475569' }}>{label}</p>
+        <a href={url} target="_blank" rel="noopener noreferrer"
+          className="text-xs break-all transition-colors hover:underline"
+          style={{ color: '#60a5fa' }}>
           {url}
         </a>
       </div>
       <button
         onClick={copy}
-        className="shrink-0 text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 transition-colors"
-      >
+        className="shrink-0 text-xs px-3 py-1 rounded-lg font-semibold transition-all"
+        style={copied
+          ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }
+          : { background: 'rgba(148,163,184,0.08)', color: '#64748b', border: '1px solid rgba(148,163,184,0.12)' }}>
         {copied ? '✓' : 'Copiar'}
       </button>
     </div>
@@ -72,31 +83,43 @@ function LinkRow({ url, label }: { url: string; label: string }) {
 
 export default function LinksPage() {
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Links del equipo</h1>
+    <main className="min-h-screen"
+      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
 
-      {/* Botón principal */}
-      <a
-        href="https://app.autoescuelaamericana.com/ficha"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-between w-full bg-[#004aad] hover:bg-blue-700 text-white rounded-2xl px-6 py-5 mb-6 transition-colors group"
-      >
-        <div>
-          <p className="text-xs text-blue-200 mb-0.5">Sistema interno</p>
-          <p className="text-lg font-bold">Generador de Fichas</p>
-          <p className="text-sm text-blue-200 mt-0.5">app.autoescuelaamericana.com/ficha</p>
-        </div>
-        <span className="text-3xl group-hover:translate-x-1 transition-transform">→</span>
-      </a>
+      {/* Header */}
+      <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        <Link href="/admin" className="text-sm transition-colors" style={{ color: '#475569' }}>← Admin</Link>
+        <h1 className="text-base font-bold text-white">Links del equipo</h1>
+      </header>
 
-      <div className="space-y-6">
+      <div className="max-w-2xl mx-auto p-4 space-y-4">
+
+        {/* Hero button */}
+        <a
+          href="https://app.autoescuelaamericana.com/ficha"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between w-full rounded-2xl px-6 py-5 group transition-all"
+          style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: '0 4px 20px rgba(37,99,235,0.25)' }}>
+          <div>
+            <p className="text-xs mb-0.5" style={{ color: 'rgba(147,197,253,0.8)' }}>Sistema interno</p>
+            <p className="text-lg font-bold text-white">Generador de Fichas</p>
+            <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.7)' }}>app.autoescuelaamericana.com/ficha</p>
+          </div>
+          <span className="text-3xl text-white transition-transform group-hover:translate-x-1">→</span>
+        </a>
+
+        {/* Sections */}
         {SECTIONS.map((section) => (
-          <div key={section.title} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <h2 className="font-semibold text-sm text-gray-700">{section.title}</h2>
+          <div key={section.title} className="rounded-2xl overflow-hidden" style={CARD}>
+            <div className="px-4 py-2.5"
+              style={{ background: 'rgba(148,163,184,0.04)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+              <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#475569' }}>
+                {section.title}
+              </h2>
             </div>
-            <div className="px-4 py-1">
+            <div className="px-4 divide-y-0">
               {section.links.map((link) => (
                 <LinkRow key={link.url} {...link} />
               ))}
@@ -104,6 +127,6 @@ export default function LinksPage() {
           </div>
         ))}
       </div>
-    </div>
+    </main>
   );
 }

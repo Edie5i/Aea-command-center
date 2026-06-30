@@ -80,7 +80,7 @@ export default async function ConversacionesPage({
   ];
 
   return (
-    <main className="min-h-screen" style={{ background: '#0c111d' }}>
+    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
       <AutoRefresh intervalMs={30_000} />
 
       {/* Header sticky metálico */}

@@ -1,114 +1,132 @@
 
 'use client';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { CopyButton } from './copy-button';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Info, Banknote, Landmark, MessageSquare, CreditCard } from 'lucide-react';
-import { Separator } from './ui/separator';
+import { useState } from 'react';
+import { Banknote, Landmark, MessageSquare, CreditCard, Info, Check, ClipboardCopy } from 'lucide-react';
 import Image from 'next/image';
+
+const CARD: React.CSSProperties = {
+  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+  border: '1px solid rgba(148,163,184,0.1)',
+};
+
+const INNER: React.CSSProperties = {
+  background: 'rgba(148,163,184,0.04)',
+  border: '1px solid rgba(148,163,184,0.08)',
+  borderRadius: 12,
+  padding: '14px 16px',
+};
+
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+      className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+      style={copied
+        ? { background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }
+        : { background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#64748b' }}>
+      {copied ? <Check className="w-3.5 h-3.5" /> : <ClipboardCopy className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
+function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl p-5 space-y-3" style={CARD}>
+      <h3 className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#e2e8f0' }}>
+        {icon} {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
 
 export function PaymentDetails() {
   const accountNumber = '0484695739';
   const clabe = '012180004846957399';
   const debitCard = '4152314404288527';
   const officialQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/525634433212?text=¡Hola!%20Aquí%20envío%20mi%20comprobante%20de%20pago.';
-  
+
   return (
-    <Card className="w-full max-w-3xl shadow-lg rounded-xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Banknote className="h-6 w-6 text-primary" />
-          Datos de Pago
-        </CardTitle>
-        <CardDescription>
-          Puedes realizar el pago de tu curso a través de los siguientes métodos.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+    <div className="w-full max-w-3xl space-y-4">
 
-        <div>
-            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><Landmark className="h-5 w-5 text-primary" />Transferencia Bancaria</h3>
-            <div className="rounded-lg border p-4 space-y-4">
-                <p className="text-sm text-muted-foreground">Beneficiario: <strong>Eduardo W. Czaplewski (Cuenta PYME BBVA)</strong></p>
-                <Separator />
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">Cuenta:</p>
-                        <p className="font-mono text-base sm:text-lg">048 469 5739</p>
-                    </div>
-                    <CopyButton textToCopy={accountNumber} />
-                </div>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">CLABE Interbancaria:</p>
-                        <p className="font-mono text-base sm:text-lg">012 180 00484695739 9</p>
-                    </div>
-                    <CopyButton textToCopy={clabe} />
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><Banknote className="h-5 w-5 text-primary" />Depósito en Efectivo</h3>
-             <div className="rounded-lg border p-4 space-y-4">
-                <p className="text-sm text-muted-foreground">Disponible en: <strong>Walmart, Sanborns, OXXO, 7-Eleven</strong>.</p>
-                <Separator />
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">Tarjeta de Débito BBVA:</p>
-                        <p className="font-mono text-base sm:text-lg">4152 3144 0428 8527</p>
-                    </div>
-                    <CopyButton textToCopy={debitCard} />
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><CreditCard className="h-5 w-5 text-primary" />Pago con Tarjeta a Meses</h3>
-             <div className="rounded-lg border p-4 space-y-2">
-                <p className="text-sm text-muted-foreground">
-                    Aceptamos pagos con tarjeta de crédito. Solicita tu enlace de pago por WhatsApp y recibe las instrucciones por correo electrónico.
-                </p>
-                <p className="text-sm font-bold text-primary">
-                    ¡Pregunta por la opción de 3 meses sin intereses con tarjetas BBVA y American Express!
-                </p>
-            </div>
-        </div>
-
-        <div>
-            <h3 className="font-semibold flex items-center gap-2 mb-2 text-lg"><MessageSquare className="h-5 w-5 text-primary" />Envía tu Comprobante</h3>
-            <div className="rounded-lg border p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4">
-              <div className="text-center sm:text-left max-w-sm">
-                <p className="text-sm text-muted-foreground">Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmar tu curso y agilizar el proceso.</p>
-                <p className="text-sm font-semibold mt-2 text-primary">¡Escanea el código QR para abrir el chat!</p>
+      <Section icon={<Landmark className="w-4 h-4" style={{ color: '#34d399' }} />} title="Transferencia Bancaria">
+        <p className="text-xs" style={{ color: '#475569' }}>
+          Beneficiario: <span style={{ color: '#94a3b8' }}>Eduardo W. Czaplewski (Cuenta PYME BBVA)</span>
+        </p>
+        <div className="space-y-3">
+          <div style={INNER}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Cuenta</p>
+                <p className="font-mono text-base text-white tracking-wider">048 469 5739</p>
               </div>
-              <div className="p-2 bg-white rounded-md shadow-md">
-                <Image
-                    src={officialQrUrl}
-                    alt="Código QR oficial de WhatsApp de Auto Escuela Americana"
-                    width={150}
-                    height={150}
-                    data-ai-hint="QR code"
-                />
-              </div>
+              <CopyBtn text={accountNumber} />
             </div>
+          </div>
+          <div style={INNER}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>CLABE Interbancaria</p>
+                <p className="font-mono text-sm text-white tracking-wider">012 180 00484695739 9</p>
+              </div>
+              <CopyBtn text={clabe} />
+            </div>
+          </div>
         </div>
+      </Section>
 
-        <Alert variant="default" className="bg-primary/10 border-primary/50">
-          <Info className="h-4 w-4 text-primary" />
-          <AlertTitle className="text-primary font-bold">¡Importante!</AlertTitle>
-          <AlertDescription className="text-foreground">
-            Al realizar tu pago, asegúrate de poner el <strong>nombre completo del alumno</strong> en el concepto o referencia.
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
+      <Section icon={<Banknote className="w-4 h-4" style={{ color: '#34d399' }} />} title="Depósito en Efectivo">
+        <p className="text-xs" style={{ color: '#475569' }}>
+          Disponible en: <span style={{ color: '#94a3b8' }}>Walmart, Sanborns, OXXO, 7-Eleven</span>
+        </p>
+        <div style={INNER}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Tarjeta de Débito BBVA</p>
+              <p className="font-mono text-base text-white tracking-wider">4152 3144 0428 8527</p>
+            </div>
+            <CopyBtn text={debitCard} />
+          </div>
+        </div>
+      </Section>
+
+      <Section icon={<CreditCard className="w-4 h-4" style={{ color: '#34d399' }} />} title="Pago con Tarjeta a Meses">
+        <p className="text-sm" style={{ color: '#64748b' }}>
+          Aceptamos pagos con tarjeta de crédito. Solicita tu enlace de pago por WhatsApp y recibe las instrucciones por correo electrónico.
+        </p>
+        <p className="text-sm font-semibold" style={{ color: '#34d399' }}>
+          ¡Pregunta por la opción de 3 meses sin intereses con tarjetas BBVA y American Express!
+        </p>
+      </Section>
+
+      <Section icon={<MessageSquare className="w-4 h-4" style={{ color: '#34d399' }} />} title="Envía tu Comprobante">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div className="max-w-sm">
+            <p className="text-sm" style={{ color: '#64748b' }}>
+              Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmar tu curso y agilizar el proceso.
+            </p>
+            <p className="text-sm font-semibold mt-2" style={{ color: '#34d399' }}>¡Escanea el código QR para abrir el chat!</p>
+          </div>
+          <div className="p-2 rounded-xl shrink-0" style={{ background: 'white' }}>
+            <Image src={officialQrUrl} alt="QR WhatsApp AEA" width={130} height={130} data-ai-hint="QR code" />
+          </div>
+        </div>
+      </Section>
+
+      {/* Aviso importante */}
+      <div className="rounded-2xl p-4 flex items-start gap-3"
+        style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)' }}>
+        <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#34d399' }} />
+        <div>
+          <p className="text-sm font-semibold mb-0.5" style={{ color: '#34d399' }}>¡Importante!</p>
+          <p className="text-sm" style={{ color: '#64748b' }}>
+            Al realizar tu pago, asegúrate de poner el <strong style={{ color: '#94a3b8' }}>nombre completo del alumno</strong> en el concepto o referencia.
+          </p>
+        </div>
+      </div>
+
+    </div>
   );
 }

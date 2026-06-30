@@ -21,6 +21,8 @@ export default function StateActions({ phone, state }: { phone: string; state: C
 
   if (state === 'cerrado') return null;
 
+  const btnBase = "text-xs px-3 py-1.5 rounded-lg font-semibold transition-all disabled:opacity-40";
+
   return (
     <div className="flex items-center gap-2">
       {(state === 'tu_turno' || state === 'atascado') && (
@@ -28,14 +30,16 @@ export default function StateActions({ phone, state }: { phone: string; state: C
           <button
             disabled={loading}
             onClick={() => run(() => closeLead(phone, 'ganado'))}
-            className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-green-700 active:bg-green-800 disabled:opacity-40 transition-colors"
+            className={btnBase}
+            style={{ background: 'linear-gradient(135deg, #059669, #10b981)', color: 'white' }}
           >
             ✓ Ganado
           </button>
           <button
             disabled={loading}
             onClick={() => run(() => closeLead(phone, 'perdido'))}
-            className="text-xs bg-gray-400 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-gray-500 active:bg-gray-600 disabled:opacity-40 transition-colors"
+            className={btnBase}
+            style={{ background: 'rgba(148,163,184,0.12)', color: '#64748b', border: '1px solid rgba(148,163,184,0.2)' }}
           >
             ✗ Perdido
           </button>
@@ -45,7 +49,8 @@ export default function StateActions({ phone, state }: { phone: string; state: C
         <button
           disabled={loading}
           onClick={() => run(() => setLeadTuTurno(phone))}
-          className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-700 active:bg-red-800 disabled:opacity-40 transition-colors"
+          className={btnBase}
+          style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }}
         >
           → Tu turno
         </button>
@@ -54,7 +59,8 @@ export default function StateActions({ phone, state }: { phone: string; state: C
         <button
           disabled={loading}
           onClick={() => run(() => setLeadTuTurno(phone))}
-          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-700 active:bg-blue-800 disabled:opacity-40 transition-colors"
+          className={btnBase}
+          style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', color: 'white' }}
         >
           ↑ Reactivar
         </button>

@@ -1,67 +1,62 @@
 
-'use client';
-
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, List, Globe, FileText, CreditCard } from 'lucide-react';
+import { ArrowLeft, CreditCard, CalendarDays } from 'lucide-react';
 import { PaymentDetails } from '@/components/payment-details';
-import { AppFooter } from '@/components/footer';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function PagosPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col items-center text-center my-8 px-4">
-        <div className="flex flex-wrap justify-center gap-2 mb-4">
-          <Button asChild variant="outline">
-            <a href="/agenda">
-              <Globe className="mr-2 h-4 w-4" />
-              Agendar clase
-            </a>
-          </Button>
-        </div>
-        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-foreground">
-          Información de Pago
-        </h1>
-        <p className="mt-2 max-w-xl text-lg text-muted-foreground">
-          Aceptamos transferencias y depósitos en efectivo.
-        </p>
-      </div>
-      
-      <div className="container px-4 sm:px-6 md:px-8 pb-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl mb-4 flex flex-wrap justify-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Inicio
-            </Link>
-          </Button>
-           <Button asChild variant="outline">
-              <Link href="/agenda">
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  Agenda
-              </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="https://autoescuelaamericana.com/cursos">
-                <List className="mr-2 h-4 w-4" />
-                Catálogo
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="https://autoescuelaamericana.com/terminos">
-                <FileText className="mr-2 h-4 w-4" />
-                Términos
-            </Link>
-          </Button>
-        </div>
-        
-        <PaymentDetails />
+    <main className="min-h-screen flex flex-col"
+      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
 
+      {/* Hero */}
+      <header className="relative overflow-hidden text-center px-4 pt-10 pb-8"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 70% 60% at 50% -10%, rgba(52,211,153,0.1) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
+          style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+        <div className="relative z-10">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mb-5 transition-colors"
+            style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+            <ArrowLeft className="w-3 h-3" /> Inicio
+          </Link>
+
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}>
+            <CreditCard className="w-6 h-6" style={{ color: '#34d399' }} />
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight mb-1"
+            style={{
+              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+            Información de Pago
+          </h1>
+          <p className="text-sm" style={{ color: '#475569' }}>
+            Aceptamos transferencias y depósitos en efectivo
+          </p>
+
+          <div className="flex items-center justify-center gap-3 mt-5">
+            <Link href="/agenda"
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)', color: '#34d399' }}>
+              <CalendarDays className="w-3 h-3" /> Agendar clase
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex-1 px-4 py-6 flex flex-col items-center">
+        <PaymentDetails />
       </div>
-      
-      <AppFooter />
+
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+        <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
+      </footer>
     </main>
   );
 }

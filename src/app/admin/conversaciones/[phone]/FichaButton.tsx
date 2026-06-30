@@ -275,11 +275,24 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     }
   }
 
+  const btnBase = "text-xs px-3 py-1.5 rounded-lg font-medium transition-all disabled:opacity-50";
+
+  const waStyle =
+    waStatus === 'ok'    ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' } :
+    waStatus === 'error' ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' } :
+    { background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white' };
+
+  const calStyle =
+    calStatus === 'ok'    ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' } :
+    calStatus === 'error' ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' } :
+    { background: 'rgba(148,163,184,0.1)', color: '#64748b', border: '1px solid rgba(148,163,184,0.15)' };
+
   return (
     <div className="flex gap-2 items-center shrink-0 flex-wrap">
       <button
         onClick={handleDownload}
-        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
+        className={btnBase}
+        style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', color: 'white' }}
       >
         ↓ Ficha PDF
       </button>
@@ -287,13 +300,8 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
         onClick={handleSendWA}
         disabled={waStatus === 'loading'}
         title="Enviar ficha PDF por WhatsApp al lead"
-        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-          waStatus === 'ok'
-            ? 'bg-emerald-500 text-white'
-            : waStatus === 'error'
-            ? 'bg-red-500 text-white'
-            : 'bg-green-600 text-white hover:bg-green-700'
-        }`}
+        className={btnBase}
+        style={waStyle}
       >
         {waStatus === 'loading' ? '⏳' : waStatus === 'ok' ? '✅ Enviado' : waStatus === 'error' ? '⚠️ Error' : '📤 Enviar WA'}
       </button>
@@ -301,13 +309,8 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
         onClick={syncCalendar}
         disabled={calStatus === 'loading'}
         title="Crear/sincronizar clases en Google Calendar"
-        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-          calStatus === 'ok'
-            ? 'bg-emerald-500 text-white'
-            : calStatus === 'error'
-            ? 'bg-red-500 text-white'
-            : 'bg-white/20 text-white hover:bg-white/30'
-        }`}
+        className={btnBase}
+        style={calStyle}
       >
         {calStatus === 'loading'
           ? '⏳'

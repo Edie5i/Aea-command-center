@@ -54,15 +54,23 @@ function formatEventDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString('es-MX', {
     timeZone: 'America/Mexico_City',
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
+    weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
   });
 }
 
 const HISTORIAL_KEY = 'agenda_nlp_historial';
+
+const CARD: React.CSSProperties = {
+  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+  border: '1px solid rgba(148,163,184,0.1)',
+  borderRadius: 16,
+};
+
+const INNER: React.CSSProperties = {
+  background: 'rgba(148,163,184,0.04)',
+  border: '1px solid rgba(148,163,184,0.07)',
+  borderRadius: 12,
+};
 
 export default function AgendaNLP() {
   const [texto, setTexto] = useState('');
@@ -73,14 +81,10 @@ export default function AgendaNLP() {
   const [mensaje, setMensaje] = useState('');
   const [listening, setListening] = useState(false);
   const [historial, setHistorial] = useState<string[]>([]);
-  // Inline edit fields for confirm card
   const [editFecha, setEditFecha] = useState('');
   const [editHora, setEditHora] = useState('');
-  // Context: remember last alumno for pronoun resolution
   const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
-  // Inline delete confirmation
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  // Disambiguation for multiple inscriptions (agendar_ficha)
   const [pendingInscripciones, setPendingInscripciones] = useState<{ nombre: string; telefono: string; transmision: string; sesiones: number; phone: string }[]>([]);
 
   const recognitionRef = useRef<any>(null);
@@ -108,8 +112,6 @@ export default function AgendaNLP() {
 
   function startVoice() {
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-
-    // Chrome / Safari — SpeechRecognition nativo (instantáneo)
     if (SR) {
       const rec = new SR();
       rec.lang = 'es-MX';
@@ -118,23 +120,15 @@ export default function AgendaNLP() {
       rec.onend = () => setListening(false);
       rec.onerror = (e: any) => {
         setListening(false);
-        // not-allowed = permiso denegado o diálogo cancelado — silencioso
         if (e.error === 'not-allowed') return;
         setMensaje('Error de micrófono: ' + e.error);
       };
-      rec.onresult = (e: any) => {
-        autoSubmit(e.results[0][0].transcript);
-      };
+      rec.onresult = (e: any) => { autoSubmit(e.results[0][0].transcript); };
       rec.start();
       recognitionRef.current = rec;
       return;
     }
-
-    // Firefox — MediaRecorder + Gemini transcripción
-    if (!navigator.mediaDevices?.getUserMedia) {
-      alert('Tu navegador no soporta micrófono.');
-      return;
-    }
+    if (!navigator.mediaDevices?.getUserMedia) { alert('Tu navegador no soporta micrófono.'); return; }
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       const chunks: BlobPart[] = [];
       const mr = new MediaRecorder(stream);
@@ -150,9 +144,7 @@ export default function AgendaNLP() {
           const data = await res.json();
           if (data.ok && data.text) autoSubmit(data.text);
           else setMensaje('No se pudo transcribir. Intenta de nuevo.');
-        } catch {
-          setMensaje('Error al transcribir el audio.');
-        }
+        } catch { setMensaje('Error al transcribir el audio.'); }
       };
       mr.start();
       mediaRecorderRef.current = mr;
@@ -169,97 +161,57 @@ export default function AgendaNLP() {
 
   async function handleParse() {
     if (!texto.trim()) return;
-    setStep('parsing');
-    setParsed(null);
-    setEventos([]);
-    setMensaje('');
-    setEditFecha('');
-    setEditHora('');
+    setStep('parsing'); setParsed(null); setEventos([]); setMensaje(''); setEditFecha(''); setEditHora('');
     try {
       const res = await fetch('/api/agenda/parse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ texto, contexto: lastContext }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error ?? 'Error al parsear');
       const r: ParseResult = data.resultado;
-      // Pre-fill edit fields if already parsed
-      setEditFecha(r.fecha ?? '');
-      setEditHora(r.hora ?? '');
-      setParsed(r);
+      setEditFecha(r.fecha ?? ''); setEditHora(r.hora ?? ''); setParsed(r);
       const soloNombreRequerido = r.accion === 'cancelar_clase' || r.accion === 'agendar_ficha' || r.accion === 'consultar_alumno';
       const soloFechaRequerida = r.accion === 'consultar_agenda';
       const criticos = (!soloNombreRequerido && !soloFechaRequerida && !r.alumno) ||
         (!soloNombreRequerido && !soloFechaRequerida && !r.fecha && !r.hora);
       if (r.confianza >= 0.9 && !criticos && r.accion !== 'desconocido' && r.accion !== 'cancelar_clase' && r.accion !== 'mover_clase') {
         await executeAction(r);
-      } else {
-        setStep('confirm');
-      }
-    } catch (e) {
-      setMensaje(e instanceof Error ? e.message : 'Error');
-      setStep('error');
-    }
+      } else { setStep('confirm'); }
+    } catch (e) { setMensaje(e instanceof Error ? e.message : 'Error'); setStep('error'); }
   }
 
   async function executeAction(payload: ParseResult, eventId?: string) {
     setStep('executing');
     try {
       const res = await fetch('/api/agenda/ejecutar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload, eventId }),
       });
       const data = await res.json();
       if (!data.ok) {
-        if (data.error === 'multiple' && data.eventos) {
-          setEventos(data.eventos);
-          setStep('disambiguate');
-          return;
-        }
-        if (data.error === 'multiple_inscripciones' && data.inscripciones) {
-          setPendingInscripciones(data.inscripciones);
-          setStep('disambiguate_inscripcion');
-          return;
-        }
+        if (data.error === 'multiple' && data.eventos) { setEventos(data.eventos); setStep('disambiguate'); return; }
+        if (data.error === 'multiple_inscripciones' && data.inscripciones) { setPendingInscripciones(data.inscripciones); setStep('disambiguate_inscripcion'); return; }
         throw new Error(data.error ?? 'Error al ejecutar');
       }
-      // Update context with the alumno used
       if (payload.alumno) setLastContext({ alumno: payload.alumno });
       saveHistorial(texto);
       if (data.consulta) { setEventos(data.eventos ?? []); setMensaje(data.mensaje ?? ''); setStep('consulta'); return; }
       if (data.alumno) { setAlumnoData(data.data); setStep('alumno'); return; }
-      setMensaje(data.mensaje ?? 'Listo');
-      setStep('done');
-    } catch (e) {
-      setMensaje(e instanceof Error ? e.message : 'Error');
-      setStep('error');
-    }
+      setMensaje(data.mensaje ?? 'Listo'); setStep('done');
+    } catch (e) { setMensaje(e instanceof Error ? e.message : 'Error'); setStep('error'); }
   }
 
   async function handleEjecutar(eventId?: string, overrideParsed?: ParseResult) {
     const base = overrideParsed ?? parsed;
     if (!base) return;
-    // Merge inline edits
-    const payload: ParseResult = {
-      ...base,
-      fecha: editFecha || base.fecha,
-      hora: editHora || base.hora,
-    };
+    const payload: ParseResult = { ...base, fecha: editFecha || base.fecha, hora: editHora || base.hora };
     await executeAction(payload, eventId);
   }
 
   function reset() {
-    setTexto('');
-    setParsed(null);
-    setEventos([]);
-    setAlumnoData(null);
-    setMensaje('');
-    setEditFecha('');
-    setEditHora('');
-    setPendingDeleteId(null);
-    setPendingInscripciones([]);
+    setTexto(''); setParsed(null); setEventos([]); setAlumnoData(null); setMensaje('');
+    setEditFecha(''); setEditHora(''); setPendingDeleteId(null); setPendingInscripciones([]);
     setStep('idle');
     setTimeout(() => textareaRef.current?.focus(), 50);
   }
@@ -272,10 +224,9 @@ export default function AgendaNLP() {
 
   const confianzaColor =
     !parsed ? '' :
-    parsed.confianza >= 0.9 ? 'text-green-600' :
-    parsed.confianza >= 0.7 ? 'text-yellow-600' : 'text-red-500';
+    parsed.confianza >= 0.9 ? 'text-green-400' :
+    parsed.confianza >= 0.7 ? 'text-amber-400' : 'text-red-400';
 
-  // Compute effective fields for confirm card
   const efectivaFecha = editFecha || parsed?.fecha || '';
   const efectivaHora = editHora || parsed?.hora || '';
 
@@ -284,7 +235,6 @@ export default function AgendaNLP() {
     parsed.accion === 'agendar_ficha' ? !!parsed.alumno :
     parsed.accion === 'consultar_alumno' ? !!parsed.alumno :
     parsed.accion === 'consultar_agenda' ? true :
-    // mover_clase / nueva_ficha need alumno + fecha + hora
     !!(parsed.alumno && efectivaFecha && efectivaHora)
   );
 
@@ -292,157 +242,124 @@ export default function AgendaNLP() {
   const needsHora = parsed && !parsed.hora && ['mover_clase', 'nueva_ficha'].includes(parsed.accion);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen"
+      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+
       {/* Header */}
-      <header className="bg-white border-b px-4 py-4 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <Link href="/admin" className="text-gray-400 hover:text-gray-700 text-xl">←</Link>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Agenda NLP</h1>
-            <p className="text-xs text-gray-400">
-              Comandos en lenguaje natural
-              {lastContext.alumno && (
-                <span className="ml-2 text-blue-500">· contexto: {lastContext.alumno}</span>
-              )}
-            </p>
-          </div>
-          {lastContext.alumno && (
-            <button
-              onClick={() => setLastContext({})}
-              className="ml-auto text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-2 py-1"
-            >
-              Limpiar contexto
-            </button>
-          )}
+      <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
+        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        <Link href="/admin" className="text-xl transition-colors" style={{ color: '#475569' }}>←</Link>
+        <div className="flex-1">
+          <h1 className="text-sm font-bold text-white">Agenda NLP</h1>
+          <p className="text-[11px]" style={{ color: '#334155' }}>
+            Comandos en lenguaje natural
+            {lastContext.alumno && <span className="ml-2" style={{ color: '#3b82f6' }}>· {lastContext.alumno}</span>}
+          </p>
         </div>
+        {lastContext.alumno && (
+          <button onClick={() => setLastContext({})}
+            className="text-xs px-2 py-1 rounded-lg transition-colors"
+            style={{ color: '#475569', border: '1px solid rgba(148,163,184,0.12)' }}>
+            Limpiar
+          </button>
+        )}
       </header>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
 
         {/* Input */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-          <label className="text-sm font-semibold text-gray-700">¿Qué necesitas hacer?</label>
+        <div className="p-4 space-y-3" style={CARD}>
+          <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#475569' }}>¿Qué necesitas hacer?</label>
           <textarea
             ref={textareaRef}
             value={texto}
             onChange={e => setTexto(e.target.value)}
-            onPaste={e => {
-              e.preventDefault();
-              const pasted = e.clipboardData.getData('text').replace(/[\r\n]+/g, ' ').trim();
-              setTexto(pasted);
-            }}
+            onPaste={e => { e.preventDefault(); const pasted = e.clipboardData.getData('text').replace(/[\r\n]+/g, ' ').trim(); setTexto(pasted); }}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleParse(); } }}
-            placeholder={lastContext.alumno ? `Ej: muévela al viernes 4pm` : 'Ej: pásale a Juan al jueves 4pm'}
+            placeholder={lastContext.alumno ? 'Ej: muévela al viernes 4pm' : 'Ej: pásale a Juan al jueves 4pm'}
             rows={3}
             disabled={step !== 'idle' && step !== 'error'}
-            className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+            className="w-full text-sm rounded-xl px-3 py-2 resize-none outline-none transition-all disabled:opacity-50 placeholder:text-slate-600"
+            style={{ background: '#1e293b', border: '1px solid #334155', color: 'white' }}
           />
           <div className="flex gap-2">
             <button
               onClick={listening ? stopVoice : startVoice}
               disabled={step !== 'idle' && step !== 'error'}
-              className={`flex-none text-sm px-4 py-2 rounded-xl font-semibold transition-colors ${
-                listening
-                  ? 'bg-red-100 text-red-600 animate-pulse'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } disabled:opacity-40`}
-            >
+              className={`flex-none text-sm px-4 py-2 rounded-xl font-semibold transition-all disabled:opacity-40 ${listening ? 'animate-pulse' : ''}`}
+              style={listening
+                ? { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }
+                : { background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
               {listening ? '⏹ Detener' : '🎤 Voz'}
             </button>
             <button
               id="btn-analizar"
               onClick={handleParse}
               disabled={(step !== 'idle' && step !== 'error') || !texto.trim()}
-              className="flex-1 text-sm bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
-            >
+              className="flex-1 text-sm font-semibold py-2 rounded-xl text-white transition-all disabled:opacity-30"
+              style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: texto.trim() ? '0 2px 12px rgba(37,99,235,0.3)' : 'none' }}>
               {step === 'parsing' ? 'Analizando…' : 'Analizar'}
             </button>
           </div>
         </div>
 
-        {/* Confirmation card */}
+        {/* Confirm card */}
         {step === 'confirm' && parsed && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-4">
+          <div className="p-4 space-y-4" style={CARD}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-900">
-                {ACCION_LABEL[parsed.accion] ?? parsed.accion}
-              </span>
-              <span className={`text-xs font-semibold ${confianzaColor}`}>
-                {Math.round(parsed.confianza * 100)}% confianza
-              </span>
+              <span className="text-sm font-bold text-white">{ACCION_LABEL[parsed.accion] ?? parsed.accion}</span>
+              <span className={`text-xs font-semibold ${confianzaColor}`}>{Math.round(parsed.confianza * 100)}% confianza</span>
             </div>
 
             <div className="grid grid-cols-2 gap-y-2 text-sm items-center">
-              {parsed.alumno && (
-                <>
-                  <span className="text-gray-500">Alumno</span>
-                  <span className="font-medium">{parsed.alumno}</span>
-                </>
-              )}
-              {parsed.curso && (
-                <>
-                  <span className="text-gray-500">Curso</span>
-                  <span className="font-medium">{parsed.curso}</span>
-                </>
-              )}
-              {/* Fecha: parsed or inline picker */}
-              <span className="text-gray-500">Fecha</span>
+              {parsed.alumno && (<><span style={{ color: '#475569' }}>Alumno</span><span className="font-medium text-white">{parsed.alumno}</span></>)}
+              {parsed.curso && (<><span style={{ color: '#475569' }}>Curso</span><span className="font-medium text-white">{parsed.curso}</span></>)}
+              <span style={{ color: '#475569' }}>Fecha</span>
               {parsed.fecha ? (
-                <span className="font-medium">{parsed.fecha}</span>
+                <span className="font-medium text-white">{parsed.fecha}</span>
               ) : needsFecha ? (
-                <input
-                  type="date"
-                  value={editFecha}
-                  onChange={e => setEditFecha(e.target.value)}
-                  className="text-sm border border-yellow-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-yellow-50"
-                />
+                <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)}
+                  className="text-sm rounded-lg px-2 py-1 outline-none"
+                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24' }} />
               ) : (
-                <span className="text-gray-400 text-xs">—</span>
+                <span className="text-xs" style={{ color: '#334155' }}>—</span>
               )}
-              {/* Hora: parsed or inline picker */}
-              <span className="text-gray-500">Hora</span>
+              <span style={{ color: '#475569' }}>Hora</span>
               {parsed.hora ? (
-                <span className="font-medium">{parsed.hora}</span>
+                <span className="font-medium text-white">{parsed.hora}</span>
               ) : needsHora ? (
-                <input
-                  type="time"
-                  value={editHora}
-                  onChange={e => setEditHora(e.target.value)}
-                  className="text-sm border border-yellow-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-yellow-50"
-                />
+                <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)}
+                  className="text-sm rounded-lg px-2 py-1 outline-none"
+                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24' }} />
               ) : (
-                <span className="text-gray-400 text-xs">—</span>
+                <span className="text-xs" style={{ color: '#334155' }}>—</span>
               )}
             </div>
 
             {(needsFecha || needsHora) && (
-              <p className="text-xs text-yellow-700 bg-yellow-50 rounded-xl px-3 py-2">
+              <p className="text-xs px-3 py-2 rounded-xl"
+                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#fbbf24' }}>
                 Completa {[needsFecha && 'la fecha', needsHora && 'la hora'].filter(Boolean).join(' y ')} para ejecutar.
               </p>
             )}
 
             {parsed.accion === 'desconocido' ? (
-              <div className="text-xs text-gray-500 space-y-1">
-                <p className="font-semibold text-center">No se reconoció la acción.</p>
-                <p className="text-gray-400 text-center">Ejemplos: "cancela a Juan", "pásale a María al viernes 4pm", "súbele las clases de Pedro al gc"</p>
+              <div className="text-xs text-center space-y-1">
+                <p className="font-semibold" style={{ color: '#64748b' }}>No se reconoció la acción.</p>
+                <p style={{ color: '#334155' }}>Ejemplos: "cancela a Juan", "pásale a María al viernes 4pm"</p>
               </div>
             ) : (
               <div className="flex gap-2">
-                <button
-                  onClick={reset}
-                  className="flex-none text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-semibold hover:bg-gray-200"
-                >
+                <button onClick={reset}
+                  className="flex-none text-sm px-4 py-2 rounded-xl font-semibold"
+                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
                   Cancelar
                 </button>
-                <button
-                  onClick={() => handleEjecutar()}
-                  disabled={!canExecute}
-                  className={`flex-1 text-sm text-white px-4 py-2 rounded-xl font-semibold disabled:opacity-40 transition-colors ${
-                    parsed.accion === 'cancelar_clase'
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : 'bg-green-600 hover:bg-green-700'
-                  }`}
-                >
+                <button onClick={() => handleEjecutar()} disabled={!canExecute}
+                  className="flex-1 text-sm text-white px-4 py-2 rounded-xl font-semibold disabled:opacity-30"
+                  style={parsed.accion === 'cancelar_clase'
+                    ? { background: 'linear-gradient(135deg, #dc2626, #ef4444)' }
+                    : { background: 'linear-gradient(135deg, #059669, #10b981)' }}>
                   {parsed.accion === 'cancelar_clase' ? 'Sí, borrar clase' : 'Ejecutar'}
                 </button>
               </div>
@@ -450,102 +367,87 @@ export default function AgendaNLP() {
           </div>
         )}
 
-        {/* Disambiguation — eventos calendario */}
+        {/* Disambiguation — eventos */}
         {step === 'disambiguate' && eventos.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-            <p className="text-sm font-semibold text-gray-900">Se encontraron varias clases. ¿Cuál?</p>
+          <div className="p-4 space-y-3" style={CARD}>
+            <p className="text-sm font-semibold text-white">Se encontraron varias clases. ¿Cuál?</p>
             {eventos.map((ev: Evento) => (
-              <button
-                key={ev.id}
-                onClick={() => handleEjecutar(ev.id)}
-                className="w-full text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl px-4 py-3 text-sm transition-colors"
-              >
-                <span className="font-medium block">{ev.alumno}</span>
-                <span className="text-gray-500 text-xs">{formatEventDate(ev.inicio)}</span>
+              <button key={ev.id} onClick={() => handleEjecutar(ev.id)}
+                className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all"
+                style={INNER}>
+                <span className="font-medium text-white block">{ev.alumno}</span>
+                <span className="text-xs" style={{ color: '#475569' }}>{formatEventDate(ev.inicio)}</span>
               </button>
             ))}
-            <button onClick={reset} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">Cancelar</button>
+            <button onClick={reset} className="w-full text-xs py-1 transition-colors" style={{ color: '#334155' }}>Cancelar</button>
           </div>
         )}
 
-        {/* Disambiguation — inscripciones (agendar_ficha) */}
+        {/* Disambiguation — inscripciones */}
         {step === 'disambiguate_inscripcion' && pendingInscripciones.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-            <p className="text-sm font-semibold text-gray-900">Hay varias fichas con ese nombre. ¿Cuál agendas?</p>
+          <div className="p-4 space-y-3" style={CARD}>
+            <p className="text-sm font-semibold text-white">Hay varias fichas con ese nombre. ¿Cuál agendas?</p>
             {pendingInscripciones.map(ins => (
-              <button
-                key={ins.phone}
+              <button key={ins.phone}
                 onClick={() => {
                   if (!parsed) return;
                   setStep('executing');
                   fetch('/api/agenda/ejecutar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...parsed, inscripcionPhone: ins.phone }),
                   }).then(r => r.json()).then(data => {
                     if (!data.ok) { setMensaje(data.error ?? 'Error'); setStep('error'); return; }
                     if (parsed.alumno) setLastContext({ alumno: parsed.alumno });
-                    saveHistorial(texto);
-                    setMensaje(data.mensaje ?? 'Listo');
-                    setStep('done');
+                    saveHistorial(texto); setMensaje(data.mensaje ?? 'Listo'); setStep('done');
                   }).catch(() => { setMensaje('Error al ejecutar'); setStep('error'); });
                 }}
-                className="w-full text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl px-4 py-3 text-sm transition-colors"
-              >
-                <span className="font-medium block">{ins.nombre}</span>
-                <span className="text-gray-500 text-xs">{ins.transmision} · {ins.sesiones} sesiones · {ins.telefono}</span>
+                className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all"
+                style={INNER}>
+                <span className="font-medium text-white block">{ins.nombre}</span>
+                <span className="text-xs" style={{ color: '#475569' }}>{ins.transmision} · {ins.sesiones} sesiones · {ins.telefono}</span>
               </button>
             ))}
-            <button onClick={reset} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">Cancelar</button>
+            <button onClick={reset} className="w-full text-xs py-1" style={{ color: '#334155' }}>Cancelar</button>
           </div>
         )}
 
         {/* Consulta resultados */}
         {step === 'consulta' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+          <div className="p-4 space-y-3" style={CARD}>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-semibold text-white">
                 {eventos.length > 0 ? `${eventos.length} clase${eventos.length > 1 ? 's' : ''} agendada${eventos.length > 1 ? 's' : ''}` : 'Sin clases'}
               </p>
-              <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600">Nueva consulta</button>
+              <button onClick={reset} className="text-xs transition-colors" style={{ color: '#3b82f6' }}>Nueva consulta</button>
             </div>
-            {mensaje && eventos.length === 0 && (
-              <p className="text-sm text-gray-500">{mensaje}</p>
-            )}
+            {mensaje && eventos.length === 0 && <p className="text-sm" style={{ color: '#475569' }}>{mensaje}</p>}
             {eventos.map((ev: Evento) => (
-              <div key={ev.id} className="bg-gray-50 rounded-xl px-3 py-2.5">
+              <div key={ev.id} className="px-3 py-2.5 rounded-xl" style={INNER}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{ev.alumno}</p>
-                    <p className="text-xs text-gray-500">{formatEventDate(ev.inicio)}</p>
+                    <p className="text-sm font-medium text-white">{ev.alumno}</p>
+                    <p className="text-xs" style={{ color: '#475569' }}>{formatEventDate(ev.inicio)}</p>
                   </div>
-                  <div className="flex gap-1.5 flex-shrink-0">
+                  <div className="flex gap-1.5 shrink-0">
                     <button
                       onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
-                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
-                    >
+                      className="text-xs px-2 py-1 rounded-lg font-semibold"
+                      style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
                       Mover
                     </button>
                     {pendingDeleteId === ev.id ? (
                       <div className="flex gap-1">
-                        <button
-                          onClick={() => confirmarBorrar(ev)}
-                          className="text-xs bg-red-600 text-white px-2 py-1 rounded-lg font-semibold"
-                        >
-                          Sí, borrar
-                        </button>
-                        <button
-                          onClick={() => setPendingDeleteId(null)}
-                          className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold"
-                        >
-                          No
-                        </button>
+                        <button onClick={() => confirmarBorrar(ev)}
+                          className="text-xs px-2 py-1 rounded-lg font-semibold text-white"
+                          style={{ background: '#dc2626' }}>Sí, borrar</button>
+                        <button onClick={() => setPendingDeleteId(null)}
+                          className="text-xs px-2 py-1 rounded-lg font-semibold"
+                          style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => setPendingDeleteId(ev.id)}
-                        className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
-                      >
+                      <button onClick={() => setPendingDeleteId(ev.id)}
+                        className="text-xs px-2 py-1 rounded-lg font-semibold"
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
                         Borrar
                       </button>
                     )}
@@ -558,46 +460,44 @@ export default function AgendaNLP() {
 
         {/* Consulta alumno */}
         {step === 'alumno' && alumnoData && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-4">
+          <div className="p-4 space-y-4" style={CARD}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-base font-bold text-gray-900">{alumnoData.inscripcion?.nombre ?? parsed?.alumno}</p>
+                <p className="text-base font-bold text-white">{alumnoData.inscripcion?.nombre ?? parsed?.alumno}</p>
                 {alumnoData.inscripcion?.telefono && (
-                  <a href={`tel:${alumnoData.inscripcion.telefono}`} className="text-xs text-blue-600">
+                  <a href={`tel:${alumnoData.inscripcion.telefono}`} className="text-xs" style={{ color: '#3b82f6' }}>
                     {alumnoData.inscripcion.telefono}
                   </a>
                 )}
               </div>
-              <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={reset} className="text-sm" style={{ color: '#334155' }}>✕</button>
             </div>
 
             {alumnoData.inscripcion && (
               <div className="grid grid-cols-2 gap-y-1 text-xs">
-                <span className="text-gray-500">Curso</span>
-                <span className="font-medium">{alumnoData.inscripcion.transmision}</span>
+                <span style={{ color: '#475569' }}>Curso</span>
+                <span className="font-medium text-white">{alumnoData.inscripcion.transmision}</span>
                 {alumnoData.inscripcion.zona && (
-                  <>
-                    <span className="text-gray-500">Zona</span>
-                    <span className="font-medium">{alumnoData.inscripcion.zona}</span>
-                  </>
+                  <><span style={{ color: '#475569' }}>Zona</span><span className="font-medium text-white">{alumnoData.inscripcion.zona}</span></>
                 )}
               </div>
             )}
 
             {alumnoData.ultimaFicha && (
-              <div className="bg-blue-50 rounded-xl p-3 space-y-2">
+              <div className="rounded-xl p-3 space-y-2"
+                style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)' }}>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-blue-800">Progreso</p>
-                  <p className="text-xs text-blue-700 font-bold">
+                  <p className="text-xs font-semibold" style={{ color: '#60a5fa' }}>Progreso</p>
+                  <p className="text-xs font-bold" style={{ color: '#93c5fd' }}>
                     {alumnoData.ultimaFicha.completedCount}/{alumnoData.ultimaFicha.totalTopics} temas
                     ({Math.round(alumnoData.ultimaFicha.completedCount / alumnoData.ultimaFicha.totalTopics * 100)}%)
                   </p>
                 </div>
                 {alumnoData.ultimaFicha.pendingTopics.length > 0 && (
                   <div>
-                    <p className="text-xs text-blue-600 font-semibold mb-1">Pendientes:</p>
+                    <p className="text-xs font-semibold mb-1" style={{ color: '#60a5fa' }}>Pendientes:</p>
                     {alumnoData.ultimaFicha.pendingTopics.map((t: string) => (
-                      <p key={t} className="text-xs text-blue-700">• {t}</p>
+                      <p key={t} className="text-xs" style={{ color: '#475569' }}>• {t}</p>
                     ))}
                   </div>
                 )}
@@ -606,38 +506,31 @@ export default function AgendaNLP() {
 
             {alumnoData.proximasClases.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Próximas clases</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#334155' }}>Próximas clases</p>
                 {alumnoData.proximasClases.map((ev: Evento) => (
-                  <div key={ev.id} className="bg-gray-50 rounded-xl px-3 py-2">
+                  <div key={ev.id} className="px-3 py-2 rounded-xl" style={INNER}>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs text-gray-700">{formatEventDate(ev.inicio)}</p>
-                      <div className="flex gap-1.5 flex-shrink-0">
+                      <p className="text-xs text-white">{formatEventDate(ev.inicio)}</p>
+                      <div className="flex gap-1.5 shrink-0">
                         <button
                           onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
-                          className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-semibold"
-                        >
+                          className="text-xs px-2 py-1 rounded-lg font-semibold"
+                          style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
                           Mover
                         </button>
                         {pendingDeleteId === ev.id ? (
                           <div className="flex gap-1">
-                            <button
-                              onClick={() => confirmarBorrar(ev)}
-                              className="text-xs bg-red-600 text-white px-2 py-1 rounded-lg font-semibold"
-                            >
-                              Sí, borrar
-                            </button>
-                            <button
-                              onClick={() => setPendingDeleteId(null)}
-                              className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold"
-                            >
-                              No
-                            </button>
+                            <button onClick={() => confirmarBorrar(ev)}
+                              className="text-xs px-2 py-1 rounded-lg font-semibold text-white"
+                              style={{ background: '#dc2626' }}>Sí, borrar</button>
+                            <button onClick={() => setPendingDeleteId(null)}
+                              className="text-xs px-2 py-1 rounded-lg font-semibold"
+                              style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setPendingDeleteId(ev.id)}
-                            className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-semibold"
-                          >
+                          <button onClick={() => setPendingDeleteId(ev.id)}
+                            className="text-xs px-2 py-1 rounded-lg font-semibold"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
                             Borrar
                           </button>
                         )}
@@ -649,34 +542,29 @@ export default function AgendaNLP() {
             )}
 
             {alumnoData.proximasClases.length === 0 && !alumnoData.ultimaFicha && (
-              <p className="text-xs text-gray-400 text-center">Sin clases próximas ni fichas de progreso.</p>
+              <p className="text-xs text-center" style={{ color: '#334155' }}>Sin clases próximas ni fichas de progreso.</p>
             )}
 
-            {/* Quick actions */}
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => {
                   const nombre = alumnoData.inscripcion?.nombre ?? parsed?.alumno ?? '';
                   setTexto(`súbele las clases de ${nombre} al gc`);
                   reset();
-                  setTimeout(() => {
-                    setTexto(`súbele las clases de ${nombre} al gc`);
-                    setStep('idle');
-                  }, 60);
+                  setTimeout(() => { setTexto(`súbele las clases de ${nombre} al gc`); setStep('idle'); }, 60);
                 }}
-                className="flex-1 text-xs bg-purple-100 text-purple-700 px-3 py-2 rounded-xl font-semibold hover:bg-purple-200"
-              >
+                className="flex-1 text-xs px-3 py-2 rounded-xl font-semibold"
+                style={{ background: 'rgba(139,92,246,0.1)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.2)' }}>
                 Subir al Calendar
               </button>
               <button
                 onClick={() => {
                   const nombre = alumnoData.inscripcion?.nombre ?? parsed?.alumno ?? '';
                   setParsed({ accion: 'mover_clase', alumno: nombre, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] });
-                  setEditFecha(''); setEditHora('');
-                  setStep('confirm');
+                  setEditFecha(''); setEditHora(''); setStep('confirm');
                 }}
-                className="flex-1 text-xs bg-blue-100 text-blue-700 px-3 py-2 rounded-xl font-semibold hover:bg-blue-200"
-              >
+                className="flex-1 text-xs px-3 py-2 rounded-xl font-semibold"
+                style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
                 Mover próxima
               </button>
             </div>
@@ -685,21 +573,20 @@ export default function AgendaNLP() {
 
         {/* Executing */}
         {step === 'executing' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
+          <div className="p-6 text-center" style={CARD}>
             <div className="text-2xl mb-2">⏳</div>
-            <p className="text-sm text-gray-600">Ejecutando en Calendar…</p>
+            <p className="text-sm" style={{ color: '#475569' }}>Ejecutando en Calendar…</p>
           </div>
         )}
 
         {/* Done */}
         {step === 'done' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center space-y-3">
+          <div className="p-6 text-center space-y-3" style={{ ...CARD, borderColor: 'rgba(52,211,153,0.2)' }}>
             <div className="text-3xl">✅</div>
-            <p className="text-sm font-semibold text-gray-900">{mensaje}</p>
-            <button
-              onClick={reset}
-              className="text-sm bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-blue-700"
-            >
+            <p className="text-sm font-semibold text-white">{mensaje}</p>
+            <button onClick={reset}
+              className="text-sm font-semibold px-6 py-2 rounded-xl text-white"
+              style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
               Nuevo comando
             </button>
           </div>
@@ -707,24 +594,21 @@ export default function AgendaNLP() {
 
         {/* Error */}
         {step === 'error' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-red-200 p-4 space-y-3">
+          <div className="p-4 space-y-3" style={{ ...CARD, borderColor: 'rgba(248,113,113,0.2)' }}>
             <div className="flex items-start gap-3">
               <span className="text-xl">❌</span>
-              <p className="text-sm text-red-700">{mensaje}</p>
+              <p className="text-sm" style={{ color: '#f87171' }}>{mensaje}</p>
             </div>
-            <button
-              onClick={() => setStep('idle')}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={() => setStep('idle')} className="text-sm" style={{ color: '#475569' }}>
               Intentar de nuevo
             </button>
           </div>
         )}
 
-        {/* Comandos fijos */}
+        {/* Comandos */}
         {step === 'idle' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-1">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Comandos</p>
+          <div className="p-4 space-y-1" style={CARD}>
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: '#334155' }}>Comandos</p>
             {[
               { label: 'Ver agenda completa', cmd: '¿Qué hay los próximos 30 días?' },
               { label: 'Buscar alumno', cmd: 'Busca a [nombre]' },
@@ -735,23 +619,11 @@ export default function AgendaNLP() {
               { label: 'Eliminar evento', cmd: 'Elimina [nombre] [día] [hora]' },
               { label: 'Subir al GC', cmd: 'Súbele las clases de [nombre] al gc' },
             ].map(({ label, cmd }) => (
-              <button
-                key={cmd}
+              <button key={cmd}
                 onClick={() => { setTexto(cmd); setTimeout(() => textareaRef.current?.focus(), 50); }}
-                className="w-full text-left text-xs hover:bg-blue-50 rounded-lg px-2 py-2 transition-colors flex items-center justify-between group"
-              >
-                <span className="font-medium text-gray-700 group-hover:text-blue-700">{label}</span>
-                <span className="text-gray-400 group-hover:text-blue-400 truncate ml-2 max-w-[55%]">{cmd}</span>
-              </button>
-            ))}
-            {/* Ejemplos legacy ocultos — solo los fijos */}
-            {[].map(ej => (
-              <button
-                key={ej}
-                onClick={() => setTexto(ej)}
-                className="hidden"
-              >
-                "{ej}"
+                className="w-full text-left text-xs rounded-lg px-2 py-2 transition-colors flex items-center justify-between group hover:bg-white/[0.03]">
+                <span className="font-medium" style={{ color: '#64748b' }}>{label}</span>
+                <span className="truncate ml-2 max-w-[55%]" style={{ color: '#334155' }}>{cmd}</span>
               </button>
             ))}
           </div>
