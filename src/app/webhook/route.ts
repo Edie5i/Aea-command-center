@@ -346,15 +346,22 @@ ${conversation}`,
   }
 }
 
-function pickSlots(slots: Awaited<ReturnType<typeof getAvailableSlots>>, horario: string) {
+function pickSlots(
+  slots: Awaited<ReturnType<typeof getAvailableSlots>>,
+  horario: string,
+  fechaMinima?: string
+) {
   const mañana = ['07:00', '10:00'];
   const tarde = ['13:00', '16:00', '19:00'];
   const finde = ['sábado', 'domingo'];
 
   const preferidos = horario === 'mañana' ? mañana : horario === 'tarde' ? tarde : ['10:00', '13:00'];
 
+  // Si hay fecha prometida, no tomar slots anteriores a ella
+  const slotsBase = fechaMinima ? slots.filter(s => s.fecha >= fechaMinima) : slots;
+
   // Filtrar días según preferencia
-  const diasFiltrados = slots.filter(slot => {
+  const diasFiltrados = slotsBase.filter(slot => {
     const esFinDeSemana = finde.includes(slot.diaSemana);
     if (horario === 'fin-de-semana' && !esFinDeSemana) return false;
     if (horario !== 'fin-de-semana' && esFinDeSemana) return false;
@@ -887,7 +894,51 @@ export async function POST(request: NextRequest) {
       console.log('[WEBHOOK] Consultando slots disponibles...');
       const slots = await getAvailableSlots(21);
       console.log('[WEBHOOK] Slots totales recibidos:', slots.length);
-      const pickedSlots = pickSlots(slots, leadInfo.horario);
+
+      // Leer pre-reserva para respetar el horario prometido por Luz
+      let prometidoFecha: string | null = null;
+      let prometidoHora: string | null = null;
+      try {
+        const { getInscripcionData } = await import('@/lib/firestore');
+        const preReserva = await getInscripcionData(from);
+        if (preReserva?.status === 'pre_reserva' && preReserva.fechas?.[0]) {
+          prometidoFecha = preReserva.fechas[0].date;
+          prometidoHora = preReserva.fechas[0].time;
+          console.log('[WEBHOOK] Pre-reserva encontrada:', prometidoFecha, prometidoHora);
+        }
+      } catch (e) {
+        console.error('[WEBHOOK] Error leyendo pre-reserva:', e);
+      }
+
+      // Si el horario prometido ya está tomado: notificar admin y pedir opciones al alumno
+      if (prometidoFecha && prometidoHora) {
+        const slotPrometidoLibre = slots.find(
+          s => s.fecha === prometidoFecha && s.horariosLibres.includes(prometidoHora!)
+        );
+        if (!slotPrometidoLibre) {
+          console.warn('[WEBHOOK] Horario prometido ya está tomado:', prometidoFecha, prometidoHora);
+          sendMessage(ADMIN_PHONE,
+            `⚠️ *Conflicto de horario — ${leadInfo.nombre}*\n\n` +
+            `📱 +${leadInfo.telefono}\n` +
+            `El horario acordado *${prometidoFecha} a las ${prometidoHora}* ya está reservado por otro alumno.\n\n` +
+            `Luz le está pidiendo opciones alternativas al alumno.`
+          ).catch(e => console.error('[WEBHOOK] Error notif conflicto horario:', e));
+
+          const replyConflicto = await generateReply(
+            `El alumno acaba de enviarnos su comprobante de pago — ¡gracias! Sin embargo, el horario que habíamos acordado (${prometidoFecha} a las ${prometidoHora}) acaba de ser tomado por otro alumno. ` +
+            `Confírmale la recepción del pago, discúlpate brevemente por el inconveniente, y pídele que nos comparta 2 o 3 opciones de días y horarios que le funcionen para sus clases.`,
+            history, from
+          );
+          await sendMessage(from, replyConflicto);
+          saveHistory(from, '[imagen: comprobante de pago]', replyConflicto);
+          import('@/lib/firestore')
+            .then(({ saveImageMessage }) => saveImageMessage(from, imageMediaId || 'unknown', replyConflicto))
+            .catch(e => console.error('[WEBHOOK] Firestore save error (conflicto):', e));
+          return new NextResponse('EVENT_RECEIVED', { status: 200 });
+        }
+      }
+
+      const pickedSlots = pickSlots(slots, leadInfo.horario, prometidoFecha ?? undefined);
       console.log('[WEBHOOK] Slots seleccionados:', JSON.stringify(pickedSlots));
 
       if (pickedSlots.length >= 4) {
