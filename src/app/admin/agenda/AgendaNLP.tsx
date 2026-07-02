@@ -13,10 +13,17 @@ interface ParseResult {
   falta_info: string[];
 }
 
+const COLOR_MAP: Record<string, string> = {
+  '1': '#7986cb', '2': '#33b679', '3': '#8e24aa', '4': '#e67c73',
+  '5': '#f6bf26', '6': '#f4511e', '7': '#039be5', '8': '#3f51b5',
+  '9': '#0b8043', '10': '#d50000', '11': '#616161',
+};
+
 interface Evento {
   id: string;
   alumno: string;
   inicio: string;
+  colorId?: string;
 }
 
 interface AlumnoData {
@@ -85,6 +92,7 @@ export default function AgendaNLP() {
   const [editHora, setEditHora] = useState('');
   const [lastContext, setLastContext] = useState<{ alumno?: string }>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingDeleteAll, setPendingDeleteAll] = useState<string | null>(null); // alumno name
   const [pendingInscripciones, setPendingInscripciones] = useState<{ nombre: string; telefono: string; transmision: string; sesiones: number; phone: string }[]>([]);
 
   const recognitionRef = useRef<any>(null);
@@ -211,13 +219,22 @@ export default function AgendaNLP() {
 
   function reset() {
     setTexto(''); setParsed(null); setEventos([]); setAlumnoData(null); setMensaje('');
-    setEditFecha(''); setEditHora(''); setPendingDeleteId(null); setPendingInscripciones([]);
+    setEditFecha(''); setEditHora(''); setPendingDeleteId(null); setPendingDeleteAll(null); setPendingInscripciones([]);
     setStep('idle');
     setTimeout(() => textareaRef.current?.focus(), 50);
   }
 
+  async function borrarTodas(alumno: string) {
+    const eventsToDelete = eventos.filter((e: Evento) => e.alumno === alumno);
+    setPendingDeleteAll(null);
+    setEventos((prev: Evento[]) => prev.filter((e: Evento) => e.alumno !== alumno));
+    for (const ev of eventsToDelete) {
+      await executeAction({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }, ev.id);
+    }
+  }
+
   async function confirmarBorrar(ev: Evento) {
-    setEventos(prev => prev.filter(e => e.id !== ev.id));
+    setEventos((prev: Evento[]) => prev.filter((e: Evento) => e.id !== ev.id));
     setPendingDeleteId(null);
     await executeAction({ accion: 'cancelar_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: [] }, ev.id);
   }
@@ -421,40 +438,73 @@ export default function AgendaNLP() {
               <button onClick={reset} className="text-xs transition-colors" style={{ color: '#3b82f6' }}>Nueva consulta</button>
             </div>
             {mensaje && eventos.length === 0 && <p className="text-sm" style={{ color: '#475569' }}>{mensaje}</p>}
-            {eventos.map((ev: Evento) => (
-              <div key={ev.id} className="px-3 py-2.5 rounded-xl" style={INNER}>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-medium text-white">{ev.alumno}</p>
-                    <p className="text-xs" style={{ color: '#475569' }}>{formatEventDate(ev.inicio)}</p>
-                  </div>
-                  <div className="flex gap-1.5 shrink-0">
-                    <button
-                      onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
-                      className="text-xs px-2 py-1 rounded-lg font-semibold"
-                      style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
-                      Mover
-                    </button>
-                    {pendingDeleteId === ev.id ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => confirmarBorrar(ev)}
-                          className="text-xs px-2 py-1 rounded-lg font-semibold text-white"
-                          style={{ background: '#dc2626' }}>Sí, borrar</button>
-                        <button onClick={() => setPendingDeleteId(null)}
-                          className="text-xs px-2 py-1 rounded-lg font-semibold"
-                          style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
+
+            {/* Agrupar por alumno para borrado masivo */}
+            {(() => {
+              const alumnos: string[] = Array.from(new Set(eventos.map((e: Evento) => e.alumno)));
+              return alumnos.map((alumno: string) => {
+                const evAlumno = eventos.filter((e: Evento) => e.alumno === alumno);
+                const color = COLOR_MAP[evAlumno[0]?.colorId ?? ''] ?? '#475569';
+                return (
+                  <div key={alumno} className="space-y-1.5">
+                    <div className="flex items-center justify-between px-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: color }} />
+                        <span className="text-xs font-semibold text-white">{alumno}</span>
+                        <span className="text-xs" style={{ color: '#334155' }}>{evAlumno.length} clase{evAlumno.length > 1 ? 's' : ''}</span>
                       </div>
-                    ) : (
-                      <button onClick={() => setPendingDeleteId(ev.id)}
-                        className="text-xs px-2 py-1 rounded-lg font-semibold"
-                        style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
-                        Borrar
-                      </button>
-                    )}
+                      {pendingDeleteAll === alumno ? (
+                        <div className="flex gap-1">
+                          <button onClick={() => borrarTodas(alumno)}
+                            className="text-xs px-2 py-1 rounded-lg font-semibold text-white"
+                            style={{ background: '#dc2626' }}>Sí, borrar todas</button>
+                          <button onClick={() => setPendingDeleteAll(null)}
+                            className="text-xs px-2 py-1 rounded-lg font-semibold"
+                            style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setPendingDeleteAll(alumno)}
+                          className="text-xs px-2 py-1 rounded-lg font-semibold"
+                          style={{ background: 'rgba(239,68,68,0.07)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+                          Borrar todas
+                        </button>
+                      )}
+                    </div>
+                    {evAlumno.map((ev: Evento) => (
+                      <div key={ev.id} className="px-3 py-2.5 rounded-xl" style={{ ...INNER, borderLeft: `3px solid ${COLOR_MAP[ev.colorId ?? ''] ?? '#334155'}` }}>
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs" style={{ color: '#94a3b8' }}>{formatEventDate(ev.inicio)}</p>
+                          <div className="flex gap-1.5 shrink-0">
+                            <button
+                              onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
+                              className="text-xs px-2 py-1 rounded-lg font-semibold"
+                              style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                              Mover
+                            </button>
+                            {pendingDeleteId === ev.id ? (
+                              <div className="flex gap-1">
+                                <button onClick={() => confirmarBorrar(ev)}
+                                  className="text-xs px-2 py-1 rounded-lg font-semibold text-white"
+                                  style={{ background: '#dc2626' }}>Sí</button>
+                                <button onClick={() => setPendingDeleteId(null)}
+                                  className="text-xs px-2 py-1 rounded-lg font-semibold"
+                                  style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setPendingDeleteId(ev.id)}
+                                className="text-xs px-2 py-1 rounded-lg font-semibold"
+                                style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                                Borrar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              });
+            })()}
           </div>
         )}
 

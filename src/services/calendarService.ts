@@ -105,6 +105,7 @@ export interface EventoCalendario {
   inicio: string;
   fin: string;
   ubicacion?: string;
+  colorId?: string;
 }
 
 export async function getEventosProximos(dias = 7): Promise<EventoCalendario[]> {
@@ -136,6 +137,7 @@ export async function getEventosProximos(dias = 7): Promise<EventoCalendario[]> 
       inicio: e.start?.dateTime ?? e.start?.date ?? '',
       fin: e.end?.dateTime ?? e.end?.date ?? '',
       ubicacion: e.location ?? undefined,
+      colorId: e.colorId ?? undefined,
     };
   });
 }
@@ -270,6 +272,7 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
     const pair = Object.entries(colorPairs).find(([k]) => txKey.includes(k))?.[1] ?? ['7', '8'];
     const colorId = pair[(details.sessionIndex ?? 0) % 2];
 
+    const calendarAttendee = process.env.CALENDAR_ATTENDEE_EMAIL;
     const event: calendar_v3.Params$Resource$Events$Insert['requestBody'] = {
         summary: `Clase: ${details.studentName}`,
         location: details.studentAddress,
@@ -286,10 +289,12 @@ export async function createCalendarEvent(details: EventDetails): Promise<string
         reminders: {
             useDefault: false,
             overrides: [
-                { method: 'popup', minutes: 120 }, // 2 hours before
-                { method: 'popup', minutes: 60 },  // 1 hour before
+                { method: 'popup', minutes: 120 },
+                { method: 'popup', minutes: 60 },
             ],
         },
+        ...(calendarAttendee ? { attendees: [{ email: calendarAttendee }] } : {}),
+        guestsCanModify: true,
     };
 
     try {
