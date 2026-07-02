@@ -67,7 +67,6 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 100);
-    if (calStatus !== 'loading') syncCalendar();
   }
 
   async function buildPdfBlob(): Promise<{ blob: Blob; folio: string; filename: string }> {
