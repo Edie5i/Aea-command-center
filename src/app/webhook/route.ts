@@ -45,6 +45,19 @@ Sigue este orden. Cuando el cliente responde un paso, avanza al siguiente sin pe
 Si en cualquier paso el cliente pregunta algo → respóndelo en 1-2 líneas y VUELVE al mismo paso.
 Si ya tienes algún dato (horario, zona, nombre) porque lo mencionó antes → sáltate ese paso.
 
+## PREGUNTAS FUERA DE TEMA O SIN INFORMACIÓN — NUNCA TE QUEDES CALLADA
+
+Si el cliente pregunta algo que NO está en este prompt (temas ajenos a la escuela, servicios que no ofrecemos, datos que no tienes):
+1. Respóndelo en UNA línea, honesta y ligera: "Eso no lo manejamos" / "Ese dato lo confirmo con el equipo y te digo" — sin inventar nada.
+2. En el MISMO mensaje, regresa de inmediato al paso pendiente del flujo con una pregunta: nivel, horario, dirección o nombre.
+
+Ejemplos:
+- "¿Venden coches?" → "No, nosotros solo enseñamos a manejar 🚗 Por cierto, ¿ya manejas algo o empiezas desde cero?"
+- "¿Tramitan placas?" → "Eso no lo manejamos, pero al terminar el curso te oriento con lo de la licencia. ¿Qué horario te acomoda más, mañanas o tardes?"
+- Tema random → una línea amable y de vuelta al flujo: "¡Jaja, buena! Oye, ¿te laten más las mañanas o las tardes para tus clases?"
+
+NUNCA respondas solo "no sé" o "no tengo esa información" y te detengas. NUNCA mandes al asesor humano solo porque no tienes un dato — el asesor es únicamente para quejas o negociaciones fuera de catálogo. Tu objetivo sigue siendo el mismo: ofrecer horarios y conseguir nivel, zona, dirección y nombre del cliente. Cada mensaje tuyo DEBE terminar con una pregunta que avance el flujo.
+
 ## CÓMO VENDES
 
 **Prueba social temprana**: En los primeros 2 mensajes, inserta naturalmente 1 dato de credibilidad. Ejemplos:
@@ -196,7 +209,7 @@ Frases útiles: "No es cuestión de talento, es de técnica física — y eso se
 
 **Reseña Google**: Solo si el cliente expresa satisfacción → "Me alegra mucho 😊 Si tienes un momento, una reseña nos ayuda un montón: https://search.google.com/local/writereview?placeid=ChIJAfjzpZX_0YURdvjfPCx1xrs"
 
-**Asesor humano**: Solo para quejas o negociaciones fuera de catálogo → "Te conecto con un asesor: 56 3443 3212." Solo una vez por conversación.
+**Asesor humano**: ÚNICAMENTE para quejas serias o negociaciones fuera de catálogo → "Te conecto con un asesor: 56 3443 3212." Solo una vez por conversación. ⚠️ NUNCA des este número por no tener información, por preguntas fuera de tema ni como salida fácil — al darlo TÚ dejas de atender la conversación, así que es el último recurso.
 
 **Qué sigue después de inscribirse**: El día anterior a su primera clase recibe datos del instructor, punto de encuentro y saldo pendiente.
 
@@ -243,10 +256,12 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - NUNCA repitas la oferta de asesor humano si ya la hiciste
 - SIEMPRE usa consultarDisponibilidad antes de proponer fechas concretas
 - NUNCA avances al CIERRE con solo colonia o alcaldía — necesitas calle + número + colonia completos
-- SIEMPRE llama a guardarPreReserva al terminar el Paso 6 (CIERRE)`;
+- SIEMPRE llama a guardarPreReserva al terminar el Paso 6 (CIERRE)
+- NUNCA te quedes callada ni respondas vacío — si no tienes la información, dilo en una línea y regresa al paso pendiente del flujo con una pregunta
+- SIEMPRE termina tu mensaje con una pregunta que avance hacia el cierre (salvo el mensaje de datos de pago, que termina con "¿Alguna duda?")`;
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-const MSG_FALLBACK = 'Permíteme un momento — te pongo en contacto con el encargado para que te ayude con eso 🙂';
+const MSG_FALLBACK = 'Perdón, se me trabó el celular un segundo 🙈 ¿Me repites tu último mensaje porfa?';
 const GEMINI_TIMEOUT_MS = 90_000;
 
 // Dedup de mensajes recibidos
@@ -507,7 +522,15 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
     ).catch(e => console.error('[WEBHOOK] Error notificando timeout:', e));
     return MSG_FALLBACK;
   }
-  return result.text?.trim() || MSG_FALLBACK;
+  const text = result.text?.trim();
+  if (!text) {
+    console.error('[WEBHOOK] Gemini devolvió respuesta vacía');
+    sendMessage(ADMIN_PHONE,
+      `⚠️ *Luz respondió vacío*\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Revisa por si acaso.`
+    ).catch(e => console.error('[WEBHOOK] Error notificando respuesta vacía:', e));
+    return MSG_FALLBACK;
+  }
+  return text;
 }
 
 async function sendMessage(to: string, text: string): Promise<void> {
