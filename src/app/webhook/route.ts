@@ -1155,6 +1155,12 @@ export async function POST(request: NextRequest) {
     if (convData?.botPaused) {
       console.log('[WEBHOOK] Bot en pausa para', from, '— guardando mensaje sin responder');
       saveUserMessage(from, textBody).catch(e => console.error('[WEBHOOK] saveUserMessage (paused):', e));
+      // No dejar leads pausados en el limbo: avisar al admin que le escribieron
+      if (from !== ADMIN_PHONE) {
+        sendMessage(ADMIN_PHONE,
+          `⏸️ *Lead pausado te escribió*\n\n📱 +${from}\n💬 "${textBody.slice(0, 150)}"\n\nLuz no le va a responder. Contéstale tú o usa *!reanudar ${from}*.`
+        ).catch(e => console.error('[WEBHOOK] Error notificando lead pausado:', e));
+      }
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
   }
@@ -1220,6 +1226,11 @@ export async function POST(request: NextRequest) {
     }
   } catch (err) {
     console.error('[WEBHOOK] Pipeline error:', err);
+    // El lead NUNCA se queda sin respuesta: fallback + aviso al admin
+    sendMessage(from, MSG_FALLBACK).catch(e => console.error('[WEBHOOK] Error enviando fallback:', e));
+    sendMessage(ADMIN_PHONE,
+      `⚠️ *Error en el pipeline de Luz*\n\n📱 +${from}\n💬 "${textBody.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Si vuelve a fallar, respóndele tú.`
+    ).catch(e => console.error('[WEBHOOK] Error notificando pipeline error:', e));
   }
 
   return new NextResponse('EVENT_RECEIVED', { status: 200 });
