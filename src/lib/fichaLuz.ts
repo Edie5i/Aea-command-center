@@ -50,6 +50,33 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
   return ficha;
 }
 
+// Actualización parcial: lee la ficha existente, fusiona el patch y recalcula
+// depósito/estado/faltantes. (guardarFicha con datos parciales pisaría campos con vacíos.)
+export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promise<Ficha> {
+  const ref = db.collection('fichas').doc(id);
+  const snap = await ref.get();
+  const actual = (snap.exists ? snap.data() : {}) as Partial<Ficha>;
+  const datos = { ...actual, ...patch };
+  const precio = datos.precio ?? 0;
+  const faltantes = revisarFicha(datos);
+  const ficha: Ficha = {
+    studentName: datos.studentName ?? '',
+    curso: datos.curso ?? '',
+    precio,
+    opcionesFechaHora: datos.opcionesFechaHora ?? [],
+    depositoMonto: calcularDeposito(precio),
+    depositoPagado: datos.depositoPagado ?? false,
+    comprobanteURL: datos.comprobanteURL ?? null,
+    origen: datos.origen ?? 'luz',
+    estado: faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
+    faltantes,
+    telefono: datos.telefono ?? '',
+    creada: datos.creada ?? Date.now(),
+  };
+  await ref.set(ficha, { merge: true });
+  return ficha;
+}
+
 // El dashboard llama esto: TODO (web + Luz), lo más caliente arriba.
 export async function traerFichas() {
   const snap = await db.collection('fichas').orderBy('creada', 'desc').get();
