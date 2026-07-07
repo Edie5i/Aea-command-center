@@ -890,6 +890,20 @@ export async function POST(request: NextRequest) {
       sendImageMessage(ADMIN_PHONE, imageMediaId, `${nombreRapido} · +${from}`).catch(
         (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
       );
+
+      // Copia permanente al bucket privado + marcar depósito en la ficha única.
+      // Fire-and-forget: si falla, la inscripción sigue su curso normal.
+      import('@/lib/comprobantes')
+        .then(async ({ subirComprobante }) => {
+          const path = await subirComprobante(imageMediaId, from);
+          const { actualizarFicha } = await import('@/lib/fichaLuz');
+          await actualizarFicha(from, {
+            depositoPagado: true,
+            comprobanteURL: `/api/admin/comprobante?path=${encodeURIComponent(path)}`,
+          });
+          console.log('[WEBHOOK] Comprobante en Storage:', path);
+        })
+        .catch((e) => console.error('[WEBHOOK] Error subiendo comprobante a Storage:', e));
     }
 
     try {

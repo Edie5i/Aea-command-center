@@ -93,6 +93,17 @@ export default async function ReservasPage() {
 
               <div className="flex items-center justify-between gap-3 mt-3">
                 <span className="text-xs font-semibold" style={{ color: b.color }}>{b.texto}</span>
+                {f.comprobanteURL && (
+                  <a
+                    href={f.comprobanteURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full"
+                    style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}
+                  >
+                    📎 Ver comprobante
+                  </a>
+                )}
                 {f.telefono && (
                   <a
                     href={linkCierre(f)}
