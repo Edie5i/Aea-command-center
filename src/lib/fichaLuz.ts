@@ -1,5 +1,6 @@
 // lib/fichaLuz.ts — Fuente ÚNICA. Ficha web (/agenda) + Luz caen aquí. Dashboard las ve TODAS.
 import { db } from '@/lib/firestore';
+import { notificarAdmin } from '@/lib/adminNotify';
 
 export type Ficha = {
   studentName: string;
@@ -28,8 +29,25 @@ export function revisarFicha(f: Partial<Ficha>): string[] {
   return x;
 }
 
+// Aviso puntual al admin SOLO cuando el estado cambia (sin spam por re-guardados).
+async function notificarCambioEstado(prev: Ficha['estado'] | null, ficha: Ficha): Promise<void> {
+  if (prev === ficha.estado) return;
+  const chip = ficha.origen === 'web' ? '🌐 Web' : '💬 Luz';
+  const nombre = ficha.studentName || 'Sin nombre';
+  const texto =
+    ficha.estado === 'reservada'
+      ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO\n${chip} · 📱 ${ficha.telefono}`
+      : `🟡 *Ficha ${ficha.estado.toUpperCase()}* — ${nombre}\n🚗 ${ficha.curso || '¿curso?'} · Falta: ${ficha.faltantes.join(', ')}\n${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
+        (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '');
+  await notificarAdmin(texto).catch((e) => console.error('[FICHA] Error notificando estado:', e));
+}
+
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.
 export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'web' | 'luz') {
+  const ref = db.collection('fichas').doc(id);
+  const snap = await ref.get();
+  const prevEstado = snap.exists ? ((snap.data() as Ficha).estado ?? null) : null;
+
   const precio = datos.precio ?? 0;
   const faltantes = revisarFicha(datos);
   const ficha: Ficha = {
@@ -46,7 +64,8 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
     telefono: datos.telefono ?? '',
     creada: Date.now(),
   };
-  await db.collection('fichas').doc(id).set(ficha, { merge: true });
+  await ref.set(ficha, { merge: true });
+  await notificarCambioEstado(prevEstado, ficha);
   return ficha;
 }
 
@@ -74,6 +93,7 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     creada: datos.creada ?? Date.now(),
   };
   await ref.set(ficha, { merge: true });
+  await notificarCambioEstado((actual.estado as Ficha['estado']) ?? null, ficha);
   return ficha;
 }
 
