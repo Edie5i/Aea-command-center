@@ -2,6 +2,13 @@
 
 import { scheduleAndCreateEvents, type CreateEventInput } from '@/ai/flows/create-calendar-event';
 import { saveInscripcionData } from '@/lib/firestore';
+import { guardarFicha } from '@/lib/fichaLuz';
+
+// Precios del catálogo 2026 (fuente: catálogo oficial AEA en bot-data)
+const PRECIO_CURSO: Record<string, number> = {
+  'Estándar': 3400,
+  'Automático': 3900,
+};
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -73,6 +80,21 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
       transmision: input.transmission ?? 'Estándar',
       fechas,
     }).catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
+
+    // Ficha única (web + Luz): el panel las ve todas
+    const curso = input.transmission ?? 'Estándar';
+    guardarFicha(
+      phone,
+      {
+        studentName: input.name,
+        curso,
+        precio: PRECIO_CURSO[curso] ?? 0, // TODO: dato pendiente si llega un curso fuera del mapa
+        opcionesFechaHora: fechas.map(f => `${f.date} ${f.time}`),
+        // linkCierre arma wa.me/52{telefono} → se guarda a 10 dígitos
+        telefono: phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone,
+      },
+      'web'
+    ).catch(e => console.error('[AGENDA] Error guardando ficha:', e));
 
     return { success: true, message: result.message, error: null };
   } catch (error) {
