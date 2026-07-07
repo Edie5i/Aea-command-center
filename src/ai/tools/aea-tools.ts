@@ -271,6 +271,29 @@ export const guardarPreReservaTool = ai.defineTool(
         transmision: transmision ?? 'Estándar',
         fechas,
       });
+
+      // Ficha única (web + Luz): el panel /admin/reservas las ve todas
+      const { guardarFicha } = await import('@/lib/fichaLuz');
+      const PRECIO_CURSO: Record<string, number> = {
+        // Fuente: catálogo oficial AEA 2026
+        'Estándar': 3400, 'Automático': 3900, 'Intermedio': 2900, 'Avanzado': 1900,
+        'Moto': 4300, 'English Drive': 4800, 'Personas Nerviosas': 5600,
+        'Intensivo': 5600, 'Mixto': 5600, 'Coche Propio': 3900,
+      };
+      const cursoFicha = curso ?? 'Estándar';
+      await guardarFicha(
+        telefono,
+        {
+          studentName: nombre,
+          curso: cursoFicha,
+          precio: PRECIO_CURSO[cursoFicha] ?? 0, // TODO: dato pendiente si el curso no está en el catálogo
+          opcionesFechaHora: fechas.map((f) => `${f.date} ${f.time}`),
+          // linkCierre arma wa.me/52{telefono} → se guarda a 10 dígitos
+          telefono: telefono.startsWith('52') && telefono.length === 12 ? telefono.slice(2) : telefono,
+        },
+        'luz'
+      ).catch((e) => console.error('[TOOL] guardarFicha error:', e));
+
       console.log('[TOOL] guardarPreReserva guardado para', telefono);
       return { ok: true };
     } catch (e) {
