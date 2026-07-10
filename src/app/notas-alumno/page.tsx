@@ -241,7 +241,7 @@ export default function NotasAlumnoPage() {
                               const currentBlock = blockIndex;
                               return (
                                 <div key={currentBlock}>
-                                  {contentBlock.heading && (
+                                  {'heading' in contentBlock && contentBlock.heading && (
                                     <h4 className="text-xs font-semibold uppercase tracking-wider mb-2"
                                       style={{ color: '#2dd4bf' }}>{contentBlock.heading}</h4>
                                   )}
