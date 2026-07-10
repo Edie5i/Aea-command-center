@@ -522,6 +522,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
     ).catch(e => console.error('[WEBHOOK] Error notificando timeout:', e));
     return MSG_FALLBACK;
   }
+  console.log('[WEBHOOK] Gemini usage:', JSON.stringify(result.usage));
   const text = result.text?.trim();
   if (!text) {
     console.error('[WEBHOOK] Gemini devolvió respuesta vacía');
