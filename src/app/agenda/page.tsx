@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2, Star } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -441,6 +441,12 @@ function AgendaContent() {
                     <CalendarCheck className="w-4 h-4" /> Nueva ficha
                   </button>
                 </div>
+                <a href="https://g.page/r/CXb43zwsdca7EBE/review" target="_blank" rel="noopener noreferrer"
+                  onClick={() => { if (typeof window !== 'undefined' && (window as any).gtag) (window as any).gtag('event', 'review_click', { location: 'agenda_success' }); }}
+                  className="inline-flex items-center justify-center gap-2 mt-4 text-sm font-medium"
+                  style={{ color: '#fbbf24' }}>
+                  <Star className="w-4 h-4 fill-current" /> Déjanos una reseña en Google
+                </a>
               </div>
             ) : (
               <div className="p-5 space-y-6">
