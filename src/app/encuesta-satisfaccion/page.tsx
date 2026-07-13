@@ -203,7 +203,7 @@ export default function EncuestaSatisfaccionPage() {
                   style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
                   <Smile className="w-4 h-4" /> Responder de nuevo
                 </button>
-                <a href="https://www.google.com/search?q=Auto+Escuela+Americana&ludocid=2053648174540417035#lrd=0x85d1ff3b16555555:0x1c80842f1f13380b,1"
+                <a href="https://g.page/r/CXb43zwsdca7EBE/review"
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
                   style={{ background: 'linear-gradient(135deg, #b45309, #d97706)' }}>
