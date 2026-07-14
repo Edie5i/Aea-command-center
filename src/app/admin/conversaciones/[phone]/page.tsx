@@ -4,6 +4,7 @@ import { getConversationMessages, getInscripcionData, getConversation } from '@/
 import Link from 'next/link';
 import FichaButton from './FichaButton';
 import ReplyBox from './ReplyBox';
+import StateActions from './StateActions';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -76,6 +77,10 @@ export default async function ConversacionPage({
             <p className="text-sm font-semibold" style={{ color: '#f87171' }}>{conv?.chatReason ?? 'Requiere tu atención'}</p>
           </div>
         )}
+
+        <div className="mt-2">
+          <StateActions phone={phone} state={state} />
+        </div>
 
         {inscripcion && (
           <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2"

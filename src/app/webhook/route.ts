@@ -1106,19 +1106,18 @@ export async function POST(request: NextRequest) {
       // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
       sendLocationRequest(from, leadZona).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
 
-      // Inscripción confirmada → cerrar lead como ganado directamente
+      // Clases agendadas automáticamente, pero el depósito AÚN NO está verificado por un humano.
+      // No cerrar como "ganado" todavía — eso se hace manualmente desde el panel una vez
+      // que el admin confirma monto y banco (ver StateActions / closeLead).
       import('@/lib/firestore')
-        .then(async ({ updateChatState }) => {
-          const { Timestamp } = await import('firebase-admin/firestore');
-          return updateChatState(from, {
-            chatState: 'cerrado',
-            chatReason: 'Inscripción confirmada automáticamente',
-            chatUrgency: 'ninguna',
-            closedAt: Timestamp.now(),
-            closedOutcome: 'ganado',
-          }, 'manual');
-        })
-        .catch((e) => console.error('[WEBHOOK] Error cerrando lead ganado:', e));
+        .then(({ updateChatState }) =>
+          updateChatState(from, {
+            chatState: 'tu_turno',
+            chatReason: 'Comprobante recibido — verificar monto y banco antes de cerrar',
+            chatUrgency: 'alta',
+          }, 'manual')
+        )
+        .catch((e) => console.error('[WEBHOOK] Error marcando lead para revisión:', e));
     } else {
       // Sin inscripción → recalcular estado normalmente
       import('@/lib/chat-state')
