@@ -245,24 +245,29 @@ export const guardarPreReservaTool = ai.defineTool(
     name: 'guardarPreReserva',
     description:
       'Guarda los datos del prospecto como pre-reserva en el sistema, justo después de enviarle los datos de pago (Paso 6 CIERRE). ' +
-      'Úsala siempre que tengas nombre + dirección completa + horario acordado, aunque el cliente aún no haya mandado el comprobante. ' +
-      'Esto permite al equipo enviarle la ficha de inscripción por adelantado para reforzar el compromiso de pago.',
+      'Úsala siempre que tengas nombre + dirección completa + patrón + horario acordado, aunque el cliente aún no haya mandado el comprobante. ' +
+      'Calcula y guarda las 4 fechas reales del patrón (no solo la primera) para que, cuando llegue el comprobante, el sistema respete ' +
+      'exactamente esas 4 fechas en vez de recalcular un bloque distinto.',
     inputSchema: z.object({
       nombre: z.string().describe('Nombre completo del prospecto'),
       telefono: z.string().describe('Número de WhatsApp con código de país, ej: 5215512345678'),
       zona: z.string().describe('Dirección completa: calle, número y colonia'),
       curso: z.string().optional().describe('Curso acordado, ej: Automático'),
       transmision: z.string().optional().describe('Estándar o Automático'),
+      patron: z.enum(['lunes-jueves', 'martes-viernes', 'fin-de-semana']).optional()
+        .describe('Patrón de clases acordado. Si se da junto con fechaInicio + hora, se calculan las 4 fechas completas.'),
       fechaInicio: z.string().optional().describe('Fecha de inicio propuesta en formato YYYY-MM-DD'),
       hora: z.string().optional().describe('Hora propuesta en formato HH:mm, ej: 10:00'),
     }),
     outputSchema: z.object({ ok: z.boolean() }),
   },
-  async ({ nombre, telefono: rawTelefono, zona, curso, transmision, fechaInicio, hora }) => {
+  async ({ nombre, telefono: rawTelefono, zona, curso, transmision, patron, fechaInicio, hora }) => {
     try {
       const telefono = normalizePhone(rawTelefono);
       const { savePreReserva } = await import('@/lib/firestore');
-      const fechas = fechaInicio && hora ? [{ date: fechaInicio, time: hora }] : [];
+      const fechas = patron && fechaInicio && hora
+        ? calcularFechas(patron, fechaInicio, hora).map(f => ({ date: f.date.split('T')[0], time: f.time }))
+        : fechaInicio && hora ? [{ date: fechaInicio, time: hora }] : [];
       await savePreReserva(telefono, {
         nombre,
         telefono,
