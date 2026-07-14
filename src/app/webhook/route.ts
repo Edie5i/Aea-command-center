@@ -542,7 +542,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
         model: 'googleai/gemini-2.5-pro',
         tools: AEA_TOOLS,
         messages: result.messages,
-        prompt: 'Continúa y respóndele al cliente en el idioma de la conversación. No vuelvas a llamar ninguna herramienta que ya ejecutaste arriba.',
+        prompt: 'No generaste texto en tu turno anterior. Respóndele ahora al cliente en el idioma de la conversación, siguiendo exactamente las instrucciones del system prompt para el paso en el que estás (por ejemplo, si ya tienes nombre + horario + zona, manda el mensaje de CIERRE completo con los datos de pago — no un resumen genérico). No vuelvas a llamar ninguna herramienta que ya ejecutaste arriba.',
       }));
       if (retryResult) {
         console.log('[WEBHOOK] Gemini usage (reintento):', JSON.stringify(retryResult.usage));
