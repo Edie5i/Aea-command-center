@@ -105,9 +105,9 @@ Apartado: $690 (se aplica al total). Reembolsable hasta 48h antes. 3 MSI disponi
 
 Cuando el cliente confirme mañana / tarde / fin de semana (Paso 3):
 1. Llama a consultarDisponibilidad(dias=14) de inmediato.
-2. Elige el bloque de 4 días seguidos que coincida con su preferencia (mismo horario todos los días).
-3. Propón SOLO la fecha de inicio: "Tengo el lunes 22 a las 10:00 am para arrancar — ¿empezamos?" No listes las 4 fechas — solo la primera. Las demás se agendan automáticamente.
-4. Esto crea urgencia real y cierra en un solo mensaje limpio.
+2. Elige el patrón (lunes-jueves, martes-viernes o fin-de-semana) y el bloque de 4 días que coincida con su preferencia (mismo horario todos los días).
+3. Propón las 4 fechas completas, no solo la primera: "Tengo estas 4 clases libres: lunes 22, martes 23, miércoles 24 y jueves 25, todas a las 10:00 am — ¿empezamos?" El cliente debe ver y confirmar las 4 antes de pagar — así no se lleva sorpresas después.
+4. Guarda el patrón + fechaInicio + hora exactos que confirmaste — son los que se usan después para respetar ese mismo bloque.
 
 NO esperes a que el cliente pregunte por disponibilidad — sé tú quien proponga las fechas.
 
@@ -131,7 +131,7 @@ Si menciona otra escuela, pide descuento o dice "lo pienso":
 Manda TODO en un solo mensaje. SIEMPRE incluye los tres datos (nombre, horario y zona) aunque ya los tengas — es la confirmación para el alumno:
 
 "¡Perfecto, [nombre]! Anoto tus datos:
-🕐 [horario acordado, ej: martes 10 a las 10am]
+🕐 [las 4 fechas y hora acordadas, ej: lunes 22, martes 23, miércoles 24 y jueves 25, a las 10am]
 📍 [dirección completa: calle, número y colonia]
 
 Para apartar tu lugar son $690 — preferimos transferencia porque confirma al instante 👇
@@ -143,7 +143,7 @@ Cuenta: 048 469 5739 | CLABE: 012 180 00484695739 9
 
 En el concepto pon tu nombre completo y mándame el comprobante por aquí. ¿Alguna duda?"
 
-Inmediatamente después de mandar este mensaje → llama a guardarPreReserva con nombre, teléfono, dirección, curso, transmisión y (si la tienes) la fechaInicio y hora propuestas. No esperes el comprobante — guárdalo ya.
+Inmediatamente después de mandar este mensaje → llama a guardarPreReserva con nombre, teléfono, dirección, curso, transmisión, patrón y la fechaInicio + hora que acordaste. No esperes el comprobante — guárdalo ya. Esto calcula y guarda las 4 fechas reales, no solo la primera.
 
 Si dice que ya pagó pero no manda foto: "¡Qué bien! Mándame la foto del comprobante para confirmar tu lugar 📸"
 
@@ -244,7 +244,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - **consultarCatalogoCursos**: Para confirmar precios exactos.
 - **consultarProgramaCurso**: Si preguntan qué aprenden.
 - **confirmarInscripcion**: Solo si el alumno confirma patrón y fecha de forma conversacional (no aplica cuando llega comprobante — ese caso ya está procesado).
-- **guardarPreReserva**: Llámala siempre al final del CIERRE (Paso 6), justo después de mandar los datos de pago. No esperes el comprobante. Pasa: nombre, teléfono (el número de WhatsApp del cliente), dirección completa, curso, transmisión, y la fechaInicio + hora propuestas (si las tienes).
+- **guardarPreReserva**: Llámala siempre al final del CIERRE (Paso 6), justo después de mandar los datos de pago. No esperes el comprobante. Pasa: nombre, teléfono (el número de WhatsApp del cliente), dirección completa, curso, transmisión, patrón (lunes-jueves / martes-viernes / fin-de-semana) y la fechaInicio + hora que acordaste. Esto calcula y reserva las 4 fechas reales, no solo la primera.
 
 ## REGLAS ABSOLUTAS
 
@@ -941,37 +941,42 @@ export async function POST(request: NextRequest) {
       const slots = await getAvailableSlots(21);
       console.log('[WEBHOOK] Slots totales recibidos:', slots.length);
 
-      // Leer pre-reserva para respetar el horario prometido por Luz
-      let prometidoFecha: string | null = null;
-      let prometidoHora: string | null = null;
+      // Leer pre-reserva para respetar las 4 fechas exactas prometidas por Luz (no solo la primera)
+      let prometidas: Array<{ date: string; time: string }> | null = null;
       try {
         const { getInscripcionData } = await import('@/lib/firestore');
         const preReserva = await getInscripcionData(from);
-        if (preReserva?.status === 'pre_reserva' && preReserva.fechas?.[0]) {
-          prometidoFecha = preReserva.fechas[0].date;
-          prometidoHora = preReserva.fechas[0].time;
-          console.log('[WEBHOOK] Pre-reserva encontrada:', prometidoFecha, prometidoHora);
+        if (preReserva?.status === 'pre_reserva' && preReserva.fechas?.length >= 4) {
+          prometidas = preReserva.fechas.slice(0, 4);
+          console.log('[WEBHOOK] Pre-reserva encontrada (4 fechas):', JSON.stringify(prometidas));
         }
       } catch (e) {
         console.error('[WEBHOOK] Error leyendo pre-reserva:', e);
       }
 
-      // Si el horario prometido ya está tomado: notificar admin y pedir opciones al alumno
-      if (prometidoFecha && prometidoHora) {
-        const slotPrometidoLibre = slots.find(
-          s => s.fecha === prometidoFecha && s.horariosLibres.includes(prometidoHora!)
-        );
-        if (!slotPrometidoLibre) {
-          console.warn('[WEBHOOK] Horario prometido ya está tomado:', prometidoFecha, prometidoHora);
+      let pickedSlots: Array<{ date: string; time: string }>;
+
+      if (prometidas) {
+        // Verificar que las 4 fechas prometidas SIGAN libres — si alguna ya no lo está,
+        // avisar en vez de reasignar en silencio un bloque distinto al que vio el alumno.
+        const conflictos = prometidas.filter(f => {
+          const slot = slots.find(s => s.fecha === f.date);
+          return !slot || !slot.horariosLibres.includes(f.time);
+        });
+
+        if (conflictos.length > 0) {
+          console.warn('[WEBHOOK] Fechas prometidas ya no disponibles:', JSON.stringify(conflictos));
+          const plural = conflictos.length > 1;
+          const conflictosTexto = conflictos.map(c => `${c.date} a las ${c.time}`).join(', ');
           sendMessage(ADMIN_PHONE,
             `⚠️ *Conflicto de horario — ${leadInfo.nombre}*\n\n` +
             `📱 +${leadInfo.telefono}\n` +
-            `El horario acordado *${prometidoFecha} a las ${prometidoHora}* ya está reservado por otro alumno.\n\n` +
+            `De las 4 fechas acordadas, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: *${conflictosTexto}*.\n\n` +
             `Luz le está pidiendo opciones alternativas al alumno.`
           ).catch(e => console.error('[WEBHOOK] Error notif conflicto horario:', e));
 
           const replyConflicto = await generateReply(
-            `El alumno acaba de enviarnos su comprobante de pago — ¡gracias! Sin embargo, el horario que habíamos acordado (${prometidoFecha} a las ${prometidoHora}) acaba de ser tomado por otro alumno. ` +
+            `El alumno acaba de enviarnos su comprobante de pago — ¡gracias! Sin embargo, de las 4 fechas que habíamos acordado, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: ${conflictosTexto} (se le adelantó a otro alumno). ` +
             `Confírmale la recepción del pago, discúlpate brevemente por el inconveniente, y pídele que nos comparta 2 o 3 opciones de días y horarios que le funcionen para sus clases.`,
             history, from
           );
@@ -982,9 +987,12 @@ export async function POST(request: NextRequest) {
             .catch(e => console.error('[WEBHOOK] Firestore save error (conflicto):', e));
           return new NextResponse('EVENT_RECEIVED', { status: 200 });
         }
-      }
 
-      const pickedSlots = pickSlots(slots, leadInfo.horario, prometidoFecha ?? undefined);
+        pickedSlots = prometidas.map(f => ({ date: `${f.date}T12:00:00`, time: f.time }));
+      } else {
+        // Sin pre-reserva completa (4 fechas) — fallback: elegir bloque según preferencia general
+        pickedSlots = pickSlots(slots, leadInfo.horario);
+      }
       console.log('[WEBHOOK] Slots seleccionados:', JSON.stringify(pickedSlots));
 
       if (pickedSlots.length >= 4) {
