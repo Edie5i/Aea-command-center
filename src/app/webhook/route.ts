@@ -498,8 +498,15 @@ function getSystemPrompt(clientPhone?: string): string {
   return prompt;
 }
 
+async function raceWithTimeout<T>(promise: Promise<T>): Promise<T | null> {
+  const timeout = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), GEMINI_TIMEOUT_MS)
+  );
+  return Promise.race([promise, timeout]);
+}
+
 async function generateReply(userMessage: string, history: HistoryItem[], clientPhone?: string): Promise<string> {
-  const geminiCall = ai.generate({
+  const result = await raceWithTimeout(ai.generate({
     model: 'googleai/gemini-2.5-pro',
     system: getSystemPrompt(clientPhone),
     tools: AEA_TOOLS,
@@ -508,13 +515,8 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
       content: [{ text: h.text }],
     })),
     prompt: userMessage,
-  });
+  }));
 
-  const timeout = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), GEMINI_TIMEOUT_MS)
-  );
-
-  const result = await Promise.race([geminiCall, timeout]);
   if (!result) {
     console.error('[WEBHOOK] Gemini timeout after', GEMINI_TIMEOUT_MS, 'ms');
     sendMessage(ADMIN_PHONE,
@@ -523,11 +525,37 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
     return MSG_FALLBACK;
   }
   console.log('[WEBHOOK] Gemini usage:', JSON.stringify(result.usage));
-  const text = result.text?.trim();
+  let text = result.text?.trim();
+
+  // Gemini a veces devuelve texto vacío justo después de ejecutar una herramienta
+  // (sin timeout, sin error — el modelo simplemente no generó texto en ese turno).
+  // En vez de repetir la llamada desde cero (lo que volvería a llamar las
+  // herramientas y podría duplicar una inscripción o un pago), le pedimos al mismo
+  // modelo que continúe usando result.messages, que ya incluye la llamada a la
+  // herramienta y su resultado — así solo genera el texto que faltó.
   if (!text) {
-    console.error('[WEBHOOK] Gemini devolvió respuesta vacía');
+    console.error('[WEBHOOK] Gemini devolvió respuesta vacía (finishReason:', result.finishReason, ') — reintentando con el mismo historial');
+    try {
+      const retryResult = await raceWithTimeout(ai.generate({
+        model: 'googleai/gemini-2.5-pro',
+        system: SYSTEM_PROMPT,
+        tools: AEA_TOOLS,
+        messages: result.messages,
+        prompt: 'Continúa y respóndele al cliente en el idioma de la conversación. No vuelvas a llamar ninguna herramienta que ya ejecutaste arriba.',
+      }));
+      if (retryResult) {
+        console.log('[WEBHOOK] Gemini usage (reintento):', JSON.stringify(retryResult.usage));
+        text = retryResult.text?.trim();
+      }
+    } catch (e) {
+      console.error('[WEBHOOK] Error en reintento de respuesta vacía:', e);
+    }
+  }
+
+  if (!text) {
+    console.error('[WEBHOOK] Gemini devolvió respuesta vacía tras reintento');
     sendMessage(ADMIN_PHONE,
-      `⚠️ *Luz respondió vacío*\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Revisa por si acaso.`
+      `⚠️ *Luz respondió vacío (2 intentos)*\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Revisa por si acaso.`
     ).catch(e => console.error('[WEBHOOK] Error notificando respuesta vacía:', e));
     return MSG_FALLBACK;
   }
