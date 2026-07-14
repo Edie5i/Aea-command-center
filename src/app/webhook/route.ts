@@ -536,9 +536,10 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
   if (!text) {
     console.error('[WEBHOOK] Gemini devolvió respuesta vacía (finishReason:', result.finishReason, ') — reintentando con el mismo historial');
     try {
+      // Sin `system` aquí: result.messages ya incluye el system prompt original
+      // (como primer mensaje), y Gemini rechaza un segundo mensaje de rol system.
       const retryResult = await raceWithTimeout(ai.generate({
         model: 'googleai/gemini-2.5-pro',
-        system: SYSTEM_PROMPT,
         tools: AEA_TOOLS,
         messages: result.messages,
         prompt: 'Continúa y respóndele al cliente en el idioma de la conversación. No vuelvas a llamar ninguna herramienta que ya ejecutaste arriba.',
