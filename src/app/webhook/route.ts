@@ -486,16 +486,16 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
   }
 }
 
-function getSystemPrompt(clientPhone?: string): string {
+function buildTurnContext(clientPhone?: string): string {
   const hoy = new Date().toLocaleDateString('es-MX', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     timeZone: 'America/Mexico_City',
   });
-  let prompt = SYSTEM_PROMPT + `\n\n## FECHA ACTUAL\n\nHoy es ${hoy}. Usa este año para calcular cualquier fecha futura.`;
+  let ctx = `[Fecha actual: ${hoy}. Usa este año para calcular cualquier fecha futura.]`;
   if (clientPhone) {
-    prompt += `\n\n## NÚMERO DE WHATSAPP DEL CLIENTE\n\nEl número de WhatsApp del cliente en esta conversación es: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a confirmarInscripcion. No uses ningún otro número.`;
+    ctx += `\n[Número de WhatsApp del cliente en esta conversación: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a confirmarInscripcion. No uses ningún otro número.]`;
   }
-  return prompt;
+  return ctx;
 }
 
 async function raceWithTimeout<T>(promise: Promise<T>): Promise<T | null> {
@@ -506,15 +506,19 @@ async function raceWithTimeout<T>(promise: Promise<T>): Promise<T | null> {
 }
 
 async function generateReply(userMessage: string, history: HistoryItem[], clientPhone?: string): Promise<string> {
+  // SYSTEM_PROMPT se manda sin modificar (sin fecha/teléfono) para que el prefijo
+  // sea idéntico en cada llamada y Gemini pueda reutilizar el implicit prompt caching
+  // entre clientes y días. La fecha/teléfono viajan en el "prompt" del turno, que de
+  // todos modos ya es distinto en cada llamada.
   const result = await raceWithTimeout(ai.generate({
     model: 'googleai/gemini-2.5-pro',
-    system: getSystemPrompt(clientPhone),
+    system: SYSTEM_PROMPT,
     tools: AEA_TOOLS,
     messages: history.map((h) => ({
       role: h.role === 'bot' ? ('model' as const) : ('user' as const),
       content: [{ text: h.text }],
     })),
-    prompt: userMessage,
+    prompt: `${buildTurnContext(clientPhone)}\n\n${userMessage}`,
   }));
 
   if (!result) {
