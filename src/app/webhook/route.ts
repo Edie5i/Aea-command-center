@@ -261,7 +261,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - SIEMPRE termina tu mensaje con una pregunta que avance hacia el cierre (salvo el mensaje de datos de pago, que termina con "¿Alguna duda?")`;
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-const MSG_FALLBACK = 'Perdón, se me trabó el celular un segundo 🙈 ¿Me repites tu último mensaje porfa?';
+const MSG_FALLBACK = 'Perdón, ¿me repites tu último mensaje? Quiero anotar bien tus datos 📝';
 const GEMINI_TIMEOUT_MS = 90_000;
 
 // Dedup de mensajes recibidos
