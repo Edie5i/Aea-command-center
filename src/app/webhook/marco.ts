@@ -298,7 +298,12 @@ async function handleInstructor(
 
 // ── Detector de intent: ¿es candidato a instructor? ─────────────────────────
 
-const INSTRUCTOR_REGEX = /instructor|ser maestro|dar clases|ense[ñn]ar|trabajar.*manejo|conductor.*trabajo|uber.*trabajo|didi.*trabajo|quiero aplicar|reclutar/i;
+// Palabras sueltas como "instructor", "dar clases" o "enseñar" son vocabulario
+// normal de un cliente de la autoescuela (Luz las usa todo el tiempo) — deben
+// ir acompañadas de contexto de "busco trabajo" para no secuestrar una venta
+// normal (confirmado en producción: le pasó a un lead real, quedó atrapado
+// hablando con Marco a mitad de agendar su curso).
+const INSTRUCTOR_REGEX = /ser (instructor|maestro)|trabajar (de|como) instructor|puesto de instructor|vacante (de|para) instructor|instructor.*(vacante|empleo|trabajo)|quiero aplicar.*(instructor|vacante)|trabajar.*manejo|conductor.*trabajo|uber.*trabajo|didi.*trabajo|reclutar/i;
 
 export function esIntentInstructor(text: string): boolean {
   return INSTRUCTOR_REGEX.test(text);
@@ -306,7 +311,9 @@ export function esIntentInstructor(text: string): boolean {
 
 export async function esCandidatoExistente(phone: string): Promise<boolean> {
   const c = await getCandidato(phone);
-  return c !== null;
+  // Un candidato rechazado (incluyendo falsos positivos de INSTRUCTOR_REGEX)
+  // no debe quedar atrapado con Marco para siempre — puede volver a Luz.
+  return c !== null && c.estado !== 'rechazado';
 }
 
 // ── Handler principal de Marco ───────────────────────────────────────────────
