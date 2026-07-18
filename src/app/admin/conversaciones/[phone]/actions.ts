@@ -67,6 +67,10 @@ export async function sendAdminReply(phone: string, text: string): Promise<void>
       chatReason: 'Respuesta manual del equipo',
       chatUrgency: 'ninguna',
       chatLastBy: 'humano',
+      // Un humano ya está atendiendo — el bot no debe insistir con follow-ups
+      // automáticos encima de esa conversación (leads con intervención humana
+      // suelen ser más sensibles/lentos y un recordatorio de Luz los ofende).
+      nextFollowupAt: null,
     },
     'manual'
   );
