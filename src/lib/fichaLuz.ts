@@ -46,7 +46,8 @@ async function notificarCambioEstado(prev: Ficha['estado'] | null, ficha: Ficha)
 export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'web' | 'luz') {
   const ref = db.collection('fichas').doc(id);
   const snap = await ref.get();
-  const prevEstado = snap.exists ? ((snap.data() as Ficha).estado ?? null) : null;
+  const existente = snap.exists ? (snap.data() as Ficha) : null;
+  const prevEstado = existente?.estado ?? null;
 
   const precio = datos.precio ?? 0;
   const faltantes = revisarFicha(datos);
@@ -62,7 +63,9 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
     estado: faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
     telefono: datos.telefono ?? '',
-    creada: Date.now(),
+    // Preservar la fecha original — si no, cada re-guardado (ej. Luz llamando
+    // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
+    creada: existente?.creada ?? Date.now(),
   };
   await ref.set(ficha, { merge: true });
   await notificarCambioEstado(prevEstado, ficha);
