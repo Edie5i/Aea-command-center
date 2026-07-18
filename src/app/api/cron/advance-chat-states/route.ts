@@ -108,6 +108,11 @@ export async function GET(request: NextRequest) {
   for (const doc of followupSnap.docs) {
     const data = doc.data();
     const phone: string = data.phone ?? doc.id;
+
+    // Conversación pausada (ej. lead cerrado por un humano) — nunca mandar
+    // follow-ups automáticos aunque el estado siga marcado como esperando_cliente.
+    if (data.botPaused) continue;
+
     const followUpsSent: Array<{ at: Timestamp; type: string }> = data.followUpsSent ?? [];
     const nombre: string | null = data.contactName ?? data.nombre ?? null;
     const curso: string | null = data.courseInterest ?? null;

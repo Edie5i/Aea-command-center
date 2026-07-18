@@ -720,7 +720,7 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
 
   if (cmd === '!pausa') {
     const docId = await resolveDocId(db, targetPhone);
-    await db.collection('conversations').doc(docId).set({ botPaused: true }, { merge: true });
+    await db.collection('conversations').doc(docId).set({ botPaused: true, nextFollowupAt: null }, { merge: true });
     return `⏸️ Luz pausada para +${dp}\n\nAhora puedes responderle tú directamente. Usa *!reanudar ${dp}* cuando quieras que Luz retome.`;
   }
 
@@ -1290,7 +1290,7 @@ export async function POST(request: NextRequest) {
 
     if (reply.includes('56 3443 3212')) {
       import('@/lib/firestore')
-        .then(({ db }) => db.collection('conversations').doc(from).set({ botPaused: true }, { merge: true }))
+        .then(({ db }) => db.collection('conversations').doc(from).set({ botPaused: true, nextFollowupAt: null }, { merge: true }))
         .catch(e => console.error('[WEBHOOK] Auto-pause error:', e));
       sendMessage(ADMIN_PHONE,
         `🤝 *Luz cedió el turno*\n\n📱 +${from}\n\nLuz está ⏸️ pausada. Respóndele tú directamente.\nCuando termines: *!reanudar ${from}*`

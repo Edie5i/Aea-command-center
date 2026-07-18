@@ -31,7 +31,10 @@ export async function setLeadTuTurno(phone: string) {
 }
 
 export async function toggleBotPause(phone: string, paused: boolean): Promise<void> {
-  await db.collection('conversations').doc(phone).set({ botPaused: paused }, { merge: true });
+  await db.collection('conversations').doc(phone).set(
+    { botPaused: paused, ...(paused ? { nextFollowupAt: null } : {}) },
+    { merge: true }
+  );
 }
 
 export async function sendAdminReply(phone: string, text: string): Promise<void> {
