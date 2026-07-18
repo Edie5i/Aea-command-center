@@ -109,9 +109,10 @@ export async function GET(request: NextRequest) {
     const data = doc.data();
     const phone: string = data.phone ?? doc.id;
 
-    // Conversación pausada (ej. lead cerrado por un humano) — nunca mandar
-    // follow-ups automáticos aunque el estado siga marcado como esperando_cliente.
-    if (data.botPaused) continue;
+    // Conversación pausada, o donde ya intervino un humano (ej. respuesta manual
+    // desde el panel sin pausar) — nunca mandar follow-ups automáticos encima de
+    // esa atención, aunque el estado siga marcado como esperando_cliente.
+    if (data.botPaused || data.chatLastBy === 'humano') continue;
 
     const followUpsSent: Array<{ at: Timestamp; type: string }> = data.followUpsSent ?? [];
     const nombre: string | null = data.contactName ?? data.nombre ?? null;
