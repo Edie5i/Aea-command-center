@@ -27,9 +27,9 @@ const OutputSchema = z.object({
     'info_personal',
   ]),
   confidence: z.number().min(0).max(1),
-  detected_course: z.string().nullable(),
-  detected_price: z.string().nullable(),
-  detected_name: z.string().nullable(),
+  detected_course: z.string(),
+  detected_price: z.string(),
+  detected_name: z.string(),
   reasoning: z.string().max(200),
 });
 
@@ -54,9 +54,9 @@ Clasifica el ÚLTIMO MENSAJE del cliente en exactamente uno de estos intents:
 
 - **pregunta_normal**: Cualquier otra pregunta o mensaje informativo que no encaje en los anteriores.
 
-Para detected_course: si el cliente mencionó explícitamente un tipo de curso (Estándar, Automático, Moto, etc.), ponlo. Si no, null.
-Para detected_price: si el cliente mencionó o preguntó por un precio concreto, ponlo como string (ej. "$3,400"). Si no, null.
-Para detected_name: si el cliente dio su nombre completo o de pila en el ÚLTIMO MENSAJE, ponlo tal cual. Si no mencionó su nombre en ese mensaje, null.
+Para detected_course: si el cliente mencionó explícitamente un tipo de curso (Estándar, Automático, Moto, etc.), ponlo. Si no, cadena vacía "".
+Para detected_price: si el cliente mencionó o preguntó por un precio concreto, ponlo como string (ej. "$3,400"). Si no, cadena vacía "".
+Para detected_name: si el cliente dio su nombre completo o de pila en el ÚLTIMO MENSAJE, ponlo tal cual. Si no mencionó su nombre en ese mensaje, cadena vacía "".
 Para confidence: qué tan seguro estás (0.0–1.0).
 Para reasoning: máximo 2 frases explicando tu decisión.
 
