@@ -614,6 +614,30 @@ async function sendImageMessage(to: string, mediaId: string, caption?: string): 
   }
 }
 
+async function sendDocumentMessage(to: string, mediaId: string, filename: string, caption?: string): Promise<void> {
+  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+  const documentPayload: Record<string, string> = { id: mediaId, filename };
+  if (caption) documentPayload.caption = caption;
+  const payload = {
+    messaging_product: 'whatsapp',
+    to,
+    type: 'document',
+    document: documentPayload,
+  };
+  console.log('[WEBHOOK] sendDocumentMessage →', to, '| mediaId:', mediaId);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const responseText = await res.text();
+  if (!res.ok) {
+    console.error('[WEBHOOK] WhatsApp document API error:', res.status, responseText);
+  } else {
+    console.log('[WEBHOOK] Documento reenviado OK:', responseText.slice(0, 120));
+  }
+}
+
 async function sendLocationRequest(to: string, direccionConocida: string): Promise<void> {
   const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
   const payload = {
@@ -771,6 +795,8 @@ export async function POST(request: NextRequest) {
   let textBody = '';
   let messageType = 'text';
   let imageMediaId = '';
+  let documentMediaId = '';
+  let documentFilename = '';
   let audioMediaId = '';
   let audioMimeType = 'audio/ogg';
   let locationData: { latitude?: number; longitude?: number; name?: string; address?: string } = {};
@@ -793,6 +819,11 @@ export async function POST(request: NextRequest) {
     if (messageType === 'image') {
       imageMediaId = message?.image?.id ?? '';
       console.log('[WEBHOOK] Imagen recibida — mediaId:', imageMediaId, '| mime:', message?.image?.mime_type);
+    }
+    if (messageType === 'document') {
+      documentMediaId = message?.document?.id ?? '';
+      documentFilename = message?.document?.filename ?? 'comprobante.pdf';
+      console.log('[WEBHOOK] Documento recibido — mediaId:', documentMediaId, '| mime:', message?.document?.mime_type, '| filename:', documentFilename);
     }
     if (messageType === 'audio') {
       audioMediaId = message?.audio?.id ?? '';
@@ -819,7 +850,7 @@ export async function POST(request: NextRequest) {
       if (esApertura) leadSource = 'Google Ads (probable)';
     }
 
-    if (!from || (messageType !== 'image' && messageType !== 'location' && messageType !== 'audio' && !textBody)) {
+    if (!from || (messageType !== 'image' && messageType !== 'document' && messageType !== 'location' && messageType !== 'audio' && !textBody)) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
 
@@ -906,8 +937,9 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  // Comprobante de pago (imagen) — inscripción automática
-  if (messageType === 'image') {
+  // Comprobante de pago (imagen o PDF) — inscripción automática
+  if (messageType === 'image' || messageType === 'document') {
+    const mediaId = messageType === 'document' ? documentMediaId : imageMediaId;
     const history = await getHistory(from);
     let syntheticMsg: string;
     let inscriptionOk = false;
@@ -922,17 +954,23 @@ export async function POST(request: NextRequest) {
       `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
-    // Reenviar la imagen del comprobante al admin para verificar monto y banco
-    if (imageMediaId) {
-      sendImageMessage(ADMIN_PHONE, imageMediaId, `${nombreRapido} · +${from}`).catch(
-        (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
-      );
+    // Reenviar el comprobante al admin para verificar monto y banco
+    if (mediaId) {
+      if (messageType === 'document') {
+        sendDocumentMessage(ADMIN_PHONE, mediaId, documentFilename, `${nombreRapido} · +${from}`).catch(
+          (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
+        );
+      } else {
+        sendImageMessage(ADMIN_PHONE, mediaId, `${nombreRapido} · +${from}`).catch(
+          (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
+        );
+      }
 
       // Copia permanente al bucket privado + marcar depósito en la ficha única.
       // Fire-and-forget: si falla, la inscripción sigue su curso normal.
       import('@/lib/comprobantes')
         .then(async ({ subirComprobante }) => {
-          const path = await subirComprobante(imageMediaId, from);
+          const path = await subirComprobante(mediaId, from);
           const { actualizarFicha } = await import('@/lib/fichaLuz');
           await actualizarFicha(from, {
             depositoPagado: true,
@@ -969,7 +1007,7 @@ export async function POST(request: NextRequest) {
           history, from
         );
         await sendMessage(from, reply);
-        saveHistory(from, '[imagen: comprobante de pago]', reply);
+        saveHistory(from, '[comprobante de pago]', reply);
         return new NextResponse('EVENT_RECEIVED', { status: 200 });
       }
 
@@ -1017,9 +1055,9 @@ export async function POST(request: NextRequest) {
             history, from
           );
           await sendMessage(from, replyConflicto);
-          saveHistory(from, '[imagen: comprobante de pago]', replyConflicto);
+          saveHistory(from, '[comprobante de pago]', replyConflicto);
           import('@/lib/firestore')
-            .then(({ saveImageMessage }) => saveImageMessage(from, imageMediaId || 'unknown', replyConflicto))
+            .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', replyConflicto))
             .catch(e => console.error('[WEBHOOK] Firestore save error (conflicto):', e));
           return new NextResponse('EVENT_RECEIVED', { status: 200 });
         }
@@ -1131,9 +1169,9 @@ export async function POST(request: NextRequest) {
 
     const reply = await generateReply(syntheticMsg, history, from);
     await sendMessage(from, reply);
-    saveHistory(from, '[imagen: comprobante de pago]', reply);
+    saveHistory(from, '[comprobante de pago]', reply);
     import('@/lib/firestore')
-      .then(({ saveImageMessage }) => saveImageMessage(from, imageMediaId || 'unknown', reply))
+      .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', reply))
       .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
 
     if (inscriptionOk) {

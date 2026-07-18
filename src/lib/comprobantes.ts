@@ -27,7 +27,7 @@ export async function subirComprobante(mediaId: string, telefono: string): Promi
 
   // 3. Subida al bucket privado
   const mime: string = meta.mime_type ?? 'image/jpeg';
-  const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
+  const ext = mime.includes('pdf') ? 'pdf' : mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
   const path = `comprobantes/${telefono}/${Date.now()}-${randomUUID().slice(0, 8)}.${ext}`;
   await getStorage(getApp()).bucket(BUCKET_COMPROBANTES).file(path).save(buf, {
     contentType: mime,
