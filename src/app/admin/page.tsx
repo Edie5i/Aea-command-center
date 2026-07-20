@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getRecentFichas, getFichasStats, getMetricsData } from '@/lib/firestore';
+import { getMetricsData } from '@/lib/firestore';
 import { getEventosProximos } from '@/services/calendarService';
+import { traerFichas } from '@/lib/fichaLuz';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -66,15 +67,16 @@ export default async function AdminPage() {
     redirect('/admin/conversaciones/login');
   }
 
-  const [fichasStats, recentFichas, metricas, eventos] = await Promise.all([
-    getFichasStats().catch(() => ({ total: 0, thisWeek: 0, uniqueStudents: 0 })),
-    getRecentFichas(8).catch(() => []),
+  const [fichas, metricas, eventos] = await Promise.all([
+    traerFichas().catch(() => []),
     getMetricsData().catch(() => null),
     getEventosProximos(30).catch(() => []),
   ]);
 
-  const pct = (n: number, total: number) =>
-    total > 0 ? Math.round((n / total) * 100) : 0;
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const uniqueStudents = new Set(fichas.map(f => f.telefono || f.studentName)).size;
+  const fichasThisWeek = fichas.filter(f => f.creada >= weekAgo).length;
+  const recentFichas = fichas.slice(0, 8);
 
   return (
     <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
@@ -97,9 +99,9 @@ export default async function AdminPage() {
         {/* KPIs */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { value: fichasStats.uniqueStudents, label: 'Alumnos',       color: '#e2e8f0' },
-            { value: fichasStats.thisWeek,        label: 'Fichas / sem',  color: '#60a5fa' },
-            { value: eventos.length,              label: 'Próx. clases',  color: '#34d399' },
+            { value: uniqueStudents,   label: 'Alumnos',       color: '#e2e8f0' },
+            { value: fichasThisWeek,   label: 'Fichas / sem',  color: '#60a5fa' },
+            { value: eventos.length,   label: 'Próx. clases',  color: '#34d399' },
           ].map(({ value, label, color }) => (
             <div key={label} className="rounded-2xl p-4 text-center" style={CARD}>
               <p className="text-2xl font-bold" style={{ color }}>{value}</p>
@@ -184,7 +186,7 @@ export default async function AdminPage() {
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>Fichas recientes</p>
-            <Link href="/admin/alumnos" className="text-xs" style={{ color: '#60a5fa' }}>Ver alumnos →</Link>
+            <Link href="/admin/reservas" className="text-xs" style={{ color: '#60a5fa' }}>Ver reservas →</Link>
           </div>
 
           {recentFichas.length === 0 ? (
@@ -194,25 +196,26 @@ export default async function AdminPage() {
           ) : (
             <div>
               {recentFichas.map((f, i) => {
-                const completionPct = pct(f.completedCount, f.totalTopics);
+                const reservada = f.faltantes.length === 0;
                 return (
                   <div key={f.id} className="px-4 py-3 flex items-center gap-3"
                     style={{ borderTop: i > 0 ? DIVIDER : undefined }}>
                     <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
                       style={{ background: 'linear-gradient(135deg, #334155, #1e293b)', border: '1px solid rgba(148,163,184,0.18)', color: '#94a3b8' }}>
-                      {f.studentName.charAt(0).toUpperCase()}
+                      {(f.studentName || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="font-semibold text-sm truncate" style={{ color: '#e2e8f0' }}>{f.studentName}</p>
-                        <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(f.dateMillis)}</span>
+                        <p className="font-semibold text-sm truncate" style={{ color: '#e2e8f0' }}>{f.studentName || 'Sin nombre'}</p>
+                        <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(f.creada)}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
-                          <div className="h-full rounded-full"
-                            style={{ width: `${completionPct}%`, background: 'linear-gradient(90deg, #34d399, #10b981)' }} />
-                        </div>
-                        <span className="text-xs shrink-0" style={{ color: '#475569' }}>{f.completedCount}/{f.totalTopics}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs truncate" style={{ color: '#475569' }}>
+                          {f.curso || 'Curso ?'} · {f.origen === 'luz' ? '💬 Luz' : '🌐 Web'}
+                        </span>
+                        <span className="text-xs shrink-0 font-semibold" style={{ color: reservada ? '#34d399' : '#f59e0b' }}>
+                          {reservada ? '✅ Reservada' : `Falta: ${f.faltantes.join(', ')}`}
+                        </span>
                       </div>
                     </div>
                   </div>
