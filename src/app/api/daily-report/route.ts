@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     let calificados = 0;
     let ganados = 0; // ventas cerradas
     let completados = 0;
-    const leads = [];
+    const leads: string[] = [];
 
     snapshot.forEach(doc => {
       const data = doc.data();
