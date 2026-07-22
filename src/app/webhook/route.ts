@@ -269,7 +269,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - NUNCA te quedes callada ni respondas vacío — si no tienes la información, dilo en una línea y regresa al paso pendiente del flujo con una pregunta
 - SIEMPRE termina tu mensaje con una pregunta que avance hacia el cierre (salvo el mensaje de datos de pago, que termina con "¿Alguna duda?")`;
 
-const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
+const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525563206338').trim();
 const MSG_FALLBACK = 'Perdón, ¿me repites tu último mensaje? Quiero anotar bien tus datos 📝';
 const GEMINI_TIMEOUT_MS = 90_000;
 
