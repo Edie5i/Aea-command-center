@@ -19,5 +19,3 @@ env:
     secret: ADMIN_PIN
   - variable: ADMIN_NOTIFICATION_PHONE
     secret: ADMIN_NOTIFICATION_PHONE
-  - variable: CLOUD_SCHEDULER_TOKEN
-    secret: CLOUD_SCHEDULER_TOKEN
