@@ -139,7 +139,7 @@ Manda TODO en un solo mensaje. SIEMPRE incluye los tres datos (nombre, horario y
 🕐 [las 4 fechas y hora acordadas, ej: lunes 22, martes 23, miércoles 24 y jueves 25, a las 10am]
 📍 [dirección completa: calle, número y colonia]
 
-Para apartar tu lugar son $690 — preferimos transferencia porque confirma al instante 👇
+Para apartar tu lugar son $690 — al hacer la transferencia aceptas nuestros términos de contratación. Preferimos transferencia porque confirma al instante 👇
 
 BBVA | Eduardo W. Czaplewski (cuenta PYME)
 Cuenta: 048 469 5739 | CLABE: 012 180 00484695739 9
