@@ -1194,12 +1194,12 @@ export async function POST(request: NextRequest) {
       // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
       sendLocationRequest(from, leadZona).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
 
-      // Clases agendadas automáticamente — marcar como ganado para evitar que Luz siga respondiendo
+      // Clases agendadas automáticamente — marcar como cerrado para evitar que Luz siga respondiendo
       // El admin verifica monto y banco desde el panel, pero el cliente ya está inscrito
       import('@/lib/firestore')
         .then(({ updateChatState }) =>
           updateChatState(from, {
-            chatState: 'ganado',
+            chatState: 'cerrado',
             chatReason: 'Inscripción completada automáticamente. Admin verifica comprobante.',
             chatUrgency: 'baja',
           }, 'manual')
@@ -1266,7 +1266,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Si ya está inscrito, Luz no responde más
-    if (convData?.chatState === 'ganado' || convData?.chatState === 'completado') {
+    if (convData?.chatState === 'cerrado') {
       console.log('[WEBHOOK] Cliente ya inscrito para', from, '— guardando mensaje sin responder');
       saveUserMessage(from, textBody).catch(e => console.error('[WEBHOOK] saveUserMessage (inscrito):', e));
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
