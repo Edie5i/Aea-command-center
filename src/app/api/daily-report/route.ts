@@ -29,21 +29,19 @@ export async function GET(req: NextRequest) {
     let totalLeads = 0;
     let calificados = 0;
     let ganados = 0; // ventas cerradas
-    let completados = 0;
     const leads: string[] = [];
 
     snapshot.forEach(doc => {
       const data = doc.data();
       totalLeads++;
 
-      if (data.chatState === 'ganado') ganados++;
-      if (data.chatState === 'completado') completados++;
+      if (data.chatState === 'cerrado') ganados++;
 
       const nombre = data.contactName || `+${doc.id}`;
       const estado = data.chatState || 'desconocido';
       const curso = data.courseInterest || '—';
 
-      if (estado === 'ganado' || estado === 'completado') {
+      if (estado === 'cerrado') {
         leads.push(`✅ ${nombre} (${curso})`);
       } else if (data.leadCalificadoNotificado) {
         calificados++;
@@ -64,7 +62,7 @@ export async function GET(req: NextRequest) {
       '',
       `👥 Leads del día: *${totalLeads}*`,
       `📋 Calificados: *${calificados}*`,
-      `🎉 Ventas cerradas: *${ganados + completados}*`,
+      `🎉 Ventas cerradas: *${ganados}*`,
     ];
 
     if (leads.length > 0) {
@@ -81,7 +79,7 @@ export async function GET(req: NextRequest) {
     // Enviar a Luz
     await sendMessage(NOTIF_PHONE, reporte);
 
-    return NextResponse.json({ success: true, leads: totalLeads, sales: ganados + completados });
+    return NextResponse.json({ success: true, leads: totalLeads, sales: ganados });
   } catch (error) {
     console.error('[DAILY-REPORT] Error:', error);
     // Notificar error
