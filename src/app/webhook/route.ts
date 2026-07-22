@@ -1194,18 +1194,17 @@ export async function POST(request: NextRequest) {
       // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
       sendLocationRequest(from, leadZona).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
 
-      // Clases agendadas automáticamente, pero el depósito AÚN NO está verificado por un humano.
-      // No cerrar como "ganado" todavía — eso se hace manualmente desde el panel una vez
-      // que el admin confirma monto y banco (ver StateActions / closeLead).
+      // Clases agendadas automáticamente — marcar como ganado para evitar que Luz siga respondiendo
+      // El admin verifica monto y banco desde el panel, pero el cliente ya está inscrito
       import('@/lib/firestore')
         .then(({ updateChatState }) =>
           updateChatState(from, {
-            chatState: 'tu_turno',
-            chatReason: 'Comprobante recibido — verificar monto y banco antes de cerrar',
-            chatUrgency: 'alta',
+            chatState: 'ganado',
+            chatReason: 'Inscripción completada automáticamente. Admin verifica comprobante.',
+            chatUrgency: 'baja',
           }, 'manual')
         )
-        .catch((e) => console.error('[WEBHOOK] Error marcando lead para revisión:', e));
+        .catch((e) => console.error('[WEBHOOK] Error marcando inscripción completada:', e));
     } else {
       // Sin inscripción → recalcular estado normalmente
       import('@/lib/chat-state')
@@ -1263,6 +1262,13 @@ export async function POST(request: NextRequest) {
           `⏸️ *Lead pausado te escribió*\n\n📱 +${from}\n💬 "${textBody.slice(0, 150)}"\n\nLuz no le va a responder. Contéstale tú o usa *!reanudar ${from}*.`
         ).catch(e => console.error('[WEBHOOK] Error notificando lead pausado:', e));
       }
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+
+    // Si ya está inscrito, Luz no responde más
+    if (convData?.chatState === 'ganado' || convData?.chatState === 'completado') {
+      console.log('[WEBHOOK] Cliente ya inscrito para', from, '— guardando mensaje sin responder');
+      saveUserMessage(from, textBody).catch(e => console.error('[WEBHOOK] saveUserMessage (inscrito):', e));
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
   }
