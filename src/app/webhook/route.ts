@@ -521,7 +521,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
   // entre clientes y días. La fecha/teléfono viajan en el "prompt" del turno, que de
   // todos modos ya es distinto en cada llamada.
   const result = await raceWithTimeout(ai.generate({
-    model: 'googleai/gemini-2.5-pro',
+    model: 'googleai/gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     tools: AEA_TOOLS,
     messages: history.map((h) => ({
@@ -553,7 +553,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
       // Sin `system` aquí: result.messages ya incluye el system prompt original
       // (como primer mensaje), y Gemini rechaza un segundo mensaje de rol system.
       const retryResult = await raceWithTimeout(ai.generate({
-        model: 'googleai/gemini-2.5-pro',
+        model: 'googleai/gemini-2.5-flash',
         tools: AEA_TOOLS,
         messages: result.messages,
         prompt: 'No generaste texto en tu turno anterior. Respóndele ahora al cliente en el idioma de la conversación, siguiendo exactamente las instrucciones del system prompt para el paso en el que estás (por ejemplo, si ya tienes nombre + horario + zona, manda el mensaje de CIERRE completo con los datos de pago — no un resumen genérico). No vuelvas a llamar ninguna herramienta que ya ejecutaste arriba.',
