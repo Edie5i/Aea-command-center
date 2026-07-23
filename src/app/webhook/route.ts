@@ -9,6 +9,7 @@ import { normalizePhone } from '@/lib/phone';
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
+const PHONE_ID_SANDBOX = process.env.WHATSAPP_PHONE_NUMBER_ID ?? '';
 
 const SYSTEM_PROMPT = `Eres Luz, asesora de ventas de Auto Escuela Americana (AEA). Atiendes por WhatsApp. Eres cálida, directa y genuina — una persona real, no un bot.
 
@@ -577,8 +578,9 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
   return text;
 }
 
-async function sendMessage(to: string, text: string): Promise<void> {
-  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+async function sendMessage(to: string, text: string, phoneId?: string): Promise<void> {
+  const actualPhoneId = phoneId || PHONE_ID;
+  const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -597,8 +599,9 @@ async function sendMessage(to: string, text: string): Promise<void> {
   }
 }
 
-async function sendImageMessage(to: string, mediaId: string, caption?: string): Promise<void> {
-  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+async function sendImageMessage(to: string, mediaId: string, caption?: string, phoneId?: string): Promise<void> {
+  const actualPhoneId = phoneId || PHONE_ID;
+  const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
   const imagePayload: Record<string, string> = { id: mediaId };
   if (caption) imagePayload.caption = caption;
   const payload = {
@@ -621,8 +624,9 @@ async function sendImageMessage(to: string, mediaId: string, caption?: string): 
   }
 }
 
-async function sendDocumentMessage(to: string, mediaId: string, filename: string, caption?: string): Promise<void> {
-  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+async function sendDocumentMessage(to: string, mediaId: string, filename: string, caption?: string, phoneId?: string): Promise<void> {
+  const actualPhoneId = phoneId || PHONE_ID;
+  const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
   const documentPayload: Record<string, string> = { id: mediaId, filename };
   if (caption) documentPayload.caption = caption;
   const payload = {
@@ -645,8 +649,9 @@ async function sendDocumentMessage(to: string, mediaId: string, filename: string
   }
 }
 
-async function sendLocationRequest(to: string, direccionConocida: string): Promise<void> {
-  const url = `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`;
+async function sendLocationRequest(to: string, direccionConocida: string, phoneId?: string): Promise<void> {
+  const actualPhoneId = phoneId || PHONE_ID;
+  const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
   const payload = {
     messaging_product: 'whatsapp',
     to,
@@ -809,11 +814,17 @@ export async function POST(request: NextRequest) {
   let locationData: { latitude?: number; longitude?: number; name?: string; address?: string } = {};
   let leadSource: string | null = null;
   let waDisplayName: string | null = null;
+  let phoneId = PHONE_ID;
 
   try {
     const body = await request.json();
     console.log('[WEBHOOK] POST recibido:', JSON.stringify(body).slice(0, 300));
     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    const recipientId = body?.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id ?? PHONE_ID;
+    if (recipientId === PHONE_ID_SANDBOX || recipientId === PHONE_ID) {
+      phoneId = recipientId;
+      console.log('[WEBHOOK] Mensaje recibido en:', phoneId);
+    }
 
     if (!message) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -906,12 +917,12 @@ export async function POST(request: NextRequest) {
         textBody = transcription;
         messageType = 'text';
       } else {
-        await sendMessage(from, 'No pude escuchar bien tu nota de voz — ¿me lo puedes escribir? 🙏');
+        await sendMessage(from, 'No pude escuchar bien tu nota de voz — ¿me lo puedes escribir? 🙏', phoneId);
         return new NextResponse('EVENT_RECEIVED', { status: 200 });
       }
     } catch (e) {
       console.error('[WEBHOOK] Error transcribiendo audio:', e);
-      await sendMessage(from, 'No pude escuchar bien tu nota de voz — ¿me lo puedes escribir? 🙏');
+      await sendMessage(from, 'No pude escuchar bien tu nota de voz — ¿me lo puedes escribir? 🙏', phoneId);
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
   }
@@ -940,7 +951,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Confirmar al cliente
-    await sendMessage(from, `¡Listo! Guardé tu ubicación 📍 El instructor llegará ahí el día de tu primera clase.`);
+    await sendMessage(from, `¡Listo! Guardé tu ubicación 📍 El instructor llegará ahí el día de tu primera clase.`, phoneId);
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
@@ -964,11 +975,11 @@ export async function POST(request: NextRequest) {
     // Reenviar el comprobante al admin para verificar monto y banco
     if (mediaId) {
       if (messageType === 'document') {
-        sendDocumentMessage(ADMIN_PHONE, mediaId, documentFilename, `${nombreRapido} · +${from}`).catch(
+        sendDocumentMessage(ADMIN_PHONE, mediaId, documentFilename, `${nombreRapido} · +${from}`, phoneId).catch(
           (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
         );
       } else {
-        sendImageMessage(ADMIN_PHONE, mediaId, `${nombreRapido} · +${from}`).catch(
+        sendImageMessage(ADMIN_PHONE, mediaId, `${nombreRapido} · +${from}`, phoneId).catch(
           (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
         );
       }
@@ -1013,7 +1024,7 @@ export async function POST(request: NextRequest) {
           `Confirma que recibiste el pago y pídele amablemente que te dé su calle, número y colonia para el punto de encuentro con el instructor.`,
           history, from
         );
-        await sendMessage(from, reply);
+        await sendMessage(from, reply, phoneId);
         saveHistory(from, '[comprobante de pago]', reply);
         return new NextResponse('EVENT_RECEIVED', { status: 200 });
       }
@@ -1061,7 +1072,7 @@ export async function POST(request: NextRequest) {
             `Confírmale la recepción del pago, discúlpate brevemente por el inconveniente, y pídele que nos comparta 2 o 3 opciones de días y horarios que le funcionen para sus clases.`,
             history, from
           );
-          await sendMessage(from, replyConflicto);
+          await sendMessage(from, replyConflicto, phoneId);
           saveHistory(from, '[comprobante de pago]', replyConflicto);
           import('@/lib/firestore')
             .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', replyConflicto))
@@ -1175,7 +1186,7 @@ export async function POST(request: NextRequest) {
     }
 
     const reply = await generateReply(syntheticMsg, history, from);
-    await sendMessage(from, reply);
+    await sendMessage(from, reply, phoneId);
     saveHistory(from, '[comprobante de pago]', reply);
     import('@/lib/firestore')
       .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', reply))
@@ -1184,16 +1195,17 @@ export async function POST(request: NextRequest) {
     if (inscriptionOk) {
       // Ficha de inscripción al cliente
       if (fichaClienteMsg) {
-        sendMessage(from, fichaClienteMsg).catch(e => console.error('[WEBHOOK] Error enviando ficha cliente:', e));
+        sendMessage(from, fichaClienteMsg, phoneId).catch(e => console.error('[WEBHOOK] Error enviando ficha cliente:', e));
       }
 
       // Enviar términos y condiciones + aviso de privacidad al alumno
       sendMessage(from,
-        `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\nautoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\nautoescuelaamericana.com/aviso-privacidad`
+        `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\nautoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\nautoescuelaamericana.com/aviso-privacidad`,
+        phoneId
       ).catch(e => console.error('[WEBHOOK] Error enviando T&C:', e));
 
       // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
-      sendLocationRequest(from, leadZona).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
+      sendLocationRequest(from, leadZona, phoneId).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
 
       // Clases agendadas automáticamente — marcar como cerrado para evitar que Luz siga respondiendo
       // El admin verifica monto y banco desde el panel, pero el cliente ya está inscrito
@@ -1236,7 +1248,7 @@ export async function POST(request: NextRequest) {
       .catch((e) => console.error('[WEBHOOK] Error notificando nuevo lead:', e));
 
     const welcome = buildWelcomeMessage(waDisplayName, leadSource !== null);
-    await sendMessage(from, welcome);
+    await sendMessage(from, welcome, phoneId);
     saveHistory(from, textBody, welcome);
     import('@/lib/firestore')
       .then(async ({ saveConversationMessage, db }) => {
@@ -1260,7 +1272,8 @@ export async function POST(request: NextRequest) {
       // No dejar leads pausados en el limbo: avisar al admin que le escribieron
       if (from !== ADMIN_PHONE) {
         sendMessage(ADMIN_PHONE,
-          `⏸️ *Lead pausado te escribió*\n\n📱 +${from}\n💬 "${textBody.slice(0, 150)}"\n\nLuz no le va a responder. Contéstale tú o usa *!reanudar ${from}*.`
+          `⏸️ *Lead pausado te escribió*\n\n📱 +${from}\n💬 "${textBody.slice(0, 150)}"\n\nLuz no le va a responder. Contéstale tú o usa *!reanudar ${from}*.`,
+          phoneId
         ).catch(e => console.error('[WEBHOOK] Error notificando lead pausado:', e));
       }
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -1293,14 +1306,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await sendMessage(from, reply);
+    await sendMessage(from, reply, phoneId);
 
     if (reply.includes('56 3443 3212')) {
       import('@/lib/firestore')
         .then(({ db }) => db.collection('conversations').doc(from).set({ botPaused: true, nextFollowupAt: null }, { merge: true }))
         .catch(e => console.error('[WEBHOOK] Auto-pause error:', e));
       sendMessage(ADMIN_PHONE,
-        `🤝 *Luz cedió el turno*\n\n📱 +${from}\n\nLuz está ⏸️ pausada. Respóndele tú directamente.\nCuando termines: *!reanudar ${from}*`
+        `🤝 *Luz cedió el turno*\n\n📱 +${from}\n\nLuz está ⏸️ pausada. Respóndele tú directamente.\nCuando termines: *!reanudar ${from}*`,
+        phoneId
       ).catch(e => console.error('[WEBHOOK] Error notif hand-off:', e));
     }
 
