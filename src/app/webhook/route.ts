@@ -1308,7 +1308,12 @@ export async function POST(request: NextRequest) {
 
     await sendMessage(from, reply, phoneId);
 
-    if (reply.includes('56 3443 3212')) {
+    // Detección robusta de hand-off a humano: no depender del formato exacto del número.
+    // Captura cualquier variante del teléfono del asesor (56 3443 3212 / 5634433212 / con
+    // guiones o espacios) normalizando a dígitos, más la frase canónica "te conecto con".
+    const replyDigits = reply.replace(/\D/g, '');
+    const esHandoff = replyDigits.includes('5634433212') || /te conecto con/i.test(reply);
+    if (esHandoff) {
       import('@/lib/firestore')
         .then(({ db }) => db.collection('conversations').doc(from).set({ botPaused: true, nextFollowupAt: null }, { merge: true }))
         .catch(e => console.error('[WEBHOOK] Auto-pause error:', e));
