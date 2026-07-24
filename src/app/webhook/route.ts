@@ -9,7 +9,6 @@ import { normalizePhone } from '@/lib/phone';
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
-const PHONE_ID_SANDBOX = process.env.WHATSAPP_PHONE_NUMBER_ID ?? '';
 
 const SYSTEM_PROMPT = `Eres Luz, asesora de ventas de Auto Escuela Americana (AEA). Atiendes por WhatsApp. Eres cálida, directa y genuina — una persona real, no un bot.
 
@@ -820,11 +819,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('[WEBHOOK] POST recibido:', JSON.stringify(body).slice(0, 300));
     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-    const recipientId = body?.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id ?? PHONE_ID;
-    if (recipientId === PHONE_ID_SANDBOX || recipientId === PHONE_ID) {
-      phoneId = recipientId;
-      console.log('[WEBHOOK] Mensaje recibido en:', phoneId);
-    }
+    // Responder SIEMPRE desde el número donde llegó el mensaje: es el que tiene la ventana
+    // de 24h abierta con el cliente. Antes un guard con IDs hardcodeados descartaba números
+    // no reconocidos y caía al default (PHONE_ID), causando #131030 "recipient not in allowed
+    // list" cuando el número de producción cambiaba y el secret quedaba desactualizado.
+    phoneId = body?.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id ?? PHONE_ID;
+    console.log('[WEBHOOK] Mensaje recibido en:', phoneId);
 
     if (!message) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
