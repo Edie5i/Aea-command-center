@@ -577,7 +577,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
   return text;
 }
 
-async function sendMessage(to: string, text: string, phoneId?: string): Promise<void> {
+async function sendMessage(to: string, text: string, phoneId?: string): Promise<boolean> {
   const actualPhoneId = phoneId || PHONE_ID;
   const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
   const res = await fetch(url, {
@@ -595,7 +595,60 @@ async function sendMessage(to: string, text: string, phoneId?: string): Promise<
   });
   if (!res.ok) {
     console.error('[WEBHOOK] WhatsApp API error:', res.status, await res.text());
+    // Si la alerta era para el admin y falló (típicamente ventana de 24h cerrada, #131047),
+    // cae a la plantilla aprobada — se entrega sin importar la ventana, así el admin nunca
+    // se pierde un aviso de "necesita humano" o de que Luz falló. El texto libre normal
+    // sigue funcionando dentro de la ventana; esto es solo la red de seguridad.
+    if (to === ADMIN_PHONE) {
+      const tipo =
+        (text.split('\n')[0] || '').replace(/[*_~`>#]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80) ||
+        'Alerta AEA';
+      const phoneMatch = text.match(/\+?\d[\d\s]{8,}\d/);
+      const contacto = phoneMatch ? phoneMatch[0].replace(/\s+/g, '') : 'N/D';
+      await sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX', [tipo, contacto], actualPhoneId).catch(
+        (e) => console.error('[WEBHOOK] Fallback plantilla admin falló:', e)
+      );
+    }
+    return false;
   }
+  return true;
+}
+
+// Envía una plantilla aprobada por Meta (no depende de la ventana de 24h).
+async function sendTemplateMessage(
+  to: string,
+  templateName: string,
+  lang: string,
+  bodyParams: string[],
+  phoneId?: string,
+): Promise<boolean> {
+  const actualPhoneId = phoneId || PHONE_ID;
+  const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${WA_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: lang },
+        components: [
+          { type: 'body', parameters: bodyParams.map((t) => ({ type: 'text', text: t })) },
+        ],
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error('[WEBHOOK] WhatsApp template error:', res.status, await res.text());
+    return false;
+  }
+  console.log('[WEBHOOK] 📨 Plantilla admin entregada:', templateName);
+  return true;
 }
 
 async function sendImageMessage(to: string, mediaId: string, caption?: string, phoneId?: string): Promise<void> {
