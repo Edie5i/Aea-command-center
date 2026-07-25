@@ -52,133 +52,15 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
     }
   }
 
-  function buildHtml(): string {
-    const folio = 'AEA-' + new Date(data.fechaConfirmacion).getFullYear() + '-' + data.fechaConfirmacion.toString().slice(-4);
-    const fechaEmision = new Date(data.fechaConfirmacion).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
-    const esPreReserva = data.status === 'pre_reserva';
-    const displayPhone = data.telefono.startsWith('52') && data.telefono.length === 12 ? data.telefono.slice(2) : data.telefono;
-    const cursoLabel = (data.curso ?? data.transmision ?? '').toUpperCase();
-
-    const fmtDate = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
-    const fmtTime = (t: string) => {
-      if (!t) return '—';
-      const [hh, mm] = t.split(':').map(Number);
-      const ampm = hh >= 12 ? 'PM' : 'AM';
-      const h12 = hh > 12 ? hh - 12 : hh === 0 ? 12 : hh;
-      return `${h12}:${mm.toString().padStart(2, '0')} ${ampm}`;
-    };
-
-    const sesionesHtml = esPreReserva && data.fechas.length === 0
-      ? `<div class="pre-nota">Tus fechas se confirman al realizar el apartado de $690. El instructor se asigna 24h antes de tu primera clase.</div>`
-      : Array.from({ length: Math.max(data.fechas.length, 4) }, (_, i) => {
-          const f = data.fechas[i];
-          return f
-            ? `<div class="sesion"><span class="num">${i + 1}</span><span class="fecha-txt">${fmtDate(f.date)}</span><span class="hora-txt">${fmtTime(f.time)}</span></div>`
-            : `<div class="sesion vacia"><span class="num">${i + 1}</span><span class="linea"></span></div>`;
-        }).join('');
-
-    return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ficha ${folio} — ${data.nombre}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f4f4f4;color:#14181f;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .page{background:#fff;max-width:720px;margin:24px auto;padding:32px 40px;border-radius:8px;box-shadow:0 2px 16px rgba(0,0,0,.08)}
-  .top-bar{height:6px;background:#004AAD;margin:-32px -40px 0;border-radius:8px 8px 0 0}
-  .header{display:flex;align-items:flex-start;justify-content:space-between;margin-top:24px;padding-bottom:16px;border-bottom:2px solid #14181f}
-  .logo-box{display:flex;align-items:center;gap:12px}
-  .logo-sq{background:#004AAD;color:#fff;font-weight:900;font-size:18px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:4px}
-  .logo-txt h1{font-size:13px;font-weight:800;letter-spacing:.05em;color:#14181f}
-  .logo-txt p{font-size:9px;color:#6b6357;letter-spacing:.08em}
-  .meta{text-align:right}
-  .meta .label{font-size:8px;font-weight:700;color:#004AAD;letter-spacing:.1em}
-  .meta .val{font-family:'Courier New',monospace;font-size:11px;color:#14181f}
-  .titulo{margin:24px 0 20px}
-  .titulo h2{font-size:32px;font-weight:900;line-height:1.1;color:#14181f}
-  .titulo p{font-size:11px;color:#6b6357;font-style:italic;margin-top:4px}
-  .seccion{margin:20px 0 12px;display:flex;align-items:center;gap:8px}
-  .sec-num{background:#004AAD;color:#fff;font-size:9px;font-weight:800;width:22px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0}
-  .sec-tit{font-size:10px;font-weight:800;letter-spacing:.1em;color:#14181f;border-bottom:1px solid #004AAD;flex:1;padding-bottom:2px}
-  .campo-label{font-size:9px;color:#6b6357;letter-spacing:.06em;margin-bottom:2px}
-  .campo-val{font-family:'Courier New',monospace;font-size:13px;color:#14181f;border-bottom:1px dashed #b4b4b4;padding-bottom:4px;margin-bottom:12px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px}
-  .curso-box{background:#004AAD;color:#fff;padding:14px 18px;border-radius:6px;margin:8px 0 16px}
-  .curso-box h3{font-size:18px;font-weight:800}
-  .curso-box p{font-size:10px;color:#b4c8f0;margin-top:4px;font-family:'Courier New',monospace}
-  .sesion{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px dashed #d0d0d0}
-  .sesion.vacia{opacity:.35}
-  .num{background:#004AAD;color:#fff;font-size:9px;font-weight:800;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0}
-  .fecha-txt{font-family:'Courier New',monospace;font-size:12px;flex:1;color:#14181f}
-  .hora-txt{font-family:'Courier New',monospace;font-size:12px;font-weight:700;color:#004AAD;flex-shrink:0}
-  .linea{flex:1;border-bottom:1px dashed #ccc}
-  .pre-nota{background:#ebf3ff;border-left:3px solid #004AAD;padding:10px 14px;font-size:11px;color:#14181f;border-radius:0 4px 4px 0;margin:8px 0}
-  .terminos{background:#ebf3ff;border-left:3px solid #004AAD;padding:12px 16px;border-radius:0 4px 4px 0;margin:20px 0}
-  .terminos p{font-size:10px;color:#14181f;line-height:1.5}
-  .terminos a{color:#004AAD;font-weight:700}
-  .firmas{display:flex;justify-content:space-between;margin-top:28px;padding-top:16px}
-  .firma{text-align:center;width:220px}
-  .firma-linea{border-top:1px solid #14181f;padding-top:6px;font-size:9px;color:#6b6357;letter-spacing:.08em}
-  .footer{margin-top:28px;padding-top:12px;border-top:1px solid #14181f;display:flex;justify-content:space-between;font-family:'Courier New',monospace;font-size:9px;color:#6b6357}
-  .footer a{color:#004AAD;font-weight:700;text-decoration:none}
-  @media print{body{background:#fff}.page{box-shadow:none;margin:0;border-radius:0;padding:24px 32px}}
-</style>
-</head><body>
-<div class="page">
-  <div class="top-bar"></div>
-  <div class="header">
-    <div class="logo-box">
-      <div class="logo-sq">A</div>
-      <div class="logo-txt"><h1>AUTO ESCUELA AMERICANA</h1><p>APRENDE A MANEJAR · CDMX</p></div>
-    </div>
-    <div class="meta">
-      <div class="label">FOLIO</div><div class="val">${folio}</div>
-      <div class="label" style="margin-top:6px">FECHA</div><div class="val">${fechaEmision}</div>
-    </div>
-  </div>
-  <div class="titulo">
-    <h2>${esPreReserva ? 'FICHA DE\nPRE-RESERVA' : 'FICHA DE\nINSCRIPCIÓN'}</h2>
-    <p>${esPreReserva ? 'Aparta tu lugar con $690 para confirmar fechas' : 'Documento oficial de registro'}</p>
-  </div>
-  <div class="seccion"><div class="sec-num">01</div><div class="sec-tit">DATOS DEL ALUMNO</div></div>
-  <div class="campo-label">NOMBRE</div>
-  <div class="campo-val" style="font-size:16px">${data.nombre}</div>
-  <div class="grid2">
-    <div><div class="campo-label">TELÉFONO</div><div class="campo-val">${displayPhone}</div></div>
-    <div><div class="campo-label">EMAIL (opcional)</div><div class="campo-val">&nbsp;</div></div>
-  </div>
-  <div class="campo-label">DIRECCIÓN / PUNTO DE ENCUENTRO</div>
-  <div class="campo-val">${data.zona || '—'}</div>
-  <div class="seccion"><div class="sec-num">02</div><div class="sec-tit">CURSO ELEGIDO</div></div>
-  <div class="curso-box">
-    <h3>${cursoLabel}</h3>
-    <p>${esPreReserva && data.fechas.length === 0 ? 'Fechas por confirmar · Apartado $690' : `Inicio: ${data.fechas[0] ? fmtDate(data.fechas[0].date) : '—'} · ${data.fechas[0] ? fmtTime(data.fechas[0].time) : '—'} · ${data.fechas.length} sesiones`}</p>
-  </div>
-  <div class="seccion"><div class="sec-num">03</div><div class="sec-tit">FECHAS Y HORARIOS</div></div>
-  ${sesionesHtml}
-  <div class="terminos">
-    <p>Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:<br>
-    <a href="https://autoescuelaamericana.com/terminos">autoescuelaamericana.com/terminos</a><br><br>
-    El apartado garantiza el lugar y fecha de inicio. Cancelaciones con menos de 24 hrs de anticipación no son reembolsables. Documento generado electrónicamente.</p>
-  </div>
-  <div class="firmas">
-    <div class="firma"><div class="firma-linea">FIRMA DEL ALUMNO</div></div>
-    <div class="firma"><div class="firma-linea">ASESOR / SELLO AEA</div></div>
-  </div>
-  <div class="footer">
-    <span>Torreón 49, Roma Sur, CDMX · 56 3443 3212</span>
-    <a href="https://app.autoescuelaamericana.com">app.autoescuelaamericana.com</a>
-  </div>
-</div>
-</body></html>`;
-  }
-
   async function handleDownload() {
     const fechasIncompletas = data.fechas.filter(f => !f.date || !f.time);
     if (fechasIncompletas.length > 0) {
       alert(`⚠️ ${fechasIncompletas.length} sesión(es) sin fecha u horario completo. Corrige los datos antes de generar la ficha.`);
       return;
     }
-    const html = buildHtml();
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    // Abrir la ficha como PDF (visor nativo del navegador), no como blob HTML
+    // que a veces no abre. Reutiliza el mismo generador que usa "Enviar WA".
+    const { blob } = await buildPdfBlob();
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
     setTimeout(() => URL.revokeObjectURL(url), 60000);
