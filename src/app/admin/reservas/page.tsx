@@ -95,7 +95,7 @@ export default async function ReservasPage() {
                 <span className="text-xs font-semibold" style={{ color: b.color }}>{b.texto}</span>
                 {f.comprobanteURL && (
                   <a
-                    href={f.comprobanteURL}
+                    href={f.comprobanteURL.replace('/api/admin/comprobante', '/admin/comprobante')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-semibold px-3 py-1.5 rounded-full"
