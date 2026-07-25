@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
     secure: true,
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 30, // 30 días
-    path: '/admin',
+    // path '/' (no '/admin') para que la cookie también llegue a las APIs de admin
+    // bajo /api/admin/* (ej. /api/admin/comprobante) y /api/asignar-clase. Con
+    // path '/admin' el navegador no la enviaba y esas rutas daban 401.
+    path: '/',
   });
 
   return res;
