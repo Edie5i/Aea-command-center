@@ -854,6 +854,28 @@ Somos la autoescuela con más reseñas en CDMX — 4.8★ con más de 220 alumno
 ¿Ya manejas algo o empiezas desde cero?`;
 }
 
+// Candado atómico de inscripción por teléfono. Devuelve true si se puede proceder (nueva
+// inscripción) o false si ya hubo una en los últimos 10 min (comprobante reenviado o webhook
+// duplicado). Ventana de 10 min para no bloquear reinscripciones legítimas futuras.
+// Fail-open: ante cualquier error de Firestore procede (mejor un raro duplicado que perder venta).
+async function claimInscripcion(phone: string): Promise<boolean> {
+  try {
+    const { db } = await import('@/lib/firestore');
+    const ref = db.collection('conversations').doc(phone);
+    let proceder = true;
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const last = (snap.exists ? (snap.data() as { ultimaInscripcionAt?: number })?.ultimaInscripcionAt : 0) || 0;
+      if (last && Date.now() - last < 10 * 60 * 1000) { proceder = false; return; }
+      tx.set(ref, { ultimaInscripcionAt: Date.now() }, { merge: true });
+    });
+    return proceder;
+  } catch (e) {
+    console.error('[WEBHOOK] claimInscripcion error — fail-open (procede):', e);
+    return true;
+  }
+}
+
 export async function POST(request: NextRequest) {
   let from = '';
   let textBody = '';
@@ -885,6 +907,24 @@ export async function POST(request: NextRequest) {
 
     const msgId: string = message.id ?? '';
     from = normalizePhone(message.from ?? '');
+
+    // Idempotencia: WhatsApp entrega webhooks "al menos una vez"; Meta puede reenviar el mismo
+    // mensaje. create() es atómico — si el doc ya existe, es duplicado y lo ignoramos. Fail-open:
+    // si Firestore falla por otra razón, se continúa procesando el mensaje.
+    if (msgId) {
+      try {
+        const { db } = await import('@/lib/firestore');
+        await db.collection('mensajes_procesados').doc(msgId).create({ at: Date.now() });
+      } catch (e) {
+        const code = (e as { code?: number })?.code;
+        if (code === 6 || /ALREADY_EXISTS/i.test(String((e as Error)?.message))) {
+          console.log('[WEBHOOK] Mensaje duplicado', msgId, '— ignorado (idempotencia)');
+          return new NextResponse('EVENT_RECEIVED', { status: 200 });
+        }
+        console.error('[WEBHOOK] Idempotencia: error no-duplicado, se continúa:', e);
+      }
+    }
+
     textBody = message?.text?.body ?? '';
     messageType = message?.type ?? 'text';
     if (messageType === 'image') {
@@ -1140,7 +1180,13 @@ export async function POST(request: NextRequest) {
       }
       console.log('[WEBHOOK] Slots seleccionados:', JSON.stringify(pickedSlots));
 
-      if (pickedSlots.length >= 4) {
+      // Candado: si ya hubo una inscripción para este número hace <10 min, es un comprobante
+      // duplicado (reenvío o webhook repetido con distinto mensaje) — no recrear eventos/ficha.
+      const puedeInscribir = await claimInscripcion(from);
+      if (!puedeInscribir) {
+        console.log('[WEBHOOK] Inscripción duplicada para', from, '— NO se recrean eventos/ficha');
+        syntheticMsg = `El cliente (número de WhatsApp: ${from}) reenvió su comprobante pero su inscripción ya se procesó hace unos minutos. Confírmale cordialmente que su pago y sus 4 clases YA quedaron registrados. NO repitas datos, NO llames herramientas.`;
+      } else if (pickedSlots.length >= 4) {
         console.log('[WEBHOOK] Creando 4 eventos en Calendar...');
         await scheduleAndCreateEvents({
           name: leadInfo.nombre,
