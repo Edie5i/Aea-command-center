@@ -1161,7 +1161,8 @@ export async function POST(request: NextRequest) {
           `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
           `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
           `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
-          `📅 Clases agendadas:\n  ${fechasTexto}`
+          `📅 Clases agendadas:\n  ${fechasTexto}\n\n` +
+          `👉 Ver ficha: app.autoescuelaamericana.com/admin/fichas`
         ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
         // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
