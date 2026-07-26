@@ -1165,6 +1165,14 @@ export async function POST(request: NextRequest) {
           `👉 Ver ficha: app.autoescuelaamericana.com/admin/fichas`
         ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
+        // Mirror GARANTIZADO: la plantilla brinca la ventana de 24h. El texto de arriba es
+        // best-effort (falla en silencio si la ventana está cerrada); esto asegura que el
+        // admin SIEMPRE se entere de la inscripción y de que llegó a Calendar.
+        sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
+          [`Venta cerrada: ${leadInfo.nombre} · ${leadInfo.curso} · 4 clases en Calendar · abre /admin/fichas`, `+${from}`],
+          phoneId
+        ).catch((e) => console.error('[WEBHOOK] Error mirror plantilla (venta):', e));
+
         // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
         const { saveInscripcionData } = await import('@/lib/firestore');
         const fichaFechas = pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time }));
@@ -1227,6 +1235,10 @@ export async function POST(request: NextRequest) {
           `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
           `No había suficientes slots disponibles. Asigna horario manualmente.`
         ).catch((e) => console.error('[WEBHOOK] Error notificando admin (sin slots):', e));
+        sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
+          [`Comprobante recibido SIN horario — NO se agendó en Calendar, asigna manual: ${leadInfo.nombre}`, `+${from}`],
+          phoneId
+        ).catch((e) => console.error('[WEBHOOK] Error mirror plantilla (sin slots):', e));
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }
     } catch (e) {
@@ -1236,6 +1248,10 @@ export async function POST(request: NextRequest) {
         `📱 +${from}\n\n` +
         `No se pudo procesar automáticamente. Entra al chat y coordina el horario.`
       ).catch((err) => console.error('[WEBHOOK] Error notificando admin (error path):', err));
+      sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
+        [`Comprobante recibido — ERROR al agendar, NO llegó a Calendar, atiende manual`, `+${from}`],
+        phoneId
+      ).catch((err) => console.error('[WEBHOOK] Error mirror plantilla (error):', err));
       syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
     }
 
