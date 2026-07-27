@@ -41,6 +41,8 @@ export default function RootLayout({
     <html lang="es-MX" className={`${lexend.variable} ${noto_sans.variable}`}>
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
         {/* GA4 — init sincrónico en <head> garantiza que dataLayer exista antes de que gtag.js ejecute */}
         <script
           dangerouslySetInnerHTML={{
