@@ -79,6 +79,20 @@ export async function recalculateChatState(
     const currentState: ChatState = conv.chatState ?? 'luz_atendiendo';
     if (currentState === 'cerrado') return;
 
+    // Un cliente con inscripción CONFIRMADA (pagó, tiene clases agendadas) ES inscrito:
+    // fuerza 'cerrado' y NUNCA lo degrades a frío por inactividad. La verdad es el pago,
+    // no la conversación. Esto evita que alumnos pagados aparezcan como "frío"/"con Luz".
+    if (conv.inscripcion?.status === 'confirmado') {
+      if (currentState !== 'cerrado') {
+        await updateChatState(
+          phone,
+          { chatState: 'cerrado', chatReason: 'Inscripción confirmada (depósito pagado)' },
+          trigger
+        );
+      }
+      return;
+    }
+
     let newState: ChatState = 'luz_atendiendo';
     let reason = 'Luz atendiendo';
     let urgency: ChatUrgency = 'ninguna';
