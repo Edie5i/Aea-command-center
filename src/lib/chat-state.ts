@@ -89,6 +89,10 @@ export async function recalculateChatState(
           chatState: 'cerrado',
           chatReason: 'Inscripción confirmada (depósito pagado)',
           chatUrgency: 'ninguna',
+          closedOutcome: 'ganado',
+          // Fecha real del cierre = cuando pagó, no cuando el cron se enteró.
+          closedAt: conv.inscripcion?.fechaConfirmacion ?? Timestamp.now(),
+          nextFollowupAt: null,
         },
         trigger
       );
