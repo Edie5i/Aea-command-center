@@ -75,6 +75,9 @@ export interface Conversation {
   closedOutcome?: 'ganado' | 'perdido' | null;
   contactName?: string | null;
   leadCalificadoNotificado?: boolean;
+  // Forma cruda en Firestore: fechaConfirmacion es Timestamp aquí, no millis.
+  // rawToInscripcion() la convierte a number para los Client Components.
+  inscripcion?: Omit<InscripcionData, 'fechaConfirmacion'> & { fechaConfirmacion: Timestamp };
 }
 
 async function appendMessage(
