@@ -28,6 +28,14 @@ export default function PortalLogin() {
       setStep('otp');
     } else if (res.status === 403) {
       setError('Número no registrado como instructor activo.');
+    } else if (res.status === 429) {
+      const espera = Number(res.headers.get('Retry-After') ?? 60);
+      const minutos = Math.ceil(espera / 60);
+      setError(
+        espera <= 90
+          ? `Espera ${espera} segundos antes de pedir otro código.`
+          : `Demasiados códigos pedidos. Intenta de nuevo en ${minutos} minutos.`
+      );
     } else {
       setError('Error al enviar el código. Intenta de nuevo.');
     }

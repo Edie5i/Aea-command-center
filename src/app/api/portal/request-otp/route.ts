@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCandidato, generateInstructorOTP } from '@/lib/firestore';
+import { getCandidato, generateInstructorOTP, consumeOtpRateLimit } from '@/lib/firestore';
 import { normalizePhone } from '@/lib/phone';
 
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -22,6 +22,14 @@ export async function POST(request: NextRequest) {
   const candidato = await getCandidato(normalized);
   if (!candidato || candidato.estado !== 'activo') {
     return new NextResponse('No autorizado', { status: 403 });
+  }
+
+  const limite = await consumeOtpRateLimit(normalized);
+  if (!limite.ok) {
+    return new NextResponse('Demasiados intentos', {
+      status: 429,
+      headers: { 'Retry-After': String(limite.retryAfterSec) },
+    });
   }
 
   const otp = await generateInstructorOTP(normalized);

@@ -292,6 +292,9 @@ export interface CandidatoInstructor {
   evaluacionHora?: string;
   portalOtp?: string;
   portalOtpExpires?: number;
+  portalOtpSentAt?: number;
+  portalOtpWindowStart?: number;
+  portalOtpSendCount?: number;
   creadoEn: number;
   actualizadoEn: number;
 }
@@ -317,6 +320,10 @@ export async function upsertCandidato(
 
 export const OTP_TTL_MS = 10 * 60 * 1000;
 
+const OTP_COOLDOWN_MS = 60 * 1000;
+const OTP_WINDOW_MS = 60 * 60 * 1000;
+const OTP_MAX_POR_VENTANA = 5;
+
 export async function generateInstructorOTP(phone: string): Promise<string> {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   await db.collection('candidatos_instructor').doc(phone).set(
@@ -324,6 +331,47 @@ export async function generateInstructorOTP(phone: string): Promise<string> {
     { merge: true }
   );
   return otp;
+}
+
+/**
+ * Límite de envío de OTP por teléfono: 1 por minuto y 5 por hora.
+ * Vive en Firestore y no en memoria porque App Hosting corre varias instancias
+ * y un contador local se saltaría con sólo caer en otra.
+ * Consume una unidad del límite; sólo llamar cuando de verdad se va a enviar.
+ */
+export async function consumeOtpRateLimit(
+  phone: string
+): Promise<{ ok: boolean; retryAfterSec: number }> {
+  const ref = db.collection('candidatos_instructor').doc(phone);
+  return db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return { ok: false, retryAfterSec: OTP_COOLDOWN_MS / 1000 };
+
+    const data = snap.data() as CandidatoInstructor;
+    const now = Date.now();
+
+    const enfriamiento = OTP_COOLDOWN_MS - (now - (data.portalOtpSentAt ?? 0));
+    if (enfriamiento > 0) {
+      return { ok: false, retryAfterSec: Math.ceil(enfriamiento / 1000) };
+    }
+
+    let windowStart = data.portalOtpWindowStart ?? 0;
+    let count = data.portalOtpSendCount ?? 0;
+    if (now - windowStart >= OTP_WINDOW_MS) {
+      windowStart = now;
+      count = 0;
+    }
+    if (count >= OTP_MAX_POR_VENTANA) {
+      return { ok: false, retryAfterSec: Math.ceil((windowStart + OTP_WINDOW_MS - now) / 1000) };
+    }
+
+    tx.set(
+      ref,
+      { portalOtpSentAt: now, portalOtpWindowStart: windowStart, portalOtpSendCount: count + 1 },
+      { merge: true }
+    );
+    return { ok: true, retryAfterSec: 0 };
+  });
 }
 
 /**
