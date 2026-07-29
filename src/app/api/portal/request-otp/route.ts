@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCandidato, generateInstructorOTP } from '@/lib/firestore';
+import { normalizePhone } from '@/lib/phone';
 
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
   const { phone } = await request.json();
   if (!phone) return new NextResponse('Bad Request', { status: 400 });
 
-  const normalized = phone.startsWith('52') ? phone.replace(/\D/g, '') : `52${phone.replace(/\D/g, '')}`;
+  const normalized = normalizePhone(String(phone));
 
   const candidato = await getCandidato(normalized);
   if (!candidato || candidato.estado !== 'activo') {

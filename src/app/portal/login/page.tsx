@@ -40,7 +40,7 @@ export default function PortalLogin() {
     const res = await fetch('/api/portal/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ otp }),
+      body: JSON.stringify({ phone, otp }),
     });
     setLoading(false);
     if (res.ok) {

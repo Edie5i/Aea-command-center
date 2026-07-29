@@ -324,17 +324,21 @@ export async function generateInstructorOTP(phone: string): Promise<string> {
   return otp;
 }
 
-export async function validateAndConsumeOTP(otp: string): Promise<string | null> {
-  const snap = await db.collection('candidatos_instructor')
-    .where('portalOtp', '==', otp)
-    .limit(1)
-    .get();
-  if (snap.empty) return null;
-  const doc = snap.docs[0];
-  const data = doc.data() as CandidatoInstructor;
-  if (!data.portalOtpExpires || Date.now() > data.portalOtpExpires) return null;
-  await doc.ref.set({ portalOtp: null, portalOtpExpires: null }, { merge: true });
-  return doc.id;
+/**
+ * Valida el OTP contra el teléfono que lo pidió. El código NUNCA se busca por
+ * sí solo: se lee el documento del instructor y se compara ahí. Así un código
+ * adivinado sólo sirve para la cuenta a la que se emitió.
+ */
+export async function validateAndConsumeOTP(phone: string, otp: string): Promise<string | null> {
+  const ref = db.collection('candidatos_instructor').doc(phone);
+  const snap = await ref.get();
+  if (!snap.exists) return null;
+  const data = snap.data() as CandidatoInstructor;
+  if (!data.portalOtp || !data.portalOtpExpires) return null;
+  if (Date.now() > data.portalOtpExpires) return null;
+  if (data.portalOtp !== otp) return null;
+  await ref.set({ portalOtp: null, portalOtpExpires: null }, { merge: true });
+  return snap.id;
 }
 
 export async function getCandidatos(estado?: EstadoCandidato): Promise<CandidatoInstructor[]> {
