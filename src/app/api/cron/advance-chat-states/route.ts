@@ -18,6 +18,13 @@ const FOLLOWUP_MS: Record<string, number> = {
   '7d':  7  * 24 * 60 * 60 * 1000,
 };
 
+// Un alumno con inscripción confirmada ya pagó: nunca lo enfríes ni le mandes
+// follow-ups de venta, por más días que lleve callado. La verdad es el pago, no
+// la conversación — mismo criterio que recalculateChatState en lib/chat-state.ts.
+function esInscrito(data: FirebaseFirestore.DocumentData): boolean {
+  return data.inscripcion?.status === 'confirmado';
+}
+
 function buildMsg2h(nombre: string | null, curso: string | null): string {
   const saludo = nombre ? `Hola ${nombre.split(' ')[0]} 👋` : '¡Hola!';
   const ref = curso ? ` sobre el ${curso}` : '';
@@ -96,7 +103,7 @@ export async function GET(request: NextRequest) {
 
   const now = Date.now();
   const nowTs = Timestamp.fromMillis(now);
-  const results = { followups: 0, frio: 0, errors: 0 };
+  const results = { followups: 0, frio: 0, errors: 0, inscritosSaltados: 0 };
 
   // ── 1. Follow-ups pendientes ───────────────────────────────────────────────
   const followupSnap = await db
@@ -113,6 +120,12 @@ export async function GET(request: NextRequest) {
     // desde el panel sin pausar) — nunca mandar follow-ups automáticos encima de
     // esa atención, aunque el estado siga marcado como esperando_cliente.
     if (data.botPaused || data.chatLastBy === 'humano') continue;
+
+    // Ya pagó: ni follow-up de venta ni 'frío' por agotar la secuencia.
+    if (esInscrito(data)) {
+      results.inscritosSaltados++;
+      continue;
+    }
 
     const followUpsSent: Array<{ at: Timestamp; type: string }> = data.followUpsSent ?? [];
     const nombre: string | null = data.contactName ?? data.nombre ?? null;
@@ -165,6 +178,12 @@ export async function GET(request: NextRequest) {
     const data = doc.data();
     const state = data.chatState ?? 'luz_atendiendo';
     if (state === 'cerrado' || state === 'frio' || state === 'tu_turno') continue;
+
+    // Ya pagó: el silencio no significa que se perdió el lead.
+    if (esInscrito(data)) {
+      results.inscritosSaltados++;
+      continue;
+    }
 
     const phone: string = data.phone ?? doc.id;
     const diasSilencio = Math.floor((now - (data.lastActivity?.toMillis?.() ?? now)) / 86400000);
