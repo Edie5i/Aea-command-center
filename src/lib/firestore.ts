@@ -315,10 +315,12 @@ export async function upsertCandidato(
   }
 }
 
+export const OTP_TTL_MS = 10 * 60 * 1000;
+
 export async function generateInstructorOTP(phone: string): Promise<string> {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   await db.collection('candidatos_instructor').doc(phone).set(
-    { portalOtp: otp, portalOtpExpires: Date.now() + 60 * 60 * 1000 },
+    { portalOtp: otp, portalOtpExpires: Date.now() + OTP_TTL_MS },
     { merge: true }
   );
   return otp;

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   const otp = await generateInstructorOTP(normalized);
-  await sendWA(normalized, `Tu código de acceso al portal UrbDriver: *${otp}*\n\nVálido por 1 hora. No lo compartas.`);
+  await sendWA(normalized, `Tu código de acceso al portal UrbDriver: *${otp}*\n\nVálido por 10 minutos. No lo compartas.`);
 
   return new NextResponse('OK', { status: 200 });
 }

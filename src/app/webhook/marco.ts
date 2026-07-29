@@ -178,7 +178,7 @@ async function handleInstructor(
     const { generateInstructorOTP } = await import('@/lib/firestore');
     const otp = await generateInstructorOTP(phone);
     await sendWA(phone,
-      `Tu código de acceso al portal:\n\n*${otp}*\n\nEntra en: app.autoescuelaamericana.com/portal\nVálido por 1 hora.`
+      `Tu código de acceso al portal:\n\n*${otp}*\n\nEntra en: app.autoescuelaamericana.com/portal\nVálido por 10 minutos.`
     );
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
