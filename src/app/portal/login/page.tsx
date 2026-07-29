@@ -54,6 +54,11 @@ export default function PortalLogin() {
     if (res.ok) {
       router.push('/portal');
       router.refresh();
+    } else if (res.status === 429) {
+      // El código ya se quemó: no tiene caso dejarlo seguir tecleando aquí.
+      setStep('phone');
+      setOtp('');
+      setError('Demasiados intentos fallidos. Pide un código nuevo.');
     } else {
       setError('Código incorrecto o expirado.');
       setOtp('');

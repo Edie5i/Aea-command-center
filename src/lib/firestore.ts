@@ -292,6 +292,7 @@ export interface CandidatoInstructor {
   evaluacionHora?: string;
   portalOtp?: string;
   portalOtpExpires?: number;
+  portalOtpIntentos?: number;
   portalOtpSentAt?: number;
   portalOtpWindowStart?: number;
   portalOtpSendCount?: number;
@@ -323,11 +324,14 @@ export const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_COOLDOWN_MS = 60 * 1000;
 const OTP_WINDOW_MS = 60 * 60 * 1000;
 const OTP_MAX_POR_VENTANA = 5;
+const OTP_MAX_INTENTOS = 5;
 
 export async function generateInstructorOTP(phone: string): Promise<string> {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   await db.collection('candidatos_instructor').doc(phone).set(
-    { portalOtp: otp, portalOtpExpires: Date.now() + OTP_TTL_MS },
+    // El contador de intentos arranca en cero: si no, un código nuevo heredaría
+    // los fallos del anterior y nacería casi quemado.
+    { portalOtp: otp, portalOtpExpires: Date.now() + OTP_TTL_MS, portalOtpIntentos: 0 },
     { merge: true }
   );
   return otp;
@@ -374,21 +378,52 @@ export async function consumeOtpRateLimit(
   });
 }
 
+export type OtpValidacion =
+  | { ok: true; phone: string }
+  | { ok: false; reason: 'invalido' | 'bloqueado' };
+
 /**
  * Valida el OTP contra el teléfono que lo pidió. El código NUNCA se busca por
  * sí solo: se lee el documento del instructor y se compara ahí. Así un código
  * adivinado sólo sirve para la cuenta a la que se emitió.
+ *
+ * A los 5 fallos el código se quema y hay que pedir otro, lo cual está limitado
+ * a 5 por hora — el techo real de adivinanzas queda en 25/hora contra 900000.
+ *
+ * Todo en una transacción: el contador se leía y escribía por separado, así que
+ * ráfagas en paralelo se pisaban entre sí y el límite se podía rebasar.
+ * 'invalido' cubre por igual código incorrecto, expirado e instructor
+ * inexistente, para no revelar cuál de los tres fue.
  */
-export async function validateAndConsumeOTP(phone: string, otp: string): Promise<string | null> {
+export async function validateAndConsumeOTP(phone: string, otp: string): Promise<OtpValidacion> {
   const ref = db.collection('candidatos_instructor').doc(phone);
-  const snap = await ref.get();
-  if (!snap.exists) return null;
-  const data = snap.data() as CandidatoInstructor;
-  if (!data.portalOtp || !data.portalOtpExpires) return null;
-  if (Date.now() > data.portalOtpExpires) return null;
-  if (data.portalOtp !== otp) return null;
-  await ref.set({ portalOtp: null, portalOtpExpires: null }, { merge: true });
-  return snap.id;
+  const limpio = { portalOtp: null, portalOtpExpires: null, portalOtpIntentos: 0 };
+
+  return db.runTransaction<OtpValidacion>(async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return { ok: false, reason: 'invalido' };
+
+    const data = snap.data() as CandidatoInstructor;
+    if (!data.portalOtp || !data.portalOtpExpires) return { ok: false, reason: 'invalido' };
+
+    if (Date.now() > data.portalOtpExpires) {
+      tx.set(ref, limpio, { merge: true });
+      return { ok: false, reason: 'invalido' };
+    }
+
+    if (data.portalOtp !== otp) {
+      const intentos = (data.portalOtpIntentos ?? 0) + 1;
+      if (intentos >= OTP_MAX_INTENTOS) {
+        tx.set(ref, limpio, { merge: true });
+        return { ok: false, reason: 'bloqueado' };
+      }
+      tx.set(ref, { portalOtpIntentos: intentos }, { merge: true });
+      return { ok: false, reason: 'invalido' };
+    }
+
+    tx.set(ref, limpio, { merge: true });
+    return { ok: true, phone: snap.id };
+  });
 }
 
 export async function getCandidatos(estado?: EstadoCandidato): Promise<CandidatoInstructor[]> {

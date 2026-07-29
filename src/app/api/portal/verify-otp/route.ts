@@ -7,11 +7,17 @@ export async function POST(request: NextRequest) {
   if (!phone || !otp) return new NextResponse('Bad Request', { status: 400 });
 
   const normalized = normalizePhone(String(phone));
-  const verified = await validateAndConsumeOTP(normalized, String(otp).trim());
-  if (!verified) return new NextResponse('Código inválido o expirado', { status: 401 });
+  const result = await validateAndConsumeOTP(normalized, String(otp).trim());
+
+  if (!result.ok) {
+    if (result.reason === 'bloqueado') {
+      return new NextResponse('Demasiados intentos fallidos. Pide un código nuevo.', { status: 429 });
+    }
+    return new NextResponse('Código inválido o expirado', { status: 401 });
+  }
 
   const res = new NextResponse('OK', { status: 200 });
-  res.cookies.set('instructor_phone', verified, {
+  res.cookies.set('instructor_phone', result.phone, {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
