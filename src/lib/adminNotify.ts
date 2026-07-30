@@ -1,6 +1,7 @@
 // Notificación WhatsApp al admin — compartida por el motor de fichas.
 // Mismo patrón/env vars que el webhook y la agenda.
 import 'server-only';
+import { resumenParaPlantilla } from '@/lib/notify-format';
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -80,20 +81,7 @@ async function enviarTexto(texto: string): Promise<void> {
 export async function notificarAdmin(texto: string): Promise<void> {
   if (!WA_TOKEN || !PHONE_ID) return;
 
-  // La plantilla es la vía que SIEMPRE llega, así que va con todo el detalle:
-  // sin ella habría que entrar al panel a buscar curso y dirección. Meta admite
-  // ~1000 caracteres por parámetro pero rechaza saltos de línea, tabuladores y
-  // espacios consecutivos, así que el mensaje se aplana a una sola línea.
-  const tipo =
-    texto
-      .replace(/[*_~`>#]/g, '')
-      .replace(/\n+/g, ' · ')
-      .replace(/\s+/g, ' ')
-      .replace(/ · ·/g, ' ·')
-      .trim()
-      .slice(0, 700) || 'Alerta AEA';
-  const phoneMatch = texto.match(/\+?\d[\d\s]{8,}\d/);
-  const contacto = phoneMatch ? phoneMatch[0].replace(/\s+/g, '') : 'N/D';
+  const { tipo, contacto } = resumenParaPlantilla(texto);
 
   await Promise.allSettled([enviarTexto(texto), enviarPlantilla(tipo, contacto)]);
 }
