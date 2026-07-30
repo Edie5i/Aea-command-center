@@ -122,22 +122,13 @@ export const confirmarInscripcionTool = ai.defineTool(
     const telefono = normalizePhone(rawTelefono);
     console.log('[TOOL] confirmarInscripcion llamado:', { nombre, telefono, rawTelefono, zona, patron, hora, fechaInicio });
 
-    const adminPhone = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-    const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
-    const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
-
+    // Se delega en @/lib/adminNotify, que revisa la respuesta de Meta y cae a
+    // plantilla si la ventana de 24h está cerrada. Aquí había una copia local
+    // que sólo capturaba errores de red: los rechazos de Meta se descartaban en
+    // silencio y avisos críticos —como que Calendar falló— nunca llegaban.
     async function notificarAdmin(texto: string) {
-      if (!waToken || !phoneId) return;
-      await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: adminPhone,
-          type: 'text',
-          text: { body: texto },
-        }),
-      }).catch(e => console.error('[Tool] WhatsApp error:', e));
+      const { notificarAdmin: enviar } = await import('@/lib/adminNotify');
+      await enviar(texto);
     }
 
     let calendarError: string | null = null;
