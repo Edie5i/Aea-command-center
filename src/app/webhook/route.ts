@@ -577,7 +577,74 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
   return text;
 }
 
-async function sendMessage(to: string, text: string, phoneId?: string): Promise<boolean> {
+/**
+ * Guarda qué le mandamos a un lead, indexado por el id de Meta.
+ *
+ * Un 200 al enviar no garantiza entrega: Meta puede descartar el mensaje después
+ * y sólo avisa por callback, que llega con el id y nada más. Sin esta memoria no
+ * hay forma de saber QUÉ mensaje se perdió ni de reintentarlo.
+ *
+ * Sólo para leads: los avisos al admin ya viajan duplicados por plantilla.
+ */
+async function recordarEnvio(wamid: string, to: string, text: string, phoneId: string, yaReintentado = false): Promise<void> {
+  if (!wamid || to === ADMIN_PHONE) return;
+  try {
+    const { db } = await import('@/lib/firestore');
+    await db.collection('mensajes_enviados').doc(wamid).set({
+      to, text, phoneId, at: Date.now(), reintentado: yaReintentado,
+    });
+  } catch (e) {
+    console.error('[WEBHOOK] No se pudo recordar el envío (se continúa):', e);
+  }
+}
+
+/** Códigos de Meta que significan "no hay forma de entregarlo": reintentar es inútil. */
+const ERRORES_SIN_REMEDIO = [131047, 131051, 131026, 131052];
+
+/**
+ * Un mensaje a un lead que Meta descartó. Ningún camino puede dejar a un lead
+ * sin respuesta, así que se intenta una vez más y, si no hay remedio, se te
+ * avisa con el teléfono y el texto para que lo retomes a mano.
+ *
+ * Un solo reintento: si el segundo también falla, insistir sólo quema cuota.
+ */
+async function rescatarMensajePerdido(
+  wamid: string,
+  codigos: (number | undefined)[],
+  detalle: string,
+): Promise<void> {
+  if (!wamid) return;
+  const { db } = await import('@/lib/firestore');
+  const ref = db.collection('mensajes_enviados').doc(wamid);
+  const snap = await ref.get();
+  if (!snap.exists) return; // no era un mensaje a lead, o ya se limpió
+
+  const { to, text, phoneId: pid, reintentado } = snap.data() as {
+    to: string; text: string; phoneId: string; reintentado: boolean;
+  };
+
+  const sinRemedio = codigos.some(c => c !== undefined && ERRORES_SIN_REMEDIO.includes(c));
+
+  if (!reintentado && !sinRemedio) {
+    await ref.set({ reintentado: true }, { merge: true });
+    console.log('[WA-STATUS] ↻ reintentando envío a', to);
+    const ok = await sendMessage(to, text, pid, true);
+    if (ok) return; // el reintento salió; su propio callback dirá si llegó
+  }
+
+  // Sin remedio automático: que un humano lo retome. Se manda por notificarAdmin
+  // porque va con plantilla garantizada — este aviso no se puede perder también.
+  const { notificarAdmin } = await import('@/lib/adminNotify');
+  await notificarAdmin(
+    `🚨 *Lead sin respuesta* — WhatsApp rechazó el mensaje\n` +
+    `📱 +${to}\n` +
+    `❌ ${detalle || 'sin detalle'}\n` +
+    `💬 "${text.slice(0, 160)}"\n\n` +
+    `Contáctalo tú: wa.me/${to}`
+  );
+}
+
+async function sendMessage(to: string, text: string, phoneId?: string, esReintento = false): Promise<boolean> {
   const actualPhoneId = phoneId || PHONE_ID;
   const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
   const res = await fetch(url, {
@@ -593,6 +660,14 @@ async function sendMessage(to: string, text: string, phoneId?: string): Promise<
       text: { body: text },
     }),
   });
+  if (res.ok) {
+    const wamid = await res.clone().json()
+      .then((j: { messages?: { id?: string }[] }) => j?.messages?.[0]?.id ?? '')
+      .catch(() => '');
+    // El reintento se marca como ya reintentado: si no, su propio fallo lo
+    // volvería a disparar y el mensaje se reenviaría en bucle quemando cuota.
+    await recordarEnvio(wamid, to, text, actualPhoneId, esReintento);
+  }
   if (!res.ok) {
     console.error('[WEBHOOK] WhatsApp API error:', res.status, await res.text());
     // Si la alerta era para el admin y falló (típicamente ventana de 24h cerrada, #131047),
@@ -915,6 +990,9 @@ export async function POST(request: NextRequest) {
               `#${e.code} ${e.title ?? e.message ?? ''}${e.error_data?.details ? ` — ${e.error_data.details}` : ''}`)
             .join(' | ');
           console.error('[WA-STATUS] ❌', base, '|', errs || '(sin detalle)');
+          const codigos = (st.errors ?? []).map((e: { code?: number }) => e.code);
+          await rescatarMensajePerdido(String(st.id ?? ''), codigos, errs).catch(e =>
+            console.error('[WA-STATUS] Error en el rescate:', e));
         } else {
           console.log('[WA-STATUS]', base);
         }
