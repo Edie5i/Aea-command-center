@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import { createCalendarEvent, eventosYaCreados } from '@/services/calendarService';
+import { claveDesdeEntrada, ZONA_HORARIA } from '@/lib/calendar-keys';
 
 export const CreateEventInputSchema = z.object({
   name: z.string(),
@@ -39,9 +40,9 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
         })
         .map(c => ({
             ...c,
-            dia: new Date(c.date).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }),
-        }))
-        .map(c => ({ ...c, clave: `${c.dia}T${c.time}` }));
+            dia: new Date(c.date).toLocaleDateString('en-CA', { timeZone: ZONA_HORARIA }),
+            clave: claveDesdeEntrada(c.date, c.time!),
+        }));
 
     // Candado de idempotencia: seis rutas distintas llaman aquí y ninguna sabía
     // de las otras, así que pedir las mismas clases dos veces duplicaba los

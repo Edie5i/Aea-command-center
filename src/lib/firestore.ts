@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { decidirOtp, OTP_TTL_MS, OTP_MAX_INTENTOS } from '@/lib/otp-policy';
 
 function initAdmin() {
   if (getApps().length > 0) return;
@@ -319,12 +320,11 @@ export async function upsertCandidato(
   }
 }
 
-export const OTP_TTL_MS = 10 * 60 * 1000;
+export { OTP_TTL_MS, OTP_MAX_INTENTOS } from '@/lib/otp-policy';
 
 const OTP_COOLDOWN_MS = 60 * 1000;
 const OTP_WINDOW_MS = 60 * 60 * 1000;
 const OTP_MAX_POR_VENTANA = 5;
-const OTP_MAX_INTENTOS = 5;
 
 export async function generateInstructorOTP(phone: string): Promise<string> {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -404,25 +404,23 @@ export async function validateAndConsumeOTP(phone: string, otp: string): Promise
     if (!snap.exists) return { ok: false, reason: 'invalido' };
 
     const data = snap.data() as CandidatoInstructor;
-    if (!data.portalOtp || !data.portalOtpExpires) return { ok: false, reason: 'invalido' };
+    // La decisión vive en @/lib/otp-policy para poder probarse; aquí sólo se
+    // traduce a escrituras.
+    const decision = decidirOtp(data, otp, Date.now(), OTP_MAX_INTENTOS);
 
-    if (Date.now() > data.portalOtpExpires) {
-      tx.set(ref, limpio, { merge: true });
-      return { ok: false, reason: 'invalido' };
-    }
-
-    if (data.portalOtp !== otp) {
-      const intentos = (data.portalOtpIntentos ?? 0) + 1;
-      if (intentos >= OTP_MAX_INTENTOS) {
+    switch (decision.accion) {
+      case 'aceptar':
         tx.set(ref, limpio, { merge: true });
-        return { ok: false, reason: 'bloqueado' };
-      }
-      tx.set(ref, { portalOtpIntentos: intentos }, { merge: true });
-      return { ok: false, reason: 'invalido' };
+        return { ok: true, phone: snap.id };
+      case 'invalidar':
+        tx.set(ref, limpio, { merge: true });
+        return { ok: false, reason: decision.motivo === 'agotado' ? 'bloqueado' : 'invalido' };
+      case 'rechazar':
+        tx.set(ref, { portalOtpIntentos: decision.intentos }, { merge: true });
+        return { ok: false, reason: 'invalido' };
+      default:
+        return { ok: false, reason: 'invalido' };
     }
-
-    tx.set(ref, limpio, { merge: true });
-    return { ok: true, phone: snap.id };
   });
 }
 

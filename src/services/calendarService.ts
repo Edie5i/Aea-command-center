@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import type { calendar_v3 } from 'googleapis';
+import { claveDesdeEvento } from '@/lib/calendar-keys';
 
 const SLOTS_STANDARD = ['07:00', '10:00', '13:00', '16:00', '19:00'];
 const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -232,7 +233,7 @@ export async function eventosYaCreados(
   for (const e of res.data.items ?? []) {
     if ((e.summary ?? '') !== summary) continue;
     const dt = e.start?.dateTime;
-    if (dt) claves.add(dt.slice(0, 16)); // "2026-08-01T07:00:00-06:00" → "2026-08-01T07:00"
+    if (dt) claves.add(claveDesdeEvento(dt));
   }
   return claves;
 }
