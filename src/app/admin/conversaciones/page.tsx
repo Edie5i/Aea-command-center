@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getConversations, type Conversation, type ChatState } from '@/lib/firestore';
+import { nombreLead } from '@/lib/nombre-lead';
 import Link from 'next/link';
 import AutoRefresh from './AutoRefresh';
 
@@ -155,9 +156,10 @@ export default async function ConversacionesPage({
             const phone = displayPhone(conv.phone);
             const state = conv.chatState ?? 'luz_atendiendo';
             const needsAttention = state === 'tu_turno' || state === 'atascado';
-            const name = conv.contactName || phone;
+            // Sin esto, un alumno con nombre sólo en la inscripción salía como número anónimo.
+            const { nombre: name, tieneNombre } = nombreLead(conv, conv.phone);
             const isRegistroLead = conv.source === 'registro_landing';
-            const waMsg = encodeURIComponent(`¡Hola ${conv.contactName ?? ''}! 👋 Te escribo de Auto Escuela Americana. Vi que te registraste en nuestra página — ¿en qué te puedo ayudar?`);
+            const waMsg = encodeURIComponent(`¡Hola ${tieneNombre ? name : ''}! 👋 Te escribo de Auto Escuela Americana. Vi que te registraste en nuestra página — ¿en qué te puedo ayudar?`);
             const waUrl = `https://wa.me/${conv.phone}?text=${waMsg}`;
 
             return (
@@ -189,7 +191,7 @@ export default async function ConversacionesPage({
                       </span>
                     </div>
 
-                    {conv.contactName && (
+                    {tieneNombre && (
                       <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{phone}</p>
                     )}
 

@@ -1,3 +1,4 @@
+import { nombreLead } from '@/lib/nombre-lead';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firestore';
 
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
 
       if (data.chatState === 'cerrado') ganados++;
 
-      const nombre = data.contactName || `+${doc.id}`;
+      const nombre = nombreLead(data, doc.id).nombre;
       const estado = data.chatState || 'desconocido';
       const curso = data.courseInterest || '—';
 

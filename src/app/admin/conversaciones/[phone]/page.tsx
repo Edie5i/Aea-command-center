@@ -1,3 +1,4 @@
+import { nombreLead } from '@/lib/nombre-lead';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getConversationMessages, getInscripcionData, getConversation } from '@/lib/firestore';
@@ -32,7 +33,7 @@ export default async function ConversacionPage({
   ]);
 
   const dp = displayPhone(phone);
-  const name = conv?.contactName || dp;
+  const name = nombreLead(conv ?? {}, phone).nombre;
   const state = conv?.chatState ?? 'luz_atendiendo';
   const needsAttention = state === 'tu_turno' || state === 'atascado';
 
