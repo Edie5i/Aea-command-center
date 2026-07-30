@@ -28,3 +28,19 @@ export function claveDesdeEntrada(fechaISO: string, hora: string): string {
 export function claveDesdeEvento(startDateTime: string): string {
   return startDateTime.slice(0, 16);
 }
+
+/**
+ * Nombre del alumno comparable entre Firestore y Calendar.
+ *
+ * En Calendar los títulos llevan anotaciones a mano —"Rosa Loredana — 4ª
+ * TENTATIVA (reagendar)"— que en Firestore no existen. Sin recortarlas, el
+ * chequeo de salud reportaba como faltante una clase que sí estaba agendada, y
+ * un monitor que grita en falso se deja de leer.
+ */
+export function normalizarAlumno(nombre: string): string {
+  return nombre
+    .replace(/^Clase:\s*/i, '')
+    .split(/\s+[—–-]\s+/)[0]   // corta la anotación tras un guion largo
+    .trim()
+    .toLocaleLowerCase('es-MX');
+}

@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
 import { getEventosProximos } from '@/services/calendarService';
-import { claveDesdeEntrada, claveDesdeEvento } from '@/lib/calendar-keys';
+import { claveDesdeEntrada, claveDesdeEvento, normalizarAlumno } from '@/lib/calendar-keys';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -58,7 +58,7 @@ function revisarDuplicados(eventos: { alumno: string; inicio: string }[]): Halla
   const dup = new Set<string>();
   for (const e of eventos) {
     if (!e.inicio) continue;
-    const k = `${e.alumno}|${claveDesdeEvento(e.inicio)}`;
+    const k = `${normalizarAlumno(e.alumno)}|${claveDesdeEvento(e.inicio)}`;
     if (vistos.has(k)) dup.add(k);
     vistos.add(k);
   }
@@ -76,7 +76,7 @@ async function revisarDesfase(
   eventos: { alumno: string; inicio: string }[],
 ): Promise<Hallazgo | null> {
   const enCalendar = new Set(
-    eventos.filter(e => e.inicio).map(e => `${e.alumno}|${claveDesdeEvento(e.inicio)}`),
+    eventos.filter(e => e.inicio).map(e => `${normalizarAlumno(e.alumno)}|${claveDesdeEvento(e.inicio)}`),
   );
   const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
   const snap = await db.collection('conversations').limit(300).get();
@@ -87,7 +87,7 @@ async function revisarDesfase(
     if (!ins || ins.status === 'pre_reserva' || !Array.isArray(ins.fechas)) continue;
     for (const f of ins.fechas) {
       if (!f?.date || !f?.time || f.date <= hoy) continue; // sólo clases futuras
-      const clave = `${ins.nombre}|${claveDesdeEntrada(`${f.date}T12:00:00`, f.time)}`;
+      const clave = `${normalizarAlumno(ins.nombre ?? '')}|${claveDesdeEntrada(`${f.date}T12:00:00`, f.time)}`;
       if (!enCalendar.has(clave)) faltantes.push(`${ins.nombre} ${f.date} ${f.time}`);
     }
   }

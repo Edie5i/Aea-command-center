@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { claveDesdeEntrada, claveDesdeEvento } from '../calendar-keys';
+import { claveDesdeEntrada, claveDesdeEvento, normalizarAlumno } from '../calendar-keys';
 
 describe('claves de clase — el candado anti-duplicados', () => {
   // La invariante que sostiene todo: la clave construida desde la fecha pedida
@@ -38,5 +38,29 @@ describe('claves de clase — el candado anti-duplicados', () => {
 
   it('recorta el offset del evento de Google', () => {
     expect(claveDesdeEvento('2026-12-25T16:00:00-06:00')).toBe('2026-12-25T16:00');
+  });
+});
+
+describe('normalizarAlumno — comparar Firestore contra Calendar', () => {
+  it('ignora la anotación manual del título', () => {
+    // El falso positivo que el chequeo de salud reportó el 30 de julio
+    expect(normalizarAlumno('Rosa Loredana — 4ª TENTATIVA (reagendar)'))
+      .toBe(normalizarAlumno('Rosa Loredana'));
+  });
+
+  it('quita el prefijo "Clase:"', () => {
+    expect(normalizarAlumno('Clase: Miguel Ángel')).toBe(normalizarAlumno('Miguel Ángel'));
+  });
+
+  it('no distingue mayúsculas', () => {
+    expect(normalizarAlumno('MARÍA DEL ROSARIO')).toBe(normalizarAlumno('María del Rosario'));
+  });
+
+  it('no confunde alumnos distintos', () => {
+    expect(normalizarAlumno('Renata')).not.toBe(normalizarAlumno('Renata Rodríguez Alcántara'));
+  });
+
+  it('respeta guiones dentro del nombre', () => {
+    expect(normalizarAlumno('Ana-María López')).toBe('ana-maría lópez');
   });
 });
