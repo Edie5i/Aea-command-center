@@ -42,11 +42,21 @@ function saveChat(phone: string, userText: string, marcoText: string) {
 // ── WA helpers ──────────────────────────────────────────────────────────────
 
 async function sendWA(to: string, text: string): Promise<void> {
-  await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messaging_product: 'whatsapp', to, type: 'text', text: { body: text } }),
-  });
+  // No lanza: un fallo al responderle a un candidato no debe tumbar el webhook.
+  // Pero sí se registra — antes ni el rechazo de Meta ni un error de red dejaban
+  // rastro, así que un mensaje perdido era invisible.
+  try {
+    const res = await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messaging_product: 'whatsapp', to, type: 'text', text: { body: text } }),
+    });
+    if (!res.ok) {
+      console.error('[MARCO] WhatsApp API error:', res.status, await res.text(), '→', to);
+    }
+  } catch (e) {
+    console.error('[MARCO] Error de red enviando a', to, e);
+  }
 }
 
 // ── System prompt de Marco ───────────────────────────────────────────────────

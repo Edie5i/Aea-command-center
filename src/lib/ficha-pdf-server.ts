@@ -248,7 +248,7 @@ export async function enviarFichaAdminWhatsApp(data: FichaData, to?: string): Pr
   const { id: mediaId } = await uploadRes.json() as { id: string };
   console.log('[ficha-admin] PDF subido, mediaId:', mediaId);
 
-  await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+  const sendRes = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -261,6 +261,27 @@ export async function enviarFichaAdminWhatsApp(data: FichaData, to?: string): Pr
         caption: `📋 Nueva ficha — ${data.nombre}\n📱 +${data.telefono}\n📍 ${data.zona}`,
       },
     }),
-  }).then(r => r.json()).then(j => console.log('[ficha-admin] Send result:', JSON.stringify(j)))
-    .catch(e => console.error('[ficha-admin] Send error:', e));
+  }).catch((e) => {
+    console.error('[ficha-admin] Error de red enviando documento:', e);
+    return null;
+  });
+
+  if (sendRes?.ok) {
+    console.log('[ficha-admin] Ficha entregada a', adminPhone);
+    return;
+  }
+  if (sendRes) {
+    console.error('[ficha-admin] Send error:', sendRes.status, await sendRes.text());
+  }
+
+  // Los documentos también caen con la ventana de 24h y un PDF no viaja por
+  // plantilla. Al menos que el admin se entere de que hay ficha nueva; la copia
+  // del alumno no tiene respaldo posible y sólo queda registrada arriba.
+  if (!to) {
+    const { notificarAdmin } = await import('@/lib/adminNotify');
+    await notificarAdmin(
+      `📋 *Ficha nueva* — ${data.nombre}\n📱 +${data.telefono}\n📍 ${data.zona}\n\n` +
+      `No se pudo entregar el PDF por WhatsApp — ábrela en /admin/fichas`
+    );
+  }
 }

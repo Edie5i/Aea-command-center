@@ -10,10 +10,6 @@ const PRECIO_CURSO: Record<string, number> = {
   'Automático': 3900,
 };
 
-const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
-const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
-
 function normalizePhone(raw: string): string {
   let p = raw.replace(/\D/g, '');
   if (p.startsWith('521') && p.length === 13) p = '52' + p.slice(3);
@@ -23,8 +19,6 @@ function normalizePhone(raw: string): string {
 }
 
 async function notifyAdmin(input: CreateEventInput): Promise<void> {
-  if (!WA_TOKEN || !PHONE_ID) return;
-
   const fechas = input.dates
     .map((d) => {
       const fecha = new Date(d.date).toLocaleDateString('es-MX', {
@@ -45,19 +39,11 @@ async function notifyAdmin(input: CreateEventInput): Promise<void> {
     (input.notes ? `📝 *Notas:* ${input.notes}\n` : '') +
     `\n📅 *Fechas solicitadas:*\n${fechas}`;
 
-  await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: ADMIN_PHONE,
-      type: 'text',
-      text: { body: texto },
-    }),
-  }).catch((e) => console.error('[AGENDA] Error notificando admin:', e));
+  // Se delega en @/lib/adminNotify: revisa la respuesta de Meta y cae a
+  // plantilla fuera de la ventana de 24h. Antes sólo capturaba errores de red,
+  // así que las fichas de la web se perdían igual que las de Luz.
+  const { notificarAdmin } = await import('@/lib/adminNotify');
+  await notificarAdmin(texto);
 }
 
 export async function createCalendarEventsAction(input: CreateEventInput): Promise<{ success: boolean; message: string | null; error: string | null; }> {

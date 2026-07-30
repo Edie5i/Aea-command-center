@@ -14,25 +14,15 @@ async function notifyAdminTuTurno(
   contactName: string | null,
   lastMessage: string
 ): Promise<void> {
-  const WA_TOKEN  = process.env.META_WHATSAPP_TOKEN ?? '';
-  const PHONE_ID  = process.env.META_PHONE_NUMBER_ID ?? '';
-  const ADMIN     = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
-  if (!WA_TOKEN || !PHONE_ID) return;
-
   const dp      = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
   const nombre  = contactName ? `👤 ${contactName} (+${dp})` : `📱 +${dp}`;
   const preview = lastMessage.length > 120 ? lastMessage.slice(0, 120) + '…' : lastMessage;
 
-  await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: ADMIN,
-      type: 'text',
-      text: { body: `⚡ *Tu turno*\n\n${nombre}\n💬 "${preview}"\n🎯 ${reason}` },
-    }),
-  });
+  // Se delega en @/lib/adminNotify: revisa la respuesta de Meta y cae a
+  // plantilla fuera de la ventana de 24h. El envío directo que había aquí
+  // descartaba los rechazos en silencio y encima podía lanzar sin capturar.
+  const { notificarAdmin } = await import('@/lib/adminNotify');
+  await notificarAdmin(`⚡ *Tu turno*\n\n${nombre}\n💬 "${preview}"\n🎯 ${reason}`);
 }
 
 // ms por tipo de follow-up
