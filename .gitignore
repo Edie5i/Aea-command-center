@@ -47,3 +47,7 @@ firestore-debug.log.env.local
 Analiza
 extend_token.sh
 set_webhook.sh
+
+# tarjetas QR de reseñas — salidas de generar_tarjetas_qr.py, se regeneran
+tarjeta_qr_individual.pdf
+tarjetas_qr_resenas.pdf
