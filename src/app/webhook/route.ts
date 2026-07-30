@@ -901,6 +901,27 @@ export async function POST(request: NextRequest) {
     phoneId = body?.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id ?? PHONE_ID;
     console.log('[WEBHOOK] Mensaje recibido en:', phoneId);
 
+    // Meta reporta aquí el estado FINAL de cada mensaje que enviamos. Es la única
+    // fuente que dice si un aviso llegó: la respuesta del envío puede ser 200 con
+    // id de mensaje y aun así Meta lo descarta después —típico con la ventana de
+    // 24h cerrada (#131047)—. Sin esto, esos avisos desaparecían sin dejar rastro.
+    const statuses = body?.entry?.[0]?.changes?.[0]?.value?.statuses;
+    if (Array.isArray(statuses) && statuses.length > 0) {
+      for (const st of statuses) {
+        const base = `${st.status} → +${st.recipient_id} (id ${String(st.id ?? '').slice(-12)})`;
+        if (st.status === 'failed') {
+          const errs = (st.errors ?? [])
+            .map((e: { code?: number; title?: string; message?: string; error_data?: { details?: string } }) =>
+              `#${e.code} ${e.title ?? e.message ?? ''}${e.error_data?.details ? ` — ${e.error_data.details}` : ''}`)
+            .join(' | ');
+          console.error('[WA-STATUS] ❌', base, '|', errs || '(sin detalle)');
+        } else {
+          console.log('[WA-STATUS]', base);
+        }
+      }
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+
     if (!message) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
