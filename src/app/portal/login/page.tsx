@@ -45,12 +45,22 @@ export default function PortalLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const res = await fetch('/api/portal/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, otp }),
-    });
+    let res: Response;
+    try {
+      res = await fetch('/api/portal/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp }),
+      });
+    } catch {
+      // Sin esto, si el servidor no responde el botón se queda en "Verificando…"
+      // para siempre y el instructor no sabe qué pasó.
+      setLoading(false);
+      setError('No se pudo conectar. Revisa tu internet e intenta de nuevo.');
+      return;
+    }
     setLoading(false);
+
     if (res.ok) {
       router.push('/portal');
       router.refresh();
@@ -59,6 +69,10 @@ export default function PortalLogin() {
       setStep('phone');
       setOtp('');
       setError('Demasiados intentos fallidos. Pide un código nuevo.');
+    } else if (res.status >= 500) {
+      // Un fallo del servidor no es culpa del código. Culparlo manda al
+      // instructor a teclear códigos buenos pensando que se equivoca.
+      setError('Problema del servidor. Tu código sigue siendo válido, intenta en un momento.');
     } else {
       setError('Código incorrecto o expirado.');
       setOtp('');
