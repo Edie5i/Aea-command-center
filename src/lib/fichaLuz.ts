@@ -14,6 +14,9 @@ export type Ficha = {
   estado: 'nueva' | 'pendiente' | 'reservada';
   faltantes: string[];
   telefono: string;
+  // Dirección de recogida. NO entra en revisarFicha a propósito: se vigila para
+  // avisar en cuanto llega, pero no bloquea que la ficha cuente como reservada.
+  zona?: string;
   creada: number;
 };
 
@@ -29,17 +32,34 @@ export function revisarFicha(f: Partial<Ficha>): string[] {
   return x;
 }
 
-// Aviso puntual al admin SOLO cuando el estado cambia (sin spam por re-guardados).
-async function notificarCambioEstado(prev: Ficha['estado'] | null, ficha: Ficha): Promise<void> {
-  if (prev === ficha.estado) return;
+// Aviso puntual al admin: cuando cambia el estado, o cuando llega la dirección
+// por primera vez. Sin spam por re-guardados: si nada de eso cambió, no manda.
+async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void> {
+  const cambioEstado = prev?.estado !== ficha.estado;
+  const llegoZona = !prev?.zona && !!ficha.zona;
+  if (!cambioEstado && !llegoZona) return;
+
   const chip = ficha.origen === 'web' ? '🌐 Web' : '💬 Luz';
   const nombre = ficha.studentName || 'Sin nombre';
-  const texto =
-    ficha.estado === 'reservada'
-      ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO\n${chip} · 📱 ${ficha.telefono}`
-      : `🟡 *Ficha ${ficha.estado.toUpperCase()}* — ${nombre}\n🚗 ${ficha.curso || '¿curso?'} · Falta: ${ficha.faltantes.join(', ')}\n${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
-        (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '');
-  await notificarAdmin(texto).catch((e) => console.error('[FICHA] Error notificando estado:', e));
+  const dir = ficha.zona ? `\n📍 ${ficha.zona}` : '';
+
+  let texto: string;
+  if (cambioEstado) {
+    texto =
+      ficha.estado === 'reservada'
+        ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO${dir}\n${chip} · 📱 ${ficha.telefono}`
+        : `🟡 *Ficha ${ficha.estado.toUpperCase()}* — ${nombre}\n🚗 ${ficha.curso || '¿curso?'} · Falta: ${ficha.faltantes.join(', ')}${dir}\n${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
+          (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '');
+  } else {
+    // Sólo llegó la dirección: aviso corto y accionable
+    texto =
+      `📍 *DIRECCIÓN RECIBIDA* — ${nombre}\n${ficha.zona}\n` +
+      `🚗 ${ficha.curso || '¿curso?'} · ${ficha.faltantes.length ? 'Falta: ' + ficha.faltantes.join(', ') : 'sin pendientes'}\n` +
+      `${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
+      (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '');
+  }
+
+  await notificarAdmin(texto).catch((e) => console.error('[FICHA] Error notificando cambio:', e));
 }
 
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.
@@ -47,7 +67,6 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
   const ref = db.collection('fichas').doc(id);
   const snap = await ref.get();
   const existente = snap.exists ? (snap.data() as Ficha) : null;
-  const prevEstado = existente?.estado ?? null;
 
   const precio = datos.precio ?? 0;
   const faltantes = revisarFicha(datos);
@@ -63,12 +82,15 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
     estado: faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
     telefono: datos.telefono ?? '',
+    // Se preserva igual que 'creada': un re-guardado sin dirección no debe
+    // borrar la que ya se había capturado.
+    zona: datos.zona ?? existente?.zona,
     // Preservar la fecha original — si no, cada re-guardado (ej. Luz llamando
     // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
     creada: existente?.creada ?? Date.now(),
   };
   await ref.set(ficha, { merge: true });
-  await notificarCambioEstado(prevEstado, ficha);
+  await notificarCambios(existente, ficha);
   return ficha;
 }
 
@@ -93,10 +115,11 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     estado: faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
     telefono: datos.telefono ?? '',
+    zona: datos.zona,
     creada: datos.creada ?? Date.now(),
   };
   await ref.set(ficha, { merge: true });
-  await notificarCambioEstado((actual.estado as Ficha['estado']) ?? null, ficha);
+  await notificarCambios(actual as Ficha | null, ficha);
   return ficha;
 }
 

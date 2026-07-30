@@ -76,6 +76,7 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
         curso,
         precio: PRECIO_CURSO[curso] ?? 0, // TODO: dato pendiente si llega un curso fuera del mapa
         opcionesFechaHora: fechas.map(f => `${f.date} ${f.time}`),
+        zona: input.address,
         // linkCierre arma wa.me/52{telefono} → se guarda a 10 dígitos
         telefono: phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone,
       },

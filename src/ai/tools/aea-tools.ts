@@ -284,6 +284,7 @@ export const guardarPreReservaTool = ai.defineTool(
           curso: cursoFicha,
           precio: PRECIO_CURSO[cursoFicha] ?? 0, // TODO: dato pendiente si el curso no está en el catálogo
           opcionesFechaHora: fechas.map((f) => `${f.date} ${f.time}`),
+          zona,
           // linkCierre arma wa.me/52{telefono} → se guarda a 10 dígitos
           telefono: telefono.startsWith('52') && telefono.length === 12 ? telefono.slice(2) : telefono,
         },
