@@ -136,7 +136,12 @@ export default function ImportarFichaPage() {
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? 'Error al agendar');
-      setCalResult({ created: json.created, total: json.total ?? fechasValidas.length });
+      // Los que ya existían cuentan como logrados: si no, el candado de
+      // duplicados haría que la pantalla reportara "algunos fallaron".
+      setCalResult({
+        created: (json.created ?? 0) + (json.omitidos ?? 0),
+        total: json.total ?? fechasValidas.length,
+      });
       setStage('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear eventos');

@@ -37,7 +37,12 @@ export async function POST(request: NextRequest) {
         : Promise.resolve(),
     ]);
 
-    return NextResponse.json({ ok: true, created: result.created, total: result.total });
+    return NextResponse.json({
+      ok: true,
+      created: result.created,
+      omitidos: result.omitidos,
+      total: result.total,
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Error al crear eventos';
     console.error('[FICHA] Error en calendario:', msg);

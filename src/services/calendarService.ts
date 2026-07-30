@@ -202,6 +202,41 @@ export async function buscarEventosPorAlumno(nombre: string): Promise<EventoCale
   return todos.filter(e => e.alumno.toLowerCase().includes(q));
 }
 
+/**
+ * Devuelve las claves "YYYY-MM-DDTHH:mm" que YA tienen evento para ese alumno.
+ * Sirve para no volver a crear una clase idéntica: seis rutas distintas crean
+ * eventos (webhook, herramienta de Luz, botón Calendar del panel, importador y
+ * las dos de agenda) y ninguna sabía de las otras.
+ */
+export async function eventosYaCreados(
+  studentName: string,
+  fechas: { date: string; time: string }[],
+): Promise<Set<string>> {
+  const claves = new Set<string>();
+  if (fechas.length === 0) return claves;
+
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID!;
+
+  const ordenadas = fechas.map(f => f.date).sort();
+  const res = await calendar.events.list({
+    calendarId,
+    timeMin: `${ordenadas[0]}T00:00:00-06:00`,
+    timeMax: `${ordenadas[ordenadas.length - 1]}T23:59:59-06:00`,
+    singleEvents: true,
+    maxResults: 500,
+  });
+
+  const summary = `Clase: ${studentName}`;
+  for (const e of res.data.items ?? []) {
+    if ((e.summary ?? '') !== summary) continue;
+    const dt = e.start?.dateTime;
+    if (dt) claves.add(dt.slice(0, 16)); // "2026-08-01T07:00:00-06:00" → "2026-08-01T07:00"
+  }
+  return claves;
+}
+
 export async function moverEvento(eventId: string, nuevaFecha: string, nuevaHora: string): Promise<void> {
   const auth = getCalendarAuth();
   const calendar = google.calendar({ version: 'v3', auth });

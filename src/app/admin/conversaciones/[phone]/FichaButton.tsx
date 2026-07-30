@@ -41,7 +41,14 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       const json = await res.json();
       if (json.ok) {
         setCalStatus('ok');
-        setCalMsg(`${json.created} evento${json.created !== 1 ? 's' : ''}`);
+        // Un "0 eventos" seco parecía un fallo e invitaba a volver a hacer clic,
+        // que es justo como se llenó el calendario de duplicados.
+        setCalMsg(
+          json.created === 0 && json.omitidos > 0
+            ? 'ya estaban'
+            : `${json.created} evento${json.created !== 1 ? 's' : ''}` +
+              (json.omitidos > 0 ? ` (+${json.omitidos} ya estaban)` : '')
+        );
       } else {
         setCalStatus('error');
         setCalMsg(json.error ?? 'Error');

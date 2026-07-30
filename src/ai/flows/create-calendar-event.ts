@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod';
-import { createCalendarEvent } from '@/services/calendarService';
+import { createCalendarEvent, eventosYaCreados } from '@/services/calendarService';
 
 export const CreateEventInputSchema = z.object({
   name: z.string(),
@@ -27,12 +27,44 @@ export const CreateEventInputSchema = z.object({
 export type CreateEventInput = z.infer<typeof CreateEventInputSchema>;
 
 export async function scheduleAndCreateEvents(input: CreateEventInput) {
-    const promises = input.dates.map((classItem, i) => {
-        if (!classItem.time) {
-            console.warn(`Skipping event creation for date ${classItem.date} due to missing time.`);
-            return Promise.resolve(null);
-        }
-        return createCalendarEvent({
+    // Clave local por clase, igual que la que arma createCalendarEvent
+    const conHora = input.dates
+        .map((classItem, i) => ({ ...classItem, i }))
+        .filter(c => {
+            if (!c.time) {
+                console.warn(`Skipping event creation for date ${c.date} due to missing time.`);
+                return false;
+            }
+            return true;
+        })
+        .map(c => ({
+            ...c,
+            dia: new Date(c.date).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }),
+        }))
+        .map(c => ({ ...c, clave: `${c.dia}T${c.time}` }));
+
+    // Candado de idempotencia: seis rutas distintas llaman aquí y ninguna sabía
+    // de las otras, así que pedir las mismas clases dos veces duplicaba los
+    // eventos. Si la verificación falla se continúa: es preferible arriesgar un
+    // duplicado a dejar a un alumno sin clases agendadas.
+    let existentes = new Set<string>();
+    try {
+        existentes = await eventosYaCreados(
+            input.name,
+            conHora.map(c => ({ date: c.dia, time: c.time! })),
+        );
+    } catch (e) {
+        console.error('[Calendar] No se pudo verificar duplicados, se continúa:', e);
+    }
+
+    const pendientes = conHora.filter(c => !existentes.has(c.clave));
+    const omitidos = conHora.length - pendientes.length;
+    if (omitidos > 0) {
+        console.log(`[Calendar] ${omitidos} evento(s) ya existían para ${input.name} — no se recrean`);
+    }
+
+    const promises = pendientes.map((classItem) =>
+        createCalendarEvent({
             studentName: input.name,
             studentPhone: input.phone,
             studentAddress: input.address,
@@ -40,10 +72,10 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
             isMinor: !!input.isMinor,
             notes: input.notes,
             classDate: new Date(classItem.date),
-            classTime: classItem.time,
-            sessionIndex: i,
-        });
-    });
+            classTime: classItem.time!,
+            sessionIndex: classItem.i,
+        }),
+    );
 
     const results = await Promise.allSettled(promises);
 
@@ -60,7 +92,9 @@ export async function scheduleAndCreateEvents(input: CreateEventInput) {
         }
     }
 
-    const message = `Se crearon ${created} de ${input.dates.length} eventos en el calendario.`;
+    const message = omitidos > 0
+        ? `Se crearon ${created} eventos; ${omitidos} ya existían (de ${input.dates.length}).`
+        : `Se crearon ${created} de ${input.dates.length} eventos en el calendario.`;
     console.log(message);
-    return { success: true, message, created, total: input.dates.length };
+    return { success: true, message, created, omitidos, total: input.dates.length };
 }
