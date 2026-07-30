@@ -80,14 +80,18 @@ async function enviarTexto(texto: string): Promise<void> {
 export async function notificarAdmin(texto: string): Promise<void> {
   if (!WA_TOKEN || !PHONE_ID) return;
 
-  // La plantilla admite 2 parámetros y no acepta saltos de línea: se manda la
-  // primera línea como resumen y el teléfono que venga en el texto.
+  // La plantilla es la vía que SIEMPRE llega, así que va con todo el detalle:
+  // sin ella habría que entrar al panel a buscar curso y dirección. Meta admite
+  // ~1000 caracteres por parámetro pero rechaza saltos de línea, tabuladores y
+  // espacios consecutivos, así que el mensaje se aplana a una sola línea.
   const tipo =
-    (texto.split('\n')[0] || '')
+    texto
       .replace(/[*_~`>#]/g, '')
+      .replace(/\n+/g, ' · ')
       .replace(/\s+/g, ' ')
+      .replace(/ · ·/g, ' ·')
       .trim()
-      .slice(0, 80) || 'Alerta AEA';
+      .slice(0, 700) || 'Alerta AEA';
   const phoneMatch = texto.match(/\+?\d[\d\s]{8,}\d/);
   const contacto = phoneMatch ? phoneMatch[0].replace(/\s+/g, '') : 'N/D';
 
