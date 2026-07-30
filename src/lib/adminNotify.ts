@@ -38,9 +38,7 @@ async function enviarPlantilla(tipo: string, contacto: string): Promise<void> {
   console.log('[ADMIN-NOTIFY] 📨 Entregado por plantilla');
 }
 
-export async function notificarAdmin(texto: string): Promise<void> {
-  if (!WA_TOKEN || !PHONE_ID) return;
-
+async function enviarTexto(texto: string): Promise<void> {
   const res = await fetch(urlMensajes(), {
     method: 'POST',
     headers: {
@@ -59,12 +57,28 @@ export async function notificarAdmin(texto: string): Promise<void> {
   });
 
   if (!res) return;
-  if (res.ok) return;
+  // fetch NO lanza con un 400. Ojo: un 200 tampoco garantiza entrega —Meta puede
+  // descartar el mensaje después—; eso sólo se ve en los callbacks [WA-STATUS].
+  if (!res.ok) {
+    console.error('[ADMIN-NOTIFY] WhatsApp API error:', res.status, await res.text());
+  }
+}
 
-  // fetch NO lanza con un 400, así que sin este chequeo el rechazo de Meta
-  // (típicamente ventana de 24h cerrada, #131047) se descartaba en silencio y
-  // el admin nunca se enteraba de la ficha. Misma red de seguridad que el webhook.
-  console.error('[ADMIN-NOTIFY] WhatsApp API error:', res.status, await res.text());
+/**
+ * Avisa al admin por dos vías a la vez: texto libre (completo, legible) y
+ * plantilla (resumida pero garantizada).
+ *
+ * La plantilla NO es un respaldo condicional: va siempre. Con la ventana de 24h
+ * cerrada Meta acepta el texto con un 200 y lo descarta después, así que no hay
+ * ningún error que detectar en el momento del envío — reaccionar al fallo no
+ * funciona. Es el mismo patrón de "mirror garantizado" que el webhook usa desde
+ * 7c930ed para las ventas cerradas.
+ *
+ * El costo es un mensaje extra cuando la ventana está abierta. Perder un aviso
+ * de depósito o de dirección cuesta más.
+ */
+export async function notificarAdmin(texto: string): Promise<void> {
+  if (!WA_TOKEN || !PHONE_ID) return;
 
   // La plantilla admite 2 parámetros y no acepta saltos de línea: se manda la
   // primera línea como resumen y el teléfono que venga en el texto.
@@ -77,5 +91,5 @@ export async function notificarAdmin(texto: string): Promise<void> {
   const phoneMatch = texto.match(/\+?\d[\d\s]{8,}\d/);
   const contacto = phoneMatch ? phoneMatch[0].replace(/\s+/g, '') : 'N/D';
 
-  await enviarPlantilla(tipo, contacto);
+  await Promise.allSettled([enviarTexto(texto), enviarPlantilla(tipo, contacto)]);
 }
