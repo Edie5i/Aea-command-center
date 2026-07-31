@@ -21,6 +21,8 @@ const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const DIAS_VISTA = 30;
 const AVISAR_TOKEN_DIAS = 21;
 const FICHA_ESTANCADA_DIAS = 3;
+const WABA_ID = '1871805990307489';
+const PLANTILLA_CRITICA = 'alerta_aea';
 
 interface Hallazgo {
   grave: boolean;
@@ -98,6 +100,48 @@ async function revisarDesfase(
   };
 }
 
+/**
+ * Estado de las plantillas de WhatsApp.
+ *
+ * alerta_aea es el canal garantizado: si Meta la pausa o la deshabilita, los
+ * avisos dejan de llegar fuera de la ventana de 24h y hoy no habría forma de
+ * saberlo hasta echar de menos un mensaje que nunca llegó.
+ */
+async function revisarPlantillas(): Promise<Hallazgo | null> {
+  if (!WA_TOKEN) return null;
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/${WABA_ID}/message_templates?limit=50&access_token=${WA_TOKEN}`,
+    );
+    if (!res.ok) return { grave: false, texto: '⚠️ No se pudo consultar el estado de las plantillas' };
+    const { data } = (await res.json()) as {
+      data?: { name: string; status: string }[];
+    };
+    const plantillas = data ?? [];
+
+    const critica = plantillas.find(t => t.name === PLANTILLA_CRITICA);
+    if (!critica || critica.status !== 'APPROVED') {
+      return {
+        grave: true,
+        texto: `📋 La plantilla ${PLANTILLA_CRITICA} está ${critica?.status ?? 'AUSENTE'} — es el canal que garantiza tus avisos`,
+      };
+    }
+
+    const rotas = plantillas.filter(t => ['REJECTED', 'PAUSED', 'DISABLED'].includes(t.status));
+    if (rotas.length > 0) {
+      return { grave: true, texto: `📋 ${rotas.map(t => `${t.name}: ${t.status}`).join(' · ')}` };
+    }
+
+    const pendientes = plantillas.filter(t => t.status === 'PENDING');
+    if (pendientes.length > 0) {
+      return { grave: false, texto: `📋 En revisión por Meta: ${pendientes.map(t => t.name).join(', ')}` };
+    }
+    return null;
+  } catch {
+    return { grave: false, texto: '⚠️ No se pudo consultar el estado de las plantillas' };
+  }
+}
+
 /** Pre-reservas que llevan días sin depósito: son ventas que se están enfriando. */
 async function revisarFichasEstancadas(): Promise<Hallazgo | null> {
   const corte = Date.now() - FICHA_ESTANCADA_DIAS * 86_400_000;
@@ -128,6 +172,7 @@ export async function GET(request: NextRequest) {
     Promise.resolve(eventos ? revisarDuplicados(eventos) : { grave: true, texto: '❌ No se pudo leer Google Calendar' }),
     eventos ? revisarDesfase(eventos).catch(() => null) : Promise.resolve(null),
     revisarFichasEstancadas().catch(() => null),
+    revisarPlantillas().catch(() => null),
   ]);
 
   const hallazgos = chequeos.filter((h): h is Hallazgo => h !== null);
