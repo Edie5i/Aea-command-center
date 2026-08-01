@@ -166,7 +166,7 @@ export default async function ConversacionesPage({
               <div key={conv.phone} className="relative flex items-stretch"
                 style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
                 <Link
-                  href={`/admin/conversaciones/${conv.phone}`}
+                  href={`/admin/conversaciones/${conv.phone}?tab=${activeTab}`}
                   className={`flex items-start gap-4 px-4 py-4 flex-1 min-w-0 transition-colors ${isRegistroLead ? 'pr-16' : ''}`}
                   style={{ background: needsAttention ? 'rgba(239,68,68,0.04)' : 'transparent' }}
                 >

@@ -15,10 +15,14 @@ function displayPhone(phone: string): string {
   return phone;
 }
 
+const TABS_VALIDOS = ['atencion', 'activas', 'inscritos'] as const;
+
 export default async function ConversacionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ phone: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const cookieStore = await cookies();
   if (cookieStore.get('admin_pin')?.value !== ADMIN_PIN) {
@@ -26,6 +30,13 @@ export default async function ConversacionPage({
   }
 
   const { phone } = await params;
+  const { tab } = await searchParams;
+  // La lista nos pasa de qué pestaña venimos para poder devolver ahí al volver.
+  // Se valida contra la lista blanca: sin esto, un ?tab= manipulado se colaría
+  // tal cual en el href de regreso.
+  const volverA = TABS_VALIDOS.includes(tab as typeof TABS_VALIDOS[number])
+    ? `/admin/conversaciones?tab=${tab}`
+    : '/admin/conversaciones';
   const [messages, inscripcion, conv] = await Promise.all([
     getConversationMessages(phone),
     getInscripcionData(phone),
@@ -44,7 +55,7 @@ export default async function ConversacionPage({
         style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
         <div className="flex items-center gap-3">
           <Link
-            href="/admin/conversaciones"
+            href={volverA}
             className="text-xl leading-none shrink-0 transition-colors"
             style={{ color: '#475569' }}
             aria-label="Volver"
