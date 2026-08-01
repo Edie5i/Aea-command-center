@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   description: "Aprende a manejar en CDMX con instructores certificados. Clases 1 a 1, a tu ritmo. Roma Sur y a domicilio en CDMX. Más de 220 reseñas ⭐ 4.8. Aparta tu lugar desde $690.",
   keywords: "clases de manejo CDMX, autoescuela Ciudad de México, aprender a manejar CDMX, escuela de manejo Roma Sur, clases de manejo personalizadas",
   robots: "index, follow",
+  // Vía metadata y no como <link> suelto en <head>: así /admin puede
+  // sobrescribirlo con el suyo. Dos <link rel="manifest"> en el HTML no
+  // funcionan — el navegador solo respeta el primero.
+  manifest: "/manifest.json",
   alternates: {
     canonical: "https://www.autoescuelaamericana.com",
   },
@@ -42,7 +46,6 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
         {/* GA4 — init sincrónico en <head> garantiza que dataLayer exista antes de que gtag.js ejecute */}
         <script
           dangerouslySetInnerHTML={{
