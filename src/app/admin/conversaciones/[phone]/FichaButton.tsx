@@ -65,11 +65,27 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
       alert(`⚠️ ${fechasIncompletas.length} sesión(es) sin fecha u horario completo. Corrige los datos antes de generar la ficha.`);
       return;
     }
-    // Abrir la ficha como PDF (visor nativo del navegador), no como blob HTML
-    // que a veces no abre. Reutiliza el mismo generador que usa "Enviar WA".
-    const { blob } = await buildPdfBlob();
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    // La pestaña se abre ANTES de generar el PDF. Si se abre después del await
+    // —jsPDF y date-fns se cargan dinámicamente— el navegador ya perdió el
+    // gesto del usuario, bloquea el popup y la ficha se quedaba en una pestaña
+    // en blanco con una URL blob: que no abría nada.
+    const ventana = window.open('', '_blank');
+
+    const { blob, filename } = await buildPdfBlob();
+    // Se fuerza el tipo: sin él, el visor del navegador no reconoce el PDF.
+    const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+
+    if (ventana && !ventana.closed) {
+      ventana.location.href = url;
+    } else {
+      // Popup bloqueado: al menos que se la pueda descargar.
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
