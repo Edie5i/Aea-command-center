@@ -82,7 +82,10 @@ export default async function ConversacionesPage({
 
   return (
     <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
-      <AutoRefresh intervalMs={30_000} />
+      {/* 2 min y no 30 s: desde que getConversations trae la colección completa,
+          cada refresco cuesta ~186 lecturas. A 30 s con el panel abierto todo el
+          día son ~180k/día, muy por encima de las 50k de la capa gratis. */}
+      <AutoRefresh intervalMs={120_000} />
 
       {/* Header sticky metálico */}
       <header className="sticky top-0 z-10"
