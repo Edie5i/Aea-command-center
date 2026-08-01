@@ -183,6 +183,32 @@ function revisarPreReservasProximas(
   };
 }
 
+/**
+ * Reembolsos anotados y todavía sin pagar.
+ *
+ * Se registran a mano cuando se acuerda devolver dinero a un alumno. Sin esto
+ * el dato queda escrito en Firestore y nadie lo vuelve a ver — que es como se
+ * pierden los compromisos con clientes.
+ */
+async function revisarReembolsos(): Promise<Hallazgo | null> {
+  const snap = await db.collection('conversations').limit(300).get();
+  const pendientes: string[] = [];
+  for (const doc of snap.docs) {
+    const r = doc.data().reembolsoPendiente;
+    if (!r || r.pagado) continue;
+    const nombre = doc.data().inscripcion?.nombre ?? doc.data().contactName ?? doc.id;
+    const dias = r.registradoEn?.toMillis
+      ? Math.round((Date.now() - r.registradoEn.toMillis()) / 86_400_000)
+      : 0;
+    pendientes.push(`${nombre} $${r.monto}${dias > 0 ? ` (${dias}d)` : ''}`);
+  }
+  if (pendientes.length === 0) return null;
+  return {
+    grave: false,
+    texto: `💸 ${pendientes.length} reembolso(s) sin pagar — ${pendientes.slice(0, 4).join(' · ')}`,
+  };
+}
+
 /** Pre-reservas que llevan días sin depósito: son ventas que se están enfriando. */
 function revisarFichasEstancadas(
   fichas: FirebaseFirestore.QueryDocumentSnapshot[],
@@ -220,6 +246,7 @@ export async function GET(request: NextRequest) {
     Promise.resolve(revisarFichasEstancadas(fichas)),
     Promise.resolve(eventos ? revisarPreReservasProximas(fichas, eventos) : null),
     revisarPlantillas().catch(() => null),
+    revisarReembolsos().catch(() => null),
   ]);
 
   const hallazgos = chequeos.filter((h): h is Hallazgo => h !== null);
