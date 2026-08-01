@@ -639,16 +639,47 @@ async function rescatarMensajePerdido(
     if (ok) return; // el reintento salió; su propio callback dirá si llegó
   }
 
-  // Sin remedio automático: que un humano lo retome. Se manda por notificarAdmin
-  // porque va con plantilla garantizada — este aviso no se puede perder también.
+  // Si el lead tiene una ficha sin pagar, la plantilla prereserva_pendiente sí
+  // lo alcanza fuera de la ventana de 24h. Sólo aplica a quien de verdad apartó:
+  // mandarle "tu pre-reserva sigue apartada" a quien nunca apartó sería mentirle.
+  const rescatado = await avisarPreReservaPorPlantilla(to, pid);
+
   const { notificarAdmin } = await import('@/lib/adminNotify');
   await notificarAdmin(
     `🚨 *Lead sin respuesta* — WhatsApp rechazó el mensaje\n` +
     `📱 +${to}\n` +
     `❌ ${detalle || 'sin detalle'}\n` +
-    `💬 "${text.slice(0, 160)}"\n\n` +
-    `Contáctalo tú: wa.me/${to}`
+    `💬 "${text.slice(0, 160)}"\n` +
+    (rescatado
+      ? `\n✅ Se le mandó la plantilla de pre-reserva pendiente.`
+      : `\nSin ficha pendiente — contáctalo tú: wa.me/${to}`)
   );
+}
+
+/**
+ * Alcanza a un lead con ficha sin pagar usando la plantilla aprobada, que no
+ * depende de la ventana de 24h. Devuelve si se pudo mandar.
+ */
+async function avisarPreReservaPorPlantilla(to: string, phoneId: string): Promise<boolean> {
+  try {
+    const { db } = await import('@/lib/firestore');
+    const ficha = await db.collection('fichas').doc(to).get();
+    if (!ficha.exists) return false;
+
+    const f = ficha.data() as { studentName?: string; curso?: string; depositoMonto?: number; estado?: string };
+    if (f.estado === 'reservada') return false; // ya pagó, no hay nada que cobrarle
+
+    const nombre = (f.studentName || '').split(' ')[0] || 'Hola';
+    const curso = f.curso || 'de manejo';
+    const monto = `$${(f.depositoMonto ?? 690).toLocaleString('es-MX')}`;
+
+    const ok = await sendTemplateMessage(to, 'prereserva_pendiente', 'es_MX', [nombre, curso, monto], phoneId);
+    if (ok) console.log('[WA-STATUS] 📨 plantilla de pre-reserva enviada a', to);
+    return ok;
+  } catch (e) {
+    console.error('[WA-STATUS] Error mandando plantilla de pre-reserva:', e);
+    return false;
+  }
 }
 
 async function sendMessage(to: string, text: string, phoneId?: string, esReintento = false): Promise<boolean> {
