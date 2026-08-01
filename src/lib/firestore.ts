@@ -170,12 +170,17 @@ export async function markReminderSent(phone: string, type: '1h' | '23h'): Promi
   await convDoc(phone).set({ [field]: true }, { merge: true });
 }
 
+// Sin límite y sin orderBy en la query, a propósito. El `.orderBy('lastActivity')
+// .limit(50)` anterior truncaba de dos formas: mostraba 50 de 154 conversaciones,
+// y además Firestore excluye de un orderBy los documentos que no tienen ese campo
+// — 32 hoy — así que esos no aparecían en el panel por más que se subiera el
+// límite. El orden se resuelve en memoria, donde un lastActivity ausente se trata
+// como el más viejo en lugar de desaparecer.
 export async function getConversations(): Promise<Conversation[]> {
-  const snap = await db.collection('conversations')
-    .orderBy('lastActivity', 'desc')
-    .limit(50)
-    .get();
-  return snap.docs.map(d => d.data() as Conversation);
+  const snap = await db.collection('conversations').get();
+  return snap.docs
+    .map(d => d.data() as Conversation)
+    .sort((a, b) => (b.lastActivity?.toMillis?.() ?? 0) - (a.lastActivity?.toMillis?.() ?? 0));
 }
 
 export async function getConversationMessages(phone: string): Promise<ChatMessage[]> {
