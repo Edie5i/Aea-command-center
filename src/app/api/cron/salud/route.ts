@@ -23,6 +23,7 @@ const AVISAR_TOKEN_DIAS = 21;
 const FICHA_ESTANCADA_DIAS = 3;
 const WABA_ID = '1871805990307489';
 const PLANTILLA_CRITICA = 'alerta_aea';
+const DIAS_PREAVISO = 14;
 
 interface Hallazgo {
   grave: boolean;
@@ -142,11 +143,52 @@ async function revisarPlantillas(): Promise<Hallazgo | null> {
   }
 }
 
+/**
+ * Pre-reservas con fecha próxima.
+ *
+ * Los eventos de Calendar sólo se crean al confirmar el pago, así que un lead
+ * que apartó y no pagó tiene fechas guardadas en su ficha y en ningún otro
+ * lado: no salen en la agenda ni en el calendario. El 31 de julio pasaron dos
+ * horarios apartados sin que nadie lo supiera, y uno de esos apartados ya
+ * chocaba con otro alumno.
+ */
+function revisarPreReservasProximas(
+  fichas: FirebaseFirestore.QueryDocumentSnapshot[],
+  eventos: { inicio: string }[],
+): Hallazgo | null {
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+  const limite = new Date(Date.now() + DIAS_PREAVISO * 86_400_000)
+    .toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+
+  // Horarios que ya tienen clase, para detectar apartados que chocan
+  const ocupados = new Set(
+    eventos.filter(e => e.inicio).map(e => claveDesdeEvento(e.inicio)),
+  );
+
+  const avisos: string[] = [];
+  for (const doc of fichas) {
+    const f = doc.data() as { estado?: string; studentName?: string; opcionesFechaHora?: string[] };
+    if (f.estado === 'reservada') continue;
+    for (const slot of f.opcionesFechaHora ?? []) {
+      const [dia, hora] = slot.split(' ');
+      if (!dia || !hora || dia < hoy || dia > limite) continue;
+      const choca = ocupados.has(`${dia}T${hora}`);
+      avisos.push(`${f.studentName || 'sin nombre'} ${dia} ${hora}${choca ? ' ⚠️OCUPADO' : ''}`);
+    }
+  }
+  if (avisos.length === 0) return null;
+  return {
+    grave: avisos.some(a => a.includes('OCUPADO')),
+    texto: `⏳ ${avisos.length} horario(s) apartado(s) SIN pagar en los próximos ${DIAS_PREAVISO}d — ${avisos.slice(0, 4).join(' · ')}`,
+  };
+}
+
 /** Pre-reservas que llevan días sin depósito: son ventas que se están enfriando. */
-async function revisarFichasEstancadas(): Promise<Hallazgo | null> {
+function revisarFichasEstancadas(
+  fichas: FirebaseFirestore.QueryDocumentSnapshot[],
+): Hallazgo | null {
   const corte = Date.now() - FICHA_ESTANCADA_DIAS * 86_400_000;
-  const snap = await db.collection('fichas').limit(300).get();
-  const estancadas = snap.docs
+  const estancadas = fichas
     .map(d => d.data())
     .filter(f => f.estado !== 'reservada' && (f.creada ?? Date.now()) < corte);
   if (estancadas.length === 0) return null;
@@ -166,12 +208,17 @@ export async function GET(request: NextRequest) {
     console.error('[SALUD] No se pudo leer Calendar:', e);
     return null;
   });
+  // Una sola lectura de fichas para las dos revisiones que las necesitan
+  const fichas = await db.collection('fichas').limit(300).get()
+    .then(s => s.docs)
+    .catch(e => { console.error('[SALUD] No se pudieron leer las fichas:', e); return []; });
 
   const chequeos = await Promise.all([
     revisarToken(),
     Promise.resolve(eventos ? revisarDuplicados(eventos) : { grave: true, texto: '❌ No se pudo leer Google Calendar' }),
     eventos ? revisarDesfase(eventos).catch(() => null) : Promise.resolve(null),
-    revisarFichasEstancadas().catch(() => null),
+    Promise.resolve(revisarFichasEstancadas(fichas)),
+    Promise.resolve(eventos ? revisarPreReservasProximas(fichas, eventos) : null),
     revisarPlantillas().catch(() => null),
   ]);
 
