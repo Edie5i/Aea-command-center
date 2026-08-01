@@ -43,6 +43,24 @@ function nextFollowupAt(followUpsSent: Array<{ type: string }>): Timestamp | nul
 }
 
 /**
+ * Quién habló al final. Se deriva SIEMPRE del mensaje real: antes era
+ * `conv.chatLastBy ?? (...)` y el campo se volvía pegajoso — una vez en
+ * 'cliente' ya nunca se recalculaba, la Regla 6 no podía aplicar y esa
+ * conversación quedaba fuera de la secuencia de follow-ups para siempre.
+ *
+ * 'humano' es la excepción: marca que el equipo entró a mano y se conserva
+ * mientras el cliente no vuelva a escribir, porque el cron lo usa para no
+ * encimar follow-ups automáticos sobre una atención humana.
+ */
+export function quienEscribioAlFinal(
+  guardado: ChatLastBy | undefined | null,
+  ultimoRol: 'user' | 'bot' | undefined
+): ChatLastBy {
+  const real: ChatLastBy = ultimoRol === 'user' ? 'cliente' : 'luz';
+  return guardado === 'humano' && real === 'luz' ? 'humano' : real;
+}
+
+/**
  * Recalculates and persists the pipeline state for a conversation.
  * Safe to call fire-and-forget — all errors are caught internally.
  */
@@ -62,17 +80,9 @@ export async function recalculateChatState(
     const lastMessageAt: number = conv.lastActivity?.toMillis?.() ?? Date.now();
     const silenceMs = Date.now() - lastMessageAt;
 
-    // Determinar quién mandó el último mensaje. Se deriva SIEMPRE del mensaje
-    // real: con `conv.chatLastBy ?? ...` el campo se volvía pegajoso — una vez
-    // en 'cliente' ya nunca se recalculaba, la Regla 6 no podía aplicar y esa
-    // conversación quedaba fuera de la secuencia de follow-ups para siempre.
+    // Determinar quién mandó el último mensaje
     const lastMsg = messages[messages.length - 1];
-    const realBy: ChatLastBy = lastMsg?.role === 'user' ? 'cliente' : 'luz';
-    // 'humano' marca que el equipo entró a mano. Se conserva mientras el cliente
-    // no vuelva a escribir, porque el cron lo usa para no encimar follow-ups
-    // automáticos sobre una atención humana.
-    const lastBy: ChatLastBy =
-      conv.chatLastBy === 'humano' && realBy === 'luz' ? 'humano' : realBy;
+    const lastBy = quienEscribioAlFinal(conv.chatLastBy, lastMsg?.role);
 
     // Si ya está cerrado, no recalcular
     const currentState: ChatState = conv.chatState ?? 'luz_atendiendo';
