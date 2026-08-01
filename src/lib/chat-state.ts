@@ -3,6 +3,7 @@ import {
   updateChatState,
   getRecentMessages,
   type ChatState,
+  type ChatLastBy,
   type ChatUrgency,
   type StateChangeTrigger,
 } from '@/lib/firestore';
@@ -61,9 +62,17 @@ export async function recalculateChatState(
     const lastMessageAt: number = conv.lastActivity?.toMillis?.() ?? Date.now();
     const silenceMs = Date.now() - lastMessageAt;
 
-    // Determinar quién mandó el último mensaje
+    // Determinar quién mandó el último mensaje. Se deriva SIEMPRE del mensaje
+    // real: con `conv.chatLastBy ?? ...` el campo se volvía pegajoso — una vez
+    // en 'cliente' ya nunca se recalculaba, la Regla 6 no podía aplicar y esa
+    // conversación quedaba fuera de la secuencia de follow-ups para siempre.
     const lastMsg = messages[messages.length - 1];
-    const lastBy = conv.chatLastBy ?? (lastMsg?.role === 'user' ? 'cliente' : 'luz');
+    const realBy: ChatLastBy = lastMsg?.role === 'user' ? 'cliente' : 'luz';
+    // 'humano' marca que el equipo entró a mano. Se conserva mientras el cliente
+    // no vuelva a escribir, porque el cron lo usa para no encimar follow-ups
+    // automáticos sobre una atención humana.
+    const lastBy: ChatLastBy =
+      conv.chatLastBy === 'humano' && realBy === 'luz' ? 'humano' : realBy;
 
     // Si ya está cerrado, no recalcular
     const currentState: ChatState = conv.chatState ?? 'luz_atendiendo';
