@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { decidirOtp, OTP_TTL_MS, OTP_MAX_INTENTOS } from '@/lib/otp-policy';
@@ -332,7 +333,12 @@ const OTP_WINDOW_MS = 60 * 60 * 1000;
 const OTP_MAX_POR_VENTANA = 5;
 
 export async function generateInstructorOTP(phone: string): Promise<string> {
-  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  // randomInt y no Math.random: el generador de V8 es un xorshift128+ sembrado
+  // por proceso, no un CSPRNG — quien llegue a ver una tirada de salidas puede
+  // derivar el estado y predecir las siguientes. Aquí la salida es la única
+  // credencial del portal. randomInt toma del CSPRNG del sistema y además
+  // reparte parejo en el rango, sin el sesgo del truncado.
+  const otp = String(randomInt(100000, 1000000));
   await db.collection('candidatos_instructor').doc(phone).set(
     // El contador de intentos arranca en cero: si no, un código nuevo heredaría
     // los fallos del anterior y nacería casi quemado.
