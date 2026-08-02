@@ -51,3 +51,8 @@ set_webhook.sh
 # tarjetas QR de reseñas — salidas de generar_tarjetas_qr.py, se regeneran
 tarjeta_qr_individual.pdf
 tarjetas_qr_resenas.pdf
+
+# salidas del artifact del command center
+scripts/command-center-artifact/leads.json
+scripts/command-center-artifact/corte.txt
+scripts/command-center-artifact/command-center.html
