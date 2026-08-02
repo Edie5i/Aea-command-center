@@ -9,7 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "cc": "node scripts/command-center-artifact/export.mjs && node scripts/command-center-artifact/build.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.43",

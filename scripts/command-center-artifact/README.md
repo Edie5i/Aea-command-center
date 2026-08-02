@@ -11,9 +11,8 @@ alcanza Firestore, así que para refrescarlo hay que volver a generarlo.
 ## Regenerar
 
 ```bash
+npm run cc                              # export + build
 gcloud auth application-default login   # sólo si las credenciales caducaron
-node scripts/command-center-artifact/export.mjs
-node scripts/command-center-artifact/build.mjs
 ```
 
 Queda `command-center.html` aquí mismo; publícalo sobre la URL existente
