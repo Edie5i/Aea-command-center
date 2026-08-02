@@ -23,6 +23,22 @@ describe('nombreLead', () => {
     expect(r.tieneNombre).toBe(false);
   });
 
+  it('descarta un contactName de puros emojis y cae al teléfono', () => {
+    // Casos reales del corte: "👋✨" y "🏋🏾‍♂️" como nombre de WhatsApp.
+    const r = nombreLead({ contactName: '👋✨' }, '525586499324');
+    expect(r).toEqual({ nombre: '5586499324', tieneNombre: false });
+  });
+
+  it('prefiere el nombre de la inscripción sobre un contactName de emojis', () => {
+    const r = nombreLead({ contactName: '🏋🏾‍♂️', inscripcion: { nombre: 'Kevin' } }, '525575129633');
+    expect(r).toEqual({ nombre: 'Kevin', tieneNombre: true });
+  });
+
+  it('conserva el emoji cuando acompaña a un nombre de verdad', () => {
+    const r = nombreLead({ contactName: 'Mar🦇' }, '525570668464');
+    expect(r).toEqual({ nombre: 'Mar🦇', tieneNombre: true });
+  });
+
   it('tolera null en ambas fuentes', () => {
     expect(nombreLead({ contactName: null, inscripcion: null }, '525512345678').tieneNombre).toBe(false);
   });

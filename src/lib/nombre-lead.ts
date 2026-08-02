@@ -12,6 +12,16 @@ export interface FuentesNombre {
   inscripcion?: { nombre?: string | null } | null;
 }
 
+/**
+ * WhatsApp deja poner de nombre puros emojis, y varios contactos lo hacen. Como
+ * nombre no sirve: no se puede leer en voz alta ni buscar, y la ficha queda con
+ * una inicial vacía y un emoji suelto. Vale más el teléfono.
+ */
+function nombreUtil(raw: string | null | undefined): string | null {
+  const n = raw?.trim();
+  return n && /\p{L}|\p{N}/u.test(n) ? n : null;
+}
+
 /** Teléfono legible: quita el 52 o 521 de país. */
 export function telefonoVisible(phone: string): string {
   if (phone.startsWith('521') && phone.length === 13) return phone.slice(3);
@@ -28,10 +38,10 @@ export function nombreLead(
   fuentes: FuentesNombre,
   phone: string,
 ): { nombre: string; tieneNombre: boolean } {
-  const contacto = fuentes.contactName?.trim();
+  const contacto = nombreUtil(fuentes.contactName);
   if (contacto) return { nombre: contacto, tieneNombre: true };
 
-  const inscrito = fuentes.inscripcion?.nombre?.trim();
+  const inscrito = nombreUtil(fuentes.inscripcion?.nombre);
   if (inscrito) return { nombre: inscrito, tieneNombre: true };
 
   return { nombre: telefonoVisible(phone), tieneNombre: false };
