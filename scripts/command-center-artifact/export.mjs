@@ -32,6 +32,16 @@ function telefonoVisible(phone) {
   return phone;
 }
 
+/**
+ * WhatsApp deja poner de nombre puros emojis, y varios contactos lo hacen. Como
+ * nombre no sirve: la ficha del chip queda con un "·" de inicial y un emoji
+ * suelto, sin manera de saber quién es. Vale más el teléfono.
+ */
+function nombreUtil(raw) {
+  const n = raw?.trim();
+  return n && /\p{L}|\p{N}/u.test(n) ? n : null;
+}
+
 /** Mismo formato que la función horas() de la plantilla. */
 function horas(h) {
   if (h < 1) return Math.max(1, Math.round(h * 60)) + ' min';
@@ -54,8 +64,8 @@ for (const doc of snap.docs) {
   // lastActivity y caerían en el "ahora" de la pista con el hilo vacío.
   if (!c.lastActivity) continue;
 
-  const contacto = c.contactName?.trim();
-  const inscrito = ins?.nombre?.trim();
+  const contacto = nombreUtil(c.contactName);
+  const inscrito = nombreUtil(ins?.nombre);
   const tel = telefonoVisible(phone);
 
   const msgs = await doc.ref
