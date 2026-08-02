@@ -22,6 +22,11 @@ mintear un link nuevo.
 
 `leads.json`, `corte.txt` y `command-center.html` son salidas: no se commitean.
 
+Si lo abres en un servidor local para revisarlo, sirve el HTML con
+`charset=utf-8`: la plantilla no trae `<meta charset>` porque lo pone el `<head>`
+que arma el publicador. Sin eso los acentos salen como `frÃ­os`, y es sólo del
+preview — el artifact publicado los muestra bien.
+
 ## Tocar el diseño
 
 Se edita `plantilla.html`, que es la página completa con dos huecos marcados
