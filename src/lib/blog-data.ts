@@ -429,6 +429,54 @@ Muchos conductores nuevos sobre-usan los espejos laterales y descuidan el retrov
     `,
   },
   {
+    slug: 'clases-de-manejo-moto-cdmx',
+    title: 'Manejar moto en CDMX: seguridad, licencia y lo que debes saber',
+    description:
+      'Guía práctica sobre manejar moto en la Ciudad de México: seguridad en ciudad, técnica de curvas y licencia tipo A. Nota: en Auto Escuela Americana no impartimos clases de moto — te contamos qué cursos sí ofrecemos.',
+    date: '2026-05-18',
+    readingTime: '4 min',
+    content: `
+## Moto en CDMX: libertad con responsabilidad
+
+La moto es el vehículo que más ha crecido en la ciudad en los últimos años — delivery, movilidad personal, evitar el tráfico. Pero también es el que tiene la curva de aprendizaje más delicada si no se aprende bien desde el principio.
+
+## Lo que cualquier buen curso de moto debería cubrir
+
+Si estás buscando dónde tomar clases, esto es lo que debe incluir un programa serio:
+
+### Control del vehículo
+- Posición correcta del cuerpo
+- Manejo del embrague y el cambio de velocidades
+- Frenado combinado (freno delantero + trasero)
+- Maniobras a baja velocidad: el punto donde más caídas ocurren
+
+### Manejo en ciudad
+- Visibilidad y puntos ciegos de otros conductores
+- Cómo te ven (o no te ven) los coches
+- Distancias de seguridad en moto — son diferentes a las del coche
+- Intersecciones: el momento de más riesgo para motociclistas
+
+### Técnica de curvas
+- Controdirección: el movimiento que confunde a la mayoría al principio
+- Peso del cuerpo y posición en curva
+- Velocidad de entrada y salida
+
+## ¿Se necesita licencia especial?
+
+Sí. Para circular en moto en la CDMX se requiere la **licencia tipo A**, que expide la SEMOVI. El trámite es similar al de la licencia tipo B (automóvil) — requiere examen médico y teórico.
+
+Nuestro [simulador de examen teórico](/examen-teorico) incluye preguntas sobre motos y reglamento general, útil para el examen de cualquier tipo de licencia.
+
+## ¿Por qué aprender con instructor y no solo?
+
+La moto es un vehículo que perdona poco. Los errores de técnica que en coche se manifiestan como incomodidad, en moto pueden ser caídas. Un instructor al costado puede corregir en tiempo real antes de que el error se consolide como hábito.
+
+## ¿Buscas aprender a manejar en CDMX?
+
+En Auto Escuela Americana ofrecemos cursos de manejo de **automóvil**, tanto estándar como automático, con instructores certificados y clases 1 a 1 en Roma Sur y a domicilio en toda la CDMX (nota: no damos clases de moto). [Conoce nuestros cursos](/) o [agenda tu primera clase](/agenda) — también puedes escribirnos por WhatsApp con tus preguntas.
+    `,
+  },
+  {
     slug: 'autoescuela-roma-sur-cdmx',
     title: 'Autoescuela en Roma Sur, CDMX: clases de manejo en tu colonia',
     description:
