@@ -429,60 +429,6 @@ Muchos conductores nuevos sobre-usan los espejos laterales y descuidan el retrov
     `,
   },
   {
-    slug: 'clases-de-manejo-moto-cdmx',
-    title: 'Clases de manejo en moto en CDMX: todo lo que necesitas saber',
-    description:
-      'Aprende a manejar moto en la Ciudad de México de forma segura. Te explicamos cómo son las clases, qué cubre el curso y por qué la técnica importa más de lo que crees.',
-    date: '2026-05-18',
-    readingTime: '4 min',
-    content: `
-## Moto en CDMX: libertad con responsabilidad
-
-La moto es el vehículo que más ha crecido en la ciudad en los últimos años — delivery, movilidad personal, evitar el tráfico. Pero también es el que tiene la curva de aprendizaje más delicada si no se aprende bien desde el principio.
-
-## ¿Qué cubre un curso de moto?
-
-Un curso bien diseñado no es solo "cómo no caerse". Cubre:
-
-### Control del vehículo
-- Posición correcta del cuerpo
-- Manejo del embrague y el cambio de velocidades
-- Frenado combinado (freno delantero + trasero)
-- Maniobras a baja velocidad: el punto donde más caídas ocurren
-
-### Manejo en ciudad
-- Visibilidad y puntos ciegos de otros conductores
-- Cómo te ven (o no te ven) los coches
-- Distancias de seguridad en moto — son diferentes a las del coche
-- Intersecciones: el momento de más riesgo para motociclistas
-
-### Técnica de curvas
-- Controdirección: el movimiento que confunde a la mayoría al principio
-- Peso del cuerpo y posición en curva
-- Velocidad de entrada y salida
-
-## ¿Necesito experiencia previa?
-
-No. Nuestro curso de moto está diseñado para alumnos sin ninguna experiencia previa. Si ya tienes algo de base, lo evaluamos al inicio y ajustamos el programa.
-
-## ¿Qué moto se usa en las clases?
-
-Usamos motocicletas de cilindrada media, apropiadas para aprendizaje en ciudad. No empezamos en motos de alta cilindrada — la técnica correcta en una moto mediana se transfiere directamente a cualquier otra.
-
-## ¿Se necesita licencia especial?
-
-Sí. Para circular en moto en la CDMX se requiere la **licencia tipo A**, que expide la SEMOVI. El trámite es similar al de la licencia tipo B (automóvil) — requiere examen médico y teórico.
-
-Nuestro [simulador de examen teórico](/examen-teorico) incluye preguntas sobre motos y reglamento general.
-
-## ¿Por qué aprender con instructor y no solo?
-
-La moto es un vehículo que perdona poco. Los errores de técnica que en coche se manifiestan como incomodidad, en moto pueden ser caídas. Un instructor al costado — en coche o en moto paralela — puede corregir en tiempo real antes de que el error se consolide como hábito.
-
-¿Quieres saber más sobre el curso de moto? Escríbenos por WhatsApp con tus preguntas.
-    `,
-  },
-  {
     slug: 'autoescuela-roma-sur-cdmx',
     title: 'Autoescuela en Roma Sur, CDMX: clases de manejo en tu colonia',
     description:
