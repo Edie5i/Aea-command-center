@@ -989,6 +989,18 @@ async function claimInscripcion(phone: string): Promise<boolean> {
   }
 }
 
+// Libera el candado de claimInscripcion cuando la creación de eventos falló después de
+// reclamarlo — si no, un reintento del cliente dentro de los 10 min cae en el mensaje de
+// "ya quedó inscrito" aunque nunca se creó nada en Calendar.
+async function releaseClaim(phone: string): Promise<void> {
+  try {
+    const { db } = await import('@/lib/firestore');
+    await db.collection('conversations').doc(phone).set({ ultimaInscripcionAt: 0 }, { merge: true });
+  } catch (e) {
+    console.error('[WEBHOOK] releaseClaim error:', e);
+  }
+}
+
 export async function POST(request: NextRequest) {
   let from = '';
   let textBody = '';
@@ -1194,6 +1206,7 @@ export async function POST(request: NextRequest) {
     let fichaClienteMsg: string | null = null;
     let leadNombre = '';
     let leadZona = 'Por confirmar';
+    let claimed = false;
 
     // Extraer nombre del lead del historial para la notificación inicial
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
@@ -1319,98 +1332,104 @@ export async function POST(request: NextRequest) {
 
       // Candado: si ya hubo una inscripción para este número hace <10 min, es un comprobante
       // duplicado (reenvío o webhook repetido con distinto mensaje) — no recrear eventos/ficha.
-      const puedeInscribir = await claimInscripcion(from);
-      if (!puedeInscribir) {
-        console.log('[WEBHOOK] Inscripción duplicada para', from, '— NO se recrean eventos/ficha');
-        syntheticMsg = `El cliente (número de WhatsApp: ${from}) reenvió su comprobante pero su inscripción ya se procesó hace unos minutos. Confírmale cordialmente que su pago y sus 4 clases YA quedaron registrados. NO repitas datos, NO llames herramientas.`;
-      } else if (pickedSlots.length >= 4) {
-        console.log('[WEBHOOK] Creando 4 eventos en Calendar...');
-        await scheduleAndCreateEvents({
-          name: leadInfo.nombre,
-          phone: leadInfo.telefono,
-          address: leadInfo.zona,
-          transmission: leadInfo.transmision,
-          dates: pickedSlots,
-        });
-        console.log('[WEBHOOK] Eventos creados en Calendar');
+      // Se reclama aquí adentro, justo antes de crear los eventos — no antes de saber si hay
+      // slots — porque si no hay suficientes o si scheduleAndCreateEvents falla, no debe quedar
+      // marcado como "ya procesado" (eso le mentiría al cliente en un reintento).
+      if (pickedSlots.length >= 4) {
+        const puedeInscribir = await claimInscripcion(from);
+        if (!puedeInscribir) {
+          console.log('[WEBHOOK] Inscripción duplicada para', from, '— NO se recrean eventos/ficha');
+          syntheticMsg = `El cliente (número de WhatsApp: ${from}) reenvió su comprobante pero su inscripción ya se procesó hace unos minutos. Confírmale cordialmente que su pago y sus 4 clases YA quedaron registrados. NO repitas datos, NO llames herramientas.`;
+        } else {
+          claimed = true;
+          console.log('[WEBHOOK] Creando 4 eventos en Calendar...');
+          await scheduleAndCreateEvents({
+            name: leadInfo.nombre,
+            phone: leadInfo.telefono,
+            address: leadInfo.zona,
+            transmission: leadInfo.transmision,
+            dates: pickedSlots,
+          });
+          console.log('[WEBHOOK] Eventos creados en Calendar');
 
-        const fechasTexto = pickedSlots.map(s => {
-          const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
-          const d = new Date(yyyy, mm - 1, dd);
-          return `${d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${s.time}`;
-        }).join('\n  ');
+          const fechasTexto = pickedSlots.map(s => {
+            const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
+            const d = new Date(yyyy, mm - 1, dd);
+            return `${d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${s.time}`;
+          }).join('\n  ');
 
-        await sendMessage(ADMIN_PHONE,
-          `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
-          `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
-          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
-          `📅 Clases agendadas:\n  ${fechasTexto}\n\n` +
-          `👉 Ver ficha: app.autoescuelaamericana.com/admin/fichas`
-        ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
+          await sendMessage(ADMIN_PHONE,
+            `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
+            `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
+            `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
+            `📅 Clases agendadas:\n  ${fechasTexto}\n\n` +
+            `👉 Ver ficha: app.autoescuelaamericana.com/admin/fichas`
+          ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
 
-        // Mirror GARANTIZADO: la plantilla brinca la ventana de 24h. El texto de arriba es
-        // best-effort (falla en silencio si la ventana está cerrada); esto asegura que el
-        // admin SIEMPRE se entere de la inscripción y de que llegó a Calendar.
-        sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
-          [`Venta cerrada: ${leadInfo.nombre} · ${leadInfo.curso} · 4 clases en Calendar · abre /admin/fichas`, `+${from}`],
-          phoneId
-        ).catch((e) => console.error('[WEBHOOK] Error mirror plantilla (venta):', e));
+          // Mirror GARANTIZADO: la plantilla brinca la ventana de 24h. El texto de arriba es
+          // best-effort (falla en silencio si la ventana está cerrada); esto asegura que el
+          // admin SIEMPRE se entere de la inscripción y de que llegó a Calendar.
+          sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
+            [`Venta cerrada: ${leadInfo.nombre} · ${leadInfo.curso} · 4 clases en Calendar · abre /admin/fichas`, `+${from}`],
+            phoneId
+          ).catch((e) => console.error('[WEBHOOK] Error mirror plantilla (venta):', e));
 
-        // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
-        const { saveInscripcionData } = await import('@/lib/firestore');
-        const fichaFechas = pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time }));
-        await saveInscripcionData(from, {
-          nombre: leadInfo.nombre,
-          telefono: from,
-          zona: leadInfo.zona,
-          calle: leadInfo.calle ?? undefined,
-          numero: leadInfo.numero ?? undefined,
-          colonia: leadInfo.colonia ?? undefined,
-          curso: leadInfo.curso,
-          transmision: leadInfo.transmision,
-          fechas: fichaFechas,
-        });
-
-        // Enviar ficha PDF al admin y al alumno
-        import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
-          const fichaPayload = {
+          // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
+          const { saveInscripcionData } = await import('@/lib/firestore');
+          const fichaFechas = pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time }));
+          await saveInscripcionData(from, {
             nombre: leadInfo.nombre,
             telefono: from,
             zona: leadInfo.zona,
+            calle: leadInfo.calle ?? undefined,
+            numero: leadInfo.numero ?? undefined,
+            colonia: leadInfo.colonia ?? undefined,
+            curso: leadInfo.curso,
             transmision: leadInfo.transmision,
             fechas: fichaFechas,
-          };
-          enviarFichaAdminWhatsApp(fichaPayload)
-            .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al admin:', e));
-          enviarFichaAdminWhatsApp(fichaPayload, from)
-            .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al alumno:', e));
-        }).catch(e => console.error('[WEBHOOK] Error importando ficha-pdf-server:', e));
+          });
 
-        // Ficha de inscripción para el cliente (WhatsApp)
-        const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
-          ? leadInfo.telefono.slice(2) : leadInfo.telefono;
-        const fichaLineas = [
-          `📋 *Tu Ficha de Inscripción — Auto Escuela Americana*`,
-          ``,
-          `👤 *${leadInfo.nombre}*`,
-          `📱 ${displayTel}`,
-          `🚗 Curso ${leadInfo.curso}`,
-          `📍 ${leadInfo.zona}`,
-          ``,
-          `📅 *Tus clases:*`,
-          ...pickedSlots.slice(0, 4).map((s, i) => {
-            const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
-            const d = new Date(yyyy, mm - 1, dd);
-            const label = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
-            return `${i + 1}. ${label} · ${s.time}`;
-          }),
-          ``,
-          `Guarda este mensaje 📌 El día antes de tu primera clase te mandamos los datos del instructor.`,
-        ];
-        fichaClienteMsg = fichaLineas.join('\n');
+          // Enviar ficha PDF al admin y al alumno
+          import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
+            const fichaPayload = {
+              nombre: leadInfo.nombre,
+              telefono: from,
+              zona: leadInfo.zona,
+              transmision: leadInfo.transmision,
+              fechas: fichaFechas,
+            };
+            enviarFichaAdminWhatsApp(fichaPayload)
+              .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al admin:', e));
+            enviarFichaAdminWhatsApp(fichaPayload, from)
+              .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al alumno:', e));
+          }).catch(e => console.error('[WEBHOOK] Error importando ficha-pdf-server:', e));
 
-        inscriptionOk = true;
-        syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
+          // Ficha de inscripción para el cliente (WhatsApp)
+          const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
+            ? leadInfo.telefono.slice(2) : leadInfo.telefono;
+          const fichaLineas = [
+            `📋 *Tu Ficha de Inscripción — Auto Escuela Americana*`,
+            ``,
+            `👤 *${leadInfo.nombre}*`,
+            `📱 ${displayTel}`,
+            `🚗 Curso ${leadInfo.curso}`,
+            `📍 ${leadInfo.zona}`,
+            ``,
+            `📅 *Tus clases:*`,
+            ...pickedSlots.slice(0, 4).map((s, i) => {
+              const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
+              const d = new Date(yyyy, mm - 1, dd);
+              const label = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+              return `${i + 1}. ${label} · ${s.time}`;
+            }),
+            ``,
+            `Guarda este mensaje 📌 El día antes de tu primera clase te mandamos los datos del instructor.`,
+          ];
+          fichaClienteMsg = fichaLineas.join('\n');
+
+          inscriptionOk = true;
+          syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
+        }
       } else {
         sendMessage(ADMIN_PHONE,
           `⚠️ *COMPROBANTE RECIBIDO — Horario pendiente*\n\n` +
@@ -1425,6 +1444,9 @@ export async function POST(request: NextRequest) {
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }
     } catch (e) {
+      if (claimed) {
+        releaseClaim(from).catch(err => console.error('[WEBHOOK] Error liberando candado:', err));
+      }
       console.error('[WEBHOOK] Error en inscripción automática:', e);
       sendMessage(ADMIN_PHONE,
         `⚠️ *COMPROBANTE RECIBIDO — Requiere atención manual*\n\n` +
