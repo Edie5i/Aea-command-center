@@ -532,6 +532,23 @@
     return m ? m[0].toUpperCase() : "·";
   }
 
+  /*
+   * Etiqueta del chip. Antes era la primera palabra a secas, y con un nombre
+   * de perfil que en realidad es una frase de spam ("l also provide SEO...")
+   * el chip quedaba diciendo "l". Se toman palabras hasta llenar el ancho, así
+   * que un nombre normal sigue saliendo corto y una frase alcanza a leerse.
+   */
+  const ANCHO_ETIQUETA = 15;
+
+  function etiqueta(nombre) {
+    const palabras = String(nombre).trim().split(/\s+/);
+    let t = palabras[0].slice(0, ANCHO_ETIQUETA);
+    for (let i = 1; i < palabras.length && t.length + 1 + palabras[i].length <= ANCHO_ETIQUETA; i++) {
+      t += " " + palabras[i];
+    }
+    return t.length < String(nombre).trim().length ? t + "…" : t;
+  }
+
   function horas(h) {
     if (h < 1) return Math.max(1, Math.round(h * 60)) + " min";
     if (h < 48) return Math.round(h) + " h";
@@ -690,7 +707,7 @@
         n = el("button", "chip");
         n.type = "button";
         const dot = el("span", "dot"); dot.textContent = inicial(l.nombre);
-        const nm = el("span"); nm.textContent = l.nombre.split(" ")[0].slice(0, 14);
+        const nm = el("span"); nm.textContent = etiqueta(l.nombre);
         const h = el("span", "h");
         n.append(dot, nm, h);
         n.onclick = () => abrir(l.id);
