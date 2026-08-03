@@ -372,6 +372,45 @@
   @media (max-width: 620px) {
     .brand h1 { font-size: 21px; }
     .brand .sub, .sec-head .note { display: none; }
+    .top-in { gap: 10px; padding: 10px 16px; }
+    .corte { order: 3; width: 100%; font-size: 10.5px; }
+    .wrap { padding: 0 16px 72px; }
+  }
+
+  /*
+   * En un celular el eje horizontal no cabe: con 800px de pista ves menos de
+   * la mitad, que es justo lo que hay que leer de un vistazo. Se vuelca: el
+   * tiempo corre de arriba hacia abajo y cada ficha ocupa su propio renglón.
+   */
+  @media (max-width: 720px) {
+    .track-scroll { overflow-x: visible; }
+    .track { min-width: 0; padding: 4px 0 0 58px; }
+
+    .cliff {
+      top: 82%; bottom: 0; left: 0; right: 0;
+      border-left: none;
+      border-top: 1px dashed color-mix(in srgb, var(--critical) 45%, transparent);
+    }
+
+    .axis {
+      position: absolute; top: 0; bottom: 0; left: 0;
+      width: 58px; height: auto;
+      border-top: none; border-left: 1px solid var(--line);
+      margin: 0;
+    }
+    .stop { top: 0; left: 7px; transform: translateY(-50%); text-align: left; }
+    .stop i { width: 5px; height: 1px; margin: 0 0 2px; }
+
+    .chip { left: 0; max-width: 100%; }
+    .chip span:not(.dot):not(.h) {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .pile {
+      right: auto; left: 0;
+      flex-direction: row; align-items: baseline; gap: 7px; padding: 7px 12px;
+    }
+    .pile b { font-size: 19px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -568,13 +607,28 @@
   }
 
   // ── Pista ───────────────────────────────────────────────────
+  const PARADAS = [[0,"ahora"],[2,"2 h"],[24,"24 h"],[72,"72 h"],[168,"7 d"],[400,"frío"]];
+
+  // Debajo de esto el eje se vuelca: el tiempo corre hacia abajo. Tiene que
+  // casar con el @media de la hoja de estilo.
+  const angosto = matchMedia("(max-width: 720px)");
+
+  // Dónde quedó cada parada del eje volcado, en px. La llena pintarPista.
+  const posParada = new Map();
+
   function pintarEje() {
     const ax = $("#axis");
-    if (ax.childElementCount) return;
-    [[0,"ahora"],[2,"2 h"],[24,"24 h"],[72,"72 h"],[168,"7 d"],[400,"frío"]].forEach(([h, txt], i) => {
+    ax.textContent = "";
+    PARADAS.forEach(([h, txt], i) => {
       const s = el("div", "stop");
-      if (i === 5) s.classList.add("end");
-      s.style.left = pos(h) + "%";
+      if (i === PARADAS.length - 1) s.classList.add("end");
+      if (angosto.matches) {
+        s.style.top = posParada.get(h) + "px";
+        s.style.left = "";
+      } else {
+        s.style.left = pos(h) + "%";
+        s.style.top = "";
+      }
       const bar = el("i"); const sp = el("span"); sp.textContent = txt;
       s.append(bar, sp); ax.append(s);
     });
@@ -585,16 +639,49 @@
     const lista = enPista().slice().sort((a, b) => a.silH - b.silH);
     $("#track-count").textContent = lista.length;
 
-    const carril = [], puesto = new Map();
-    lista.forEach((l) => {
-      const p = pos(l.silH);
-      let i = 0;
-      while (i < carril.length && p - carril[i] < 14) i++;
-      carril[i] = p;
-      puesto.set(l.id, { p, lane: i });
-    });
+    const puesto = new Map();
+    let alto;
 
-    const alto = Math.max(2, carril.length) * 42 + 8;
+    if (angosto.matches) {
+      // Una ficha por renglón, en su punto del eje. Donde se amontonan, la de
+      // abajo se recorre — y las paradas del eje se recorren con ellas, en la
+      // misma pasada: si no, una ficha de 7 d acaba pintada bajo la marca de
+      // "frío" y el eje miente.
+      const SEP_FICHA = 36, SEP_PARADA = 24;
+      // Un tramo sin nadie no merece media pantalla de scroll: el hueco entre
+      // dos puntos se acota, aunque el eje ahí no sea del todo a escala.
+      const HUECO_MAX = 92;
+      const altoEje = Math.max(520, lista.length * 40);
+
+      const orden = [
+        ...lista.map((l) => ({ parada: false, h: l.silH, id: l.id })),
+        ...PARADAS.map(([h]) => ({ parada: true, h })),
+      ].sort((a, b) => a.h - b.h || (a.parada ? -1 : 1));
+
+      posParada.clear();
+      let ultimo = 0;
+      orden.forEach((it) => {
+        const sep = it.parada ? SEP_PARADA : SEP_FICHA;
+        const ideal = (pos(it.h) / 100) * altoEje;
+        const y = Math.min(Math.max(ideal, ultimo + sep), ultimo + HUECO_MAX);
+        ultimo = y;
+        if (it.parada) posParada.set(it.h, y);
+        else puesto.set(it.id, { y });
+      });
+      // Deja aire bajo la última parada para que la pila no la pise.
+      alto = ultimo + 76;
+    } else {
+      const carril = [];
+      lista.forEach((l) => {
+        const p = pos(l.silH);
+        let i = 0;
+        while (i < carril.length && p - carril[i] < 14) i++;
+        carril[i] = p;
+        puesto.set(l.id, { p, lane: i });
+      });
+      alto = Math.max(2, carril.length) * 42 + 8;
+    }
+
     cont.style.height = alto + "px";
 
     lista.forEach((l) => {
@@ -613,23 +700,31 @@
       n.style.setProperty("--sev", SEV[l.estado]);
       n.querySelector(".h").textContent = horas(l.silH);
       n.setAttribute("aria-label", l.nombre + ", " + horas(l.silH) + " sin actividad");
-      const { p, lane } = puesto.get(l.id);
-      n.style.left = "calc(" + p + "% - 12px)";
-      n.style.top = lane * 42 + "px";
+      const sitio = puesto.get(l.id);
+      if (angosto.matches) {
+        n.style.left = "";
+        n.style.top = sitio.y + "px";
+      } else {
+        n.style.left = "calc(" + sitio.p + "% - 12px)";
+        n.style.top = sitio.lane * 42 + "px";
+      }
     });
 
     // Los fríos son demasiados para la pista: se apilan en el acantilado.
     const frios = enFrio();
-    if (frios.length && !document.getElementById("pile")) {
-      const p = el("button", "pile");
-      p.id = "pile"; p.type = "button";
+    let pila = document.getElementById("pile");
+    if (frios.length && !pila) {
+      pila = el("button", "pile");
+      pila.id = "pile"; pila.type = "button";
       const b = el("b"); b.textContent = frios.length;
       const s = el("span"); s.textContent = "fríos";
-      p.append(b, s);
-      p.setAttribute("aria-label", frios.length + " conversaciones frías, ver lista");
-      p.onclick = abrirFrios;
-      cont.append(p);
+      pila.append(b, s);
+      pila.setAttribute("aria-label", frios.length + " conversaciones frías, ver lista");
+      pila.onclick = abrirFrios;
+      cont.append(pila);
     }
+    // Volcada, la pila cierra la pista en vez de colgar del acantilado.
+    if (pila) pila.style.top = angosto.matches ? (alto - 46) + "px" : "";
   }
 
   function pintarGanados() {
@@ -648,7 +743,8 @@
     });
   }
 
-  function pintar() { pintarMazo(); pintarEje(); pintarPista(); pintarGanados(); }
+  // La pista va antes del eje: es la que fija el alto de la escala volcada.
+  function pintar() { pintarMazo(); pintarPista(); pintarEje(); pintarGanados(); }
 
   // ── Hoja ────────────────────────────────────────────────────
   function mostrarHoja() {
@@ -771,6 +867,10 @@
   $("#corte").textContent = "corte " + new Date(CORTE).toLocaleString("es-MX", {
     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
   });
+
+  // Al cruzar el ancho de quiebre hay que recolocar fichas y paradas: las dos
+  // llevan coordenadas en línea que el CSS no puede deshacer.
+  angosto.addEventListener("change", () => { pintarPista(); pintarEje(); });
 
   pintar();
 })();
