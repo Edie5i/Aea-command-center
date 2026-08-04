@@ -11,13 +11,15 @@ export type Ficha = {
   depositoPagado: boolean;
   comprobanteURL: string | null;
   origen: 'web' | 'luz'; // orgánico o WhatsApp — para que ninguno sea invisible
-  estado: 'nueva' | 'pendiente' | 'reservada';
+  estado: 'nueva' | 'pendiente' | 'reservada' | 'perdida';
   faltantes: string[];
   telefono: string;
   // Dirección de recogida. NO entra en revisarFicha a propósito: se vigila para
   // avisar en cuanto llega, pero no bloquea que la ficha cuente como reservada.
   zona?: string;
   creada: number;
+  // Solo cuando estado === 'perdida': por qué se marcó así, para contexto en el panel.
+  perdidaRazon?: string;
 };
 
 export const calcularDeposito = (p: number) => Math.max(Math.round(p * 0.2), 690);
@@ -79,7 +81,11 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
     depositoPagado: datos.depositoPagado ?? false,
     comprobanteURL: datos.comprobanteURL ?? null,
     origen,
-    estado: faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
+    // Una ficha marcada 'perdida' a mano no debe revivir sola porque Luz vuelva
+    // a llamar guardarPreReserva u otro re-guardado toque el mismo teléfono.
+    estado: existente?.estado === 'perdida'
+      ? 'perdida'
+      : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
     telefono: datos.telefono ?? '',
     // Se preserva igual que 'creada': un re-guardado sin dirección no debe
@@ -112,7 +118,9 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     depositoPagado: datos.depositoPagado ?? false,
     comprobanteURL: datos.comprobanteURL ?? null,
     origen: datos.origen ?? 'luz',
-    estado: faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
+    estado: (actual as Ficha | undefined)?.estado === 'perdida' && patch.estado === undefined
+      ? 'perdida'
+      : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
     telefono: datos.telefono ?? '',
     zona: datos.zona,
@@ -121,6 +129,17 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
   await ref.set(ficha, { merge: true });
   await notificarCambios(actual as Ficha | null, ficha);
   return ficha;
+}
+
+// Marca manualmente una ficha como perdida (lead que nunca pagó y ya no va a
+// responder). No pasa por guardarFicha/actualizarFicha porque esas recalculan
+// estado a partir de faltantes — aquí el estado lo decide una persona.
+export async function marcarPerdida(id: string, razon?: string): Promise<void> {
+  const ref = db.collection('fichas').doc(id);
+  await ref.set(
+    { estado: 'perdida', ...(razon ? { perdidaRazon: razon } : {}) },
+    { merge: true }
+  );
 }
 
 // El dashboard llama esto: TODO (web + Luz), lo más caliente arriba.

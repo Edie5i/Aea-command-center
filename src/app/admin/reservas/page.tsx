@@ -30,6 +30,7 @@ function timeAgo(ms: number): string {
 }
 
 function badge(f: Ficha): { texto: string; color: string } {
+  if (f.estado === 'perdida') return { texto: '❌ PERDIDA', color: '#64748b' };
   return f.faltantes.length === 0
     ? { texto: '✅ RESERVADA', color: '#22c55e' }
     : { texto: `⚠️ FALTA: ${f.faltantes.join(', ')}`, color: '#f59e0b' };
