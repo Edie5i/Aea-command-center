@@ -219,12 +219,37 @@ function rawToInscripcion(ins: Record<string, any>, fallbackPhone: string): Insc
 
 export async function saveInscripcionData(
   phone: string,
-  data: Omit<InscripcionData, 'fechaConfirmacion'>
+  data: Omit<InscripcionData, 'fechaConfirmacion'>,
+  origen: 'web' | 'luz' = 'luz'
 ): Promise<void> {
   await convDoc(phone).set(
     { inscripcion: { ...data, status: 'confirmado', fechaConfirmacion: Timestamp.now() } },
     { merge: true }
   );
+
+  // La ficha de /admin/reservas es lo único que lee ese panel. Antes cada caller
+  // de saveInscripcionData decidía por su cuenta si también llamaba a guardarFicha
+  // — confirmarInscripcionTool y los endpoints de admin nunca lo hacían, así que la
+  // clase quedaba creada en Calendar pero invisible en el panel. Ahora es parte de
+  // la misma operación: toda inscripción confirmada, sin importar de dónde venga,
+  // se refleja en la ficha. Se usa actualizarFicha (no guardarFicha) porque
+  // preserva depositoPagado/comprobanteURL si ya se habían guardado antes.
+  try {
+    const { actualizarFicha } = await import('@/lib/fichaLuz');
+    const { PRECIO_CURSO } = await import('@/lib/precios');
+    const telefonoFicha = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    await actualizarFicha(phone, {
+      studentName: data.nombre,
+      curso: data.curso,
+      precio: PRECIO_CURSO[data.curso] ?? 0,
+      opcionesFechaHora: data.fechas.map((f) => `${f.date} ${f.time}`),
+      zona: data.zona,
+      telefono: telefonoFicha,
+      origen,
+    });
+  } catch (e) {
+    console.error('[FICHA] Error sincronizando ficha desde saveInscripcionData:', e);
+  }
 }
 
 export async function savePreReserva(

@@ -5,6 +5,7 @@ import { programData } from '@/lib/course-data';
 import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { normalizePhone } from '@/lib/phone';
+import { PRECIO_CURSO } from '@/lib/precios';
 
 const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -270,12 +271,6 @@ export const guardarPreReservaTool = ai.defineTool(
 
       // Ficha única (web + Luz): el panel /admin/reservas las ve todas
       const { guardarFicha } = await import('@/lib/fichaLuz');
-      const PRECIO_CURSO: Record<string, number> = {
-        // Fuente: catálogo oficial AEA 2026
-        'Estándar': 3400, 'Automático': 3900, 'Intermedio': 2900, 'Avanzado': 1900,
-        'Moto': 4300, 'English Drive': 4800, 'Personas Nerviosas': 5600,
-        'Intensivo': 5600, 'Mixto': 5600, 'Coche Propio': 3900,
-      };
       const cursoFicha = curso ?? 'Estándar';
       await guardarFicha(
         telefono,
