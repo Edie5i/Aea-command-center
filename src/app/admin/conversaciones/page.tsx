@@ -23,7 +23,8 @@ function displayPhone(phone: string): string {
   return phone;
 }
 
-type Tab = 'atencion' | 'activas' | 'inscritos';
+const TABS_VALIDOS = ['atencion', 'activas', 'inscritos'] as const;
+type Tab = typeof TABS_VALIDOS[number];
 
 function getTab(state: ChatState, closedOutcome?: string | null): Tab {
   if (state === 'tu_turno' || state === 'atascado') return 'atencion';
@@ -48,7 +49,9 @@ export default async function ConversacionesPage({
   }
 
   const { tab: tabParam } = await searchParams;
-  const activeTab: Tab = (tabParam as Tab) ?? 'atencion';
+  // Un ?tab= inválido (typo, manipulado) cae al default en vez de dejar la
+  // lista filtrada vacía en silencio.
+  const activeTab: Tab = TABS_VALIDOS.includes(tabParam as Tab) ? (tabParam as Tab) : 'atencion';
 
   let conversaciones: Conversation[] = [];
   try {
