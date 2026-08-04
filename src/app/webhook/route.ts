@@ -170,6 +170,8 @@ El sistema ya procesó la inscripción automáticamente y creó las clases en Ca
 NO llames a confirmarInscripcion — las clases ya están creadas.
 NO pidas más información — todo quedó registrado.
 
+**EXCEPCIÓN — conflicto de horario:** si el sistema te avisa que alguna de las fechas ya no está disponible (te lo dice explícitamente en ese mensaje), las clases NO se crearon todavía. En ese caso, cuando el alumno confirme las fechas/horarios alternativos, SÍ tienes que llamar a confirmarInscripcion con el patrón, fechaInicio y hora nuevos — si no la llamas, el alumno se queda creyendo que está inscrito sin que exista ninguna clase real.
+
 ## OBJECIONES
 
 ⚠️ Para CUALQUIER objeción de precio ("¿hay promo?", "¿hay descuento?", "está caro", "¿tienen oferta?", "¿dan promoción?"): NO llames herramientas — la respuesta está aquí mismo. Responde directo.
@@ -259,7 +261,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - **consultarDisponibilidad**: Úsala en el Paso 3 (cuando sepas mañana/tarde/fin de semana) para proponer fechas reales. También cuando pregunten "¿hay lugar?" o "¿cuándo puedo empezar?". Nunca inventes horarios.
 - **consultarCatalogoCursos**: Para confirmar precios exactos.
 - **consultarProgramaCurso**: Si preguntan qué aprenden.
-- **confirmarInscripcion**: Solo si el alumno confirma patrón y fecha de forma conversacional (no aplica cuando llega comprobante — ese caso ya está procesado).
+- **confirmarInscripcion**: Solo si el alumno confirma patrón y fecha de forma conversacional (no aplica cuando llega comprobante y las fechas originales seguían libres — ese caso ya está procesado). SÍ aplica cuando llegó comprobante pero hubo conflicto de horario y el alumno acaba de confirmar fechas alternativas — ese caso NO se procesa solo, tienes que cerrarlo tú con esta herramienta.
 - **guardarPreReserva**: Llámala UNA SOLA VEZ al final del CIERRE (Paso 6), justo después de mandar los datos de pago. No esperes el comprobante. Pasa: nombre, teléfono (el número de WhatsApp del cliente), dirección completa, curso, transmisión, patrón (lunes-jueves / martes-viernes / fin-de-semana) y la fechaInicio + hora que acordaste. Esto calcula y reserva las 4 fechas reales, no solo la primera. NO la vuelvas a llamar en el resto de la conversación salvo que el patrón, horario o fecha cambien.
 
 ## REGLAS ABSOLUTAS
@@ -1312,7 +1314,8 @@ export async function POST(request: NextRequest) {
 
           const replyConflicto = await generateReply(
             `El alumno acaba de enviarnos su comprobante de pago — ¡gracias! Sin embargo, de las 4 fechas que habíamos acordado, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: ${conflictosTexto} (se le adelantó a otro alumno). ` +
-            `Confírmale la recepción del pago, discúlpate brevemente por el inconveniente, y pídele que nos comparta 2 o 3 opciones de días y horarios que le funcionen para sus clases.`,
+            `Confírmale la recepción del pago, discúlpate brevemente por el inconveniente, y pídele que nos comparta 2 o 3 opciones de días y horarios que le funcionen para sus clases. ` +
+            `IMPORTANTE: estas 4 clases NO se crearon en Calendar — el sistema esperó porque hubo conflicto. En cuanto el alumno confirme fechas y horarios alternativos (en este mensaje o en los siguientes), tienes que llamar a la herramienta confirmarInscripcion con el patrón, fechaInicio y hora nuevos para cerrar la inscripción de verdad. Si no la llamas, el alumno se queda creyendo que está inscrito sin que exista ninguna clase real.`,
             history, from
           );
           await sendMessage(from, replyConflicto, phoneId);
