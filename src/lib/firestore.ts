@@ -180,7 +180,9 @@ export async function markReminderSent(phone: string, type: '1h' | '23h'): Promi
 export async function getConversations(): Promise<Conversation[]> {
   const snap = await db.collection('conversations').get();
   return snap.docs
-    .map(d => d.data() as Conversation)
+    // El doc.id es el teléfono; si al doc le falta el campo `phone` (docs viejos),
+    // esto evita un phone undefined que rompe displayPhone() en el dashboard.
+    .map(d => ({ phone: d.id, ...d.data() }) as Conversation)
     .sort((a, b) => (b.lastActivity?.toMillis?.() ?? 0) - (a.lastActivity?.toMillis?.() ?? 0));
 }
 
