@@ -77,6 +77,10 @@ export interface Conversation {
   closedOutcome?: 'ganado' | 'perdido' | null;
   contactName?: string | null;
   leadCalificadoNotificado?: boolean;
+  // Mensaje de un alumno ya inscrito (chatState 'cerrado') que Luz no contesta.
+  // Se etiqueta acá en vez de mandar WhatsApp al admin para no saturarlo — se revisa
+  // desde el dashboard.
+  postCierreAlerta?: { texto: string; tipo: string; at: Timestamp } | null;
   // Forma cruda en Firestore: fechaConfirmacion es Timestamp aquí, no millis.
   // rawToInscripcion() la convierte a number para los Client Components.
   inscripcion?: Omit<InscripcionData, 'fechaConfirmacion'> & { fechaConfirmacion: Timestamp };

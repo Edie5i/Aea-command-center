@@ -1557,10 +1557,20 @@ export async function POST(request: NextRequest) {
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
 
-    // Si ya está inscrito, Luz no responde más
+    // Si ya está inscrito, Luz no responde más — se etiqueta la conversación (en vez de
+    // mandarle WhatsApp al admin, que antes se quedaba sin avisar de nada) para que se
+    // vea en el dashboard, ej. cuando manda foto de otra reservación.
     if (convData?.chatState === 'cerrado') {
       console.log('[WEBHOOK] Cliente ya inscrito para', from, '— guardando mensaje sin responder');
       saveUserMessage(from, textBody).catch(e => console.error('[WEBHOOK] saveUserMessage (inscrito):', e));
+      const texto = messageType === 'text' ? textBody.slice(0, 150) : `(${messageType})`;
+      Promise.all([import('@/lib/firestore'), import('firebase-admin/firestore')])
+        .then(([{ db }, { Timestamp }]) =>
+          db.collection('conversations').doc(from).set({
+            postCierreAlerta: { texto, tipo: messageType, at: Timestamp.now() },
+          }, { merge: true })
+        )
+        .catch(e => console.error('[WEBHOOK] postCierreAlerta:', e));
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
   }

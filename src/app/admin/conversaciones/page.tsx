@@ -191,11 +191,22 @@ export default async function ConversacionesPage({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2">
-                      <span className="font-bold text-base truncate" style={{ color: '#e2e8f0' }}>{name}</span>
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        {conv.postCierreAlerta && (
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#f59e0b' }} title="Escribió después de inscrito" />
+                        )}
+                        <span className="font-bold text-base truncate" style={{ color: '#e2e8f0' }}>{name}</span>
+                      </span>
                       <span className="text-sm shrink-0 font-medium" style={{ color: needsAttention ? '#f87171' : '#475569' }}>
                         {timeAgo(ms)}
                       </span>
                     </div>
+
+                    {conv.postCierreAlerta && (
+                      <p className="text-xs mt-1.5 font-semibold" style={{ color: '#f59e0b' }}>
+                        💡 Escribió tras inscripción: {conv.postCierreAlerta.texto}
+                      </p>
+                    )}
 
                     {tieneNombre && (
                       <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{phone}</p>
