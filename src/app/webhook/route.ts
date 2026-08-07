@@ -5,6 +5,7 @@ import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { checkCoverage, type CoverageResult } from '@/lib/coverage';
 import { normalizePhone } from '@/lib/phone';
+import { notificarAdmin } from '@/lib/adminNotify';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -488,7 +489,7 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
     const urgencia = coverage.tipo === 'dudosa'
       ? '\n\n*Zona no identificada — coordinar punto de encuentro con el lead antes de cerrar.*'
       : '';
-    await sendMessage(ADMIN_PHONE,
+    await notificarAdmin(
       `${emoji} *Lead calificado — listo para cierre*\n\n` +
       `👤 ${leadInfo.nombre}\n` +
       `📱 +${dp}\n` +
@@ -542,7 +543,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
 
   if (!result) {
     console.error('[WEBHOOK] Gemini timeout after', GEMINI_TIMEOUT_MS, 'ms');
-    sendMessage(ADMIN_PHONE,
+    notificarAdmin(
       `⚠️ *Luz se congeló* — timeout ${GEMINI_TIMEOUT_MS / 1000}s\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nRevisa y responde tú.`
     ).catch(e => console.error('[WEBHOOK] Error notificando timeout:', e));
     return MSG_FALLBACK;
@@ -578,7 +579,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
 
   if (!text) {
     console.error('[WEBHOOK] Gemini devolvió respuesta vacía tras reintento');
-    sendMessage(ADMIN_PHONE,
+    notificarAdmin(
       `⚠️ *Luz respondió vacío (2 intentos)*\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Revisa por si acaso.`
     ).catch(e => console.error('[WEBHOOK] Error notificando respuesta vacía:', e));
     return MSG_FALLBACK;
@@ -1178,7 +1179,7 @@ export async function POST(request: NextRequest) {
     const resumen = [locName, locAddress].filter(Boolean).join(' — ') || 'Sin nombre';
 
     // Notificar al admin con el pin de Maps
-    sendMessage(ADMIN_PHONE,
+    notificarAdmin(
       `📍 *Ubicación confirmada — +${from}*\n\n${resumen}${mapsUrl ? `\n\n🗺️ ${mapsUrl}` : ''}`
     ).catch(e => console.error('[WEBHOOK] Error enviando ubicación al admin:', e));
 
@@ -1213,7 +1214,7 @@ export async function POST(request: NextRequest) {
     // Extraer nombre del lead del historial para la notificación inicial
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
 
-    sendMessage(ADMIN_PHONE,
+    notificarAdmin(
       `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
@@ -1258,7 +1259,7 @@ export async function POST(request: NextRequest) {
       // Validar dirección completa: colonia es mínimo requerido para confirmar cobertura
       if (!leadInfo.colonia) {
         console.warn('[WEBHOOK] Dirección incompleta — falta colonia. Abortando agendamiento.');
-        sendMessage(ADMIN_PHONE,
+        notificarAdmin(
           `⚠️ *Dirección incompleta — ${leadInfo.nombre}*\n📱 +${from}\n\n` +
           `Tiene: "${leadInfo.zona}"\nFalta: colonia (y preferiblemente calle + número)\n\n` +
           `Luz pedirá los datos faltantes.`
@@ -1305,7 +1306,7 @@ export async function POST(request: NextRequest) {
           console.warn('[WEBHOOK] Fechas prometidas ya no disponibles:', JSON.stringify(conflictos));
           const plural = conflictos.length > 1;
           const conflictosTexto = conflictos.map(c => `${c.date} a las ${c.time}`).join(', ');
-          sendMessage(ADMIN_PHONE,
+          notificarAdmin(
             `⚠️ *Conflicto de horario — ${leadInfo.nombre}*\n\n` +
             `📱 +${leadInfo.telefono}\n` +
             `De las 4 fechas acordadas, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: *${conflictosTexto}*.\n\n` +
@@ -1361,21 +1362,13 @@ export async function POST(request: NextRequest) {
             return `${d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${s.time}`;
           }).join('\n  ');
 
-          await sendMessage(ADMIN_PHONE,
+          await notificarAdmin(
             `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
             `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
             `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
             `📅 Clases agendadas:\n  ${fechasTexto}\n\n` +
             `👉 Ver ficha: app.autoescuelaamericana.com/admin/fichas`
           ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
-
-          // Mirror GARANTIZADO: la plantilla brinca la ventana de 24h. El texto de arriba es
-          // best-effort (falla en silencio si la ventana está cerrada); esto asegura que el
-          // admin SIEMPRE se entere de la inscripción y de que llegó a Calendar.
-          sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
-            [`Venta cerrada: ${leadInfo.nombre} · ${leadInfo.curso} · 4 clases en Calendar · abre /admin/fichas`, `+${from}`],
-            phoneId
-          ).catch((e) => console.error('[WEBHOOK] Error mirror plantilla (venta):', e));
 
           // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
           const { saveInscripcionData } = await import('@/lib/firestore');
@@ -1434,16 +1427,12 @@ export async function POST(request: NextRequest) {
           syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
         }
       } else {
-        sendMessage(ADMIN_PHONE,
+        notificarAdmin(
           `⚠️ *COMPROBANTE RECIBIDO — Horario pendiente*\n\n` +
           `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
           `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
           `No había suficientes slots disponibles. Asigna horario manualmente.`
         ).catch((e) => console.error('[WEBHOOK] Error notificando admin (sin slots):', e));
-        sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
-          [`Comprobante recibido SIN horario — NO se agendó en Calendar, asigna manual: ${leadInfo.nombre}`, `+${from}`],
-          phoneId
-        ).catch((e) => console.error('[WEBHOOK] Error mirror plantilla (sin slots):', e));
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }
     } catch (e) {
@@ -1451,15 +1440,11 @@ export async function POST(request: NextRequest) {
         releaseClaim(from).catch(err => console.error('[WEBHOOK] Error liberando candado:', err));
       }
       console.error('[WEBHOOK] Error en inscripción automática:', e);
-      sendMessage(ADMIN_PHONE,
+      notificarAdmin(
         `⚠️ *COMPROBANTE RECIBIDO — Requiere atención manual*\n\n` +
         `📱 +${from}\n\n` +
         `No se pudo procesar automáticamente. Entra al chat y coordina el horario.`
       ).catch((err) => console.error('[WEBHOOK] Error notificando admin (error path):', err));
-      sendTemplateMessage(ADMIN_PHONE, 'alerta_aea', 'es_MX',
-        [`Comprobante recibido — ERROR al agendar, NO llegó a Calendar, atiende manual`, `+${from}`],
-        phoneId
-      ).catch((err) => console.error('[WEBHOOK] Error mirror plantilla (error):', err));
       syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
     }
 
@@ -1522,7 +1507,7 @@ export async function POST(request: NextRequest) {
   if (isNewLead) {
     const fuenteTexto = leadSource ? `📣 Fuente: ${leadSource}` : '📣 Fuente: directa';
     const nombreTexto = waDisplayName ? `\n👤 ${waDisplayName}` : '';
-    sendMessage(ADMIN_PHONE, `🆕 *Nuevo lead*\n\n📱 +${from}${nombreTexto}\n${fuenteTexto}`)
+    notificarAdmin(`🆕 *Nuevo lead*\n\n📱 +${from}${nombreTexto}\n${fuenteTexto}`)
       .catch((e) => console.error('[WEBHOOK] Error notificando nuevo lead:', e));
 
     const welcome = buildWelcomeMessage(waDisplayName, leadSource !== null);
@@ -1549,9 +1534,8 @@ export async function POST(request: NextRequest) {
       saveUserMessage(from, textBody).catch(e => console.error('[WEBHOOK] saveUserMessage (paused):', e));
       // No dejar leads pausados en el limbo: avisar al admin que le escribieron
       if (from !== ADMIN_PHONE) {
-        sendMessage(ADMIN_PHONE,
-          `⏸️ *Lead pausado te escribió*\n\n📱 +${from}\n💬 "${textBody.slice(0, 150)}"\n\nLuz no le va a responder. Contéstale tú o usa *!reanudar ${from}*.`,
-          phoneId
+        notificarAdmin(
+          `⏸️ *Lead pausado te escribió*\n\n📱 +${from}\n💬 "${textBody.slice(0, 150)}"\n\nLuz no le va a responder. Contéstale tú o usa *!reanudar ${from}*.`
         ).catch(e => console.error('[WEBHOOK] Error notificando lead pausado:', e));
       }
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -1605,9 +1589,8 @@ export async function POST(request: NextRequest) {
       import('@/lib/firestore')
         .then(({ db }) => db.collection('conversations').doc(from).set({ botPaused: true, nextFollowupAt: null }, { merge: true }))
         .catch(e => console.error('[WEBHOOK] Auto-pause error:', e));
-      sendMessage(ADMIN_PHONE,
-        `🤝 *Luz cedió el turno*\n\n📱 +${from}\n\nLuz está ⏸️ pausada. Respóndele tú directamente.\nCuando termines: *!reanudar ${from}*`,
-        phoneId
+      notificarAdmin(
+        `🤝 *Luz cedió el turno*\n\n📱 +${from}\n\nLuz está ⏸️ pausada. Respóndele tú directamente.\nCuando termines: *!reanudar ${from}*`
       ).catch(e => console.error('[WEBHOOK] Error notif hand-off:', e));
     }
 
@@ -1636,7 +1619,7 @@ export async function POST(request: NextRequest) {
         `🔔 *Lead enviado a /agenda*\n\n` +
         `📱 WhatsApp: +${from}\n` +
         `💬 Últimos mensajes: ${resumen.slice(0, 300)}`;
-      await sendMessage(ADMIN_PHONE, aviso).catch((e) =>
+      await notificarAdmin(aviso).catch((e) =>
         console.error('[WEBHOOK] Error notificando admin:', e)
       );
     }
@@ -1644,7 +1627,7 @@ export async function POST(request: NextRequest) {
     console.error('[WEBHOOK] Pipeline error:', err);
     // El lead NUNCA se queda sin respuesta: fallback + aviso al admin
     sendMessage(from, MSG_FALLBACK).catch(e => console.error('[WEBHOOK] Error enviando fallback:', e));
-    sendMessage(ADMIN_PHONE,
+    notificarAdmin(
       `⚠️ *Error en el pipeline de Luz*\n\n📱 +${from}\n💬 "${textBody.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Si vuelve a fallar, respóndele tú.`
     ).catch(e => console.error('[WEBHOOK] Error notificando pipeline error:', e));
   }

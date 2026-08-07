@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, updateChatState, logStateChange } from '@/lib/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
+import { notificarAdmin } from '@/lib/adminNotify';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -71,7 +72,7 @@ async function sendFollowup(
   if (type === '24h') {
     // Mensaje automático al cliente + aviso silencioso al admin
     await sendWA(phone, buildMsg24h(nombre));
-    await sendWA(ADMIN_PHONE,
+    await notificarAdmin(
       `⏰ *Follow-up 24h enviado*\n\n${quien}\nLuz mandó mensaje automático. Monitorea si responde.`
     );
     return;
@@ -80,7 +81,7 @@ async function sendFollowup(
   if (type === '72h') {
     // Último intento automático al cliente + aviso al admin para que esté listo
     await sendWA(phone, buildMsg72h(nombre));
-    await sendWA(ADMIN_PHONE,
+    await notificarAdmin(
       `🔔 *Follow-up 72h — último intento automático*\n\n${quien}\nSi no responde hoy, pasa a frío mañana. ¿Lo llamas tú?`
     );
     return;
@@ -88,7 +89,7 @@ async function sendFollowup(
 
   if (type === '7d') {
     // Solo notificar al admin — el lead ya va a frío
-    await sendWA(ADMIN_PHONE,
+    await notificarAdmin(
       `❄️ *Lead frío — 7 días sin respuesta*\n\n${quien}\nLo marqué como frío. Avísame si quieres retomarlo manualmente.`
     );
     return;

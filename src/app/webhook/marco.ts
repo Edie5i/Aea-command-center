@@ -12,6 +12,7 @@ import {
   updateClaseEstado,
 } from '@/lib/firestore';
 import type { CandidatoInstructor } from '@/lib/firestore';
+import { notificarAdmin } from '@/lib/adminNotify';
 
 const WA_TOKEN  = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID  = process.env.META_PHONE_NUMBER_ID ?? '';
@@ -241,7 +242,7 @@ async function handleInstructor(
     await sendWA(phone,
       `✅ Confirmado. Clase con *${pendiente.alumnoNombre}* el ${pendiente.fecha} a las ${pendiente.hora} en ${pendiente.zona}.\n\nEscribe *llegué* cuando termines.`
     );
-    sendWA(ADMIN_PHONE,
+    notificarAdmin(
       `✅ *Clase confirmada*\n👤 ${nombre} → ${pendiente.alumnoNombre}\n📅 ${pendiente.fecha} ${pendiente.hora}`
     ).catch(() => {});
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -256,7 +257,7 @@ async function handleInstructor(
     }
     await updateClaseEstado(pendiente.id, 'cancelada');
     await sendWA(phone, 'Entendido. Eduardo buscará otro instructor para esa clase.');
-    sendWA(ADMIN_PHONE,
+    notificarAdmin(
       `⚠️ *Clase rechazada*\n👤 ${nombre} no puede\n📅 ${pendiente.fecha} ${pendiente.hora} · ${pendiente.alumnoNombre}\n\nHay que reasignar.`
     ).catch(() => {});
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -271,7 +272,7 @@ async function handleInstructor(
     }
     await updateClaseEstado(activa.id, 'completada');
     await sendWA(phone, `🏁 ¡Excelente! Clase con *${activa.alumnoNombre}* registrada como completada.`);
-    sendWA(ADMIN_PHONE,
+    notificarAdmin(
       `🏁 *Clase completada*\n👤 ${nombre} → ${activa.alumnoNombre}\n📅 hoy ${activa.hora}`
     ).catch(() => {});
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -286,7 +287,7 @@ async function handleInstructor(
     }
     await updateClaseEstado(activa.id, 'alumno_ausente');
     await sendWA(phone, `📝 Registrado. ${activa.alumnoNombre} no se presentó. Le mandamos mensaje de seguimiento.`);
-    sendWA(ADMIN_PHONE,
+    notificarAdmin(
       `⚠️ *Alumno ausente*\n👤 ${activa.alumnoNombre} (+${activa.alumnoPhone})\n📅 hoy ${activa.hora}\nInstructor: ${nombre}`
     ).catch(() => {});
     sendWA(activa.alumnoPhone,
@@ -345,7 +346,7 @@ export async function handleMarco(
     // Primer contacto — crear registro y notificar admin
     if (!candidato) {
       await upsertCandidato(phone, { estado: 'calificando' });
-      sendWA(ADMIN_PHONE,
+      notificarAdmin(
         `🔵 *Nuevo candidato instructor*\n📱 +${phone}\n\nMarco está calificando.`
       ).catch(() => {});
     }
@@ -372,7 +373,7 @@ export async function handleMarco(
           });
           const [y, m, d] = slot.fecha.split('-');
           reply += `\n\n📅 Quedas agendado para el *${d}/${m}/${y} a las ${slot.hora}* en Av. Universidad 1404, Col. Axotla, CDMX. Te espero.`;
-          sendWA(ADMIN_PHONE,
+          notificarAdmin(
             `📅 *Evaluación agendada*\n📱 +${phone} — ${candidato?.nombre ?? 'candidato'}\n🗓️ ${slot.fecha} ${slot.hora}`
           ).catch(() => {});
         }
