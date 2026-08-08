@@ -105,13 +105,16 @@ async function appendMessage(
 
 export async function saveImageMessage(phone: string, mediaId: string, botText: string): Promise<void> {
   const now = Timestamp.now();
+  // Ver comentario en saveConversationMessage: el bot va 1ms después para que el
+  // orden de 'timestamp' sea determinista.
+  const despues = Timestamp.fromMillis(now.toMillis() + 1);
   const batch = db.batch();
   batch.set(convDoc(phone), {
-    phone, lastActivity: now, lastMessage: botText,
+    phone, lastActivity: despues, lastMessage: botText,
     lastSender: 'bot', messageCount: FieldValue.increment(2),
   }, { merge: true });
   batch.set(messagesCol(phone).doc(), { role: 'user', text: '[imagen]', mediaId, mediaType: 'image', timestamp: now });
-  batch.set(messagesCol(phone).doc(), { role: 'bot', text: botText, timestamp: now });
+  batch.set(messagesCol(phone).doc(), { role: 'bot', text: botText, timestamp: despues });
   await batch.commit();
 }
 
@@ -129,13 +132,18 @@ export async function saveConversationMessage(
   botText: string
 ): Promise<void> {
   const now = Timestamp.now();
+  // El mensaje del bot va 1ms después: con el mismo timestamp, orderBy('timestamp')
+  // desempata por ID de documento (esencialmente al azar) y recalculateChatState podía
+  // creer que el cliente habló último cuando en realidad fue Luz — la conversación se
+  // quedaba pegada en 'luz_atendiendo' sin pasar nunca a 'esperando_cliente'.
+  const despues = Timestamp.fromMillis(now.toMillis() + 1);
   const batch = db.batch();
   batch.set(convDoc(phone), {
-    phone, lastActivity: now, lastMessage: botText,
+    phone, lastActivity: despues, lastMessage: botText,
     lastSender: 'bot', messageCount: FieldValue.increment(2),
   }, { merge: true });
   batch.set(messagesCol(phone).doc(), { role: 'user', text: userText, timestamp: now });
-  batch.set(messagesCol(phone).doc(), { role: 'bot', text: botText, timestamp: now });
+  batch.set(messagesCol(phone).doc(), { role: 'bot', text: botText, timestamp: despues });
   await batch.commit();
 }
 
