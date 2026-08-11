@@ -6,7 +6,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
+  experimental: {
+    serverComponentsExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
+  },
 
   async redirects() {
     const WWW = 'https://autoescuelaamericana.com';
