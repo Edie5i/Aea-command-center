@@ -535,6 +535,23 @@ export async function getFichasStats(): Promise<{
   return { total: all.length, thisWeek, uniqueStudents };
 }
 
+// ── Avisos al admin (respaldo independiente de WhatsApp) ──────────────────────
+
+export interface AvisoAdmin {
+  id: string;
+  texto: string;
+  at: number;
+}
+
+// Respaldo de notificarAdmin: cada aviso queda aquí sin importar si WhatsApp lo
+// entregó o no (ver adminNotify.ts). Es lo único que no depende de que Meta
+// acepte el mensaje — por eso se muestra en /admin en vez de solo confiar en
+// que el texto libre o la plantilla lleguen.
+export async function getAvisosAdminRecientes(limit = 15): Promise<AvisoAdmin[]> {
+  const snap = await db.collection('avisos_admin').orderBy('at', 'desc').limit(limit).get();
+  return snap.docs.map(d => ({ id: d.id, ...(d.data() as { texto: string; at: number }) }));
+}
+
 // ── Metrics ───────────────────────────────────────────────────────────────────
 
 export interface MetricsData {

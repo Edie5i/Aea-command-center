@@ -77,11 +77,25 @@ async function enviarTexto(texto: string): Promise<void> {
  *
  * El costo es un mensaje extra cuando la ventana está abierta. Perder un aviso
  * de depósito o de dirección cuesta más.
+ *
+ * Ni texto ni plantilla son en verdad garantizados: Meta puede rechazar ambos
+ * después del 200 (ej. cuenta de WhatsApp Business sin forma de pago válida,
+ * ver incidente 2026-08) y eso solo se ve en el callback [WA-STATUS], no aquí.
+ * Por eso el aviso SIEMPRE se guarda también en Firestore (`avisos_admin`,
+ * visible en /admin) — es el único canal que no depende de que Meta entregue.
  */
 export async function notificarAdmin(texto: string): Promise<void> {
-  if (!WA_TOKEN || !PHONE_ID) return;
+  if (WA_TOKEN && PHONE_ID) {
+    const { tipo, contacto } = resumenParaPlantilla(texto);
+    await Promise.allSettled([enviarTexto(texto), enviarPlantilla(tipo, contacto)]);
+  }
 
-  const { tipo, contacto } = resumenParaPlantilla(texto);
+  await guardarAvisoAdmin(texto).catch((e) =>
+    console.error('[ADMIN-NOTIFY] Error guardando respaldo en Firestore:', e)
+  );
+}
 
-  await Promise.allSettled([enviarTexto(texto), enviarPlantilla(tipo, contacto)]);
+async function guardarAvisoAdmin(texto: string): Promise<void> {
+  const { db } = await import('@/lib/firestore');
+  await db.collection('avisos_admin').add({ texto, at: Date.now() });
 }

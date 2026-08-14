@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getMetricsData } from '@/lib/firestore';
+import { getMetricsData, getAvisosAdminRecientes } from '@/lib/firestore';
 import { getEventosProximos } from '@/services/calendarService';
 import { traerFichas } from '@/lib/fichaLuz';
 
@@ -67,10 +67,11 @@ export default async function AdminPage() {
     redirect('/admin/conversaciones/login');
   }
 
-  const [fichas, metricas, eventos] = await Promise.all([
+  const [fichas, metricas, eventos, avisos] = await Promise.all([
     traerFichas().catch(() => []),
     getMetricsData().catch(() => null),
     getEventosProximos(30).catch(() => []),
+    getAvisosAdminRecientes(8).catch(() => []),
   ]);
 
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -95,6 +96,29 @@ export default async function AdminPage() {
       </header>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
+
+        {/* Avisos recientes — respaldo si WhatsApp no entrega (ver adminNotify.ts) */}
+        {avisos.length > 0 && (
+          <div className="rounded-2xl overflow-hidden" style={CARD}>
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
+              <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>🔔 Avisos recientes</p>
+              <span className="text-xs" style={{ color: '#475569' }}>por si WhatsApp no llegó</span>
+            </div>
+            <div>
+              {avisos.map((a, i) => (
+                <div key={a.id} className="px-4 py-3"
+                  style={{ borderTop: i > 0 ? DIVIDER : undefined }}>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(a.at)}</span>
+                  </div>
+                  <p className="text-sm whitespace-pre-line mt-1" style={{ color: '#e2e8f0' }}>
+                    {a.texto.replace(/[*_~`]/g, '')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* KPIs */}
         <div className="grid grid-cols-3 gap-3">
