@@ -175,7 +175,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Dónde están ubicados? / ¿Cuál es su dirección?",
-      respuesta: "Contamos con dos puntos de atención: nuestra sucursal principal en Torreón #49, Roma Sur, y también tenemos presencia en Av. Universidad 1407. Además ofrecemos servicio a domicilio en gran parte de CDMX. Puedes ver un mapa en nuestra página principal."
+      respuesta: "Tenemos dos sedes: Torreón #49 en Roma Sur y Av. Universidad 1407. Si quieres ir, te conecto con un asesor para hacer tu cita. Además ofrecemos servicio a domicilio en gran parte de CDMX."
     },
     {
       pregunta: "¿Tienen espacio disponible? / ¿Cómo sé si hay lugar?",
