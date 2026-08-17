@@ -53,14 +53,25 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
       }));
     // saveInscripcionData ya sincroniza la ficha de /admin/reservas como parte
     // de la misma operación (ver comentario en firestore.ts).
-    saveInscripcionData(phone, {
+    const fichaPayload = {
       nombre: input.name,
       telefono: phone,
       zona: input.address,
       curso: input.transmission ?? 'Estándar',
       transmision: input.transmission ?? 'Estándar',
       fechas,
-    }, 'web').catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
+    };
+    saveInscripcionData(phone, fichaPayload, 'web')
+      .catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
+
+    // Igual que en el flujo de Luz: manda el PDF al alumno y, en paralelo, al
+    // admin (con respaldo de link si la ventana de 24h está cerrada).
+    import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
+      enviarFichaAdminWhatsApp(fichaPayload)
+        .catch(e => console.error('[AGENDA] Error enviando ficha PDF al admin:', e));
+      enviarFichaAdminWhatsApp(fichaPayload, phone)
+        .catch(e => console.error('[AGENDA] Error enviando ficha PDF al alumno:', e));
+    }).catch(e => console.error('[AGENDA] Error importando ficha-pdf-server:', e));
 
     return { success: true, message: result.message, error: null };
   } catch (error) {
