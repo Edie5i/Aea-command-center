@@ -227,7 +227,9 @@ export async function enviarFichaAdminWhatsApp(data: FichaData, to?: string): Pr
     return;
   }
   const folio = data.folio ?? 'AEA';
-  const filename = `${folio}-${data.nombre.replace(/\s+/g, '_')}.pdf`;
+  // Guiones normales, no "_": WhatsApp interpreta "_texto_" como itálica y
+  // corrompe el link de respaldo (borra los guiones bajos) al mostrarlo/copiarlo.
+  const filename = `${folio}-${data.nombre.replace(/\s+/g, '-')}.pdf`;
 
   const formData = new FormData();
   formData.append('messaging_product', 'whatsapp');
