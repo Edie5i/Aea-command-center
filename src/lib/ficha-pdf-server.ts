@@ -267,17 +267,18 @@ export async function enviarFichaAdminWhatsApp(data: FichaData, to?: string): Pr
   });
 
   if (sendRes?.ok) {
-    console.log('[ficha-admin] Ficha entregada a', adminPhone);
-    return;
-  }
-  if (sendRes) {
+    console.log('[ficha-admin] Ficha aceptada por Meta para', adminPhone, '(200 no garantiza entrega — ver WA-STATUS)');
+  } else if (sendRes) {
     console.error('[ficha-admin] Send error:', sendRes.status, await sendRes.text());
   }
 
-  // Los documentos también caen con la ventana de 24h y un PDF no viaja por
-  // plantilla. De respaldo: subir el PDF ya generado al bucket privado y mandar
-  // el link directo por el canal de texto garantizado (notificarAdmin) — así no
-  // hace falta ir a buscarla a mano en /admin/fichas.
+  // Un 200 al mandar el documento NO garantiza entrega — Meta puede rechazarlo
+  // después por la ventana de 24h y eso sólo se ve en el callback [WA-STATUS],
+  // no aquí. Por eso, para el admin, el link de respaldo se manda SIEMPRE (no
+  // sólo si el envío del documento falló en el momento) — mismo patrón de
+  // "mirror garantizado" que notificarAdmin ya usa para texto. Subir el PDF y
+  // mandar el link directo por el canal de texto garantizado — así no hace
+  // falta ir a buscarla a mano en /admin/fichas.
   if (!to) {
     const { notificarAdmin } = await import('@/lib/adminNotify');
     let linkTexto = 'No se pudo entregar el PDF por WhatsApp — ábrela en /admin/fichas';
