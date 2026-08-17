@@ -35,3 +35,18 @@ export async function subirComprobante(mediaId: string, telefono: string): Promi
   });
   return path;
 }
+
+/**
+ * Sube una ficha PDF ya generada al mismo bucket privado, bajo el prefijo
+ * "fichas/". Se usa como respaldo cuando el documento no se pudo entregar
+ * por WhatsApp (ventana de 24h cerrada) — el admin recibe un link en vez del
+ * archivo adjunto.
+ */
+export async function subirFichaPdf(buf: Buffer, telefono: string, filename: string): Promise<string> {
+  const path = `fichas/${telefono}/${Date.now()}-${filename}`;
+  await getStorage(getApp()).bucket(BUCKET_COMPROBANTES).file(path).save(buf, {
+    contentType: 'application/pdf',
+    resumable: false,
+  });
+  return path;
+}

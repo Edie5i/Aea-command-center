@@ -15,8 +15,9 @@ export async function GET(request: NextRequest) {
   }
 
   const path = request.nextUrl.searchParams.get('path') ?? '';
-  // Solo objetos del prefijo de comprobantes, sin traversal
-  if (!path.startsWith('comprobantes/') || path.includes('..')) {
+  // Solo objetos de comprobantes o fichas de respaldo, sin traversal
+  const prefijoValido = path.startsWith('comprobantes/') || path.startsWith('fichas/');
+  if (!prefijoValido || path.includes('..')) {
     return new NextResponse('Ruta inválida', { status: 400 });
   }
 

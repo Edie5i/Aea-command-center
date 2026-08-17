@@ -275,13 +275,21 @@ export async function enviarFichaAdminWhatsApp(data: FichaData, to?: string): Pr
   }
 
   // Los documentos también caen con la ventana de 24h y un PDF no viaja por
-  // plantilla. Al menos que el admin se entere de que hay ficha nueva; la copia
-  // del alumno no tiene respaldo posible y sólo queda registrada arriba.
+  // plantilla. De respaldo: subir el PDF ya generado al bucket privado y mandar
+  // el link directo por el canal de texto garantizado (notificarAdmin) — así no
+  // hace falta ir a buscarla a mano en /admin/fichas.
   if (!to) {
     const { notificarAdmin } = await import('@/lib/adminNotify');
+    let linkTexto = 'No se pudo entregar el PDF por WhatsApp — ábrela en /admin/fichas';
+    try {
+      const { subirFichaPdf } = await import('@/lib/comprobantes');
+      const path = await subirFichaPdf(pdfBuffer, data.telefono, filename);
+      linkTexto = `https://app.autoescuelaamericana.com/api/admin/comprobante?path=${encodeURIComponent(path)}`;
+    } catch (e) {
+      console.error('[ficha-admin] Error subiendo PDF de respaldo:', e);
+    }
     await notificarAdmin(
-      `📋 *Ficha nueva* — ${data.nombre}\n📱 +${data.telefono}\n📍 ${data.zona}\n\n` +
-      `No se pudo entregar el PDF por WhatsApp — ábrela en /admin/fichas`
+      `📋 *Ficha nueva* — ${data.nombre}\n📱 +${data.telefono}\n📍 ${data.zona}\n\n${linkTexto}`
     );
   }
 }
