@@ -36,13 +36,20 @@ function badge(f: Ficha): { texto: string; color: string } {
     : { texto: `⚠️ FALTA: ${f.faltantes.join(', ')}`, color: '#f59e0b' };
 }
 
-export default async function ReservasPage() {
+export default async function ReservasPage({
+  searchParams,
+}: {
+  searchParams: { perdidas?: string };
+}) {
   const cookieStore = await cookies();
   if (cookieStore.get('admin_pin')?.value !== ADMIN_PIN) {
     redirect('/admin/conversaciones/login');
   }
 
-  const fichas = await traerFichas().catch((): (Ficha & { id: string })[] => []);
+  const todas = await traerFichas().catch((): (Ficha & { id: string })[] => []);
+  const verPerdidas = searchParams.perdidas === '1';
+  const perdidas = todas.filter(f => f.estado === 'perdida');
+  const fichas = verPerdidas ? todas : todas.filter(f => f.estado !== 'perdida');
 
   return (
     <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
@@ -54,6 +61,13 @@ export default async function ReservasPage() {
           <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
           <h1 className="text-base font-bold text-white">Reservas (web + Luz)</h1>
           <span className="ml-auto text-xs" style={{ color: '#475569' }}>{fichas.length} fichas</span>
+          <Link
+            href={verPerdidas ? '/admin/reservas' : '/admin/reservas?perdidas=1'}
+            className="text-xs px-2 py-1 rounded-full"
+            style={{ color: '#64748b', border: '1px solid rgba(148,163,184,0.15)' }}
+          >
+            {verPerdidas ? 'Ocultar perdidas' : `Ver perdidas (${perdidas.length})`}
+          </Link>
         </div>
       </header>
 
