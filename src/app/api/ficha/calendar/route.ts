@@ -13,6 +13,12 @@ function normalizePhone(raw: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    // sendFicha: true sólo cuando el caller crea una ficha nueva (/admin/importar).
+    // El botón "Calendar" de FichaButton reusa esta misma ruta para re-sincronizar
+    // fichas YA existentes — ahí no debe reenviar el PDF cada vez que se clickea.
+    const sendFicha = body.sendFicha === true;
+    let fichaPayload: { nombre: string; telefono: string; zona: string; curso: string; transmision: string; fechas: { date: string; time: string }[] } | null = null;
+
     const [result] = await Promise.all([
       scheduleAndCreateEvents(body),
       // Guardar inscripción en Firestore en paralelo con GC
@@ -25,17 +31,29 @@ export async function POST(request: NextRequest) {
                 date: new Date(d.date).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }),
                 time: d.time,
               }));
-            return saveInscripcionData(phone, {
+            fichaPayload = {
               nombre: body.name,
               telefono: phone,
               zona: body.address ?? '',
               curso: body.transmission ?? 'Automático',
               transmision: body.transmission ?? 'Automático',
               fechas,
-            }).catch(e => console.error('[FICHA] Error guardando en Firestore:', e));
+            };
+            return saveInscripcionData(phone, fichaPayload)
+              .catch(e => console.error('[FICHA] Error guardando en Firestore:', e));
           })()
         : Promise.resolve(),
     ]);
+
+    if (sendFicha && fichaPayload) {
+      const payload = fichaPayload;
+      import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
+        enviarFichaAdminWhatsApp(payload)
+          .catch(e => console.error('[FICHA] Error enviando ficha PDF al admin:', e));
+        enviarFichaAdminWhatsApp(payload, payload.telefono)
+          .catch(e => console.error('[FICHA] Error enviando ficha PDF al alumno:', e));
+      }).catch(e => console.error('[FICHA] Error importando ficha-pdf-server:', e));
+    }
 
     return NextResponse.json({
       ok: true,

@@ -128,6 +128,7 @@ export default function ImportarFichaPage() {
           address: data.direccion || 'Torreón 49, Roma Sur',
           transmission: data.transmision,
           notes: data.notas || undefined,
+          sendFicha: true,
           dates: fechasValidas.map((f: FechaRow) => ({
             date: new Date(f.date + 'T12:00:00').toISOString(),
             time: f.time,
