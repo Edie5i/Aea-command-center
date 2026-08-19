@@ -77,6 +77,7 @@ function revisarDuplicados(eventos: { alumno: string; inicio: string }[]): Halla
  */
 async function revisarDesfase(
   eventos: { alumno: string; inicio: string }[],
+  perdidas: Set<string>,
 ): Promise<Hallazgo | null> {
   const enCalendar = new Set(
     eventos.filter(e => e.inicio).map(e => `${normalizarAlumno(e.alumno)}|${claveDesdeEvento(e.inicio)}`),
@@ -88,6 +89,7 @@ async function revisarDesfase(
   for (const doc of snap.docs) {
     const ins = doc.data().inscripcion;
     if (!ins || ins.status === 'pre_reserva' || !Array.isArray(ins.fechas)) continue;
+    if (perdidas.has(normalizarAlumno(ins.nombre ?? ''))) continue;
     for (const f of ins.fechas) {
       if (!f?.date || !f?.time || f.date <= hoy) continue; // sólo clases futuras
       const clave = `${normalizarAlumno(ins.nombre ?? '')}|${claveDesdeEntrada(`${f.date}T12:00:00`, f.time)}`;
@@ -168,7 +170,7 @@ function revisarPreReservasProximas(
   const avisos: string[] = [];
   for (const doc of fichas) {
     const f = doc.data() as { estado?: string; studentName?: string; opcionesFechaHora?: string[] };
-    if (f.estado === 'reservada') continue;
+    if (f.estado === 'reservada' || f.estado === 'perdida') continue;
     for (const slot of f.opcionesFechaHora ?? []) {
       const [dia, hora] = slot.split(' ');
       if (!dia || !hora || dia < hoy || dia > limite) continue;
@@ -216,7 +218,7 @@ function revisarFichasEstancadas(
   const corte = Date.now() - FICHA_ESTANCADA_DIAS * 86_400_000;
   const estancadas = fichas
     .map(d => d.data())
-    .filter(f => f.estado !== 'reservada' && (f.creada ?? Date.now()) < corte);
+    .filter(f => f.estado !== 'reservada' && f.estado !== 'perdida' && (f.creada ?? Date.now()) < corte);
   if (estancadas.length === 0) return null;
   const nombres = estancadas.slice(0, 3).map(f => f.studentName || 'sin nombre').join(', ');
   return {
@@ -234,15 +236,25 @@ export async function GET(request: NextRequest) {
     console.error('[SALUD] No se pudo leer Calendar:', e);
     return null;
   });
-  // Una sola lectura de fichas para las dos revisiones que las necesitan
+  // Una sola lectura de fichas para las tres revisiones que las necesitan
   const fichas = await db.collection('fichas').limit(300).get()
     .then(s => s.docs)
     .catch(e => { console.error('[SALUD] No se pudieron leer las fichas:', e); return []; });
+  // Alumnos con ficha marcada perdida: su inscripcion.status puede seguir
+  // diciendo "confirmado" (dato viejo, nunca se reconcilia al perder el
+  // lead) — sin esto, cancelar sus eventos de Calendar dispara una falsa
+  // alarma de "clase confirmada sin evento".
+  const perdidas = new Set(
+    fichas
+      .map(d => d.data())
+      .filter(f => f.estado === 'perdida')
+      .map(f => normalizarAlumno(f.studentName ?? '')),
+  );
 
   const chequeos = await Promise.all([
     revisarToken(),
     Promise.resolve(eventos ? revisarDuplicados(eventos) : { grave: true, texto: '❌ No se pudo leer Google Calendar' }),
-    eventos ? revisarDesfase(eventos).catch(() => null) : Promise.resolve(null),
+    eventos ? revisarDesfase(eventos, perdidas).catch(() => null) : Promise.resolve(null),
     Promise.resolve(revisarFichasEstancadas(fichas)),
     Promise.resolve(eventos ? revisarPreReservasProximas(fichas, eventos) : null),
     revisarPlantillas().catch(() => null),
