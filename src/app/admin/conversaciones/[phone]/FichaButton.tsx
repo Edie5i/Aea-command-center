@@ -266,6 +266,11 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
           caption: isPreReserva
             ? '📋 Tu ficha de pre-reserva — Auto Escuela Americana\n\nAparta tu lugar con $690 y te asignamos fechas de inmediato 🚗'
             : '📋 Tu ficha de inscripción — Auto Escuela Americana\n\nGuárdala, ahí están tus clases y datos.',
+          nombre: data.nombre,
+          zona: data.zona,
+          curso: data.curso,
+          transmision: data.transmision,
+          fechas: data.fechas,
         }),
       });
       const json = await res.json();
