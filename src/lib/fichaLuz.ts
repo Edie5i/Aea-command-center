@@ -1,4 +1,5 @@
 // lib/fichaLuz.ts — Fuente ÚNICA. Ficha web (/agenda) + Luz caen aquí. Dashboard las ve TODAS.
+import { randomBytes } from 'crypto';
 import { db } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
 
@@ -20,7 +21,37 @@ export type Ficha = {
   creada: number;
   // Solo cuando estado === 'perdida': por qué se marcó así, para contexto en el panel.
   perdidaRazon?: string;
+  // Identificador opaco para /ficha/[token] — no es el teléfono, no debe salir
+  // nunca en una URL (dato personal). Se genera una sola vez, al crear la ficha.
+  fichaToken?: string;
 };
+
+const generarToken = () => randomBytes(9).toString('base64url');
+
+// Manda el link de la ficha directo al alumno por WhatsApp (texto simple, sin
+// documento adjunto — así no depende de tener Acrobat ni de que WhatsApp lo
+// reconozca como PDF). Best-effort: si la ventana de 24h está cerrada, Meta
+// lo rechaza y no hay plantilla de respaldo para un alumno arbitrario (esa
+// sólo existe para el admin, ver adminNotify.ts).
+async function enviarLinkFichaAlumno(telefono: string, nombre: string, token: string): Promise<void> {
+  const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
+  const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
+  if (!waToken || !phoneId || !telefono) return;
+
+  const link = `https://app.autoescuelaamericana.com/ficha/${token}`;
+  const texto = `📋 Hola ${nombre || ''}, aquí está tu ficha de Auto Escuela Americana:\n\n${link}\n\nAhí puedes ver tus datos, fechas y el estatus de tu apartado.`;
+
+  await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to: telefono,
+      type: 'text',
+      text: { body: texto },
+    }),
+  }).catch((e) => console.error('[FICHA] Error mandando link de ficha al alumno:', e));
+}
 
 export const calcularDeposito = (p: number) => Math.max(Math.round(p * 0.2), 690);
 
@@ -44,21 +75,22 @@ async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void>
   const chip = ficha.origen === 'web' ? '🌐 Web' : '💬 Luz';
   const nombre = ficha.studentName || 'Sin nombre';
   const dir = ficha.zona ? `\n📍 ${ficha.zona}` : '';
+  const linkFicha = ficha.fichaToken ? `\n📋 Ficha: https://app.autoescuelaamericana.com/ficha/${ficha.fichaToken}` : '';
 
   let texto: string;
   if (cambioEstado) {
     texto =
       ficha.estado === 'reservada'
-        ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO${dir}\n${chip} · 📱 ${ficha.telefono}`
+        ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO${dir}\n${chip} · 📱 ${ficha.telefono}${linkFicha}`
         : `🟡 *Ficha ${ficha.estado.toUpperCase()}* — ${nombre}\n🚗 ${ficha.curso || '¿curso?'} · Falta: ${ficha.faltantes.join(', ')}${dir}\n${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
-          (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '');
+          (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '') + linkFicha;
   } else {
     // Sólo llegó la dirección: aviso corto y accionable
     texto =
       `📍 *DIRECCIÓN RECIBIDA* — ${nombre}\n${ficha.zona}\n` +
       `🚗 ${ficha.curso || '¿curso?'} · ${ficha.faltantes.length ? 'Falta: ' + ficha.faltantes.join(', ') : 'sin pendientes'}\n` +
       `${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
-      (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '');
+      (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '') + linkFicha;
   }
 
   await notificarAdmin(texto).catch((e) => console.error('[FICHA] Error notificando cambio:', e));
@@ -72,6 +104,9 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
 
   const precio = datos.precio ?? 0;
   const faltantes = revisarFicha(datos);
+  // El token se genera UNA vez y se preserva — el mismo link sirve toda la
+  // vida de la ficha, la página siempre lee el estado actual en vivo.
+  const fichaToken = existente?.fichaToken ?? generarToken();
   const ficha: Ficha = {
     studentName: datos.studentName ?? '',
     curso: datos.curso ?? '',
@@ -94,9 +129,17 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
     // Preservar la fecha original — si no, cada re-guardado (ej. Luz llamando
     // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
     creada: existente?.creada ?? Date.now(),
+    fichaToken,
   };
   await ref.set(ficha, { merge: true });
   await notificarCambios(existente, ficha);
+  // Ficha nueva (no un re-guardado): mandarle el link al alumno de una vez,
+  // aunque todavía no haya pagado — es lo que pidió Eduardo explícitamente.
+  if (!existente && ficha.telefono) {
+    await enviarLinkFichaAlumno(ficha.telefono, ficha.studentName, fichaToken).catch(
+      (e) => console.error('[FICHA] Error mandando link al alumno:', e)
+    );
+  }
   return ficha;
 }
 
@@ -125,6 +168,7 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     telefono: datos.telefono ?? '',
     zona: datos.zona,
     creada: datos.creada ?? Date.now(),
+    fichaToken: (actual as Ficha | undefined)?.fichaToken ?? generarToken(),
   };
   await ref.set(ficha, { merge: true });
   await notificarCambios(actual as Ficha | null, ficha);
