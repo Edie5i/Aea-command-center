@@ -1521,6 +1521,11 @@ export async function POST(request: NextRequest) {
         if (waDisplayName) {
           await db.collection('conversations').doc(from).set({ contactName: waDisplayName }, { merge: true });
         }
+        // Sin esto, un lead que nunca responde una segunda vez se queda sin chatState
+        // para siempre — recalculateChatState solo se disparaba en el turno siguiente —
+        // y por lo tanto sin entrar nunca a la secuencia de follow-ups 2h→24h→72h→7d.
+        const { recalculateChatState } = await import('@/lib/chat-state');
+        await recalculateChatState(from, 'mensaje_luz');
       })
       .catch((e) => console.error('[WEBHOOK] Error guardando lead nuevo:', e));
 
