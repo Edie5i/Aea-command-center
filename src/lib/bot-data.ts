@@ -131,7 +131,7 @@ export const botContextData = {
     },
     {
       pregunta: "¿Puedo pagar el curso en partes?",
-      respuesta: "El pago del curso se debe realizar en su totalidad antes de la primera clase."
+      respuesta: "Sí: con el depósito apartas tu lugar y agendas tus clases. El resto del pago se liquida al terminar tu primera clase (efectivo, transferencia o tarjeta)."
     },
     {
       pregunta: "¿El coche para las prácticas lo ponen ustedes?",

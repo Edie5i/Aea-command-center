@@ -638,6 +638,8 @@ export interface ClaseAsignada {
   estado: EstadoClase;
   calendarEventId?: string;
   notificadoEn?: number;
+  recordatorioEnviado?: boolean;
+  recordatorioEnviadoEn?: number;
   creadoEn: number;
 }
 
@@ -667,6 +669,16 @@ export async function getClasesActivas(): Promise<ClaseAsignada[]> {
 
 export async function updateClaseEstado(id: string, estado: EstadoClase): Promise<void> {
   await db.collection('clases_asignadas').doc(id).set({ estado }, { merge: true });
+}
+
+export async function getClasesPorFecha(fecha: string): Promise<ClaseAsignada[]> {
+  const snap = await db.collection('clases_asignadas').where('fecha', '==', fecha).get();
+  return snap.docs.map(d => d.data() as ClaseAsignada);
+}
+
+export async function marcarRecordatorioClaseEnviado(id: string): Promise<void> {
+  await db.collection('clases_asignadas').doc(id)
+    .set({ recordatorioEnviado: true, recordatorioEnviadoEn: Date.now() }, { merge: true });
 }
 
 // ── Chat state management ──────────────────────────────────────────────────────
