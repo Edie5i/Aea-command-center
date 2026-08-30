@@ -122,50 +122,50 @@ export default function Home() {
 
         <div className="relative z-10 flex flex-col flex-1 pb-12 pt-8">
           {/* HERO */}
-          <header className="text-center px-4 pt-4 pb-12 flex flex-col items-center max-w-3xl mx-auto">
-            
+          <header className="text-center px-4 pt-10 pb-20 flex flex-col items-center max-w-4xl mx-auto">
+
             {/* Rating Pill */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-slate-200 shadow-sm mb-10 hover:scale-105 transition-transform cursor-default">
-              <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-              <span className="text-sm font-bold text-slate-800">4.8 en Google</span>
-              <span className="text-sm text-slate-500 font-medium"> (220+ reseñas)</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 border border-slate-200 shadow-sm mb-12 hover:scale-105 transition-transform cursor-default">
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+              <span className="text-base font-bold text-slate-800">4.8 en Google</span>
+              <span className="text-base text-slate-500 font-medium"> (220+ reseñas)</span>
             </div>
 
             {/* Logo Element */}
-            <div className="relative mb-10 group">
-              <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-2xl group-hover:bg-blue-500/20 transition-all duration-700" />
-              <div className="w-64 sm:w-72 md:w-80 h-auto bg-transparent relative z-10 hover:scale-105 transition-transform duration-700">
-                <img src="/logo.jpg" alt="Logo Auto Escuela Americana" className="w-full h-auto object-contain drop-shadow-xl" />
+            <div className="relative mb-12 group">
+              <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-2xl group-hover:bg-blue-500/20 transition-all duration-700" />
+              <div className="w-80 sm:w-96 md:w-[28rem] h-auto bg-transparent relative z-10 hover:scale-105 transition-transform duration-700">
+                <img src="/logo.png" alt="Logo Auto Escuela Americana" className="w-full h-auto object-contain drop-shadow-xl" />
               </div>
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tighter text-slate-800 mb-6 leading-[1.05]">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter text-slate-800 mb-8 leading-[1.05]">
               Aprende a <br className="sm:hidden" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-500 via-slate-400 to-slate-600 drop-shadow-sm">
                 manejar hoy.
               </span>
             </h1>
-            
-            <p className="text-lg sm:text-xl mb-10 max-w-md mx-auto text-slate-500 font-medium leading-relaxed">
+
+            <p className="text-xl sm:text-2xl mb-12 max-w-lg mx-auto text-slate-500 font-medium leading-relaxed">
               Instructores pacientes, autos seguros y servicio a domicilio en CDMX.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4 sm:px-0">
               <Link href="/agenda"
-                className="group relative w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-white transition-all hover:scale-[1.02] active:scale-95 overflow-hidden"
+                className="group relative w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl font-bold text-white text-lg transition-all hover:scale-[1.02] active:scale-95 overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)',
                   boxShadow: '0 8px 25px -4px rgba(59, 130, 246, 0.4)'
                 }}>
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <CalendarCheck className="w-5 h-5 relative z-10" />
-                <span className="relative z-10 text-base">Agendar Curso</span>
-                <span className="relative z-10 bg-white/20 px-2 py-1 rounded text-xs ml-1 font-bold">Desde $690</span>
+                <CalendarCheck className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">Agendar Curso</span>
+                <span className="relative z-10 bg-white/20 px-2 py-1 rounded text-sm ml-1 font-bold">Desde $690</span>
               </Link>
               <a href="https://autoescuelaamericana.com/cursos"
-                className="w-full sm:w-auto text-center px-8 py-4 rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 bg-white border border-slate-200 text-slate-700 shadow-sm hover:shadow-md">
+                className="w-full sm:w-auto text-center px-10 py-5 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-95 bg-white border border-slate-200 text-slate-700 shadow-sm hover:shadow-md">
                 Ver paquetes y precios
               </a>
             </div>
