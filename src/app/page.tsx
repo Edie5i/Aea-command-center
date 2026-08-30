@@ -113,7 +113,8 @@ export default function Home() {
       </div>
 
       {/* ENCUADERNADO / THE FRAME */}
-      <main className="flex-1 w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-3xl border border-white shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] sm:rounded-[2.5rem] overflow-hidden relative z-10 flex flex-col">
+      <main className="flex-1 w-full max-w-6xl mx-auto bg-white/70 backdrop-blur-3xl border-[6px] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] sm:rounded-[2.5rem] overflow-hidden relative z-10 flex flex-col"
+        style={{ borderImage: 'linear-gradient(to right, #2563eb, #3b82f6, #22d3ee) 1' }}>
         
         {/* Top Gradient Banner inside the frame */}
         <div className="w-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 text-white text-center py-2.5 px-4 text-xs font-bold tracking-wide shadow-sm flex items-center justify-center gap-2">
@@ -176,7 +177,7 @@ export default function Home() {
             <div className="flex flex-col gap-4">
               {courseCards.map(({ icon: Icon, title, desc, href, label, internal }) => {
                 const content = (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 rounded-[2rem] p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group bg-white/80 backdrop-blur-md border shadow-[0_4px_20px_-4px_rgba(148,163,184,0.3)] relative overflow-hidden"
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 rounded-[2rem] p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group bg-white/80 backdrop-blur-md border-[6px] shadow-[0_4px_20px_-4px_rgba(148,163,184,0.3)] relative overflow-hidden"
                        style={{ borderImage: 'linear-gradient(to bottom right, #94a3b8, #64748b, #cbd5e1) 1' }}>
                     {/* Inner metallic glow for silver effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-slate-100/40 via-transparent to-slate-200/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -213,7 +214,7 @@ export default function Home() {
           <section className="px-4 pb-12 max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
             {/* Columna Izquierda: Mapa y Value Props */}
             <div className="lg:col-span-7 flex flex-col gap-6">
-              <div className="rounded-[2rem] p-6 flex flex-col bg-white/80 backdrop-blur-md border shadow-[0_4px_20px_-4px_rgba(148,163,184,0.3)] relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              <div className="rounded-[2rem] p-6 flex flex-col bg-white/80 backdrop-blur-md border-[6px] shadow-[0_4px_20px_-4px_rgba(148,163,184,0.3)] relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 style={{ borderImage: 'linear-gradient(to bottom right, #94a3b8, #64748b, #cbd5e1) 1' }}>
                 <div className="absolute inset-0 rounded-[2rem] border border-white/50 pointer-events-none" />
                 
@@ -266,7 +267,7 @@ export default function Home() {
               <div className="absolute -top-6 -right-6 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute -bottom-6 -left-6 w-72 h-72 bg-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="relative rounded-[2rem] bg-white/80 backdrop-blur-xl border p-8 shadow-[0_8px_30px_-4px_rgba(148,163,184,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(148,163,184,0.5)] transition-all duration-300 hover:-translate-y-1 h-full flex flex-col"
+              <div className="relative rounded-[2rem] bg-white/80 backdrop-blur-xl border-[6px] p-8 shadow-[0_8px_30px_-4px_rgba(148,163,184,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(148,163,184,0.5)] transition-all duration-300 hover:-translate-y-1 h-full flex flex-col"
                 style={{ borderImage: 'linear-gradient(to bottom right, #94a3b8, #64748b, #cbd5e1) 1' }}>
                 <div className="absolute inset-0 rounded-[2rem] border border-white/50 pointer-events-none" />
                 
