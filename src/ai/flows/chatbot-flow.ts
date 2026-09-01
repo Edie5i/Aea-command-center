@@ -44,6 +44,7 @@ ESTADO_LEAD = {
   experiencia: "sí" | "no" | null,
   experiencia_nivel: "dejó_de_manejar" | "maneja_pero_quiere_mejorar" | "maneja_bien" | null,  // solo aplica cuando experiencia = "sí"
   curso_interes: "estándar" | "automático" | "moto" | "reforzamiento" | "intermedio" | "avanzado" | "intensivo" | "mixto" | "inglés" | "personas_nerviosas" | "coche_propio" | null,
+  transmision_preferida: "estándar" | "automático" | null,  // NUNCA asumas — se pregunta siempre, salvo que curso_interes ya sea "estándar", "automático", "mixto" o "moto"
   horario_preferido: "mañana" | "tarde" | null,
   ubicacion: "Roma Sur" | "Av. Universidad" | "domicilio" | null,
   alcaldia: string | null,
@@ -63,6 +64,9 @@ Tu próxima pregunta es el primer campo vacío según este orden de prioridad:
 1. experiencia vacío → "¿Ya manejas o vas empezando desde cero?"
    1b. Si experiencia = "sí" y experiencia_nivel vacío → "¿Manejas seguido o llevas un tiempo sin agarrar el volante?"
 2. curso_interes vacío → Recomendá según experiencia_nivel (ver tabla abajo)
+2b. transmision_preferida vacío Y curso_interes NO es "estándar"/"automático"/"mixto"/"moto" → "¿Tu coche (o en el que quieres aprender) es estándar o automático?"
+    NUNCA asumas "estándar" por default — sin esta respuesta no se puede agendar la clase (el instructor necesita saber qué coche llevar).
+    Si curso_interes YA es "estándar" o "automático", copiá ese valor a transmision_preferida sin volver a preguntar. Si es "mixto", transmision_preferida = "mixto" (aprende ambas). Si es "moto", no aplica.
 3. horario_preferido vacío → "¿Te queda mejor en la mañana o en la tarde?"
 4. ubicacion vacío → "¿Te queda más cerca Roma Sur, Av. Universidad, o prefieres a domicilio?"
 5. nombre vacío → "¿Cómo te llamas?" (justo antes de mandar /agenda)
