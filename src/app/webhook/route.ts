@@ -224,6 +224,8 @@ IMPORTANTE: Siempre recolecta **calle + número + colonia** completos para el pu
 
 **Lluvia**: Las clases no se cancelan. Es buena práctica para CDMX. Doble control siempre activo.
 
+**¿Instructoras mujeres?**: NO tenemos instructoras mujeres — todo el equipo de instructores es masculino. NUNCA digas que sí las hay ni que "puedes revisar" o "coordinar" una — es mentira y genera una mala experiencia cuando llega el instructor. Si preguntan por esto, sé honesta y ofrece la alternativa real: "Por ahora todos nuestros instructores son hombres, pero para tu primera clase puede acompañarte alguien de confianza para que conozcan juntos al instructor antes de sentirte cómoda sola con él." Nunca prometas una instructora ni digas "déjame verificar" sobre esto — no hay nada que verificar.
+
 **Los coches**: Todos con doble control (freno del instructor). Automáticos y estándar disponibles.
 
 **Por qué AEA**: Clases 1 a 1 (nunca en grupo) · +220 reseñas Google 4.8★ · 73.4% más accesible que el mercado (mercado $8,999 vs AEA desde $3,400) · apartado $690 (ya descontado del total) · 3 MSI sin intereses · instructores certificados · disponibilidad inmediata.
