@@ -295,10 +295,68 @@ export const guardarPreReservaTool = ai.defineTool(
   }
 );
 
+export const cancelarClaseAlumnoTool = ai.defineTool(
+  {
+    name: 'cancelarClaseAlumno',
+    description:
+      'Cancela la clase agendada de un alumno cuando ÉL pide cancelar (no cuando el instructor no puede — para eso es otro flujo). ' +
+      'Úsala en cuanto el cliente diga que ya no puede o ya no quiere su clase agendada, por WhatsApp o si te dicen que llamó por teléfono a cancelar. ' +
+      'Avisa automáticamente al instructor asignado y al equipo — no hace falta que tú lo hagas aparte.',
+    inputSchema: z.object({
+      telefono: z.string().describe('Número de WhatsApp del alumno con código de país, ej: 5215512345678'),
+    }),
+    outputSchema: z.object({
+      ok: z.boolean(),
+      mensaje: z.string().describe('Si ok=false, explica por qué (ej: no se encontró clase activa) para que se lo digas al cliente.'),
+    }),
+  },
+  async ({ telefono: rawTelefono }) => {
+    try {
+      const telefono = normalizePhone(rawTelefono);
+      const { getClasesDeAlumno, updateClaseEstado } = await import('@/lib/firestore');
+      const clases = await getClasesDeAlumno(telefono);
+      const activa = clases.find(c => c.estado === 'pendiente' || c.estado === 'confirmada');
+
+      if (!activa) {
+        return { ok: false, mensaje: 'No se encontró ninguna clase activa asignada a este teléfono.' };
+      }
+
+      await updateClaseEstado(activa.id, 'cancelada');
+
+      const { notificarAdmin } = await import('@/lib/adminNotify');
+      await notificarAdmin(
+        `❌ *Clase cancelada por el alumno*\n👤 ${activa.alumnoNombre}\n📅 ${activa.fecha} ${activa.hora}\n🧑‍🏫 Instructor: ${activa.instructorNombre}\n\nAvisa al instructor si no le llega el mensaje.`
+      );
+
+      const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
+      const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
+      if (activa.instructorPhone && WA_TOKEN && PHONE_ID) {
+        await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: activa.instructorPhone,
+            type: 'text',
+            text: { body: `📢 ${activa.alumnoNombre} canceló la clase del ${activa.fecha} a las ${activa.hora}. No hace falta que vayas.` },
+          }),
+        }).catch(e => console.error('[TOOL] Error avisando al instructor:', e));
+      }
+
+      console.log('[TOOL] cancelarClaseAlumno: clase', activa.id, 'cancelada para', telefono);
+      return { ok: true, mensaje: 'Clase cancelada, instructor y equipo avisados.' };
+    } catch (e) {
+      console.error('[TOOL] cancelarClaseAlumno error:', e);
+      return { ok: false, mensaje: 'Error interno al cancelar.' };
+    }
+  }
+);
+
 export const AEA_TOOLS = [
   consultarDisponibilidadTool,
   consultarCatalogoCursosTool,
   consultarProgramaCursoTool,
   confirmarInscripcionTool,
   guardarPreReservaTool,
+  cancelarClaseAlumnoTool,
 ];

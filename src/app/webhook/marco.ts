@@ -260,6 +260,9 @@ async function handleInstructor(
     notificarAdmin(
       `⚠️ *Clase rechazada*\n👤 ${nombre} no puede\n📅 ${pendiente.fecha} ${pendiente.hora} · ${pendiente.alumnoNombre}\n\nHay que reasignar.`
     ).catch(() => {});
+    sendWA(pendiente.alumnoPhone,
+      `Hola ${pendiente.alumnoNombre} 👋, tu instructor para la clase del ${pendiente.fecha} a las ${pendiente.hora} tuvo un imprevisto. Ya estamos buscando quién te cubra y te confirmamos en breve. Disculpa la molestia 🙏`
+    ).catch(() => {});
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 

@@ -8,6 +8,7 @@ import {
 } from '@/lib/firestore';
 import type { CandidatoInstructor, EstadoCandidato, InscripcionData } from '@/lib/firestore';
 import AsignarModal from './AsignarModal';
+import ClasesActivasList from './ClasesActivasList';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -212,6 +213,8 @@ export default async function InstructoresPage() {
           </div>
         ))}
       </div>
+
+      <ClasesActivasList clases={clases} />
 
       {/* Alumnos sin asignar */}
       {inscripcionesDisponibles.length > 0 && (

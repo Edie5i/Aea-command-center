@@ -659,6 +659,14 @@ export async function getClasesDeInstructor(phone: string): Promise<ClaseAsignad
   return snap.docs.map(d => d.data() as ClaseAsignada);
 }
 
+export async function getClasesDeAlumno(phone: string): Promise<ClaseAsignada[]> {
+  const snap = await db.collection('clases_asignadas')
+    .where('alumnoPhone', '==', phone)
+    .orderBy('creadoEn', 'desc')
+    .get();
+  return snap.docs.map(d => d.data() as ClaseAsignada);
+}
+
 export async function getClasesActivas(): Promise<ClaseAsignada[]> {
   const snap = await db.collection('clases_asignadas')
     .where('estado', 'in', ['pendiente', 'confirmada'])

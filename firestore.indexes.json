@@ -12,6 +12,14 @@
       "collectionGroup": "clases_asignadas",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "alumnoPhone", "order": "ASCENDING" },
+        { "fieldPath": "creadoEn", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "clases_asignadas",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "estado", "order": "ASCENDING" },
         { "fieldPath": "creadoEn", "order": "DESCENDING" }
       ]
