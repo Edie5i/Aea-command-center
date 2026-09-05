@@ -1459,7 +1459,7 @@ export async function POST(request: NextRequest) {
     const reply = await generateReply(syntheticMsg, history, from);
     await sendMessage(from, reply, phoneId);
     saveHistory(from, '[comprobante de pago]', reply);
-    import('@/lib/firestore')
+    const guardadoImagen = import('@/lib/firestore')
       .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', reply))
       .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
 
@@ -1490,8 +1490,11 @@ export async function POST(request: NextRequest) {
         )
         .catch((e) => console.error('[WEBHOOK] Error marcando inscripción completada:', e));
     } else {
-      // Sin inscripción → recalcular estado normalmente
-      import('@/lib/chat-state')
+      // Sin inscripción → recalcular estado normalmente. Encadenado después del
+      // guardado de la imagen por la misma razón que en el flujo de texto: si corre
+      // en paralelo, lee el turno anterior en vez del actual.
+      guardadoImagen
+        .then(() => import('@/lib/chat-state'))
         .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_luz'))
         .catch((e) => console.error('[WEBHOOK] recalculate error (imagen):', e));
     }
@@ -1608,12 +1611,15 @@ export async function POST(request: NextRequest) {
     }
 
     saveHistory(from, textBody, reply);
+    // recalculateChatState necesita leer el mensaje recién guardado para saber quién habló
+    // al final — si corre en paralelo con el guardado, casi siempre lee el turno anterior
+    // (que termina en "Luz") y el clasificador de intención (tu_turno/atascado) nunca se
+    // dispara. Por eso va encadenado DESPUÉS de que el guardado termine, no en paralelo.
     import('@/lib/firestore')
       .then(({ saveConversationMessage }) => saveConversationMessage(from, textBody, reply))
-      .catch(e => console.error('[WEBHOOK] Firestore save error:', e));
-    import('@/lib/chat-state')
+      .then(() => import('@/lib/chat-state'))
       .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_cliente'))
-      .catch(e => console.error('[WEBHOOK] recalculate error:', e));
+      .catch(e => console.error('[WEBHOOK] Firestore save / recalculate error:', e));
     console.log('[CHAT] 🤖 Luz →', from, ':', reply);
 
     // Notificar al admin cuando Luz ya tiene nombre + dirección del lead (una sola vez)
