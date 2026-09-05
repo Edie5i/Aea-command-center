@@ -1459,9 +1459,12 @@ export async function POST(request: NextRequest) {
     const reply = await generateReply(syntheticMsg, history, from);
     await sendMessage(from, reply, phoneId);
     saveHistory(from, '[comprobante de pago]', reply);
-    const guardadoImagen = import('@/lib/firestore')
-      .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', reply))
-      .catch((e) => console.error('[WEBHOOK] Firestore save error:', e));
+    try {
+      const { saveImageMessage } = await import('@/lib/firestore');
+      await saveImageMessage(from, mediaId || 'unknown', reply);
+    } catch (e) {
+      console.error('[WEBHOOK] Firestore save error:', e);
+    }
 
     if (inscriptionOk) {
       // Ficha de inscripción al cliente
@@ -1480,23 +1483,26 @@ export async function POST(request: NextRequest) {
 
       // Clases agendadas automáticamente — marcar como cerrado para evitar que Luz siga respondiendo
       // El admin verifica monto y banco desde el panel, pero el cliente ya está inscrito
-      import('@/lib/firestore')
-        .then(({ updateChatState }) =>
-          updateChatState(from, {
-            chatState: 'cerrado',
-            chatReason: 'Inscripción completada automáticamente. Admin verifica comprobante.',
-            chatUrgency: 'baja',
-          }, 'manual')
-        )
-        .catch((e) => console.error('[WEBHOOK] Error marcando inscripción completada:', e));
+      try {
+        const { updateChatState } = await import('@/lib/firestore');
+        await updateChatState(from, {
+          chatState: 'cerrado',
+          chatReason: 'Inscripción completada automáticamente. Admin verifica comprobante.',
+          chatUrgency: 'baja',
+        }, 'manual');
+      } catch (e) {
+        console.error('[WEBHOOK] Error marcando inscripción completada:', e);
+      }
     } else {
-      // Sin inscripción → recalcular estado normalmente. Encadenado después del
-      // guardado de la imagen por la misma razón que en el flujo de texto: si corre
-      // en paralelo, lee el turno anterior en vez del actual.
-      guardadoImagen
-        .then(() => import('@/lib/chat-state'))
-        .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_luz'))
-        .catch((e) => console.error('[WEBHOOK] recalculate error (imagen):', e));
+      // Sin inscripción → recalcular estado normalmente. Con AWAIT: si se deja en
+      // segundo plano después de regresar la respuesta HTTP, Cloud Run puede
+      // suspender la instancia a medias y el recálculo nunca llega a ejecutarse.
+      try {
+        const { recalculateChatState } = await import('@/lib/chat-state');
+        await recalculateChatState(from, 'mensaje_luz');
+      } catch (e) {
+        console.error('[WEBHOOK] recalculate error (imagen):', e);
+      }
     }
 
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
@@ -1524,19 +1530,22 @@ export async function POST(request: NextRequest) {
     const welcome = buildWelcomeMessage(waDisplayName, leadSource !== null);
     await sendMessage(from, welcome, phoneId);
     saveHistory(from, textBody, welcome);
-    import('@/lib/firestore')
-      .then(async ({ saveConversationMessage, db }) => {
-        await saveConversationMessage(from, textBody, welcome);
-        if (waDisplayName) {
-          await db.collection('conversations').doc(from).set({ contactName: waDisplayName }, { merge: true });
-        }
-        // Sin esto, un lead que nunca responde una segunda vez se queda sin chatState
-        // para siempre — recalculateChatState solo se disparaba en el turno siguiente —
-        // y por lo tanto sin entrar nunca a la secuencia de follow-ups 2h→24h→72h→7d.
-        const { recalculateChatState } = await import('@/lib/chat-state');
-        await recalculateChatState(from, 'mensaje_luz');
-      })
-      .catch((e) => console.error('[WEBHOOK] Error guardando lead nuevo:', e));
+    // Con AWAIT: dejarlo en segundo plano después de regresar la respuesta HTTP arriesga
+    // que Cloud Run suspenda la instancia a medias y el recálculo nunca llegue a correr.
+    try {
+      const { saveConversationMessage, db } = await import('@/lib/firestore');
+      await saveConversationMessage(from, textBody, welcome);
+      if (waDisplayName) {
+        await db.collection('conversations').doc(from).set({ contactName: waDisplayName }, { merge: true });
+      }
+      // Sin esto, un lead que nunca responde una segunda vez se queda sin chatState
+      // para siempre — recalculateChatState solo se disparaba en el turno siguiente —
+      // y por lo tanto sin entrar nunca a la secuencia de follow-ups 2h→24h→72h→7d.
+      const { recalculateChatState } = await import('@/lib/chat-state');
+      await recalculateChatState(from, 'mensaje_luz');
+    } catch (e) {
+      console.error('[WEBHOOK] Error guardando lead nuevo:', e);
+    }
 
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
@@ -1614,12 +1623,18 @@ export async function POST(request: NextRequest) {
     // recalculateChatState necesita leer el mensaje recién guardado para saber quién habló
     // al final — si corre en paralelo con el guardado, casi siempre lee el turno anterior
     // (que termina en "Luz") y el clasificador de intención (tu_turno/atascado) nunca se
-    // dispara. Por eso va encadenado DESPUÉS de que el guardado termine, no en paralelo.
-    import('@/lib/firestore')
-      .then(({ saveConversationMessage }) => saveConversationMessage(from, textBody, reply))
-      .then(() => import('@/lib/chat-state'))
-      .then(({ recalculateChatState }) => recalculateChatState(from, 'mensaje_cliente'))
-      .catch(e => console.error('[WEBHOOK] Firestore save / recalculate error:', e));
+    // dispara. Además, esto va con AWAIT (no fire-and-forget): probado en producción, si se
+    // deja corriendo en segundo plano después de que la función ya regresó la respuesta HTTP,
+    // Cloud Run puede suspender la instancia a medias y el recálculo nunca llega a ejecutarse
+    // — así se descubrió que "Atención" llevaba en 0 desde siempre.
+    try {
+      const { saveConversationMessage } = await import('@/lib/firestore');
+      await saveConversationMessage(from, textBody, reply);
+      const { recalculateChatState } = await import('@/lib/chat-state');
+      await recalculateChatState(from, 'mensaje_cliente');
+    } catch (e) {
+      console.error('[WEBHOOK] Firestore save / recalculate error:', e);
+    }
     console.log('[CHAT] 🤖 Luz →', from, ':', reply);
 
     // Notificar al admin cuando Luz ya tiene nombre + dirección del lead (una sola vez)
