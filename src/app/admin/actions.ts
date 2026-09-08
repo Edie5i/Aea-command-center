@@ -27,3 +27,20 @@ export async function deshacerConstanciaEntregada(phone: string): Promise<void> 
   );
   revalidatePath('/admin');
 }
+
+/**
+ * Marca a mano que un alumno necesita la constancia de SEMOVI.
+ *
+ * Luz la detecta sola cuando la edad sale en la conversación, pero eso solo
+ * aplica de aquí en adelante: los menores ya inscritos no tienen edad guardada
+ * y no aparecerían nunca en los pendientes. También cubre el caso de que la
+ * edad no se haya mencionado.
+ */
+export async function marcarRequiereConstancia(phone: string, requiere: boolean): Promise<void> {
+  await db.collection('conversations').doc(phone).set(
+    { inscripcion: { requiereConstancia: requiere } },
+    { merge: true }
+  );
+  revalidatePath('/admin');
+  revalidatePath(`/admin/conversaciones/${phone}`);
+}

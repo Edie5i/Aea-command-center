@@ -7,6 +7,7 @@ import FichaButton from './FichaButton';
 import ReplyBox from './ReplyBox';
 import StateActions from './StateActions';
 import { PhoneActions } from '../PhoneActions';
+import { ConstanciaToggle } from '../ConstanciaToggle';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -90,8 +91,13 @@ export default async function ConversacionPage({
 
         {/* En su propio renglón: en la fila del nombre competía por el ancho
             con el botón de la ficha y quedaba apretado en pantalla de celular. */}
-        <div className="mt-2">
+        <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
           <PhoneActions phone={phone} display={dp} />
+          {/* Solo tiene sentido en alguien inscrito: la constancia se entrega al
+              terminar el curso. */}
+          {inscripcion && (
+            <ConstanciaToggle phone={phone} requiere={!!inscripcion.requiereConstancia} />
+          )}
         </div>
 
         {needsAttention && (
