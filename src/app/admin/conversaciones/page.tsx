@@ -164,9 +164,13 @@ export default async function ConversacionesPage({
             const state = conv.chatState ?? 'luz_atendiendo';
             const needsAttention = state === 'tu_turno' || state === 'atascado';
             // Sin esto, un alumno con nombre sólo en la inscripción salía como número anónimo.
-            const { nombre: name, tieneNombre } = nombreLead(conv, conv.phone);
+            const { nombre: name, tieneNombre, contacto } = nombreLead(conv, conv.phone);
             const isRegistroLead = conv.source === 'registro_landing';
-            const saludo = `¡Hola ${tieneNombre ? name : ''}! 👋 Te escribo de Auto Escuela Americana.`;
+            // El WhatsApp le llega a quien contesta el teléfono, que cuando
+            // contrata un papá no es el alumno: saludarlo con el nombre del hijo
+            // sería más raro que no saludarlo por su nombre.
+            const quienContesta = contacto ?? (tieneNombre ? name : '');
+            const saludo = `¡Hola ${quienContesta}! 👋 Te escribo de Auto Escuela Americana.`;
             const waMsg = encodeURIComponent(isRegistroLead
               ? `${saludo} Vi que te registraste en nuestra página — ¿en qué te puedo ayudar?`
               : `${saludo} ¿En qué te puedo ayudar?`);
@@ -200,6 +204,10 @@ export default async function ConversacionesPage({
                           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#f59e0b' }} title="Escribió después de inscrito" />
                         )}
                         <span className="font-bold text-base truncate" style={{ color: '#1e293b' }}>{name}</span>
+                        {/* Contrató el papá o la mamá: hay que saber quién contesta. */}
+                        {contacto && (
+                          <span className="text-xs shrink-0 truncate" style={{ color: '#64748b' }}>· {contacto}</span>
+                        )}
                       </span>
                       <span className="text-sm shrink-0 font-medium" style={{ color: needsAttention ? '#f87171' : '#475569' }}>
                         {timeAgo(ms)}

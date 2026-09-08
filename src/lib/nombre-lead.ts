@@ -1,10 +1,20 @@
 /**
  * Nombre a mostrar de un lead.
  *
- * El sistema guarda el nombre en dos lugares: contactName (lo captura el
- * webhook) e inscripcion.nombre (lo captura Luz o el formulario). Un alumno
- * inscrito por una vía antigua puede tener el segundo y no el primero, y el
- * panel lo mostraba como un número anónimo teniendo el nombre a la mano.
+ * El sistema guarda el nombre en dos lugares: contactName (el perfil de
+ * WhatsApp, lo captura el webhook) e inscripcion.nombre (el alumno, lo pregunta
+ * Luz o lo llena el formulario).
+ *
+ * Manda el de la inscripción. En una de cada cuatro inscripciones —menores, y
+ * chavos de 18-20 cuyo papá hace el trámite— quien escribe no es quien toma la
+ * clase: el perfil dice "Paulina" y la alumna es su hijo Rodrigo. Luz sí
+ * pregunta por el alumno y lo guarda bien, pero el perfil le ganaba y el panel
+ * mostraba a la mamá. El instructor llegaba preguntando por la persona
+ * equivocada, y la ficha y la constancia de SEMOVI salían mal —esta última no
+ * le sirve al alumno si no va a su nombre.
+ *
+ * Cuando los dos existen y difieren se devuelven ambos: el alumno para la clase
+ * y la ficha, el contacto para saber quién contesta el WhatsApp.
  */
 
 export interface FuentesNombre {
@@ -37,12 +47,18 @@ export function telefonoVisible(phone: string): string {
 export function nombreLead(
   fuentes: FuentesNombre,
   phone: string,
-): { nombre: string; tieneNombre: boolean } {
-  const contacto = nombreUtil(fuentes.contactName);
-  if (contacto) return { nombre: contacto, tieneNombre: true };
-
+): { nombre: string; tieneNombre: boolean; contacto: string | null } {
+  const perfil = nombreUtil(fuentes.contactName);
   const inscrito = nombreUtil(fuentes.inscripcion?.nombre);
-  if (inscrito) return { nombre: inscrito, tieneNombre: true };
 
-  return { nombre: telefonoVisible(phone), tieneNombre: false };
+  if (inscrito) {
+    // El perfil solo se reporta aparte si es otra persona; si es la misma,
+    // repetirlo en pantalla es ruido.
+    const otro = perfil && perfil.toLowerCase() !== inscrito.toLowerCase();
+    return { nombre: inscrito, tieneNombre: true, contacto: otro ? perfil : null };
+  }
+
+  if (perfil) return { nombre: perfil, tieneNombre: true, contacto: null };
+
+  return { nombre: telefonoVisible(phone), tieneNombre: false, contacto: null };
 }

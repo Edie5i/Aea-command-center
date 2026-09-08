@@ -45,7 +45,7 @@ export default async function ConversacionPage({
   ]);
 
   const dp = displayPhone(phone);
-  const name = nombreLead(conv ?? {}, phone).nombre;
+  const { nombre: name, contacto } = nombreLead(conv ?? {}, phone);
   const state = conv?.chatState ?? 'luz_atendiendo';
   const needsAttention = state === 'tu_turno' || state === 'atascado';
 
@@ -73,6 +73,12 @@ export default async function ConversacionPage({
 
           <div className="flex-1 min-w-0">
             <p className="font-bold text-base leading-tight truncate text-slate-800">{name}</p>
+            {/* Quien contrata no siempre es quien toma la clase. */}
+            {contacto && (
+              <p className="text-xs leading-tight truncate mt-0.5" style={{ color: '#64748b' }}>
+                Contacto: {contacto}
+              </p>
+            )}
           </div>
 
           {inscripcion && (
