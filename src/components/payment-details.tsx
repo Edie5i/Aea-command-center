@@ -36,7 +36,7 @@ function CopyBtn({ text }: { text: string }) {
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl p-5 space-y-3" style={CARD}>
-      <h3 className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#1e293b' }}>
+      <h3 className="flex items-center gap-2 text-base font-semibold" style={{ color: '#1e293b' }}>
         {icon} {title}
       </h3>
       {children}
@@ -63,15 +63,15 @@ export function PaymentDetails() {
     <div className="w-full max-w-3xl space-y-4">
 
       <Section icon={<Landmark className="w-4 h-4" style={{ color: '#059669' }} />} title="Transferencia Bancaria">
-        <p className="text-xs" style={{ color: '#475569' }}>
+        <p className="text-base" style={{ color: '#475569' }}>
           Beneficiario: <span style={{ color: '#475569' }}>Eduardo W. Czaplewski (Cuenta PYME BBVA)</span>
         </p>
         <div className="space-y-3">
           <div style={INNER}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Cuenta</p>
-                <p className="font-mono text-base text-slate-800 tracking-wider">{accountNumber}</p>
+                <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Cuenta</p>
+                <p className="font-mono text-lg text-slate-800 tracking-wider">{accountNumber}</p>
               </div>
               <CopyBtn text={accountNumber} />
             </div>
@@ -79,8 +79,8 @@ export function PaymentDetails() {
           <div style={INNER}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>CLABE Interbancaria</p>
-                <p className="font-mono text-sm text-slate-800 tracking-wider">{clabe}</p>
+                <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>CLABE Interbancaria</p>
+                <p className="font-mono text-base text-slate-800 tracking-wider">{clabe}</p>
               </div>
               <CopyBtn text={clabe} />
             </div>
@@ -89,14 +89,14 @@ export function PaymentDetails() {
       </Section>
 
       <Section icon={<Banknote className="w-4 h-4" style={{ color: '#059669' }} />} title="Depósito en Efectivo">
-        <p className="text-xs" style={{ color: '#475569' }}>
+        <p className="text-base" style={{ color: '#475569' }}>
           Disponible en: <span style={{ color: '#475569' }}>Walmart, Sanborns, OXXO, 7-Eleven</span>
         </p>
         <div style={INNER}>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Tarjeta de Débito BBVA</p>
-              <p className="font-mono text-base text-slate-800 tracking-wider">{debitCard}</p>
+              <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Tarjeta de Débito BBVA</p>
+              <p className="font-mono text-lg text-slate-800 tracking-wider">{debitCard}</p>
             </div>
             <CopyBtn text={debitCard} />
           </div>
@@ -104,10 +104,10 @@ export function PaymentDetails() {
       </Section>
 
       <Section icon={<CreditCard className="w-4 h-4" style={{ color: '#059669' }} />} title="Pago con Tarjeta a Meses">
-        <p className="text-sm" style={{ color: '#64748b' }}>
+        <p className="text-base" style={{ color: '#64748b' }}>
           Aceptamos pagos con tarjeta de crédito. Solicita tu enlace de pago por WhatsApp y recibe las instrucciones por correo electrónico.
         </p>
-        <p className="text-sm font-semibold" style={{ color: '#047857' }}>
+        <p className="text-base font-semibold" style={{ color: '#047857' }}>
           ¡Pregunta por la opción de 3 meses sin intereses con tarjetas BBVA y American Express!
         </p>
       </Section>
@@ -115,23 +115,23 @@ export function PaymentDetails() {
       <Section icon={<MessageSquare className="w-4 h-4" style={{ color: '#059669' }} />} title="Envía tu Comprobante">
         <div className="flex flex-col sm:flex-row items-start justify-between gap-5">
           <div className="max-w-sm">
-            <p className="text-sm" style={{ color: '#64748b' }}>
+            <p className="text-base" style={{ color: '#64748b' }}>
               Desde tu app del banco dale <strong style={{ color: '#0f172a' }}>Compartir</strong> al comprobante y elige WhatsApp. Nuestro número:
             </p>
             <div className="mt-2 flex items-center justify-between gap-3" style={INNER}>
-              <p className="font-mono text-base text-slate-800 tracking-wider">{waNumber}</p>
+              <p className="font-mono text-lg text-slate-800 tracking-wider">{waNumber}</p>
               <CopyBtn text={waNumber} />
             </div>
             <a
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3.5 rounded-xl text-sm font-bold text-white transition-colors"
+              className="mt-3 inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3.5 rounded-xl text-base font-bold text-white transition-colors"
               style={{ background: '#25D366' }}>
               <WhatsAppIcon className="w-5 h-5" />
               Abrir el chat
             </a>
-            <p className="text-xs mt-2" style={{ color: '#94a3b8' }}>
+            <p className="text-sm mt-2" style={{ color: '#94a3b8' }}>
               Ábrelo una vez y quedamos en tus chats recientes, para que aparezcamos al compartir desde el banco.
             </p>
           </div>
@@ -146,11 +146,11 @@ export function PaymentDetails() {
         style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.25)' }}>
         <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#059669' }} />
         <div>
-          <p className="text-sm font-semibold mb-0.5" style={{ color: '#047857' }}>¡Importante!</p>
-          <p className="text-sm" style={{ color: '#64748b' }}>
+          <p className="text-base font-semibold mb-0.5" style={{ color: '#047857' }}>¡Importante!</p>
+          <p className="text-base" style={{ color: '#64748b' }}>
             Al realizar tu pago, pon en el concepto o referencia el <strong style={{ color: '#0f172a' }}>nombre completo del alumno</strong>, o el <strong style={{ color: '#0f172a' }}>número de factura</strong> si es un pago empresarial.
           </p>
-          <p className="text-sm mt-1.5" style={{ color: '#64748b' }}>
+          <p className="text-base mt-1.5" style={{ color: '#64748b' }}>
             Los precios <strong style={{ color: '#0f172a' }}>no incluyen IVA</strong>.
           </p>
         </div>

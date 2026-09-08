@@ -30,7 +30,7 @@ export default function PagosPage() {
           <h1 className="text-3xl font-black tracking-tight mb-1 text-slate-800">
             Información de Pago
           </h1>
-          <p className="text-sm mt-2" style={{ color: '#475569' }}>
+          <p className="text-base mt-2" style={{ color: '#475569' }}>
             Aceptamos transferencias y depósitos en efectivo
           </p>
 
@@ -49,7 +49,7 @@ export default function PagosPage() {
       </div>
 
       <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
-        <p className="text-[11px]" style={{ color: '#64748b' }}>Auto Escuela Americana · CDMX</p>
+        <p className="text-xs" style={{ color: '#64748b' }}>Auto Escuela Americana · CDMX</p>
       </footer>
     </main>
   );
