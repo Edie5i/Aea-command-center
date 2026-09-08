@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getMetricsData, getAvisosAdminRecientes } from '@/lib/firestore';
+import { getMetricsData, getAvisosAdminRecientes, getConstanciasPendientes } from '@/lib/firestore';
 import { getEventosProximos } from '@/services/calendarService';
 import { traerFichas } from '@/lib/fichaLuz';
 
@@ -67,11 +67,12 @@ export default async function AdminPage() {
     redirect('/admin/conversaciones/login');
   }
 
-  const [fichas, metricas, eventos, avisos] = await Promise.all([
+  const [fichas, metricas, eventos, avisos, constancias] = await Promise.all([
     traerFichas().catch(() => []),
     getMetricsData().catch(() => null),
     getEventosProximos(30).catch(() => []),
     getAvisosAdminRecientes(8).catch(() => []),
+    getConstanciasPendientes().catch(() => []),
   ]);
 
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -148,6 +149,36 @@ export default async function AdminPage() {
                 <div key={item.label}>
                   <p className="text-xl font-bold" style={{ color: item.color }}>{item.value}</p>
                   <p className="text-[11px] font-medium text-slate-500">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Constancias que se deben. Solo aparece si hay alguna: no vale la pena
+            ocupar espacio en el tablero para decir que no hay pendientes. */}
+        {constancias.length > 0 && (
+          <div className="rounded-2xl p-4" style={CARD}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-bold text-slate-800">📜 Constancias pendientes</p>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                {constancias.length}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {constancias.map(c => (
+                <div key={c.phone} className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{c.nombre || '—'}</p>
+                    <p className="text-xs text-slate-500">
+                      {c.edadAlumno ? `${c.edadAlumno} años · ` : ''}SEMOVI · $500
+                    </p>
+                  </div>
+                  <Link
+                    href={`/admin/conversaciones/${c.phone}`}
+                    className="shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-700">
+                    Ver →
+                  </Link>
                 </div>
               ))}
             </div>

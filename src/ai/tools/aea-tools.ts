@@ -250,16 +250,23 @@ export const guardarPreReservaTool = ai.defineTool(
         .describe('Patrón de clases acordado. Si se da junto con fechaInicio + hora, se calculan las 4 fechas completas.'),
       fechaInicio: z.string().optional().describe('Fecha de inicio propuesta en formato YYYY-MM-DD'),
       hora: z.string().optional().describe('Hora propuesta en formato HH:mm, ej: 10:00'),
+      edadAlumno: z.number().optional()
+        .describe('Edad del ALUMNO (no de quien contrata) si salió en la conversación, ej: 16. Los menores de 18 necesitan constancia para SEMOVI.'),
     }),
     outputSchema: z.object({ ok: z.boolean() }),
   },
-  async ({ nombre, telefono: rawTelefono, zona, curso, transmision, patron, fechaInicio, hora }) => {
+  async ({ nombre, telefono: rawTelefono, zona, curso, transmision, patron, fechaInicio, hora, edadAlumno }) => {
     try {
       const telefono = normalizePhone(rawTelefono);
       const { savePreReserva } = await import('@/lib/firestore');
       const fechas = patron && fechaInicio && hora
         ? calcularFechas(patron, fechaInicio, hora).map(f => ({ date: f.date.split('T')[0], time: f.time }))
         : fechaInicio && hora ? [{ date: fechaInicio, time: hora }] : [];
+      // La edad casi siempre sale sola ("mi hijo tiene 16"). Es la única señal
+      // temprana de que va a hacer falta la constancia de SEMOVI, y sin
+      // registrarla el pendiente se perdía: nadie lleva la cuenta de cuáles se
+      // deben. requiereConstancia queda undefined si nunca se mencionó la edad,
+      // que no es lo mismo que saber que no la necesita.
       await savePreReserva(telefono, {
         nombre,
         telefono,
@@ -267,6 +274,9 @@ export const guardarPreReservaTool = ai.defineTool(
         curso: curso ?? 'Estándar',
         transmision: transmision ?? 'Estándar',
         fechas,
+        ...(edadAlumno !== undefined
+          ? { edadAlumno, requiereConstancia: edadAlumno < 18 }
+          : {}),
       });
 
       // Ficha única (web + Luz): el panel /admin/reservas las ve todas

@@ -218,6 +218,13 @@ export interface InscripcionData {
   fechas: Array<{ date: string; time: string }>;
   fechaConfirmacion: number; // millis — serializable para Client Components
   status?: 'pre_reserva' | 'confirmado'; // undefined = confirmado (retrocompat)
+  /** Edad del alumno, no de quien contrata. Solo si salió en la conversación. */
+  edadAlumno?: number;
+  /** Menor de 18: necesita constancia de SEMOVI ($500 aparte). undefined = no se
+      preguntó la edad, que no es lo mismo que saber que no la necesita. */
+  requiereConstancia?: boolean;
+  /** Cuándo se le entregó la constancia. Null/undefined mientras se deba. */
+  constanciaEntregadaAt?: number | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -231,6 +238,9 @@ function rawToInscripcion(ins: Record<string, any>, fallbackPhone: string): Insc
     fechas: ins.fechas ?? [],
     fechaConfirmacion: ins.fechaConfirmacion?.toMillis?.() ?? Date.now(),
     status: ins.status ?? undefined,
+    edadAlumno: ins.edadAlumno ?? undefined,
+    requiereConstancia: ins.requiereConstancia ?? undefined,
+    constanciaEntregadaAt: ins.constanciaEntregadaAt?.toMillis?.() ?? ins.constanciaEntregadaAt ?? null,
   };
 }
 
@@ -301,6 +311,28 @@ export async function getInscripcionData(phone: string): Promise<InscripcionData
   const ins = snap.data()?.inscripcion;
   if (!ins) return null;
   return rawToInscripcion(ins, phone);
+}
+
+/**
+ * Constancias que se deben: alumnos menores de 18 a los que todavía no se les
+ * entrega la constancia de SEMOVI.
+ *
+ * Nadie llevaba la cuenta: el extra de $500 se cobraba y el pendiente vivía
+ * fuera del sistema. La señal es la edad, que casi siempre sale sola en la
+ * conversación ("mi hijo tiene 16").
+ */
+export async function getConstanciasPendientes(): Promise<(InscripcionData & { phone: string })[]> {
+  const snap = await db.collection('conversations').get();
+  const results: (InscripcionData & { phone: string })[] = [];
+  for (const doc of snap.docs) {
+    const ins = doc.data().inscripcion;
+    if (!ins?.requiereConstancia) continue;
+    if (ins.constanciaEntregadaAt) continue;
+    results.push({ ...rawToInscripcion(ins, doc.id), phone: doc.id });
+  }
+  // La más vieja primero: es la que lleva más tiempo debiéndose.
+  results.sort((a, b) => a.fechaConfirmacion - b.fechaConfirmacion);
+  return results;
 }
 
 export async function getRecentInscripciones(limit = 50): Promise<(InscripcionData & { phone: string })[]> {
