@@ -174,7 +174,7 @@ type Result = {
   accent: string;
 };
 
-const DARK_INPUT = "bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-blue-500";
+const DARK_INPUT = "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-blue-500";
 
 export default function EvaluacionPage() {
   const [result, setResult] = useState<Result | null>(null);
@@ -261,21 +261,14 @@ export default function EvaluacionPage() {
             <ArrowLeft className="w-3 h-3" /> Inicio
           </Link>
 
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}>
-            <Lightbulb className="w-6 h-6" style={{ color: '#f59e0b' }} />
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-amber-50 border border-amber-200">
+            <Lightbulb className="w-6 h-6 text-amber-500" />
           </div>
 
-          <h1 className="text-3xl font-black tracking-tight mb-1"
-            style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
+          <h1 className="text-3xl font-black tracking-tight mb-1 text-slate-800">
             {result ? `Nivel: ${result.level}` : 'Evalúa tus Habilidades'}
           </h1>
-          <p className="text-sm" style={{ color: '#475569' }}>
+          <p className="text-sm mt-2 text-slate-600">
             {result ? 'Tu resultado está listo.' : 'Descubre qué curso se adapta mejor a ti.'}
           </p>
         </div>
@@ -286,30 +279,29 @@ export default function EvaluacionPage() {
 
           {result ? (
             /* Resultado */
-            <div className="rounded-2xl p-6 text-center"
-              style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: `1px solid ${result.accent}30` }}>
+            <div className="rounded-2xl p-6 text-center bg-white border border-slate-200 shadow-sm"
+              style={{ borderTop: `4px solid ${result.accent}` }}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ background: `${result.accent}12`, border: `1px solid ${result.accent}30` }}>
                 <CheckCircle className="w-8 h-8" style={{ color: result.accent }} />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: result.accent }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: result.accent }}>
                 Nivel recomendado
               </p>
-              <h2 className="text-2xl font-black text-white mb-4">{result.level}</h2>
-              <p className="text-sm mb-3 leading-relaxed" style={{ color: '#94a3b8' }}>{result.description}</p>
-              <p className="text-sm font-medium leading-relaxed mb-6" style={{ color: '#cbd5e1' }}>{result.recommendation}</p>
-              <p className="text-xs mb-6" style={{ color: '#475569' }}>
+              <h2 className="text-2xl font-black text-slate-800 mb-4">{result.level}</h2>
+              <p className="text-sm mb-3 leading-relaxed text-slate-600">{result.description}</p>
+              <p className="text-sm font-semibold leading-relaxed mb-6 text-slate-700">{result.recommendation}</p>
+              <p className="text-xs mb-6 text-slate-400">
                 Se abrió WhatsApp con tu resultado para enviarlo a un asesor.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={() => { setResult(null); form.reset(); }}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100">
                   <BarChart3 className="w-4 h-4" /> Hacer de nuevo
                 </button>
                 <Link href="/agenda"
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
-                  style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: '0 4px 14px 0 rgba(37,99,235,0.39)' }}>
                   Agendar mi curso →
                 </Link>
               </div>
@@ -320,28 +312,27 @@ export default function EvaluacionPage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
                 {/* Datos personales */}
-                <div className="rounded-2xl p-5"
-                  style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: '1px solid rgba(148,163,184,0.1)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#475569' }}>Tus datos</p>
+                <div className="rounded-2xl p-5 bg-white border border-slate-200 shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-4 text-slate-500">Tus datos</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="studentName" render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>Nombre</Label>
+                        <Label className="text-sm font-semibold text-slate-700">Nombre</Label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                           <FormControl><Input placeholder="Tu nombre completo" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
                         </div>
-                        <FormMessage className="text-red-400 text-xs" />
+                        <FormMessage className="text-red-500 text-xs" />
                       </FormItem>
                     )}/>
                     <FormField control={form.control} name="phone" render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>WhatsApp</Label>
+                        <Label className="text-sm font-semibold text-slate-700">WhatsApp</Label>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                           <FormControl><Input placeholder="55 1234 5678" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
                         </div>
-                        <FormMessage className="text-red-400 text-xs" />
+                        <FormMessage className="text-red-500 text-xs" />
                       </FormItem>
                     )}/>
                   </div>
@@ -350,11 +341,11 @@ export default function EvaluacionPage() {
                 {/* Barra de progreso */}
                 {answeredCount > 0 && (
                   <div className="px-1">
-                    <div className="flex justify-between text-xs mb-1.5" style={{ color: '#475569' }}>
+                    <div className="flex justify-between text-xs mb-1.5 font-medium text-slate-500">
                       <span>{answeredCount} de {questions.length} preguntas</span>
                       <span>{progress}%</span>
                     </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                    <div className="h-2 rounded-full overflow-hidden bg-slate-200">
                       <div className="h-full rounded-full transition-all duration-300"
                         style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #f59e0b, #3b82f6)' }} />
                     </div>
@@ -365,14 +356,13 @@ export default function EvaluacionPage() {
                 {questions.map((question, index) => {
                   const answered = !!form.watch('answers')[question.id];
                   return (
-                    <div key={question.id} className="rounded-2xl p-5 transition-all"
+                    <div key={question.id} className="rounded-2xl p-5 transition-all bg-white shadow-sm"
                       style={{
-                        background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-                        border: answered ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(148,163,184,0.08)',
+                        border: answered ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(148,163,184,0.3)',
                       }}>
-                      <p className="text-sm font-semibold mb-4 leading-snug" style={{ color: '#e2e8f0' }}>
-                        <span className="text-xs font-bold mr-2 px-1.5 py-0.5 rounded"
-                          style={{ background: answered ? 'rgba(59,130,246,0.15)' : 'rgba(148,163,184,0.08)', color: answered ? '#60a5fa' : '#475569' }}>
+                      <p className="text-sm font-bold mb-4 leading-snug text-slate-800">
+                        <span className="text-xs font-black mr-2 px-1.5 py-0.5 rounded"
+                          style={{ background: answered ? 'rgba(59,130,246,0.1)' : 'rgba(241,245,249,1)', color: answered ? '#2563eb' : '#64748b' }}>
                           {index + 1}
                         </span>
                         {question.text}
@@ -386,21 +376,24 @@ export default function EvaluacionPage() {
                             className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer transition-colors"
                             style={{
                               background: form.watch('answers')[question.id] === option.value
-                                ? 'rgba(59,130,246,0.08)'
-                                : 'rgba(148,163,184,0.03)',
+                                ? 'rgba(59,130,246,0.05)'
+                                : 'transparent',
                               border: form.watch('answers')[question.id] === option.value
-                                ? '1px solid rgba(59,130,246,0.2)'
+                                ? '1px solid rgba(59,130,246,0.3)'
                                 : '1px solid transparent',
                             }}>
                             <RadioGroupItem
                               value={option.value}
                               id={`${question.id}-${option.value}`}
-                              className="border-slate-600 text-blue-500 mt-0.5 shrink-0"
+                              className="border-slate-300 text-blue-600 mt-0.5 shrink-0"
                             />
                             <Label
                               htmlFor={`${question.id}-${option.value}`}
-                              className="text-sm font-normal cursor-pointer leading-snug"
-                              style={{ color: form.watch('answers')[question.id] === option.value ? '#e2e8f0' : '#94a3b8' }}>
+                              className="text-sm cursor-pointer leading-snug"
+                              style={{ 
+                                color: form.watch('answers')[question.id] === option.value ? '#1e293b' : '#475569',
+                                fontWeight: form.watch('answers')[question.id] === option.value ? '600' : '400' 
+                              }}>
                               {option.label}
                             </Label>
                           </div>
@@ -411,13 +404,13 @@ export default function EvaluacionPage() {
                 })}
 
                 {form.formState.errors.answers && (
-                  <p className="text-xs text-red-400 text-center">{String(form.formState.errors.answers?.message || '')}</p>
+                  <p className="text-xs text-red-500 text-center font-medium">{String(form.formState.errors.answers?.message || '')}</p>
                 )}
 
                 <button type="submit"
                   disabled={answeredCount < questions.length || form.formState.isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-30"
-                  style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: answeredCount === questions.length ? '0 4px 20px rgba(37,99,235,0.3)' : 'none' }}>
+                  className="w-full flex items-center justify-center gap-2 py-3.5 mt-6 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: answeredCount === questions.length ? '0 4px 14px 0 rgba(37,99,235,0.39)' : 'none' }}>
                   <Send className="w-4 h-4" />
                   Ver y Enviar mi Resultado
                 </button>
@@ -427,8 +420,8 @@ export default function EvaluacionPage() {
         </div>
       </div>
 
-      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
-        <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
+      <footer className="px-4 py-6 mt-auto text-center border-t border-slate-200">
+        <p className="text-[11px] font-medium text-slate-400">Auto Escuela Americana · CDMX</p>
       </footer>
     </main>
   );

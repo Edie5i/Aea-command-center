@@ -39,12 +39,12 @@ function timeAgo(ms: number): string {
 }
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
-  boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.2)',
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
 };
 
-const DIVIDER = '1px solid rgba(148,163,184,0.07)';
+const DIVIDER = '1px solid rgba(148,163,184,0.2)';
 
 const navItems = [
   { href: '/admin/conversaciones', icon: '💬', label: 'Conversaciones', accent: '#3b82f6' },
@@ -80,18 +80,16 @@ export default async function AdminPage() {
   const recentFichas = fichas.slice(0, 8);
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen" style={{ background: '#f8fafc' }}>
 
-      {/* Header metálico */}
-      <header className="px-5 py-4 flex items-center justify-between"
-        style={{ background: 'linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+      {/* Header */}
+      <header className="px-5 py-4 flex items-center justify-between bg-white border-b border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-base font-bold text-white tracking-wide">AEA Admin</h1>
-          <p className="text-[11px] mt-0.5" style={{ color: '#475569' }}>Auto Escuela Americana</p>
+          <h1 className="text-base font-bold text-slate-800 tracking-wide">AEA Admin</h1>
+          <p className="text-[11px] mt-0.5 text-slate-500">Auto Escuela Americana</p>
         </div>
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-          style={{ background: 'linear-gradient(135deg, #334155, #1e293b)', border: '1px solid rgba(148,163,184,0.18)' }}>
-          🔑
+        <div className="w-9 h-9 rounded-full flex items-center justify-center bg-blue-50 border border-blue-100 text-blue-600">
+          <span className="text-sm">AE</span>
         </div>
       </header>
 
@@ -101,17 +99,17 @@ export default async function AdminPage() {
         {avisos.length > 0 && (
           <div className="rounded-2xl overflow-hidden" style={CARD}>
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>🔔 Avisos recientes</p>
-              <span className="text-xs" style={{ color: '#475569' }}>por si WhatsApp no llegó</span>
+              <p className="text-sm font-bold text-slate-800">🔔 Avisos recientes</p>
+              <span className="text-xs text-slate-400">por si WhatsApp no llegó</span>
             </div>
             <div>
               {avisos.map((a, i) => (
                 <div key={a.id} className="px-4 py-3"
                   style={{ borderTop: i > 0 ? DIVIDER : undefined }}>
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(a.at)}</span>
+                    <span className="text-xs shrink-0 text-slate-500">{timeAgo(a.at)}</span>
                   </div>
-                  <p className="text-sm whitespace-pre-line mt-1" style={{ color: '#e2e8f0' }}>
+                  <p className="text-sm whitespace-pre-line mt-1 text-slate-700 font-medium">
                     {a.texto.replace(/[*_~`]/g, '')}
                   </p>
                 </div>
@@ -123,13 +121,13 @@ export default async function AdminPage() {
         {/* KPIs */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { value: uniqueStudents,   label: 'Alumnos',       color: '#e2e8f0' },
-            { value: fichasThisWeek,   label: 'Fichas / sem',  color: '#60a5fa' },
-            { value: eventos.length,   label: 'Próx. clases',  color: '#34d399' },
+            { value: uniqueStudents,   label: 'Alumnos',       color: '#1e293b' },
+            { value: fichasThisWeek,   label: 'Fichas / sem',  color: '#2563eb' },
+            { value: eventos.length,   label: 'Próx. clases',  color: '#059669' },
           ].map(({ value, label, color }) => (
             <div key={label} className="rounded-2xl p-4 text-center" style={CARD}>
               <p className="text-2xl font-bold" style={{ color }}>{value}</p>
-              <p className="text-[11px] mt-1" style={{ color: '#475569' }}>{label}</p>
+              <p className="text-[11px] mt-1 font-medium text-slate-500">{label}</p>
             </div>
           ))}
         </div>
@@ -138,18 +136,18 @@ export default async function AdminPage() {
         {metricas && (
           <div className="rounded-2xl p-4" style={CARD}>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>Pipeline Luz</p>
-              <Link href="/admin/metricas" className="text-xs" style={{ color: '#60a5fa' }}>Ver todo →</Link>
+              <p className="text-sm font-bold text-slate-800">Pipeline Luz</p>
+              <Link href="/admin/metricas" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Ver todo →</Link>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center">
               {[
-                { label: 'Tu turno',  value: metricas.byState['tu_turno'] ?? 0,       color: '#f87171' },
-                { label: 'Con Luz',   value: metricas.byState['luz_atendiendo'] ?? 0,  color: '#34d399' },
-                { label: 'Inscritos', value: metricas.closedGanado,                     color: '#60a5fa' },
+                { label: 'Tu turno',  value: metricas.byState['tu_turno'] ?? 0,       color: '#dc2626' },
+                { label: 'Con Luz',   value: metricas.byState['luz_atendiendo'] ?? 0,  color: '#059669' },
+                { label: 'Inscritos', value: metricas.closedGanado,                     color: '#2563eb' },
               ].map(item => (
                 <div key={item.label}>
                   <p className="text-xl font-bold" style={{ color: item.color }}>{item.value}</p>
-                  <p className="text-[11px]" style={{ color: '#475569' }}>{item.label}</p>
+                  <p className="text-[11px] font-medium text-slate-500">{item.label}</p>
                 </div>
               ))}
             </div>
@@ -159,12 +157,12 @@ export default async function AdminPage() {
         {/* Próximas clases */}
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>Próximas clases</p>
-            <span className="text-xs" style={{ color: '#475569' }}>{eventos.length} agendadas</span>
+            <p className="text-sm font-bold text-slate-800">Próximas clases</p>
+            <span className="text-xs font-medium text-slate-400">{eventos.length} agendadas</span>
           </div>
 
           {eventos.length === 0 ? (
-            <div className="px-4 pb-5 pt-2 text-center text-sm" style={{ color: '#475569' }}>
+            <div className="px-4 pb-5 pt-2 text-center text-sm text-slate-400">
               Sin clases en los próximos 30 días
             </div>
           ) : (
@@ -172,12 +170,11 @@ export default async function AdminPage() {
               {eventos.map((ev, i) => (
                 <div key={ev.id} className="px-4 py-3 flex items-start gap-3"
                   style={{ borderTop: i > 0 ? DIVIDER : undefined }}>
-                  <div className="shrink-0 rounded-xl px-2.5 py-2 text-center min-w-[52px]"
-                    style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
-                    <p className="text-[10px] font-semibold uppercase" style={{ color: '#60a5fa' }}>
+                  <div className="shrink-0 rounded-xl px-2.5 py-2 text-center min-w-[52px] bg-blue-50 border border-blue-100">
+                    <p className="text-[10px] font-bold uppercase text-blue-600">
                       {formatDate(ev.inicio).split(' ')[0]}
                     </p>
-                    <p className="text-lg font-bold leading-tight" style={{ color: '#93c5fd' }}>
+                    <p className="text-lg font-black leading-tight text-blue-700">
                       {new Date(ev.inicio).toLocaleDateString('es-MX', {
                         timeZone: 'America/Mexico_City',
                         day: 'numeric',
@@ -185,12 +182,12 @@ export default async function AdminPage() {
                     </p>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate" style={{ color: '#e2e8f0' }}>{ev.alumno}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#475569' }}>
+                    <p className="font-bold text-sm truncate text-slate-700">{ev.alumno}</p>
+                    <p className="text-xs mt-0.5 font-medium text-slate-500">
                       {formatTime(ev.inicio)} – {formatTime(ev.fin)}
                     </p>
                     {ev.ubicacion && (
-                      <p className="text-xs mt-0.5 truncate" style={{ color: '#475569' }}>📍 {ev.ubicacion}</p>
+                      <p className="text-xs mt-0.5 truncate text-slate-500">📍 {ev.ubicacion}</p>
                     )}
                   </div>
                   {ev.telefono && (
@@ -209,12 +206,12 @@ export default async function AdminPage() {
         {/* Fichas recientes */}
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>Fichas recientes</p>
-            <Link href="/admin/reservas" className="text-xs" style={{ color: '#60a5fa' }}>Ver reservas →</Link>
+            <p className="text-sm font-bold text-slate-800">Fichas recientes</p>
+            <Link href="/admin/reservas" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Ver reservas →</Link>
           </div>
 
           {recentFichas.length === 0 ? (
-            <div className="px-4 pb-5 pt-2 text-center text-sm" style={{ color: '#475569' }}>
+            <div className="px-4 pb-5 pt-2 text-center text-sm text-slate-400">
               Aún no hay fichas guardadas
             </div>
           ) : (
@@ -224,20 +221,19 @@ export default async function AdminPage() {
                 return (
                   <div key={f.id} className="px-4 py-3 flex items-center gap-3"
                     style={{ borderTop: i > 0 ? DIVIDER : undefined }}>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
-                      style={{ background: 'linear-gradient(135deg, #334155, #1e293b)', border: '1px solid rgba(148,163,184,0.18)', color: '#94a3b8' }}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold bg-slate-100 border border-slate-200 text-slate-500">
                       {(f.studentName || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="font-semibold text-sm truncate" style={{ color: '#e2e8f0' }}>{f.studentName || 'Sin nombre'}</p>
-                        <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(f.creada)}</span>
+                        <p className="font-bold text-sm truncate text-slate-700">{f.studentName || 'Sin nombre'}</p>
+                        <span className="text-xs shrink-0 text-slate-400">{timeAgo(f.creada)}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs truncate" style={{ color: '#475569' }}>
+                        <span className="text-xs truncate text-slate-500">
                           {f.curso || 'Curso ?'} · {f.origen === 'luz' ? '💬 Luz' : '🌐 Web'}
                         </span>
-                        <span className="text-xs shrink-0 font-semibold" style={{ color: reservada ? '#34d399' : '#f59e0b' }}>
+                        <span className="text-xs shrink-0 font-bold" style={{ color: reservada ? '#059669' : '#d97706' }}>
                           {reservada ? '✅ Reservada' : `Falta: ${f.faltantes.join(', ')}`}
                         </span>
                       </div>
@@ -255,19 +251,18 @@ export default async function AdminPage() {
             <Link
               key={href}
               href={href}
-              className="rounded-2xl p-4 text-center transition-transform active:scale-95"
+              className="rounded-2xl p-4 text-center transition-transform active:scale-95 bg-white border shadow-sm hover:shadow-md hover:bg-slate-50"
               style={{
-                background: 'linear-gradient(145deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98))',
-                border: `1px solid ${accent}30`,
+                border: `1px solid ${accent}40`,
               }}
             >
-              <p className="text-2xl mb-1">{icon}</p>
-              <p className="text-xs font-semibold leading-tight" style={{ color: '#94a3b8' }}>{label}</p>
+              <p className="text-2xl mb-2 drop-shadow-sm">{icon}</p>
+              <p className="text-xs font-bold leading-tight text-slate-600">{label}</p>
             </Link>
           ))}
         </div>
 
-        <p className="text-center text-[11px] pb-4" style={{ color: '#334155' }}>
+        <p className="text-center text-[11px] pb-4 font-medium text-slate-400">
           Auto Escuela Americana · {new Date().getFullYear()}
         </p>
       </div>

@@ -56,3 +56,6 @@ tarjetas_qr_resenas.pdf
 scripts/command-center-artifact/leads.json
 scripts/command-center-artifact/corte.txt
 scripts/command-center-artifact/command-center.html
+
+# log del next dev
+dev.log
