@@ -35,8 +35,8 @@ const TX_ACCENT: Record<string, string> = {
 };
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 export default async function FichasPage() {
@@ -48,9 +48,9 @@ export default async function FichasPage() {
   const inscripciones = await getRecentInscripciones(60).catch((): (InscripcionData & { phone: string })[] => []);
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
       <header className="sticky top-0 z-10 px-4 py-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
         <div className="flex items-center gap-3">
           <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
           <h1 className="text-base font-bold text-white">Fichas de Inscripción</h1>
@@ -87,9 +87,9 @@ export default async function FichasPage() {
 
               {/* Header */}
               <div className="flex items-start gap-3 px-4 pt-4 pb-3"
-                style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
+                style={{ borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-base leading-tight" style={{ color: '#e2e8f0' }}>{ins.nombre}</p>
+                  <p className="font-bold text-base leading-tight" style={{ color: '#1e293b' }}>{ins.nombre}</p>
                   <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{displayPhone}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
@@ -104,7 +104,7 @@ export default async function FichasPage() {
               {/* Zona */}
               {ins.zona && (
                 <div className="px-4 py-2"
-                  style={{ borderBottom: '1px solid rgba(148,163,184,0.07)', background: 'rgba(148,163,184,0.03)' }}>
+                  style={{ borderBottom: '1px solid rgba(148,163,184,0.2)', background: 'rgba(148,163,184,0.03)' }}>
                   <p className="text-xs" style={{ color: '#64748b' }}>📍 {ins.zona}</p>
                 </div>
               )}
@@ -118,7 +118,7 @@ export default async function FichasPage() {
                 <div className="grid grid-cols-2 gap-1">
                   {ins.fechas.map((f, i) => (
                     <div key={i} className="text-xs rounded-lg px-2 py-1.5"
-                      style={{ background: 'rgba(148,163,184,0.06)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.08)' }}>
+                      style={{ background: 'rgba(148,163,184,0.3)', color: '#64748b', border: '1px solid rgba(148,163,184,0.22)' }}>
                       <span className="font-medium mr-1" style={{ color: '#475569' }}>{i + 1}.</span>
                       {formatDate(f.date)} · {f.time}
                     </div>
@@ -128,13 +128,13 @@ export default async function FichasPage() {
 
               {/* Acciones */}
               <div className="px-4 pb-4 space-y-2">
-                <div className="rounded-xl p-2" style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.07)' }}>
+                <div className="rounded-xl p-2" style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.2)' }}>
                   <FichaButton data={ins} />
                 </div>
                 <Link
                   href={`/admin/conversaciones/${ins.phone}`}
                   className="block text-center text-xs font-medium py-1"
-                  style={{ color: '#60a5fa' }}
+                  style={{ color: '#2563eb' }}
                 >
                   Ver conversación →
                 </Link>

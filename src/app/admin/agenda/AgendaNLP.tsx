@@ -68,14 +68,14 @@ function formatEventDate(iso: string): string {
 const HISTORIAL_KEY = 'agenda_nlp_historial';
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
   borderRadius: 16,
 };
 
 const INNER: React.CSSProperties = {
   background: 'rgba(148,163,184,0.04)',
-  border: '1px solid rgba(148,163,184,0.07)',
+  border: '1px solid rgba(148,163,184,0.2)',
   borderRadius: 12,
 };
 
@@ -260,11 +260,11 @@ export default function AgendaNLP() {
 
   return (
     <main className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)', backdropFilter: 'blur(8px)' }}>
         <Link href="/admin" className="text-xl transition-colors" style={{ color: '#475569' }}>←</Link>
         <div className="flex-1">
           <h1 className="text-sm font-bold text-white">Agenda NLP</h1>
@@ -276,7 +276,7 @@ export default function AgendaNLP() {
         {lastContext.alumno && (
           <button onClick={() => setLastContext({})}
             className="text-xs px-2 py-1 rounded-lg transition-colors"
-            style={{ color: '#475569', border: '1px solid rgba(148,163,184,0.12)' }}>
+            style={{ color: '#475569', border: '1px solid rgba(148,163,184,0.28)' }}>
             Limpiar
           </button>
         )}
@@ -297,7 +297,7 @@ export default function AgendaNLP() {
             rows={3}
             disabled={step !== 'idle' && step !== 'error'}
             className="w-full text-sm rounded-xl px-3 py-2 resize-none outline-none transition-all disabled:opacity-50 placeholder:text-slate-600"
-            style={{ background: '#1e293b', border: '1px solid #334155', color: 'white' }}
+            style={{ background: 'white', border: '1px solid #cbd5e1', color: '#1e293b' }}
           />
           <div className="flex gap-2">
             <button
@@ -305,8 +305,8 @@ export default function AgendaNLP() {
               disabled={step !== 'idle' && step !== 'error'}
               className={`flex-none text-sm px-4 py-2 rounded-xl font-semibold transition-all disabled:opacity-40 ${listening ? 'animate-pulse' : ''}`}
               style={listening
-                ? { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }
-                : { background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+                ? { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#dc2626' }
+                : { background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
               {listening ? '⏹ Detener' : '🎤 Voz'}
             </button>
             <button
@@ -324,30 +324,30 @@ export default function AgendaNLP() {
         {step === 'confirm' && parsed && (
           <div className="p-4 space-y-4" style={CARD}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white">{ACCION_LABEL[parsed.accion] ?? parsed.accion}</span>
+              <span className="text-sm font-bold text-slate-800">{ACCION_LABEL[parsed.accion] ?? parsed.accion}</span>
               <span className={`text-xs font-semibold ${confianzaColor}`}>{Math.round(parsed.confianza * 100)}% confianza</span>
             </div>
 
             <div className="grid grid-cols-2 gap-y-2 text-sm items-center">
-              {parsed.alumno && (<><span style={{ color: '#475569' }}>Alumno</span><span className="font-medium text-white">{parsed.alumno}</span></>)}
-              {parsed.curso && (<><span style={{ color: '#475569' }}>Curso</span><span className="font-medium text-white">{parsed.curso}</span></>)}
+              {parsed.alumno && (<><span style={{ color: '#475569' }}>Alumno</span><span className="font-medium text-slate-800">{parsed.alumno}</span></>)}
+              {parsed.curso && (<><span style={{ color: '#475569' }}>Curso</span><span className="font-medium text-slate-800">{parsed.curso}</span></>)}
               <span style={{ color: '#475569' }}>Fecha</span>
               {parsed.fecha ? (
-                <span className="font-medium text-white">{parsed.fecha}</span>
+                <span className="font-medium text-slate-800">{parsed.fecha}</span>
               ) : needsFecha ? (
                 <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)}
                   className="text-sm rounded-lg px-2 py-1 outline-none"
-                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24' }} />
+                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#d97706' }} />
               ) : (
                 <span className="text-xs" style={{ color: '#334155' }}>—</span>
               )}
               <span style={{ color: '#475569' }}>Hora</span>
               {parsed.hora ? (
-                <span className="font-medium text-white">{parsed.hora}</span>
+                <span className="font-medium text-slate-800">{parsed.hora}</span>
               ) : needsHora ? (
                 <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)}
                   className="text-sm rounded-lg px-2 py-1 outline-none"
-                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24' }} />
+                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: '#d97706' }} />
               ) : (
                 <span className="text-xs" style={{ color: '#334155' }}>—</span>
               )}
@@ -355,7 +355,7 @@ export default function AgendaNLP() {
 
             {(needsFecha || needsHora) && (
               <p className="text-xs px-3 py-2 rounded-xl"
-                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#fbbf24' }}>
+                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#d97706' }}>
                 Completa {[needsFecha && 'la fecha', needsHora && 'la hora'].filter(Boolean).join(' y ')} para ejecutar.
               </p>
             )}
@@ -369,7 +369,7 @@ export default function AgendaNLP() {
               <div className="flex gap-2">
                 <button onClick={reset}
                   className="flex-none text-sm px-4 py-2 rounded-xl font-semibold"
-                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+                  style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
                   Cancelar
                 </button>
                 <button onClick={() => handleEjecutar()} disabled={!canExecute}
@@ -387,12 +387,12 @@ export default function AgendaNLP() {
         {/* Disambiguation — eventos */}
         {step === 'disambiguate' && eventos.length > 0 && (
           <div className="p-4 space-y-3" style={CARD}>
-            <p className="text-sm font-semibold text-white">Se encontraron varias clases. ¿Cuál?</p>
+            <p className="text-sm font-semibold text-slate-800">Se encontraron varias clases. ¿Cuál?</p>
             {eventos.map((ev: Evento) => (
               <button key={ev.id} onClick={() => handleEjecutar(ev.id)}
                 className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all"
                 style={INNER}>
-                <span className="font-medium text-white block">{ev.alumno}</span>
+                <span className="font-medium text-slate-800 block">{ev.alumno}</span>
                 <span className="text-xs" style={{ color: '#475569' }}>{formatEventDate(ev.inicio)}</span>
               </button>
             ))}
@@ -403,7 +403,7 @@ export default function AgendaNLP() {
         {/* Disambiguation — inscripciones */}
         {step === 'disambiguate_inscripcion' && pendingInscripciones.length > 0 && (
           <div className="p-4 space-y-3" style={CARD}>
-            <p className="text-sm font-semibold text-white">Hay varias fichas con ese nombre. ¿Cuál agendas?</p>
+            <p className="text-sm font-semibold text-slate-800">Hay varias fichas con ese nombre. ¿Cuál agendas?</p>
             {pendingInscripciones.map(ins => (
               <button key={ins.phone}
                 onClick={() => {
@@ -420,7 +420,7 @@ export default function AgendaNLP() {
                 }}
                 className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all"
                 style={INNER}>
-                <span className="font-medium text-white block">{ins.nombre}</span>
+                <span className="font-medium text-slate-800 block">{ins.nombre}</span>
                 <span className="text-xs" style={{ color: '#475569' }}>{ins.transmision} · {ins.sesiones} sesiones · {ins.telefono}</span>
               </button>
             ))}
@@ -432,7 +432,7 @@ export default function AgendaNLP() {
         {step === 'consulta' && (
           <div className="p-4 space-y-3" style={CARD}>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-slate-800">
                 {eventos.length > 0 ? `${eventos.length} clase${eventos.length > 1 ? 's' : ''} agendada${eventos.length > 1 ? 's' : ''}` : 'Sin clases'}
               </p>
               <button onClick={reset} className="text-xs transition-colors" style={{ color: '#3b82f6' }}>Nueva consulta</button>
@@ -450,7 +450,7 @@ export default function AgendaNLP() {
                     <div className="flex items-center justify-between px-1">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: color }} />
-                        <span className="text-xs font-semibold text-white">{alumno}</span>
+                        <span className="text-xs font-semibold text-slate-800">{alumno}</span>
                         <span className="text-xs" style={{ color: '#334155' }}>{evAlumno.length} clase{evAlumno.length > 1 ? 's' : ''}</span>
                       </div>
                       {pendingDeleteAll === alumno ? (
@@ -460,12 +460,12 @@ export default function AgendaNLP() {
                             style={{ background: '#dc2626' }}>Sí, borrar todas</button>
                           <button onClick={() => setPendingDeleteAll(null)}
                             className="text-xs px-2 py-1 rounded-lg font-semibold"
-                            style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
+                            style={{ background: 'rgba(148,163,184,0.22)', color: '#64748b' }}>No</button>
                         </div>
                       ) : (
                         <button onClick={() => setPendingDeleteAll(alumno)}
                           className="text-xs px-2 py-1 rounded-lg font-semibold"
-                          style={{ background: 'rgba(239,68,68,0.07)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+                          style={{ background: 'rgba(239,68,68,0.07)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.15)' }}>
                           Borrar todas
                         </button>
                       )}
@@ -473,12 +473,12 @@ export default function AgendaNLP() {
                     {evAlumno.map((ev: Evento) => (
                       <div key={ev.id} className="px-3 py-2.5 rounded-xl" style={{ ...INNER, borderLeft: `3px solid ${COLOR_MAP[ev.colorId ?? ''] ?? '#334155'}` }}>
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-xs" style={{ color: '#94a3b8' }}>{formatEventDate(ev.inicio)}</p>
+                          <p className="text-xs" style={{ color: '#64748b' }}>{formatEventDate(ev.inicio)}</p>
                           <div className="flex gap-1.5 shrink-0">
                             <button
                               onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
                               className="text-xs px-2 py-1 rounded-lg font-semibold"
-                              style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                              style={{ background: 'rgba(59,130,246,0.12)', color: '#2563eb', border: '1px solid rgba(59,130,246,0.2)' }}>
                               Mover
                             </button>
                             {pendingDeleteId === ev.id ? (
@@ -488,12 +488,12 @@ export default function AgendaNLP() {
                                   style={{ background: '#dc2626' }}>Sí</button>
                                 <button onClick={() => setPendingDeleteId(null)}
                                   className="text-xs px-2 py-1 rounded-lg font-semibold"
-                                  style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
+                                  style={{ background: 'rgba(148,163,184,0.22)', color: '#64748b' }}>No</button>
                               </div>
                             ) : (
                               <button onClick={() => setPendingDeleteId(ev.id)}
                                 className="text-xs px-2 py-1 rounded-lg font-semibold"
-                                style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                                style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' }}>
                                 Borrar
                               </button>
                             )}
@@ -513,7 +513,7 @@ export default function AgendaNLP() {
           <div className="p-4 space-y-4" style={CARD}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-base font-bold text-white">{alumnoData.inscripcion?.nombre ?? parsed?.alumno}</p>
+                <p className="text-base font-bold text-slate-800">{alumnoData.inscripcion?.nombre ?? parsed?.alumno}</p>
                 {alumnoData.inscripcion?.telefono && (
                   <a href={`tel:${alumnoData.inscripcion.telefono}`} className="text-xs" style={{ color: '#3b82f6' }}>
                     {alumnoData.inscripcion.telefono}
@@ -526,9 +526,9 @@ export default function AgendaNLP() {
             {alumnoData.inscripcion && (
               <div className="grid grid-cols-2 gap-y-1 text-xs">
                 <span style={{ color: '#475569' }}>Curso</span>
-                <span className="font-medium text-white">{alumnoData.inscripcion.transmision}</span>
+                <span className="font-medium text-slate-800">{alumnoData.inscripcion.transmision}</span>
                 {alumnoData.inscripcion.zona && (
-                  <><span style={{ color: '#475569' }}>Zona</span><span className="font-medium text-white">{alumnoData.inscripcion.zona}</span></>
+                  <><span style={{ color: '#475569' }}>Zona</span><span className="font-medium text-slate-800">{alumnoData.inscripcion.zona}</span></>
                 )}
               </div>
             )}
@@ -537,15 +537,15 @@ export default function AgendaNLP() {
               <div className="rounded-xl p-3 space-y-2"
                 style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)' }}>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold" style={{ color: '#60a5fa' }}>Progreso</p>
-                  <p className="text-xs font-bold" style={{ color: '#93c5fd' }}>
+                  <p className="text-xs font-semibold" style={{ color: '#2563eb' }}>Progreso</p>
+                  <p className="text-xs font-bold" style={{ color: '#2563eb' }}>
                     {alumnoData.ultimaFicha.completedCount}/{alumnoData.ultimaFicha.totalTopics} temas
                     ({Math.round(alumnoData.ultimaFicha.completedCount / alumnoData.ultimaFicha.totalTopics * 100)}%)
                   </p>
                 </div>
                 {alumnoData.ultimaFicha.pendingTopics.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold mb-1" style={{ color: '#60a5fa' }}>Pendientes:</p>
+                    <p className="text-xs font-semibold mb-1" style={{ color: '#2563eb' }}>Pendientes:</p>
                     {alumnoData.ultimaFicha.pendingTopics.map((t: string) => (
                       <p key={t} className="text-xs" style={{ color: '#475569' }}>• {t}</p>
                     ))}
@@ -560,12 +560,12 @@ export default function AgendaNLP() {
                 {alumnoData.proximasClases.map((ev: Evento) => (
                   <div key={ev.id} className="px-3 py-2 rounded-xl" style={INNER}>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs text-white">{formatEventDate(ev.inicio)}</p>
+                      <p className="text-xs text-slate-800">{formatEventDate(ev.inicio)}</p>
                       <div className="flex gap-1.5 shrink-0">
                         <button
                           onClick={() => { setParsed({ accion: 'mover_clase', alumno: ev.alumno, curso: null, fecha: null, hora: null, confianza: 1, falta_info: ['fecha', 'hora'] }); setEditFecha(''); setEditHora(''); setStep('confirm'); }}
                           className="text-xs px-2 py-1 rounded-lg font-semibold"
-                          style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                          style={{ background: 'rgba(59,130,246,0.12)', color: '#2563eb', border: '1px solid rgba(59,130,246,0.2)' }}>
                           Mover
                         </button>
                         {pendingDeleteId === ev.id ? (
@@ -575,12 +575,12 @@ export default function AgendaNLP() {
                               style={{ background: '#dc2626' }}>Sí, borrar</button>
                             <button onClick={() => setPendingDeleteId(null)}
                               className="text-xs px-2 py-1 rounded-lg font-semibold"
-                              style={{ background: 'rgba(148,163,184,0.08)', color: '#64748b' }}>No</button>
+                              style={{ background: 'rgba(148,163,184,0.22)', color: '#64748b' }}>No</button>
                           </div>
                         ) : (
                           <button onClick={() => setPendingDeleteId(ev.id)}
                             className="text-xs px-2 py-1 rounded-lg font-semibold"
-                            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' }}>
                             Borrar
                           </button>
                         )}
@@ -604,7 +604,7 @@ export default function AgendaNLP() {
                   setTimeout(() => { setTexto(`súbele las clases de ${nombre} al gc`); setStep('idle'); }, 60);
                 }}
                 className="flex-1 text-xs px-3 py-2 rounded-xl font-semibold"
-                style={{ background: 'rgba(139,92,246,0.1)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.2)' }}>
+                style={{ background: 'rgba(139,92,246,0.1)', color: '#7c3aed', border: '1px solid rgba(139,92,246,0.2)' }}>
                 Subir al Calendar
               </button>
               <button
@@ -614,7 +614,7 @@ export default function AgendaNLP() {
                   setEditFecha(''); setEditHora(''); setStep('confirm');
                 }}
                 className="flex-1 text-xs px-3 py-2 rounded-xl font-semibold"
-                style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                style={{ background: 'rgba(59,130,246,0.1)', color: '#2563eb', border: '1px solid rgba(59,130,246,0.2)' }}>
                 Mover próxima
               </button>
             </div>
@@ -647,7 +647,7 @@ export default function AgendaNLP() {
           <div className="p-4 space-y-3" style={{ ...CARD, borderColor: 'rgba(248,113,113,0.2)' }}>
             <div className="flex items-start gap-3">
               <span className="text-xl">❌</span>
-              <p className="text-sm" style={{ color: '#f87171' }}>{mensaje}</p>
+              <p className="text-sm" style={{ color: '#dc2626' }}>{mensaje}</p>
             </div>
             <button onClick={() => setStep('idle')} className="text-sm" style={{ color: '#475569' }}>
               Intentar de nuevo

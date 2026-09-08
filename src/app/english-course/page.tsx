@@ -5,18 +5,18 @@ const WA_URL = `https://wa.me/525634433212?text=${encodeURIComponent("Hi! I'm in
 const AGENDA_URL = '/agenda';
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 export default function EnglishCoursePage() {
   return (
     <main className="min-h-screen flex flex-col"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Hero */}
       <header className="relative overflow-hidden text-center px-6 pt-14 pb-16"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(14,165,233,0.14) 0%, transparent 70%)' }} />
         <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
@@ -24,21 +24,18 @@ export default function EnglishCoursePage() {
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mb-6"
-            style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+            style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
             <ArrowLeft className="w-3 h-3" /> Back to Home
           </Link>
 
           {/* Flag badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-semibold"
-            style={{ background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.25)', color: '#38bdf8' }}>
+            style={{ background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.25)', color: '#0284c7' }}>
             🇺🇸 🇬🇧 &nbsp;Taught entirely in English
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">
-            <span style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            }}>
+            <span>
               Learn to Drive
             </span>
             <br />
@@ -53,13 +50,13 @@ export default function EnglishCoursePage() {
           <p className="text-base leading-relaxed mb-8 max-w-lg mx-auto" style={{ color: '#64748b' }}>
             Mexico City's driving school for expats, foreign residents, and international visitors.
             Professional instructors, flexible schedules, and{' '}
-            <strong style={{ color: '#94a3b8' }}>100% English lessons</strong>.
+            <strong style={{ color: '#64748b' }}>100% English lessons</strong>.
           </p>
 
           {/* Price badge */}
           <div className="inline-flex items-baseline gap-1 px-5 py-3 rounded-2xl mb-8"
             style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.2)' }}>
-            <span className="text-3xl font-black" style={{ color: '#e2e8f0' }}>$4,800</span>
+            <span className="text-3xl font-black" style={{ color: '#1e293b' }}>$4,800</span>
             <span className="text-sm" style={{ color: '#475569' }}>MXN · full course · IVA included</span>
           </div>
 
@@ -71,7 +68,7 @@ export default function EnglishCoursePage() {
             </Link>
             <a href={WA_URL} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 font-semibold px-7 py-3.5 rounded-xl text-sm"
-              style={{ background: 'rgba(148,163,184,0.07)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+              style={{ background: 'rgba(148,163,184,0.2)', border: '1px solid rgba(148,163,184,0.3)', color: '#64748b' }}>
               <MessageCircle className="w-4 h-4" /> Ask on WhatsApp
             </a>
           </div>
@@ -82,7 +79,7 @@ export default function EnglishCoursePage() {
 
         {/* Who it's for */}
         <section>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#e2e8f0' }}>Who is this for?</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1e293b' }}>Who is this for?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { emoji: '🌎', title: 'Expats & Foreign Residents', desc: 'Living in CDMX and need a Mexican license or just want to drive confidently in the city.' },
@@ -93,7 +90,7 @@ export default function EnglishCoursePage() {
               <div key={item.title} className="rounded-2xl p-4 flex gap-3" style={CARD}>
                 <span className="text-xl shrink-0">{item.emoji}</span>
                 <div>
-                  <p className="text-sm font-semibold mb-0.5" style={{ color: '#e2e8f0' }}>{item.title}</p>
+                  <p className="text-sm font-semibold mb-0.5" style={{ color: '#1e293b' }}>{item.title}</p>
                   <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>{item.desc}</p>
                 </div>
               </div>
@@ -102,11 +99,11 @@ export default function EnglishCoursePage() {
         </section>
 
         {/* Divider */}
-        <div style={{ height: 1, background: 'rgba(148,163,184,0.07)' }} />
+        <div style={{ height: 1, background: 'rgba(148,163,184,0.2)' }} />
 
         {/* What's included */}
         <section>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#e2e8f0' }}>What's included</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1e293b' }}>What's included</h2>
           <div className="rounded-2xl p-6 space-y-3" style={CARD}>
             {[
               'All lessons conducted 100% in English by certified instructors',
@@ -127,7 +124,7 @@ export default function EnglishCoursePage() {
 
         {/* Quick facts */}
         <section>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#e2e8f0' }}>Quick facts</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1e293b' }}>Quick facts</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { icon: <Clock className="w-5 h-5" />, label: 'Session length', value: '2.5 hours' },
@@ -136,12 +133,12 @@ export default function EnglishCoursePage() {
             ].map(f => (
               <div key={f.label} className="rounded-2xl p-4 flex items-center gap-3" style={CARD}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(14,165,233,0.1)', color: '#38bdf8' }}>
+                  style={{ background: 'rgba(14,165,233,0.1)', color: '#0284c7' }}>
                   {f.icon}
                 </div>
                 <div>
                   <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#334155' }}>{f.label}</p>
-                  <p className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>{f.value}</p>
+                  <p className="text-sm font-semibold" style={{ color: '#1e293b' }}>{f.value}</p>
                 </div>
               </div>
             ))}
@@ -153,7 +150,7 @@ export default function EnglishCoursePage() {
           <div className="rounded-2xl p-6" style={{ ...CARD, borderColor: 'rgba(14,165,233,0.15)' }}>
             <div className="flex gap-0.5 mb-3">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-current" style={{ color: '#fbbf24' }} />
+                <Star key={i} className="w-4 h-4 fill-current" style={{ color: '#d97706' }} />
               ))}
             </div>
             <p className="text-sm leading-relaxed mb-3" style={{ color: '#64748b' }}>
@@ -165,7 +162,7 @@ export default function EnglishCoursePage() {
 
         {/* FAQ */}
         <section>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#e2e8f0' }}>Frequently asked questions</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#1e293b' }}>Frequently asked questions</h2>
           <div className="space-y-3">
             {[
               {
@@ -190,7 +187,7 @@ export default function EnglishCoursePage() {
               },
             ].map(item => (
               <div key={item.q} className="rounded-2xl p-5" style={CARD}>
-                <p className="text-sm font-semibold mb-1.5" style={{ color: '#e2e8f0' }}>{item.q}</p>
+                <p className="text-sm font-semibold mb-1.5" style={{ color: '#1e293b' }}>{item.q}</p>
                 <p className="text-sm" style={{ color: '#475569' }}>{item.a}</p>
               </div>
             ))}
@@ -201,7 +198,7 @@ export default function EnglishCoursePage() {
         <section className="rounded-2xl p-8 text-center"
           style={{ background: 'rgba(14,165,233,0.05)', border: '1px solid rgba(14,165,233,0.15)' }}>
           <p className="text-xs uppercase tracking-widest mb-2" style={{ color: '#0ea5e9' }}>Ready to get started?</p>
-          <h2 className="text-2xl font-black mb-2 text-white">Book your first lesson today.</h2>
+          <h2 className="text-2xl font-black mb-2 text-slate-800">Book your first lesson today.</h2>
           <p className="text-sm mb-6" style={{ color: '#475569' }}>
             Payment is made in full before the first session. $4,800 MXN — IVA included, no hidden fees.
           </p>
@@ -213,7 +210,7 @@ export default function EnglishCoursePage() {
             </Link>
             <a href={WA_URL} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 font-semibold px-7 py-3.5 rounded-xl text-sm"
-              style={{ background: 'rgba(148,163,184,0.07)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+              style={{ background: 'rgba(148,163,184,0.2)', border: '1px solid rgba(148,163,184,0.3)', color: '#64748b' }}>
               <MessageCircle className="w-4 h-4" /> Chat with us
             </a>
           </div>
@@ -221,7 +218,7 @@ export default function EnglishCoursePage() {
 
       </div>
 
-      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
         <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · Roma Sur, CDMX · autoescuelaamericana.com</p>
       </footer>
     </main>

@@ -54,8 +54,8 @@ const PIPELINE: EstadoCandidato[] = [
 ];
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 function CandidatoCard({
@@ -73,7 +73,7 @@ function CandidatoCard({
   return (
     <div className="rounded-2xl overflow-hidden" style={CARD}>
       <div className="px-4 pt-4 pb-3 flex items-start gap-3"
-        style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
+        style={{ borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
         <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
           style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)' }}>
           <span className="font-bold text-sm" style={{ color: '#818cf8' }}>
@@ -81,10 +81,10 @@ function CandidatoCard({
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm leading-tight text-white">
+          <p className="font-bold text-sm leading-tight text-slate-800">
             {c.nombre ?? `+${displayPhone}`}
           </p>
-          <a href={waLink} target="_blank" className="text-xs" style={{ color: '#60a5fa' }}>
+          <a href={waLink} target="_blank" className="text-xs" style={{ color: '#2563eb' }}>
             +{displayPhone}
           </a>
         </div>
@@ -101,27 +101,27 @@ function CandidatoCard({
         {c.rating !== undefined && (
           <div className="flex items-center gap-1">
             <span>⭐</span>
-            <span className="font-semibold text-white">{c.rating}</span>
+            <span className="font-semibold text-slate-800">{c.rating}</span>
             <span style={{ color: '#475569' }}>rating</span>
           </div>
         )}
         {c.aniosManejando !== undefined && (
           <div className="flex items-center gap-1">
             <span>🚗</span>
-            <span className="font-semibold text-white">{c.aniosManejando}</span>
+            <span className="font-semibold text-slate-800">{c.aniosManejando}</span>
             <span style={{ color: '#475569' }}>años</span>
           </div>
         )}
         {c.transmisiones && (
           <div className="flex items-center gap-1">
             <span>{TX_ICON[c.transmisiones] ?? '🔧'}</span>
-            <span className="capitalize" style={{ color: '#94a3b8' }}>{c.transmisiones}</span>
+            <span className="capitalize" style={{ color: '#64748b' }}>{c.transmisiones}</span>
           </div>
         )}
         {c.licenciaB !== undefined && (
           <div className="flex items-center gap-1">
             <span>{c.licenciaB ? '✅' : '❌'}</span>
-            <span style={{ color: '#94a3b8' }}>Licencia B</span>
+            <span style={{ color: '#64748b' }}>Licencia B</span>
           </div>
         )}
         {c.zonas && (
@@ -134,7 +134,7 @@ function CandidatoCard({
           <div className="col-span-2 flex items-center gap-1 rounded-lg px-2 py-1.5"
             style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
             <span>📅</span>
-            <span className="font-semibold" style={{ color: '#a78bfa' }}>
+            <span className="font-semibold" style={{ color: '#7c3aed' }}>
               Evaluación: {formatFecha(c.evaluacionFecha)} · {c.evaluacionHora}
             </span>
           </div>
@@ -186,14 +186,14 @@ export default async function InstructoresPage() {
 
   return (
     <main className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       <header className="sticky top-0 z-10 px-4 py-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)', backdropFilter: 'blur(8px)' }}>
         <div className="flex items-center gap-3">
           <Link href="/admin" className="text-sm transition-colors" style={{ color: '#475569' }}>← Admin</Link>
           <div>
-            <h1 className="text-base font-bold text-white">Instructores UrbDriver</h1>
+            <h1 className="text-base font-bold text-slate-800">Instructores UrbDriver</h1>
             <p className="text-xs" style={{ color: '#334155' }}>{todos.length} candidatos · {activos} activos</p>
           </div>
         </div>
@@ -202,9 +202,9 @@ export default async function InstructoresPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 px-4 pt-4">
         {[
-          { label: 'Activos',    value: activos,   color: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.15)' },
+          { label: 'Activos',    value: activos,   color: '#059669', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.15)' },
           { label: 'En proceso', value: enProceso, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.15)' },
-          { label: 'Evaluación', value: agendados, color: '#a78bfa', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.15)' },
+          { label: 'Evaluación', value: agendados, color: '#7c3aed', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.15)' },
         ].map(s => (
           <div key={s.label} className="rounded-2xl p-3 text-center"
             style={{ background: s.bg, border: `1px solid ${s.border}` }}>
@@ -238,9 +238,9 @@ export default async function InstructoresPage() {
               Cuando alguien escriba "quiero ser instructor", Marco los califica aquí.
             </p>
             <div className="mt-4 rounded-xl p-3 text-left"
-              style={{ background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.08)' }}>
+              style={{ background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.22)' }}>
               <p className="text-xs font-semibold mb-1" style={{ color: '#475569' }}>Link para ads UrbDriver:</p>
-              <p className="text-xs break-all" style={{ color: '#60a5fa' }}>
+              <p className="text-xs break-all" style={{ color: '#2563eb' }}>
                 wa.me/5215563206338?text=Quiero+ser+instructor+de+manejo
               </p>
             </div>
@@ -254,7 +254,7 @@ export default async function InstructoresPage() {
             <section key={estado}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: meta.dotColor }} />
-                <h2 className="text-sm font-bold" style={{ color: '#94a3b8' }}>{meta.label}</h2>
+                <h2 className="text-sm font-bold" style={{ color: '#64748b' }}>{meta.label}</h2>
                 <span className="text-xs" style={{ color: '#334155' }}>{candidatos.length}</span>
               </div>
               <div className="space-y-3">

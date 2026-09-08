@@ -49,10 +49,10 @@ export default async function ConversacionPage({
   const needsAttention = state === 'tu_turno' || state === 'atascado';
 
   return (
-    <main className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
         <div className="flex items-center gap-3">
           <Link
             href={volverA}
@@ -65,13 +65,13 @@ export default async function ConversacionPage({
 
           <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shrink-0"
             style={needsAttention
-              ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }
-              : { background: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.12)' }}>
+              ? { background: 'rgba(239,68,68,0.15)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' }
+              : { background: 'rgba(148,163,184,0.25)', color: '#64748b', border: '1px solid rgba(148,163,184,0.28)' }}>
             {name.charAt(0).toUpperCase()}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-base leading-tight truncate text-white">{name}</p>
+            <p className="font-bold text-base leading-tight truncate text-slate-800">{name}</p>
             <p className="text-sm leading-none mt-0.5" style={{ color: '#475569' }}>{dp}</p>
           </div>
 
@@ -86,7 +86,7 @@ export default async function ConversacionPage({
           <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2"
             style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}>
             <span className="text-base">⚡</span>
-            <p className="text-sm font-semibold" style={{ color: '#f87171' }}>{conv?.chatReason ?? 'Requiere tu atención'}</p>
+            <p className="text-sm font-semibold" style={{ color: '#dc2626' }}>{conv?.chatReason ?? 'Requiere tu atención'}</p>
           </div>
         )}
 
@@ -99,7 +99,7 @@ export default async function ConversacionPage({
             style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
             <span className="text-base">🎉</span>
             <div>
-              <p className="text-sm font-bold" style={{ color: '#34d399' }}>Alumno inscrito</p>
+              <p className="text-sm font-bold" style={{ color: '#059669' }}>Alumno inscrito</p>
               <p className="text-xs" style={{ color: '#64748b' }}>
                 {inscripcion.nombre} · {inscripcion.transmision} · {inscripcion.zona}
               </p>
@@ -123,7 +123,7 @@ export default async function ConversacionPage({
             <div key={i} className={`flex ${isLead ? 'justify-start' : 'justify-end'}`}>
               <div className="max-w-[82%] rounded-2xl overflow-hidden shadow-sm"
                 style={isLead
-                  ? { background: 'rgba(30,41,59,0.9)', border: '1px solid rgba(148,163,184,0.1)', borderTopLeftRadius: 4 }
+                  ? { background: 'white', border: '1px solid rgba(148,163,184,0.25)', borderTopLeftRadius: 4 }
                   : { background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(59,130,246,0.2)', borderTopRightRadius: 4 }}>
                 {msg.mediaType === 'image' && msg.mediaId && msg.mediaId !== 'unknown' ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -136,9 +136,9 @@ export default async function ConversacionPage({
                 ) : (
                   <div className="px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap">
                     {!isLead && (
-                      <p className="text-xs font-bold mb-1" style={{ color: '#60a5fa' }}>Luz</p>
+                      <p className="text-xs font-bold mb-1" style={{ color: '#2563eb' }}>Luz</p>
                     )}
-                    <span style={{ color: isLead ? '#cbd5e1' : '#e2e8f0' }}>{msg.text}</span>
+                    <span style={{ color: isLead ? '#334155' : '#1e293b' }}>{msg.text}</span>
                   </div>
                 )}
               </div>

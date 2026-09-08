@@ -35,7 +35,7 @@ export function ClaseActions({ clase }: { clase: ClaseAsignada }) {
           onClick={() => updateEstado('cancelada')}
           disabled={loading}
           className="flex-1 text-sm font-semibold py-2.5 rounded-xl transition-all disabled:opacity-40"
-          style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#475569' }}>
+          style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#475569' }}>
           No puedo
         </button>
       </div>
@@ -56,7 +56,7 @@ export function ClaseActions({ clase }: { clase: ClaseAsignada }) {
           onClick={() => updateEstado('alumno_ausente')}
           disabled={loading}
           className="flex-1 text-sm font-semibold py-2.5 rounded-xl transition-all disabled:opacity-40"
-          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#dc2626' }}>
           No llegó
         </button>
       </div>

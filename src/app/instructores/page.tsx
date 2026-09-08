@@ -3,18 +3,18 @@ import Link from 'next/link';
 const WA_MARCO = `https://wa.me/525563206338?text=${encodeURIComponent('Hola, me interesa ser instructor')}`;
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 export default function InstructoresPage() {
   return (
     <main className="min-h-screen flex flex-col"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Hero */}
       <header className="relative overflow-hidden text-center px-6 pt-14 pb-14"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,102,241,0.15) 0%, transparent 70%)' }} />
         <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
@@ -27,12 +27,7 @@ export default function InstructoresPage() {
           </p>
 
           <h1 className="text-4xl md:text-5xl font-black leading-tight mb-5">
-            <span style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
+            <span>
               Sal de las plataformas.
             </span>
             <br />
@@ -47,7 +42,7 @@ export default function InstructoresPage() {
           </h1>
 
           <p className="text-base leading-relaxed mb-8 max-w-lg mx-auto" style={{ color: '#64748b' }}>
-            Uber y DiDi se quedan hasta el <strong style={{ color: '#94a3b8' }}>35%</strong> de lo que generas. Como instructor certificado en AEA ganas <strong style={{ color: '#34d399' }}>$150–200 por hora</strong>, con horario fijo y sin algoritmos.
+            Uber y DiDi se quedan hasta el <strong style={{ color: '#64748b' }}>35%</strong> de lo que generas. Como instructor certificado en AEA ganas <strong style={{ color: '#059669' }}>$150–200 por hora</strong>, con horario fijo y sin algoritmos.
           </p>
 
           <a href={WA_MARCO} target="_blank" rel="noopener noreferrer"
@@ -64,13 +59,7 @@ export default function InstructoresPage() {
 
       {/* Cómo funciona */}
       <section className="px-6 py-14 max-w-3xl mx-auto w-full">
-        <h2 className="text-xl font-bold text-center mb-8"
-          style={{
-            background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>
+        <h2 className="text-xl font-bold text-center mb-8">
           Cómo funciona
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -84,7 +73,7 @@ export default function InstructoresPage() {
                 style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8' }}>
                 {s.num}
               </div>
-              <h3 className="font-semibold text-sm" style={{ color: '#e2e8f0' }}>{s.title}</h3>
+              <h3 className="font-semibold text-sm" style={{ color: '#1e293b' }}>{s.title}</h3>
               <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>{s.desc}</p>
             </div>
           ))}
@@ -92,14 +81,14 @@ export default function InstructoresPage() {
       </section>
 
       {/* Divider */}
-      <div className="mx-6" style={{ height: 1, background: 'rgba(148,163,184,0.07)' }} />
+      <div className="mx-6" style={{ height: 1, background: 'rgba(148,163,184,0.2)' }} />
 
       {/* Ofrecemos / Pedimos */}
       <section className="px-6 py-14">
         <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
 
           <div className="rounded-2xl p-5" style={CARD}>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: '#e2e8f0' }}>Lo que ofrecemos</h2>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: '#1e293b' }}>Lo que ofrecemos</h2>
             <ul className="space-y-3">
               {[
                 '$150–200 por hora de clase',
@@ -109,7 +98,7 @@ export default function InstructoresPage() {
                 'Capacitación y certificación incluida',
               ].map(item => (
                 <li key={item} className="flex items-start gap-2.5 text-sm">
-                  <span className="mt-0.5 text-xs font-bold" style={{ color: '#34d399' }}>✓</span>
+                  <span className="mt-0.5 text-xs font-bold" style={{ color: '#059669' }}>✓</span>
                   <span style={{ color: '#64748b' }}>{item}</span>
                 </li>
               ))}
@@ -117,7 +106,7 @@ export default function InstructoresPage() {
           </div>
 
           <div className="rounded-2xl p-5" style={CARD}>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: '#e2e8f0' }}>Lo que pedimos</h2>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: '#1e293b' }}>Lo que pedimos</h2>
             <ul className="space-y-3">
               {[
                 'Mínimo 3 años manejando en ciudad',
@@ -138,7 +127,7 @@ export default function InstructoresPage() {
 
       {/* CTA final */}
       <section className="px-6 py-16 text-center">
-        <h2 className="text-2xl font-bold mb-3 text-white">¿Listo para salir de las plataformas?</h2>
+        <h2 className="text-2xl font-bold mb-3 text-slate-800">¿Listo para salir de las plataformas?</h2>
         <p className="mb-8 max-w-md mx-auto text-sm" style={{ color: '#475569' }}>
           Marco te atiende en menos de 5 minutos. Si calificas, agendamos tu evaluación de inmediato.
         </p>
@@ -157,7 +146,7 @@ export default function InstructoresPage() {
         </div>
       </section>
 
-      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
         <p className="text-[11px]" style={{ color: '#334155' }}>UrbDriver · Auto Escuela Americana · CDMX</p>
       </footer>
     </main>

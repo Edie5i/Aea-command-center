@@ -7,8 +7,8 @@ import { Loader2, CalendarPlus, AlertCircle, CheckCircle, ArrowLeft, CalendarSea
 import Link from 'next/link';
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 export default function TestCalendarPage() {
@@ -25,14 +25,14 @@ export default function TestCalendarPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-6 md:p-8"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       <div className="w-full max-w-md mt-8 space-y-4">
 
         <div className="flex justify-center">
           <a href="https://app.autoescuelaamericana.com" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-xs px-4 py-2 rounded-lg font-medium transition-all"
-            style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#64748b' }}>
+            style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.3)', color: '#64748b' }}>
             <Globe className="w-3.5 h-3.5" />
             app.autoescuelaamericana.com
           </a>
@@ -40,7 +40,7 @@ export default function TestCalendarPage() {
 
         <div className="rounded-2xl p-6 space-y-5" style={CARD}>
           <div>
-            <h1 className="text-base font-bold text-white">Prueba de Google Calendar</h1>
+            <h1 className="text-base font-bold text-slate-800">Prueba de Google Calendar</h1>
             <p className="text-sm mt-1" style={{ color: '#475569' }}>
               Haz clic en el botón para crear un evento de prueba en tu calendario. El evento se creará para mañana a las 3:00 PM.
             </p>
@@ -62,8 +62,8 @@ export default function TestCalendarPage() {
                   ? { background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }
                   : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
                 {result.success
-                  ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#34d399' }} />
-                  : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#f87171' }} />}
+                  ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#059669' }} />
+                  : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#dc2626' }} />}
                 <div>
                   <p className="text-sm font-semibold" style={{ color: result.success ? '#34d399' : '#f87171' }}>
                     {result.success ? 'Éxito' : 'Error'}
@@ -76,7 +76,7 @@ export default function TestCalendarPage() {
             {result?.success && (
               <a href="https://calendar.google.com/" target="_blank" rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all"
-                style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#94a3b8' }}>
+                style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
                 <CalendarSearch className="w-4 h-4" />
                 Abrir Google Calendar para verificar
               </a>

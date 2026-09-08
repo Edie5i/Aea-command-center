@@ -23,11 +23,11 @@ const notesSchema = z.object({
 type NotesFormValues = z.infer<typeof notesSchema>;
 type CheckedItems = { [key: string]: boolean };
 
-const DARK_INPUT = "bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-teal-500 focus-visible:ring-1 focus-visible:border-teal-500";
+const DARK_INPUT = "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus-visible:ring-teal-500 focus-visible:ring-1 focus-visible:border-teal-500";
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
   boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset',
 };
 
@@ -101,11 +101,11 @@ export default function NotasAlumnoPage() {
 
   return (
     <main className="min-h-screen flex flex-col"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Hero */}
       <header className="relative overflow-hidden text-center px-4 pt-10 pb-8"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 70% 60% at 50% -10%, rgba(20,184,166,0.12) 0%, transparent 70%)' }} />
         <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
@@ -113,7 +113,7 @@ export default function NotasAlumnoPage() {
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mb-5 transition-colors"
-            style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+            style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
             <ArrowLeft className="w-3 h-3" /> Inicio
           </Link>
 
@@ -122,13 +122,7 @@ export default function NotasAlumnoPage() {
             <BookUser className="w-6 h-6" style={{ color: '#2dd4bf' }} />
           </div>
 
-          <h1 className="text-3xl font-black tracking-tight mb-1"
-            style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
+          <h1 className="text-3xl font-black tracking-tight mb-1 text-slate-800">
             Notas de Progreso
           </h1>
           <p className="text-sm" style={{ color: '#475569' }}>
@@ -143,17 +137,17 @@ export default function NotasAlumnoPage() {
           {/* Estado enviado */}
           {submitted && (
             <div className="rounded-2xl p-6 text-center"
-              style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: '1px solid rgba(52,211,153,0.2)' }}>
+              style={{ background: 'white', border: '1px solid rgba(52,211,153,0.2)' }}>
               <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ background: 'rgba(52,211,153,0.12)', border: '2px solid rgba(52,211,153,0.3)' }}>
-                <CheckCircle className="w-7 h-7" style={{ color: '#34d399' }} />
+                <CheckCircle className="w-7 h-7" style={{ color: '#059669' }} />
               </div>
-              <h2 className="text-lg font-bold mb-1" style={{ color: '#e2e8f0' }}>¡Reporte listo para enviar!</h2>
+              <h2 className="text-lg font-bold mb-1" style={{ color: '#1e293b' }}>¡Reporte listo para enviar!</h2>
               <p className="text-sm mb-5" style={{ color: '#64748b' }}>Se abrió WhatsApp con el reporte de avance del alumno.</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={resetForm}
                   className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+                  style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.3)', color: '#64748b' }}>
                   <RefreshCw className="w-4 h-4" /> Nuevo reporte
                 </button>
                 <Link href="/agenda"
@@ -175,7 +169,7 @@ export default function NotasAlumnoPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="studentName" render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>Nombre completo</Label>
+                        <Label className="text-sm font-medium" style={{ color: '#64748b' }}>Nombre completo</Label>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
                           <FormControl><Input placeholder="Nombre del alumno" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
@@ -185,7 +179,7 @@ export default function NotasAlumnoPage() {
                     )}/>
                     <FormField control={form.control} name="phone" render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>WhatsApp</Label>
+                        <Label className="text-sm font-medium" style={{ color: '#64748b' }}>WhatsApp</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
                           <FormControl><Input type="tel" placeholder="5512345678" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
@@ -203,7 +197,7 @@ export default function NotasAlumnoPage() {
                       <span>{checkedCount} de {TOTAL_TOPICS} temas cubiertos</span>
                       <span>{progress}%</span>
                     </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.25)' }}>
                       <div className="h-full rounded-full transition-all duration-300"
                         style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #0d9488, #14b8a6)' }} />
                     </div>
@@ -214,7 +208,7 @@ export default function NotasAlumnoPage() {
                 <div className="rounded-2xl p-5" style={CARD}>
                   <div className="flex items-center gap-2 mb-1">
                     <BookUser className="w-4 h-4" style={{ color: '#2dd4bf' }} />
-                    <p className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>Temas del Programa</p>
+                    <p className="text-sm font-semibold" style={{ color: '#1e293b' }}>Temas del Programa</p>
                   </div>
                   <p className="text-xs mb-4" style={{ color: '#475569' }}>Marca los temas que el alumno ya domina.</p>
 
@@ -224,10 +218,10 @@ export default function NotasAlumnoPage() {
                         value={section.title}
                         key={section.title}
                         className="rounded-xl overflow-hidden border-0"
-                        style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                        style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.22)' }}>
                         <AccordionTrigger
                           className="px-4 py-3 text-sm font-semibold hover:no-underline hover:bg-white/[0.02] transition-colors [&>svg]:hidden"
-                          style={{ color: '#cbd5e1' }}>
+                          style={{ color: '#334155' }}>
                           <span className="flex items-center justify-between w-full">
                             {section.title}
                             <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
@@ -298,7 +292,7 @@ export default function NotasAlumnoPage() {
         </div>
       </div>
 
-      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
         <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
       </footer>
     </main>

@@ -61,13 +61,13 @@ export default function RegistroPage() {
   }
 
   const bg: React.CSSProperties = {
-    background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)',
+    background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)',
   };
 
   const inputStyle: React.CSSProperties = {
-    background: '#1e293b',
-    border: '1px solid #334155',
-    color: 'white',
+    background: 'white',
+    border: '1px solid #cbd5e1',
+    color: '#1e293b',
     borderRadius: '12px',
     padding: '12px 16px',
     width: '100%',
@@ -95,14 +95,14 @@ export default function RegistroPage() {
             </div>
           </div>
 
-          <h1 className="font-[family-name:var(--font-grotesk)] text-2xl font-bold text-white">
+          <h1 className="font-[family-name:var(--font-grotesk)] text-2xl font-bold text-slate-800">
             ¡Listo, {nombreCompleto.split(' ')[0]}!
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
             Te contactamos por WhatsApp en breve para platicar sobre tu curso.
           </p>
           <p className="font-[family-name:var(--font-mono)] text-sm"
-            style={{ color: '#fbbf24' }}>
+            style={{ color: '#d97706' }}>
             {celular}
           </p>
 
@@ -142,13 +142,7 @@ export default function RegistroPage() {
             </div>
           </div>
 
-          <h1 className="font-[family-name:var(--font-grotesk)] text-3xl font-bold leading-tight"
-            style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
+          <h1 className="font-[family-name:var(--font-grotesk)] text-3xl font-bold leading-tight">
             Aprende a manejar<br />en CDMX
           </h1>
           <p className="font-[family-name:var(--font-mono)] text-xs leading-relaxed" style={{ color: '#475569' }}>
@@ -159,8 +153,8 @@ export default function RegistroPage() {
         {/* Card form */}
         <div className="rounded-2xl p-6 space-y-5"
           style={{
-            background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-            border: '1px solid rgba(148,163,184,0.1)',
+            background: 'white',
+            border: '1px solid rgba(148,163,184,0.25)',
             boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
           }}>
 
@@ -177,9 +171,9 @@ export default function RegistroPage() {
               onChange={e => setNombreCompleto(e.target.value)}
               style={inputStyle}
               onFocus={e => (e.target.style.borderColor = '#fbbf24')}
-              onBlur={e => (e.target.style.borderColor = '#334155')}
+              onBlur={e => (e.target.style.borderColor = '#cbd5e1')}
               autoComplete="name"
-              className="font-[family-name:var(--font-grotesk)] placeholder:text-slate-600"
+              className="font-[family-name:var(--font-grotesk)] placeholder:text-slate-400"
             />
           </div>
 
@@ -194,12 +188,12 @@ export default function RegistroPage() {
               onChange={e => setAlcaldia(e.target.value)}
               style={{ ...inputStyle, appearance: 'none' as const, cursor: 'pointer' }}
               onFocus={e => (e.target.style.borderColor = '#fbbf24')}
-              onBlur={e => (e.target.style.borderColor = '#334155')}
+              onBlur={e => (e.target.style.borderColor = '#cbd5e1')}
               className="font-[family-name:var(--font-grotesk)]"
             >
-              <option value="" disabled style={{ background: '#1e293b' }}>Selecciona tu alcaldía</option>
+              <option value="" disabled style={{ background: 'white' }}>Selecciona tu alcaldía</option>
               {ALCALDIAS.map(a => (
-                <option key={a} value={a} style={{ background: '#1e293b' }}>{a}</option>
+                <option key={a} value={a} style={{ background: 'white' }}>{a}</option>
               ))}
             </select>
           </div>
@@ -219,14 +213,14 @@ export default function RegistroPage() {
               maxLength={15}
               style={inputStyle}
               onFocus={e => (e.target.style.borderColor = '#fbbf24')}
-              onBlur={e => (e.target.style.borderColor = '#334155')}
-              className="font-[family-name:var(--font-mono)] tracking-wider placeholder:text-slate-600"
+              onBlur={e => (e.target.style.borderColor = '#cbd5e1')}
+              className="font-[family-name:var(--font-mono)] tracking-wider placeholder:text-slate-400"
             />
           </div>
 
           {/* Error */}
           {status === 'error' && (
-            <p className="text-sm" style={{ color: '#f87171' }}>{errorMsg}</p>
+            <p className="text-sm" style={{ color: '#dc2626' }}>{errorMsg}</p>
           )}
 
           {/* CTA */}
@@ -235,8 +229,8 @@ export default function RegistroPage() {
             disabled={!isValid || status === 'loading'}
             className="w-full font-[family-name:var(--font-grotesk)] font-bold text-base py-4 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
-              background: isValid ? 'linear-gradient(135deg, #d97706, #fbbf24)' : '#1e293b',
-              color: isValid ? '#0c111d' : '#475569',
+              background: isValid ? 'linear-gradient(135deg, #d97706, #fbbf24)' : '#e2e8f0',
+              color: isValid ? '#0c111d' : '#94a3b8',
               boxShadow: isValid ? '0 4px 20px rgba(251,191,36,0.25)' : 'none',
             }}>
             {status === 'loading' ? 'Enviando…' : 'Regístrate gratis'}

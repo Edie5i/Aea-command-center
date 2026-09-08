@@ -28,13 +28,13 @@ function formatDate(iso: string): string {
 }
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
   borderRadius: 16,
 };
 
 const INPUT = "w-full text-sm rounded-xl px-3 py-2 outline-none transition-all placeholder:text-slate-600";
-const INPUT_STYLE: React.CSSProperties = { background: '#1e293b', border: '1px solid #334155', color: 'white' };
+const INPUT_STYLE: React.CSSProperties = { background: 'white', border: '1px solid #cbd5e1', color: '#1e293b' };
 
 export default function ImportarFichaPage() {
   const [stage, setStage] = useState<Stage>('upload');
@@ -155,10 +155,10 @@ export default function ImportarFichaPage() {
 
   return (
     <main className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)', backdropFilter: 'blur(8px)' }}>
         <Link href="/admin" className="text-sm transition-colors" style={{ color: '#475569' }}>← Admin</Link>
         <h1 className="text-base font-bold text-white">Importar ficha</h1>
       </header>
@@ -170,8 +170,8 @@ export default function ImportarFichaPage() {
           <div
             className="rounded-2xl p-10 text-center cursor-pointer transition-all"
             style={{
-              background: 'rgba(30,41,59,0.5)',
-              border: '2px dashed rgba(148,163,184,0.2)',
+              background: 'white',
+              border: '2px dashed rgba(148,163,184,0.4)',
             }}
             onDrop={handleDrop}
             onDragOver={e => e.preventDefault()}
@@ -193,7 +193,7 @@ export default function ImportarFichaPage() {
             ) : (
               <>
                 <p className="text-4xl mb-3">📄</p>
-                <p className="font-semibold text-white mb-1">Sube la ficha aquí</p>
+                <p className="font-semibold text-slate-800 mb-1">Sube la ficha aquí</p>
                 <p className="text-sm" style={{ color: '#475569' }}>Foto desde WhatsApp, captura de pantalla o PDF</p>
                 <p className="text-xs mt-3" style={{ color: '#334155' }}>JPG · PNG · WEBP · PDF · máx 10 MB</p>
               </>
@@ -204,7 +204,7 @@ export default function ImportarFichaPage() {
         {/* Error */}
         {error && (
           <div className="rounded-xl px-4 py-3 text-sm"
-            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}>
+            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#dc2626' }}>
             {error}
           </div>
         )}
@@ -223,12 +223,12 @@ export default function ImportarFichaPage() {
               {/* Ficha header */}
               <div className="px-4 pt-4 pb-3"
                 style={{ background: 'rgba(37,99,235,0.08)', borderBottom: '1px solid rgba(59,130,246,0.15)' }}>
-                <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#60a5fa' }}>Ficha de</p>
-                <p className="text-xl font-bold text-white">{data.nombre || '—'}</p>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#2563eb' }}>Ficha de</p>
+                <p className="text-xl font-bold text-slate-800">{data.nombre || '—'}</p>
                 <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{data.curso} · {data.fechas.filter((f: FechaRow) => f.date).length} sesiones</p>
               </div>
 
-              <div className="px-4 py-2" style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
+              <div className="px-4 py-2" style={{ borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
                 <p className="text-xs" style={{ color: '#334155' }}>Revisa y corrige antes de agendar</p>
               </div>
 
@@ -275,14 +275,14 @@ export default function ImportarFichaPage() {
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#475569' }}>Fechas y horarios</label>
                     <button type="button" onClick={addFecha}
-                      className="text-xs font-semibold transition-colors" style={{ color: '#60a5fa' }}>
+                      className="text-xs font-semibold transition-colors" style={{ color: '#2563eb' }}>
                       + Agregar fecha
                     </button>
                   </div>
                   <div className="space-y-2">
                     {data.fechas.length === 0 && (
                       <p className="text-sm text-center py-3 rounded-xl"
-                        style={{ color: '#334155', border: '1px dashed rgba(148,163,184,0.15)', background: 'rgba(148,163,184,0.04)' }}>
+                        style={{ color: '#334155', border: '1px dashed rgba(148,163,184,0.3)', background: 'rgba(148,163,184,0.04)' }}>
                         No se detectaron fechas — agrega manualmente
                       </p>
                     )}
@@ -317,7 +317,7 @@ export default function ImportarFichaPage() {
                 <button type="button"
                   onClick={() => { setStage('upload'); setPreview(''); setError(''); }}
                   className="flex-none text-sm font-semibold px-4 py-3 rounded-xl transition-all"
-                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+                  style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
                   Cambiar imagen
                 </button>
                 <button type="button" onClick={handleConfirm} disabled={loading}
@@ -334,11 +334,11 @@ export default function ImportarFichaPage() {
         {stage === 'done' && (
           <div className="p-8 text-center" style={CARD}>
             <p className="text-5xl mb-4">✅</p>
-            <h2 className="text-xl font-bold text-white mb-1">{data.nombre}</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-1">{data.nombre}</h2>
             <p className="text-sm mb-3" style={{ color: '#475569' }}>{data.telefono}</p>
 
             {calResult && calResult.created === calResult.total ? (
-              <p className="text-sm font-semibold mb-5" style={{ color: '#34d399' }}>
+              <p className="text-sm font-semibold mb-5" style={{ color: '#059669' }}>
                 {calResult.created} de {calResult.total} evento{calResult.total !== 1 ? 's' : ''} creados en Google Calendar ✓
               </p>
             ) : (
@@ -348,7 +348,7 @@ export default function ImportarFichaPage() {
             )}
 
             <div className="space-y-1 mb-6 text-left rounded-xl p-4"
-              style={{ background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.08)' }}>
+              style={{ background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.22)' }}>
               {data.fechas.filter((f: FechaRow) => f.date && f.time).map((f: FechaRow, i: number) => (
                 <p key={i} className="text-sm" style={{ color: '#64748b' }}>
                   {i + 1}. {formatDate(f.date)} · {f.time}
@@ -360,7 +360,7 @@ export default function ImportarFichaPage() {
               <button
                 onClick={() => { setStage('upload'); setData({ nombre:'',telefono:'',curso:'',transmision:'Automático',direccion:'',notas:'',fechas:[] }); setPreview(''); setError(''); setCalResult(null); }}
                 className="flex-1 text-sm font-semibold py-3 rounded-xl transition-all"
-                style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+                style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
                 Importar otra ficha
               </button>
               <Link href="/admin"

@@ -65,11 +65,11 @@ export default function ChatbotPage() {
 
   return (
     <main className="flex flex-col h-screen"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Header */}
       <header className="shrink-0 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
         <Link href="/" className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
           style={{ color: '#475569' }}>
           <ArrowLeft className="w-4 h-4" />
@@ -84,7 +84,7 @@ export default function ChatbotPage() {
             }}>
             <div className="w-full h-full rounded-full flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}>
-              <Bot className="w-4 h-4" style={{ color: '#60a5fa' }} />
+              <Bot className="w-4 h-4" style={{ color: '#2563eb' }} />
             </div>
           </div>
           {/* Status dot */}
@@ -93,8 +93,8 @@ export default function ChatbotPage() {
         </div>
 
         <div className="flex-1">
-          <p className="text-sm font-bold text-white leading-none">Luz</p>
-          <p className="text-[11px] mt-0.5" style={{ color: '#34d399' }}>En línea · AEA</p>
+          <p className="text-sm font-bold text-slate-800 leading-none">Luz</p>
+          <p className="text-[11px] mt-0.5" style={{ color: '#059669' }}>En línea · AEA</p>
         </div>
 
         <button onClick={handleReset} className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
@@ -113,9 +113,9 @@ export default function ChatbotPage() {
                 <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mb-0.5"
                   style={{
                     background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-                    border: '1px solid rgba(148,163,184,0.15)',
+                    border: '1px solid rgba(148,163,184,0.3)',
                   }}>
-                  <Bot className="w-3.5 h-3.5" style={{ color: '#60a5fa' }} />
+                  <Bot className="w-3.5 h-3.5" style={{ color: '#2563eb' }} />
                 </div>
               )}
               <div className="max-w-[80%] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap"
@@ -125,17 +125,17 @@ export default function ChatbotPage() {
                   color: 'white',
                   boxShadow: '0 2px 12px rgba(37,99,235,0.3)',
                 } : {
-                  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-                  border: '1px solid rgba(148,163,184,0.1)',
+                  background: 'white',
+                  border: '1px solid rgba(148,163,184,0.25)',
                   borderRadius: '4px 18px 18px 18px',
-                  color: '#cbd5e1',
+                  color: '#334155',
                 }}>
                 {msg.text}
               </div>
               {isUser && (
                 <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mb-0.5"
-                  style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.15)' }}>
-                  <User className="w-3.5 h-3.5" style={{ color: '#94a3b8' }} />
+                  style={{ background: 'rgba(148,163,184,0.25)', border: '1px solid rgba(148,163,184,0.3)' }}>
+                  <User className="w-3.5 h-3.5" style={{ color: '#64748b' }} />
                 </div>
               )}
             </div>
@@ -145,11 +145,11 @@ export default function ChatbotPage() {
         {isLoading && (
           <div className="flex items-end gap-2 justify-start">
             <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid rgba(148,163,184,0.15)' }}>
-              <Bot className="w-3.5 h-3.5" style={{ color: '#60a5fa' }} />
+              style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid rgba(148,163,184,0.3)' }}>
+              <Bot className="w-3.5 h-3.5" style={{ color: '#2563eb' }} />
             </div>
             <div className="px-4 py-3 flex items-center gap-1.5"
-              style={{ background: 'rgba(30,41,59,0.9)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: '4px 18px 18px 18px' }}>
+              style={{ background: 'white', border: '1px solid rgba(148,163,184,0.25)', borderRadius: '4px 18px 18px 18px' }}>
               {[0, 1, 2].map(i => (
                 <span key={i} className="w-1.5 h-1.5 rounded-full animate-bounce"
                   style={{ background: '#60a5fa', animationDelay: `${i * 150}ms` }} />
@@ -167,7 +167,7 @@ export default function ChatbotPage() {
 
       {/* Input */}
       <div className="shrink-0 px-4 py-3"
-        style={{ background: 'linear-gradient(180deg, #111827 0%, #0f172a 100%)', borderTop: '1px solid rgba(148,163,184,0.1)' }}>
+        style={{ background: 'linear-gradient(180deg, #111827 0%, #0f172a 100%)', borderTop: '1px solid rgba(148,163,184,0.25)' }}>
 
         {/* Sugerencias rápidas — solo al inicio */}
         {messages.length === 1 && (
@@ -175,7 +175,7 @@ export default function ChatbotPage() {
             {['¿Cuánto cuesta?', '¿Tienen clases a domicilio?', '¿Cuántas clases necesito?'].map(q => (
               <button key={q} onClick={() => setInput(q)}
                 className="shrink-0 text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors"
-                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#60a5fa' }}>
+                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#2563eb' }}>
                 {q}
               </button>
             ))}
@@ -190,9 +190,9 @@ export default function ChatbotPage() {
             disabled={isLoading}
             className="flex-1 text-sm px-4 py-2.5 rounded-xl outline-none transition-all"
             style={{
-              background: 'rgba(148,163,184,0.06)',
-              border: '1px solid rgba(148,163,184,0.15)',
-              color: '#e2e8f0',
+              background: 'rgba(148,163,184,0.3)',
+              border: '1px solid rgba(148,163,184,0.3)',
+              color: '#1e293b',
             }}
           />
           <button type="submit" disabled={isLoading || !input.trim()}

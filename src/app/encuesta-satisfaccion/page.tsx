@@ -27,11 +27,11 @@ const surveySchema = z.object({
 
 type SurveyFormValues = z.infer<typeof surveySchema>;
 
-const DARK_INPUT = "bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-rose-500 focus-visible:ring-1 focus-visible:border-rose-500";
+const DARK_INPUT = "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus-visible:ring-rose-500 focus-visible:ring-1 focus-visible:border-rose-500";
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 const ratingLabels: Record<string, string> = {
@@ -70,7 +70,7 @@ export default function EncuestaSatisfaccionPage() {
   const renderStarRating = (name: keyof SurveyFormValues, label: string, num: string) => (
     <div className="rounded-2xl p-5" style={CARD}>
       <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>{num}</p>
-      <p className="text-sm font-semibold mb-4" style={{ color: '#cbd5e1' }}>{label}</p>
+      <p className="text-sm font-semibold mb-4" style={{ color: '#334155' }}>{label}</p>
       <Controller
         name={name}
         control={form.control}
@@ -87,7 +87,7 @@ export default function EncuestaSatisfaccionPage() {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl cursor-pointer text-sm font-medium transition-all"
                     style={isSelected
                       ? { background: 'rgba(251,113,133,0.12)', border: '1px solid rgba(251,113,133,0.35)', color: '#fda4af' }
-                      : { background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)', color: '#64748b' }}>
+                      : { background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.25)', color: '#64748b' }}>
                     <Star className="w-3.5 h-3.5" style={isSelected ? { color: '#fb7185', fill: '#fb7185' } : { color: '#475569' }} />
                     {val} — {ratingLabels[val]}
                   </Label>
@@ -98,7 +98,7 @@ export default function EncuestaSatisfaccionPage() {
         )}
       />
       {form.formState.errors[name] && (
-        <p className="text-xs mt-2" style={{ color: '#f87171' }}>{form.formState.errors[name]?.message}</p>
+        <p className="text-xs mt-2" style={{ color: '#dc2626' }}>{form.formState.errors[name]?.message}</p>
       )}
     </div>
   );
@@ -112,7 +112,7 @@ export default function EncuestaSatisfaccionPage() {
   ) => (
     <div className="rounded-2xl p-5" style={CARD}>
       <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>{num}</p>
-      <p className="text-sm font-semibold mb-4" style={{ color: '#cbd5e1' }}>{label}</p>
+      <p className="text-sm font-semibold mb-4" style={{ color: '#334155' }}>{label}</p>
       <Controller
         name={name}
         control={form.control}
@@ -130,7 +130,7 @@ export default function EncuestaSatisfaccionPage() {
                     className="px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-all block"
                     style={isSelected
                       ? { background: 'rgba(251,113,133,0.12)', border: '1px solid rgba(251,113,133,0.35)', color: '#fda4af' }
-                      : { background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)', color: '#64748b' }}>
+                      : { background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.25)', color: '#64748b' }}>
                     {opt.label}
                   </Label>
                 </FormItem>
@@ -140,18 +140,18 @@ export default function EncuestaSatisfaccionPage() {
         )}
       />
       {form.formState.errors[name] && (
-        <p className="text-xs mt-2" style={{ color: '#f87171' }}>{form.formState.errors[name]?.message}</p>
+        <p className="text-xs mt-2" style={{ color: '#dc2626' }}>{form.formState.errors[name]?.message}</p>
       )}
     </div>
   );
 
   return (
     <main className="min-h-screen flex flex-col"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Hero */}
       <header className="relative overflow-hidden text-center px-4 pt-10 pb-8"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 70% 60% at 50% -10%, rgba(251,113,133,0.1) 0%, transparent 70%)' }} />
         <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
@@ -159,7 +159,7 @@ export default function EncuestaSatisfaccionPage() {
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mb-5 transition-colors"
-            style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+            style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
             <ArrowLeft className="w-3 h-3" /> Inicio
           </Link>
 
@@ -168,13 +168,7 @@ export default function EncuestaSatisfaccionPage() {
             <Smile className="w-6 h-6" style={{ color: '#fb7185' }} />
           </div>
 
-          <h1 className="text-3xl font-black tracking-tight mb-1"
-            style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
+          <h1 className="text-3xl font-black tracking-tight mb-1 text-slate-800">
             Encuesta de Satisfacción
           </h1>
           <p className="text-sm" style={{ color: '#475569' }}>
@@ -188,19 +182,19 @@ export default function EncuestaSatisfaccionPage() {
 
           {submitted ? (
             <div className="rounded-2xl p-8 text-center"
-              style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: '1px solid rgba(52,211,153,0.2)' }}>
+              style={{ background: 'white', border: '1px solid rgba(52,211,153,0.2)' }}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ background: 'rgba(52,211,153,0.1)', border: '2px solid rgba(52,211,153,0.3)' }}>
-                <CheckCircle className="w-8 h-8" style={{ color: '#34d399' }} />
+                <CheckCircle className="w-8 h-8" style={{ color: '#059669' }} />
               </div>
-              <h2 className="text-xl font-bold mb-2" style={{ color: '#e2e8f0' }}>¡Encuesta enviada!</h2>
+              <h2 className="text-xl font-bold mb-2" style={{ color: '#1e293b' }}>¡Encuesta enviada!</h2>
               <p className="text-sm mb-6" style={{ color: '#64748b' }}>
                 Muchas gracias por tu tiempo. ¡Tu opinión nos ayuda a seguir mejorando!
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={() => setSubmitted(false)}
                   className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+                  style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.3)', color: '#64748b' }}>
                   <Smile className="w-4 h-4" /> Responder de nuevo
                 </button>
                 <a href="https://g.page/r/CXb43zwsdca7EBE/review"
@@ -222,7 +216,7 @@ export default function EncuestaSatisfaccionPage() {
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormItem>
-                      <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>Tu nombre</Label>
+                      <Label className="text-sm font-medium" style={{ color: '#64748b' }}>Tu nombre</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
                         <Input id="studentName" placeholder="Juan Pérez (opcional)"
@@ -230,7 +224,7 @@ export default function EncuestaSatisfaccionPage() {
                       </div>
                     </FormItem>
                     <FormItem>
-                      <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>Instructor</Label>
+                      <Label className="text-sm font-medium" style={{ color: '#64748b' }}>Instructor</Label>
                       <div className="relative">
                         <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
                         <Input id="instructorName" placeholder="Eduardo (opcional)"
@@ -266,7 +260,7 @@ export default function EncuestaSatisfaccionPage() {
                 {/* Comentarios */}
                 <div className="rounded-2xl p-5" style={CARD}>
                   <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>7</p>
-                  <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>
+                  <p className="text-sm font-semibold mb-3" style={{ color: '#334155' }}>
                     Comentarios o sugerencias adicionales.
                   </p>
                   <Textarea
@@ -274,7 +268,7 @@ export default function EncuestaSatisfaccionPage() {
                     placeholder="¿Hay algo más que te gustaría compartir con nosotros?"
                     rows={4}
                     {...form.register('comments')}
-                    className="resize-none bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-rose-500 focus-visible:ring-1 focus-visible:border-rose-500"
+                    className="resize-none bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus-visible:ring-rose-500 focus-visible:ring-1 focus-visible:border-rose-500"
                   />
                 </div>
 
@@ -294,7 +288,7 @@ export default function EncuestaSatisfaccionPage() {
         </div>
       </div>
 
-      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
         <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
       </footer>
     </main>

@@ -39,7 +39,7 @@ export default function StateActions({ phone, state }: { phone: string; state: C
             disabled={loading}
             onClick={() => run(() => closeLead(phone, 'perdido'))}
             className={btnBase}
-            style={{ background: 'rgba(148,163,184,0.12)', color: '#64748b', border: '1px solid rgba(148,163,184,0.2)' }}
+            style={{ background: 'rgba(148,163,184,0.28)', color: '#64748b', border: '1px solid rgba(148,163,184,0.2)' }}
           >
             ✗ Perdido
           </button>
@@ -50,7 +50,7 @@ export default function StateActions({ phone, state }: { phone: string; state: C
           disabled={loading}
           onClick={() => run(() => setLeadTuTurno(phone))}
           className={btnBase}
-          style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }}
+          style={{ background: 'rgba(239,68,68,0.15)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.25)' }}
         >
           → Tu turno
         </button>

@@ -28,8 +28,8 @@ const PIPELINE_ORDER: ChatState[] = [
 ];
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
   boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset',
 };
 
@@ -57,10 +57,10 @@ export default async function MetricasPage() {
   const activeTotal = m.totalLeads - (m.byState['cerrado'] ?? 0);
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
         <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
         <h1 className="text-base font-bold text-white">Métricas</h1>
       </header>
@@ -70,10 +70,10 @@ export default async function MetricasPage() {
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Total leads',       value: m.totalLeads,    color: '#e2e8f0', sub: `${m.activeToday} hoy · ${m.activeThisWeek} esta semana` },
-            { label: 'Inscritos',         value: m.closedGanado,  color: '#34d399', sub: `${convRate}% conversión` },
-            { label: 'Ingreso estimado',  value: `$${revenueEst.toLocaleString('es-MX')}`, color: '#e2e8f0', sub: '~$3,400 por inscripción', large: false },
-            { label: 'Pipeline activo',   value: activeTotal,     color: '#60a5fa', sub: `${m.closedPerdido} perdidos` },
+            { label: 'Total leads',       value: m.totalLeads,    color: '#1e293b', sub: `${m.activeToday} hoy · ${m.activeThisWeek} esta semana` },
+            { label: 'Inscritos',         value: m.closedGanado,  color: '#059669', sub: `${convRate}% conversión` },
+            { label: 'Ingreso estimado',  value: `$${revenueEst.toLocaleString('es-MX')}`, color: '#1e293b', sub: '~$3,400 por inscripción', large: false },
+            { label: 'Pipeline activo',   value: activeTotal,     color: '#2563eb', sub: `${m.closedPerdido} perdidos` },
           ].map(({ label, value, color, sub }) => (
             <div key={label} className="rounded-2xl p-4" style={CARD}>
               <p className="text-xs font-medium" style={{ color: '#475569' }}>{label}</p>
@@ -85,19 +85,19 @@ export default async function MetricasPage() {
 
         {/* Embudo */}
         <div className="rounded-2xl p-4" style={CARD}>
-          <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Embudo de conversión</p>
+          <p className="text-sm font-semibold mb-3" style={{ color: '#334155' }}>Embudo de conversión</p>
           <div className="space-y-3">
             {[
               { label: 'Leads totales',          value: m.totalLeads,   color: '#3b82f6' },
               { label: 'Llegaron a "Tu turno"',  value: (m.byState['tu_turno'] ?? 0) + (m.closedGanado) + (m.closedPerdido), color: '#f59e0b' },
-              { label: 'Inscritos',              value: m.closedGanado, color: '#34d399' },
+              { label: 'Inscritos',              value: m.closedGanado, color: '#059669' },
             ].map((row, i) => (
               <div key={i}>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span style={{ color: '#64748b' }}>{row.label}</span>
-                  <span className="font-semibold" style={{ color: '#cbd5e1' }}>{row.value}</span>
+                  <span className="font-semibold" style={{ color: '#334155' }}>{row.value}</span>
                 </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.25)' }}>
                   <div className="h-full rounded-full transition-all"
                     style={{ width: m.totalLeads > 0 ? `${(row.value / m.totalLeads) * 100}%` : '0%', background: row.color }} />
                 </div>
@@ -108,7 +108,7 @@ export default async function MetricasPage() {
 
         {/* Pipeline */}
         <div className="rounded-2xl p-4" style={CARD}>
-          <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Pipeline actual</p>
+          <p className="text-sm font-semibold mb-3" style={{ color: '#334155' }}>Pipeline actual</p>
           <div className="space-y-2.5">
             {PIPELINE_ORDER.map(state => {
               const count = m.byState[state] ?? 0;
@@ -116,10 +116,10 @@ export default async function MetricasPage() {
               return (
                 <div key={state} className="flex items-center gap-3">
                   <span className="text-xs w-24 shrink-0" style={{ color: '#64748b' }}>{STATE_LABEL[state]}</span>
-                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.25)' }}>
                     <div className="h-full rounded-full" style={{ width: `${pct}%`, background: STATE_COLOR[state] }} />
                   </div>
-                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#94a3b8' }}>{count}</span>
+                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#64748b' }}>{count}</span>
                 </div>
               );
             })}
@@ -129,15 +129,15 @@ export default async function MetricasPage() {
         {/* Por fuente */}
         {sources.length > 0 && (
           <div className="rounded-2xl p-4" style={CARD}>
-            <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Por fuente</p>
+            <p className="text-sm font-semibold mb-3" style={{ color: '#334155' }}>Por fuente</p>
             <div className="space-y-2.5">
               {sources.map(([src, count]) => (
                 <div key={src} className="flex items-center gap-3">
                   <span className="text-xs flex-1 truncate" style={{ color: '#64748b' }}>{src}</span>
-                  <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                  <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.25)' }}>
                     <div className="h-full rounded-full" style={{ width: `${(count / maxSource) * 100}%`, background: '#3b82f6' }} />
                   </div>
-                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#94a3b8' }}>{count}</span>
+                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#64748b' }}>{count}</span>
                 </div>
               ))}
             </div>
@@ -147,15 +147,15 @@ export default async function MetricasPage() {
         {/* Por curso */}
         {courses.length > 0 && (
           <div className="rounded-2xl p-4" style={CARD}>
-            <p className="text-sm font-semibold mb-3" style={{ color: '#cbd5e1' }}>Interés por curso</p>
+            <p className="text-sm font-semibold mb-3" style={{ color: '#334155' }}>Interés por curso</p>
             <div className="space-y-2.5">
               {courses.map(([course, count]) => (
                 <div key={course} className="flex items-center gap-3">
                   <span className="text-xs flex-1 truncate" style={{ color: '#64748b' }}>{course}</span>
-                  <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+                  <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.25)' }}>
                     <div className="h-full rounded-full" style={{ width: `${(count / maxCourse) * 100}%`, background: '#8b5cf6' }} />
                   </div>
-                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#94a3b8' }}>{count}</span>
+                  <span className="text-xs font-semibold w-6 text-right" style={{ color: '#64748b' }}>{count}</span>
                 </div>
               ))}
             </div>

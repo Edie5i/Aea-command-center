@@ -81,7 +81,7 @@ export default function PortalLogin() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(99,102,241,0.1) 0%, transparent 65%)' }} />
@@ -102,16 +102,16 @@ export default function PortalLogin() {
               🚗
             </div>
           </div>
-          <h1 className="text-xl font-bold text-white">Portal Instructor</h1>
+          <h1 className="text-xl font-bold text-slate-800">Portal Instructor</h1>
           <p className="text-xs mt-1" style={{ color: '#475569' }}>UrbDriver · AEA</p>
         </div>
 
         {/* Card */}
         <div className="rounded-2xl p-6"
           style={{
-            background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-            border: '1px solid rgba(148,163,184,0.1)',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
+            background: 'white',
+            border: '1px solid rgba(148,163,184,0.25)',
+            boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
           }}>
 
           {step === 'phone' ? (
@@ -129,14 +129,14 @@ export default function PortalLogin() {
                     value={phone}
                     onChange={e => { setPhone(e.target.value); setError(''); }}
                     autoFocus
-                    className="w-full pl-10 py-3 rounded-xl text-base outline-none transition-all placeholder:text-slate-600"
-                    style={{ background: '#1e293b', border: '1px solid #334155', color: 'white' }}
+                    className="w-full pl-10 py-3 rounded-xl text-base outline-none transition-all placeholder:text-slate-400"
+                    style={{ background: 'white', border: '1px solid #cbd5e1', color: '#1e293b' }}
                     onFocus={e => (e.target.style.borderColor = '#6366f1')}
-                    onBlur={e => (e.target.style.borderColor = '#334155')}
+                    onBlur={e => (e.target.style.borderColor = '#cbd5e1')}
                   />
                 </div>
               </div>
-              {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
+              {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
               <button type="submit" disabled={phone.length < 8 || loading}
                 className="w-full font-semibold py-3 rounded-xl text-sm text-white transition-all disabled:opacity-30"
                 style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', boxShadow: '0 4px 16px rgba(99,102,241,0.25)' }}>
@@ -147,7 +147,7 @@ export default function PortalLogin() {
             <form onSubmit={verifyOtp} className="space-y-4">
               <div className="text-center">
                 <p className="text-sm mb-4" style={{ color: '#64748b' }}>
-                  Código enviado al <span style={{ color: '#e2e8f0' }}>{phone}</span>
+                  Código enviado al <span className="font-semibold" style={{ color: '#1e293b' }}>{phone}</span>
                 </p>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#475569' }} />
@@ -160,14 +160,14 @@ export default function PortalLogin() {
                     value={otp}
                     onChange={e => { setOtp(e.target.value); setError(''); }}
                     autoFocus
-                    className="w-full text-center text-3xl tracking-[0.5em] py-4 rounded-xl outline-none transition-all placeholder:text-slate-700"
-                    style={{ background: '#1e293b', border: '1px solid #334155', color: 'white' }}
+                    className="w-full text-center text-3xl tracking-[0.5em] py-4 rounded-xl outline-none transition-all placeholder:text-slate-400"
+                    style={{ background: 'white', border: '1px solid #cbd5e1', color: '#1e293b' }}
                     onFocus={e => (e.target.style.borderColor = '#6366f1')}
-                    onBlur={e => (e.target.style.borderColor = '#334155')}
+                    onBlur={e => (e.target.style.borderColor = '#cbd5e1')}
                   />
                 </div>
               </div>
-              {error && <p className="text-sm text-center" style={{ color: '#f87171' }}>{error}</p>}
+              {error && <p className="text-sm text-center" style={{ color: '#dc2626' }}>{error}</p>}
               <button type="submit" disabled={otp.length < 6 || loading}
                 className="w-full font-semibold py-3 rounded-xl text-sm text-white transition-all disabled:opacity-30"
                 style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', boxShadow: '0 4px 16px rgba(99,102,241,0.25)' }}>

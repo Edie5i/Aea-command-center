@@ -9,10 +9,10 @@ export const metadata: Metadata = {
   manifest: '/admin-manifest.json',
 };
 
-// Fondo oscuro del panel, para que la barra del sistema y el splash de la app
+// Fondo claro del panel, para que la barra del sistema y el splash de la app
 // no salgan en el azul del sitio público.
 export const viewport: Viewport = {
-  themeColor: '#0f172a',
+  themeColor: '#f8fafc',
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

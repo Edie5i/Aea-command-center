@@ -79,16 +79,16 @@ export default function AsignarModal({ instructor, inscripciones, clasesActivas 
           <div className="w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col"
             style={{
               background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-              border: '1px solid rgba(148,163,184,0.12)',
+              border: '1px solid rgba(148,163,184,0.28)',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
             }}>
 
             {/* Header */}
             <div className="px-5 pt-5 pb-3 shrink-0"
-              style={{ borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+              style={{ borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="font-bold text-base text-white">Asignar clase</h2>
+                  <h2 className="font-bold text-base text-slate-800">Asignar clase</h2>
                   <p className="text-xs mt-0.5" style={{ color: '#475569' }}>
                     Instructor: {instructor.nombre ?? `+${displayPhone}`} · {instructor.transmisiones ?? '—'}
                   </p>
@@ -117,10 +117,10 @@ export default function AsignarModal({ instructor, inscripciones, clasesActivas 
                       className="w-full text-left rounded-2xl p-3 transition-all"
                       style={isSelected
                         ? { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.35)', boxShadow: '0 0 0 1px rgba(99,102,241,0.2)' }
-                        : { background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                        : { background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.22)' }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate text-white">{ins.nombre}</p>
+                          <p className="font-semibold text-sm truncate text-slate-800">{ins.nombre}</p>
                           <p className="text-xs mt-0.5" style={{ color: '#475569' }}>
                             {ins.curso} · 📍 {ins.zona || 'CDMX'}
                           </p>
@@ -145,16 +145,16 @@ export default function AsignarModal({ instructor, inscripciones, clasesActivas 
 
             {/* Footer */}
             <div className="px-4 pb-5 pt-3 shrink-0"
-              style={{ borderTop: '1px solid rgba(148,163,184,0.08)' }}>
+              style={{ borderTop: '1px solid rgba(148,163,184,0.22)' }}>
               {result === 'ok' && (
                 <div className="mb-3 text-sm font-semibold rounded-xl px-4 py-2.5 text-center"
-                  style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>
+                  style={{ background: 'rgba(52,211,153,0.12)', color: '#059669', border: '1px solid rgba(52,211,153,0.2)' }}>
                   ✅ Clase asignada — Marco notificó al instructor por WhatsApp
                 </div>
               )}
               {result === 'error' && (
                 <div className="mb-3 text-sm rounded-xl px-4 py-2.5 text-center"
-                  style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' }}>
                   Error al asignar. Intenta de nuevo.
                 </div>
               )}

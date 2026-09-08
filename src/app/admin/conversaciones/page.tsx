@@ -84,7 +84,7 @@ export default async function ConversacionesPage({
   ];
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
       {/* 2 min y no 30 s: desde que getConversations trae la colección completa,
           cada refresco cuesta ~186 lecturas. A 30 s con el panel abierto todo el
           día son ~180k/día, muy por encima de las 50k de la capa gratis. */}
@@ -92,18 +92,18 @@ export default async function ConversacionesPage({
 
       {/* Header sticky metálico */}
       <header className="sticky top-0 z-10"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
         <div className="px-4 pt-4 pb-0">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
-              <h1 className="text-lg font-bold text-white">Conversaciones</h1>
+              <h1 className="text-lg font-bold text-slate-800">Conversaciones</h1>
             </div>
             {counts.atencion > 0 && (
               <span className="flex items-center gap-1.5 rounded-full px-3 py-1"
                 style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs font-bold" style={{ color: '#f87171' }}>{counts.atencion}</span>
+                <span className="text-xs font-bold" style={{ color: '#dc2626' }}>{counts.atencion}</span>
               </span>
             )}
           </div>
@@ -128,7 +128,7 @@ export default async function ConversacionesPage({
                   {counts[tab.id] > 0 && (
                     <span className="text-xs rounded-full px-2 py-0.5 font-bold"
                       style={{
-                        background: isActive ? '#2563eb' : 'rgba(148,163,184,0.12)',
+                        background: isActive ? '#2563eb' : 'rgba(148,163,184,0.28)',
                         color: isActive ? 'white' : '#64748b',
                       }}>
                       {counts[tab.id]}
@@ -170,7 +170,7 @@ export default async function ConversacionesPage({
 
             return (
               <div key={conv.phone} className="relative flex items-stretch"
-                style={{ borderBottom: '1px solid rgba(148,163,184,0.07)' }}>
+                style={{ borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
                 <Link
                   href={`/admin/conversaciones/${conv.phone}?tab=${activeTab}`}
                   className={`flex items-start gap-4 px-4 py-4 flex-1 min-w-0 transition-colors ${isRegistroLead ? 'pr-16' : ''}`}
@@ -184,8 +184,8 @@ export default async function ConversacionesPage({
                   {/* Avatar */}
                   <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base shrink-0"
                     style={needsAttention
-                      ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }
-                      : { background: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.12)' }}>
+                      ? { background: 'rgba(239,68,68,0.15)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.25)' }
+                      : { background: 'rgba(148,163,184,0.25)', color: '#64748b', border: '1px solid rgba(148,163,184,0.28)' }}>
                     {name.charAt(0).toUpperCase()}
                   </div>
 
@@ -195,7 +195,7 @@ export default async function ConversacionesPage({
                         {conv.postCierreAlerta && (
                           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#f59e0b' }} title="Escribió después de inscrito" />
                         )}
-                        <span className="font-bold text-base truncate" style={{ color: '#e2e8f0' }}>{name}</span>
+                        <span className="font-bold text-base truncate" style={{ color: '#1e293b' }}>{name}</span>
                       </span>
                       <span className="text-sm shrink-0 font-medium" style={{ color: needsAttention ? '#f87171' : '#475569' }}>
                         {timeAgo(ms)}
@@ -218,7 +218,7 @@ export default async function ConversacionesPage({
                     </p>
 
                     {needsAttention && conv.chatReason && (
-                      <p className="text-xs mt-1.5 font-semibold" style={{ color: '#f87171' }}>
+                      <p className="text-xs mt-1.5 font-semibold" style={{ color: '#dc2626' }}>
                         ⚡ {conv.chatReason}
                       </p>
                     )}

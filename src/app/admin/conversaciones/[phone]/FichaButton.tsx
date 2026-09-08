@@ -283,14 +283,14 @@ export default function FichaButton({ data }: { data: InscripcionData }) {
   const btnBase = "text-xs px-3 py-1.5 rounded-lg font-medium transition-all disabled:opacity-50";
 
   const waStyle =
-    waStatus === 'ok'    ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' } :
-    waStatus === 'error' ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' } :
+    waStatus === 'ok'    ? { background: 'rgba(52,211,153,0.15)', color: '#059669', border: '1px solid rgba(52,211,153,0.25)' } :
+    waStatus === 'error' ? { background: 'rgba(239,68,68,0.15)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.25)' } :
     { background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white' };
 
   const calStyle =
-    calStatus === 'ok'    ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' } :
-    calStatus === 'error' ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' } :
-    { background: 'rgba(148,163,184,0.1)', color: '#64748b', border: '1px solid rgba(148,163,184,0.15)' };
+    calStatus === 'ok'    ? { background: 'rgba(52,211,153,0.15)', color: '#059669', border: '1px solid rgba(52,211,153,0.25)' } :
+    calStatus === 'error' ? { background: 'rgba(239,68,68,0.15)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.25)' } :
+    { background: 'rgba(148,163,184,0.25)', color: '#64748b', border: '1px solid rgba(148,163,184,0.3)' };
 
   return (
     <div className="flex gap-2 items-center shrink-0 flex-wrap">

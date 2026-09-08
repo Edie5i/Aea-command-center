@@ -408,7 +408,7 @@ function AgendaContent() {
             {courseScheduled ? (
               <div className="p-6 text-center">
                 <div className="inline-flex w-14 h-14 items-center justify-center rounded-full mb-4 bg-emerald-50 border border-emerald-200 text-emerald-600">
-                  <CheckCircle className="w-7 h-7" style={{ color: '#34d399' }} />
+                  <CheckCircle className="w-7 h-7" style={{ color: '#059669' }} />
                 </div>
                 <h2 className="text-lg font-bold text-slate-800 mb-1">¡Inscripción y Agenda Completas!</h2>
                 <p className="text-sm mb-6" style={{ color: '#475569' }}>
@@ -436,7 +436,7 @@ function AgendaContent() {
                 <a href="https://g.page/r/CXb43zwsdca7EBE/review" target="_blank" rel="noopener noreferrer"
                   onClick={() => { if (typeof window !== 'undefined' && (window as any).gtag) (window as any).gtag('event', 'review_click', { location: 'agenda_success' }); }}
                   className="inline-flex items-center justify-center gap-2 mt-4 text-sm font-medium"
-                  style={{ color: '#fbbf24' }}>
+                  style={{ color: '#d97706' }}>
                   <Star className="w-4 h-4 fill-current" /> Déjanos una reseña en Google
                 </a>
               </div>

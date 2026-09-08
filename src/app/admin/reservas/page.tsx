@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic';
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 const ORIGEN_CHIP: Record<Ficha['origen'], { label: string; color: string }> = {
@@ -52,19 +52,19 @@ export default async function ReservasPage({
   const fichas = verPerdidas ? todas : todas.filter(f => f.estado !== 'perdida');
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
       <header
         className="sticky top-0 z-10 px-4 py-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.1)' }}
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}
       >
         <div className="flex items-center gap-3">
           <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
-          <h1 className="text-base font-bold text-white">Reservas (web + Luz)</h1>
+          <h1 className="text-base font-bold text-slate-800">Reservas (web + Luz)</h1>
           <span className="ml-auto text-xs" style={{ color: '#475569' }}>{fichas.length} fichas</span>
           <Link
             href={verPerdidas ? '/admin/reservas' : '/admin/reservas?perdidas=1'}
             className="text-xs px-2 py-1 rounded-full"
-            style={{ color: '#64748b', border: '1px solid rgba(148,163,184,0.15)' }}
+            style={{ color: '#64748b', border: '1px solid rgba(148,163,184,0.3)' }}
           >
             {verPerdidas ? 'Ocultar perdidas' : `Ver perdidas (${perdidas.length})`}
           </Link>
@@ -89,7 +89,7 @@ export default async function ReservasPage({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-white truncate">{f.studentName || 'Sin nombre'}</p>
+                    <p className="font-semibold text-slate-800 truncate">{f.studentName || 'Sin nombre'}</p>
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ color: chip.color, border: `1px solid ${chip.color}44` }}>
                       {chip.label}
                     </span>

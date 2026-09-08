@@ -56,7 +56,7 @@ const examSchema = z.object({
 });
 type ExamFormValues = z.infer<typeof examSchema>;
 
-const DARK_INPUT = "bg-[#1e293b] border-[#334155] text-white placeholder:text-slate-500 focus-visible:ring-purple-500 focus-visible:ring-1 focus-visible:border-purple-500";
+const DARK_INPUT = "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus-visible:ring-purple-500 focus-visible:ring-1 focus-visible:border-purple-500";
 
 export default function ExamenTeoricoPage() {
   const [answers, setAnswers] = useState<Answers>({});
@@ -118,11 +118,11 @@ export default function ExamenTeoricoPage() {
 
   return (
     <main className="min-h-screen flex flex-col"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Hero */}
       <header className="relative overflow-hidden text-center px-4 pt-10 pb-8"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 70% 60% at 50% -10%, rgba(139,92,246,0.12) 0%, transparent 70%)' }} />
         <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
@@ -130,22 +130,16 @@ export default function ExamenTeoricoPage() {
 
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mb-5 transition-colors"
-            style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+            style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
             <ArrowLeft className="w-3 h-3" /> Inicio
           </Link>
 
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
             style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)' }}>
-            <FileText className="w-6 h-6" style={{ color: '#a78bfa' }} />
+            <FileText className="w-6 h-6" style={{ color: '#7c3aed' }} />
           </div>
 
-          <h1 className="text-3xl font-black tracking-tight mb-1"
-            style={{
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 35%, #f8fafc 55%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
+          <h1 className="text-3xl font-black tracking-tight mb-1 text-slate-800">
             {result ? `${result.score}/100` : 'Examen Teórico'}
           </h1>
           <p className="text-sm" style={{ color: '#475569' }}>
@@ -162,7 +156,7 @@ export default function ExamenTeoricoPage() {
           {/* Resultado */}
           {result && (
             <div className="rounded-2xl p-6 text-center"
-              style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: `1px solid ${scoreColor}30` }}>
+              style={{ background: 'white', border: `1px solid ${scoreColor}30` }}>
               {/* Score circle */}
               <div className="w-20 h-20 rounded-full flex flex-col items-center justify-center mx-auto mb-4"
                 style={{ background: `${scoreColor}12`, border: `2px solid ${scoreColor}40` }}>
@@ -171,12 +165,12 @@ export default function ExamenTeoricoPage() {
               </div>
               <div className="flex items-center justify-center gap-6 mb-4">
                 <div className="text-center">
-                  <p className="text-xl font-bold" style={{ color: '#34d399' }}>{result.correctAnswers}</p>
+                  <p className="text-xl font-bold" style={{ color: '#059669' }}>{result.correctAnswers}</p>
                   <p className="text-[11px]" style={{ color: '#475569' }}>correctas</p>
                 </div>
-                <div className="w-px h-8" style={{ background: 'rgba(148,163,184,0.1)' }} />
+                <div className="w-px h-8" style={{ background: 'rgba(148,163,184,0.25)' }} />
                 <div className="text-center">
-                  <p className="text-xl font-bold" style={{ color: '#f87171' }}>{result.incorrectAnswers}</p>
+                  <p className="text-xl font-bold" style={{ color: '#dc2626' }}>{result.incorrectAnswers}</p>
                   <p className="text-[11px]" style={{ color: '#475569' }}>incorrectas</p>
                 </div>
               </div>
@@ -186,7 +180,7 @@ export default function ExamenTeoricoPage() {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={resetExam}
                   className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                  style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#94a3b8' }}>
+                  style={{ background: 'rgba(148,163,184,0.22)', border: '1px solid rgba(148,163,184,0.3)', color: '#64748b' }}>
                   <RefreshCw className="w-4 h-4" /> Reintentar
                 </button>
                 <Link href="/agenda"
@@ -201,13 +195,13 @@ export default function ExamenTeoricoPage() {
           {/* Datos personales — solo antes de calificar */}
           {!result && (
             <div className="rounded-2xl p-5"
-              style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))', border: '1px solid rgba(148,163,184,0.1)' }}>
+              style={{ background: 'white', border: '1px solid rgba(148,163,184,0.25)' }}>
               <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#475569' }}>Tus datos</p>
               <Form {...form}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField control={form.control} name="studentName" render={({ field }) => (
                     <FormItem>
-                      <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>Nombre</Label>
+                      <Label className="text-sm font-medium" style={{ color: '#64748b' }}>Nombre</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
                         <FormControl><Input placeholder="Nombre completo" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
@@ -217,7 +211,7 @@ export default function ExamenTeoricoPage() {
                   )}/>
                   <FormField control={form.control} name="phone" render={({ field }) => (
                     <FormItem>
-                      <Label className="text-sm font-medium" style={{ color: '#94a3b8' }}>WhatsApp</Label>
+                      <Label className="text-sm font-medium" style={{ color: '#64748b' }}>WhatsApp</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#475569' }} />
                         <FormControl><Input placeholder="55 1234 5678" {...field} className={`pl-10 ${DARK_INPUT}`} /></FormControl>
@@ -237,7 +231,7 @@ export default function ExamenTeoricoPage() {
                 <span>{answeredCount} de {examQuestions.length} preguntas</span>
                 <span>{progress}%</span>
               </div>
-              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.1)' }}>
+              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(148,163,184,0.25)' }}>
                 <div className="h-full rounded-full transition-all duration-300"
                   style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #8b5cf6, #3b82f6)' }} />
               </div>
@@ -253,25 +247,25 @@ export default function ExamenTeoricoPage() {
             return (
               <div key={question.id} className="rounded-2xl p-5"
                 style={{
-                  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
+                  background: 'white',
                   border: result
                     ? isCorrect ? '1px solid rgba(52,211,153,0.2)' : '1px solid rgba(248,113,113,0.2)'
-                    : isAnswered ? '1px solid rgba(139,92,246,0.2)' : '1px solid rgba(148,163,184,0.08)',
+                    : isAnswered ? '1px solid rgba(139,92,246,0.2)' : '1px solid rgba(148,163,184,0.22)',
                 }}>
                 <div className="flex items-start gap-2 mb-4">
                   <span className="text-xs font-bold px-1.5 py-0.5 rounded shrink-0 mt-0.5"
                     style={result
                       ? { background: isCorrect ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.12)', color: isCorrect ? '#34d399' : '#f87171' }
-                      : { background: isAnswered ? 'rgba(139,92,246,0.15)' : 'rgba(148,163,184,0.08)', color: isAnswered ? '#a78bfa' : '#475569' }}>
+                      : { background: isAnswered ? 'rgba(139,92,246,0.15)' : 'rgba(148,163,184,0.22)', color: isAnswered ? '#a78bfa' : '#475569' }}>
                     {index + 1}
                   </span>
-                  <p className="text-sm font-semibold leading-snug flex-1" style={{ color: '#e2e8f0' }}>
+                  <p className="text-sm font-semibold leading-snug flex-1" style={{ color: '#1e293b' }}>
                     {question.text}
                   </p>
                   {result && (
                     isCorrect
-                      ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#34d399' }} />
-                      : <XCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#f87171' }} />
+                      ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#059669' }} />
+                      : <XCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#dc2626' }} />
                   )}
                 </div>
                 <RadioGroup
@@ -318,7 +312,7 @@ export default function ExamenTeoricoPage() {
               ) : (
                 <button type="button" onClick={resetExam}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all"
-                  style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.12)', color: '#64748b' }}>
+                  style={{ background: 'rgba(148,163,184,0.3)', border: '1px solid rgba(148,163,184,0.28)', color: '#64748b' }}>
                   <RefreshCw className="w-4 h-4" /> Intentar de nuevo
                 </button>
               )}
@@ -327,7 +321,7 @@ export default function ExamenTeoricoPage() {
         </div>
       </div>
 
-      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+      <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
         <p className="text-[11px]" style={{ color: '#334155' }}>Auto Escuela Americana · CDMX</p>
       </footer>
     </main>

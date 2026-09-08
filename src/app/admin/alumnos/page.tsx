@@ -21,8 +21,8 @@ function displayPhone(phone: string): string {
 }
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 export default async function AlumnosPage() {
@@ -53,16 +53,16 @@ export default async function AlumnosPage() {
 
   return (
     <main className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Sticky header */}
       <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)', backdropFilter: 'blur(8px)' }}>
         <Link href="/admin" className="text-xs font-medium transition-colors"
           style={{ color: '#3b82f6' }}>← Admin</Link>
         <div className="flex items-center gap-2 flex-1">
-          <Users className="w-4 h-4" style={{ color: '#60a5fa' }} />
-          <h1 className="text-sm font-bold text-white">Alumnos</h1>
+          <Users className="w-4 h-4" style={{ color: '#2563eb' }} />
+          <h1 className="text-sm font-bold text-slate-800">Alumnos</h1>
         </div>
         <span className="text-xs" style={{ color: '#334155' }}>{students.length} alumnos</span>
       </header>
@@ -97,7 +97,7 @@ export default async function AlumnosPage() {
                     {inicial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate text-white">{student.name}</p>
+                    <p className="font-bold text-sm truncate text-slate-800">{student.name}</p>
                     {student.phone && (
                       <p className="text-xs" style={{ color: '#475569' }}>{displayPhone(student.phone)}</p>
                     )}
@@ -109,7 +109,7 @@ export default async function AlumnosPage() {
                 </div>
 
                 {/* Fichas */}
-                <div style={{ borderTop: '1px solid rgba(148,163,184,0.07)' }}>
+                <div style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
                   {student.fichas.map((f) => {
                     const pct = f.totalTopics > 0 ? Math.round((f.completedCount / f.totalTopics) * 100) : 0;
                     const barColor = pct >= 80 ? '#34d399' : pct >= 40 ? '#60a5fa' : '#f59e0b';
@@ -125,7 +125,7 @@ export default async function AlumnosPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 rounded-full overflow-hidden"
-                            style={{ background: 'rgba(148,163,184,0.1)' }}>
+                            style={{ background: 'rgba(148,163,184,0.25)' }}>
                             <div className="h-full rounded-full transition-all"
                               style={{ width: `${pct}%`, background: barColor }} />
                           </div>

@@ -16,13 +16,13 @@ export default function ConversacionesError({ error }: { error: Error & { digest
   if (isStaleDeploy) return null;
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#0f172a', color: '#94a3b8' }}>
+    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#f8fafc', color: '#64748b' }}>
       <div className="text-center">
-        <p className="text-lg font-semibold mb-2" style={{ color: '#f87171' }}>Error al cargar conversaciones</p>
+        <p className="text-lg font-semibold mb-2" style={{ color: '#dc2626' }}>Error al cargar conversaciones</p>
         <button
           onClick={() => window.location.reload()}
           className="mt-2 text-sm px-4 py-2 rounded-lg font-semibold"
-          style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}
+          style={{ background: 'rgba(59,130,246,0.1)', color: '#2563eb' }}
         >
           Reintentar
         </button>

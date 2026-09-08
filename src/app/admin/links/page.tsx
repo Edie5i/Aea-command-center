@@ -45,8 +45,8 @@ const SECTIONS = [
 ];
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 function LinkRow({ url, label }: { url: string; label: string }) {
@@ -60,12 +60,12 @@ function LinkRow({ url, label }: { url: string; label: string }) {
 
   return (
     <div className="flex items-center justify-between gap-3 py-2.5"
-      style={{ borderBottom: '1px solid rgba(148,163,184,0.06)' }}>
+      style={{ borderBottom: '1px solid rgba(148,163,184,0.3)' }}>
       <div className="min-w-0 flex-1">
         <p className="text-xs mb-0.5" style={{ color: '#475569' }}>{label}</p>
         <a href={url} target="_blank" rel="noopener noreferrer"
           className="text-xs break-all transition-colors hover:underline"
-          style={{ color: '#60a5fa' }}>
+          style={{ color: '#2563eb' }}>
           {url}
         </a>
       </div>
@@ -73,8 +73,8 @@ function LinkRow({ url, label }: { url: string; label: string }) {
         onClick={copy}
         className="shrink-0 text-xs px-3 py-1 rounded-lg font-semibold transition-all"
         style={copied
-          ? { background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }
-          : { background: 'rgba(148,163,184,0.08)', color: '#64748b', border: '1px solid rgba(148,163,184,0.12)' }}>
+          ? { background: 'rgba(52,211,153,0.15)', color: '#059669', border: '1px solid rgba(52,211,153,0.25)' }
+          : { background: 'rgba(148,163,184,0.22)', color: '#64748b', border: '1px solid rgba(148,163,184,0.28)' }}>
         {copied ? '✓' : 'Copiar'}
       </button>
     </div>
@@ -84,11 +84,11 @@ function LinkRow({ url, label }: { url: string; label: string }) {
 export default function LinksPage() {
   return (
     <main className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
 
       {/* Header */}
       <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)', borderBottom: '1px solid rgba(148,163,184,0.08)', backdropFilter: 'blur(8px)' }}>
+        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.22)', backdropFilter: 'blur(8px)' }}>
         <Link href="/admin" className="text-sm transition-colors" style={{ color: '#475569' }}>← Admin</Link>
         <h1 className="text-base font-bold text-white">Links del equipo</h1>
       </header>
@@ -107,14 +107,14 @@ export default function LinksPage() {
             <p className="text-lg font-bold text-white">Generador de Fichas</p>
             <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.7)' }}>app.autoescuelaamericana.com/ficha</p>
           </div>
-          <span className="text-3xl text-white transition-transform group-hover:translate-x-1">→</span>
+          <span className="text-3xl text-slate-800 transition-transform group-hover:translate-x-1">→</span>
         </a>
 
         {/* Sections */}
         {SECTIONS.map((section) => (
           <div key={section.title} className="rounded-2xl overflow-hidden" style={CARD}>
             <div className="px-4 py-2.5"
-              style={{ background: 'rgba(148,163,184,0.04)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
+              style={{ background: 'rgba(148,163,184,0.04)', borderBottom: '1px solid rgba(148,163,184,0.22)' }}>
               <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#475569' }}>
                 {section.title}
               </h2>

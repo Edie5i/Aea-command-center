@@ -26,8 +26,8 @@ async function getFichaPorToken(token: string): Promise<(Ficha & { id: string })
 }
 
 const CARD: React.CSSProperties = {
-  background: 'linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95))',
-  border: '1px solid rgba(148,163,184,0.1)',
+  background: 'white',
+  border: '1px solid rgba(148,163,184,0.25)',
 };
 
 export default async function FichaPublicaPage({ params }: { params: Promise<{ token: string }> }) {
@@ -41,7 +41,7 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
   const perdida = ficha.estado === 'perdida';
 
   return (
-    <main className="min-h-screen py-8 px-4" style={{ background: 'linear-gradient(160deg, #0c111d 0%, #111827 60%, #0f172a 100%)' }}>
+    <main className="min-h-screen py-8 px-4" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
       <div className="max-w-xl mx-auto space-y-4">
 
         {/* Encabezado */}
@@ -57,9 +57,9 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
             </div>
             <div className="text-right shrink-0">
               <p className="text-xs font-semibold" style={{ color: '#3b82f6' }}>FOLIO</p>
-              <p className="text-sm font-mono" style={{ color: '#e2e8f0' }}>{folio}</p>
+              <p className="text-sm font-mono" style={{ color: '#1e293b' }}>{folio}</p>
               <p className="text-xs font-semibold mt-1" style={{ color: '#3b82f6' }}>FECHA</p>
-              <p className="text-sm font-mono" style={{ color: '#e2e8f0' }}>{fechaEmision}</p>
+              <p className="text-sm font-mono" style={{ color: '#1e293b' }}>{fechaEmision}</p>
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
         <div className="rounded-2xl p-4 text-center font-semibold text-sm" style={{
           background: perdida ? 'rgba(100,116,139,0.12)' : reservada ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)',
           border: `1px solid ${perdida ? 'rgba(100,116,139,0.3)' : reservada ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}`,
-          color: perdida ? '#94a3b8' : reservada ? '#4ade80' : '#fbbf24',
+          color: perdida ? '#64748b' : reservada ? '#4ade80' : '#fbbf24',
         }}>
           {perdida ? '❌ Este apartado ya no está vigente' : reservada ? '✅ Lugar confirmado — depósito recibido' : '⏳ Pendiente de depósito para confirmar tu lugar'}
         </div>
@@ -79,12 +79,12 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
             <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>01 · Datos del alumno</p>
             <div className="mt-2 pb-2" style={{ borderBottom: '1px dashed rgba(148,163,184,0.2)' }}>
               <p className="text-xs" style={{ color: '#64748b' }}>NOMBRE</p>
-              <p className="text-white font-medium">{ficha.studentName || '—'}</p>
+              <p className="text-slate-800 font-medium">{ficha.studentName || '—'}</p>
             </div>
             {ficha.zona && (
               <div className="mt-2">
                 <p className="text-xs" style={{ color: '#64748b' }}>DIRECCIÓN / PUNTO DE ENCUENTRO</p>
-                <p className="text-white text-sm">{ficha.zona}</p>
+                <p className="text-slate-800 text-sm">{ficha.zona}</p>
               </div>
             )}
           </div>
@@ -92,8 +92,8 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>02 · Curso elegido</p>
             <div className="mt-2 rounded-xl p-3" style={{ background: 'rgba(0,74,173,0.15)', border: '1px solid rgba(59,130,246,0.25)' }}>
-              <p className="text-white font-bold">{ficha.curso || '—'}</p>
-              <p className="text-sm mt-0.5" style={{ color: '#93c5fd' }}>
+              <p className="text-slate-800 font-bold">{ficha.curso || '—'}</p>
+              <p className="text-sm mt-0.5" style={{ color: '#2563eb' }}>
                 ${ficha.precio.toLocaleString('es-MX')} · Depósito ${ficha.depositoMonto.toLocaleString('es-MX')}
               </p>
             </div>
@@ -104,7 +104,7 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
               <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>03 · Fechas y horarios</p>
               <div className="mt-2 space-y-1.5">
                 {ficha.opcionesFechaHora.map((f, i) => (
-                  <div key={i} className="text-sm rounded-lg px-3 py-2" style={{ background: 'rgba(148,163,184,0.06)', color: '#cbd5e1', border: '1px solid rgba(148,163,184,0.1)' }}>
+                  <div key={i} className="text-sm rounded-lg px-3 py-2" style={{ background: 'rgba(148,163,184,0.3)', color: '#334155', border: '1px solid rgba(148,163,184,0.25)' }}>
                     {i + 1}. {formatearFecha(f)}
                   </div>
                 ))}
@@ -116,12 +116,12 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
         {/* Pago (solo si falta) */}
         {!reservada && !perdida && (
           <div className="rounded-2xl p-5" style={CARD}>
-            <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#fbbf24' }}>Datos para tu depósito</p>
-            <p className="text-sm" style={{ color: '#cbd5e1' }}>
+            <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#d97706' }}>Datos para tu depósito</p>
+            <p className="text-sm" style={{ color: '#334155' }}>
               BBVA · Eduardo W. Czaplewski (cuenta PYME)<br />
               Cuenta: 048 469 5739<br />
               CLABE: 012 180 00484695739 9<br />
-              <span style={{ color: '#94a3b8' }}>(También se recibe en Oxxo, Walmart o 7-Eleven con la tarjeta 4152 3144 0428 8527)</span>
+              <span style={{ color: '#64748b' }}>(También se recibe en Oxxo, Walmart o 7-Eleven con la tarjeta 4152 3144 0428 8527)</span>
             </p>
             <p className="text-xs mt-3" style={{ color: '#64748b' }}>
               En el concepto pon tu nombre completo y manda el comprobante por WhatsApp a Luz. Este link se actualiza solo — no hace falta que te mandemos nada más.
@@ -131,8 +131,8 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
 
         {/* Términos */}
         <div className="rounded-2xl p-4" style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)' }}>
-          <p className="text-xs font-semibold text-white mb-1">Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:</p>
-          <a href="https://autoescuelaamericana.com/terminos" className="text-xs font-mono" style={{ color: '#60a5fa' }}>autoescuelaamericana.com/terminos</a>
+          <p className="text-xs font-semibold text-slate-800 mb-1">Al confirmar esta ficha, el alumno acepta los Términos y Condiciones de AEA:</p>
+          <a href="https://autoescuelaamericana.com/terminos" className="text-xs font-mono" style={{ color: '#2563eb' }}>autoescuelaamericana.com/terminos</a>
           <p className="text-xs mt-2 italic" style={{ color: '#64748b' }}>
             El apartado garantiza el lugar y fecha de inicio. Cancelaciones con menos de 24 hrs de anticipación no son reembolsables. Documento generado electrónicamente.
           </p>
