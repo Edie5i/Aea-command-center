@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { Banknote, Landmark, MessageSquare, CreditCard, Info, Check, ClipboardCopy } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/whatsapp-icon';
 import Image from 'next/image';
 
 const CARD: React.CSSProperties = {
@@ -50,7 +51,13 @@ export function PaymentDetails() {
   const accountNumber = '0484695739';
   const clabe = '012180004846957399';
   const debitCard = '4152314404288527';
-  const officialQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/525634433212?text=¡Hola!%20Aquí%20envío%20mi%20comprobante%20de%20pago.';
+  // El QR solo sirve si la página se ve en computadora: desde el celular nadie
+  // puede escanear su propia pantalla, y la liga casi siempre se abre ahí.
+  // Por eso manda el botón, y el QR queda como alternativa en pantalla grande.
+  const waNumber = '5634433212';
+  const waMessage = '¡Hola! Aquí envío mi comprobante de pago.';
+  const waUrl = `https://wa.me/525634433212?text=${encodeURIComponent(waMessage)}`;
+  const officialQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(waUrl)}`;
 
   return (
     <div className="w-full max-w-3xl space-y-4">
@@ -106,15 +113,30 @@ export function PaymentDetails() {
       </Section>
 
       <Section icon={<MessageSquare className="w-4 h-4" style={{ color: '#059669' }} />} title="Envía tu Comprobante">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-5">
           <div className="max-w-sm">
             <p className="text-sm" style={{ color: '#64748b' }}>
-              Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmarlo y agilizar el proceso.
+              Desde tu app del banco dale <strong style={{ color: '#0f172a' }}>Compartir</strong> al comprobante y elige WhatsApp. Nuestro número:
             </p>
-            <p className="text-sm font-semibold mt-2" style={{ color: '#047857' }}>¡Escanea el código QR para abrir el chat!</p>
+            <div className="mt-2 flex items-center justify-between gap-3" style={INNER}>
+              <p className="font-mono text-base text-slate-800 tracking-wider">{waNumber}</p>
+              <CopyBtn text={waNumber} />
+            </div>
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3.5 rounded-xl text-sm font-bold text-white transition-colors"
+              style={{ background: '#25D366' }}>
+              <WhatsAppIcon className="w-5 h-5" />
+              Abrir el chat
+            </a>
+            <p className="text-xs mt-2" style={{ color: '#94a3b8' }}>
+              Ábrelo una vez y quedamos en tus chats recientes, para que aparezcamos al compartir desde el banco.
+            </p>
           </div>
-          <div className="p-2 rounded-xl shrink-0 border border-slate-200" style={{ background: 'white' }}>
-            <Image src={officialQrUrl} alt="QR WhatsApp AEA" width={130} height={130} data-ai-hint="QR code" />
+          <div className="hidden sm:block p-2 rounded-xl shrink-0 border border-slate-200" style={{ background: 'white' }}>
+            <Image src={officialQrUrl} alt="QR para abrir el chat de WhatsApp" width={130} height={130} data-ai-hint="QR code" />
           </div>
         </div>
       </Section>
