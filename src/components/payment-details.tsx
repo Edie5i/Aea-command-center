@@ -109,7 +109,7 @@ export function PaymentDetails() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
           <div className="max-w-sm">
             <p className="text-sm" style={{ color: '#64748b' }}>
-              Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmar tu curso y agilizar el proceso.
+              Una vez realizado el pago, envía tu comprobante a nuestro WhatsApp para confirmarlo y agilizar el proceso.
             </p>
             <p className="text-sm font-semibold mt-2" style={{ color: '#047857' }}>¡Escanea el código QR para abrir el chat!</p>
           </div>
@@ -126,7 +126,7 @@ export function PaymentDetails() {
         <div>
           <p className="text-sm font-semibold mb-0.5" style={{ color: '#047857' }}>¡Importante!</p>
           <p className="text-sm" style={{ color: '#64748b' }}>
-            Al realizar tu pago, asegúrate de poner el <strong style={{ color: '#0f172a' }}>nombre completo del alumno</strong> en el concepto o referencia.
+            Al realizar tu pago, pon en el concepto o referencia el <strong style={{ color: '#0f172a' }}>nombre completo del alumno</strong>, o el <strong style={{ color: '#0f172a' }}>número de factura</strong> si es un pago empresarial.
           </p>
         </div>
       </div>
