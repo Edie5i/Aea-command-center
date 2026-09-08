@@ -10,6 +10,14 @@ const nextConfig = {
     serverComponentsExternalPackages: ['firebase-admin', '@google-cloud/firestore'],
   },
 
+  // El QR de WhatsApp en /pagos se genera en api.qrserver.com. Sin declarar el
+  // host, next/image lanza "Invalid src prop" y la página entera responde 500.
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'api.qrserver.com' },
+    ],
+  },
+
   async redirects() {
     const WWW = 'https://autoescuelaamericana.com';
     return [
