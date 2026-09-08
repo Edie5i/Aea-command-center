@@ -83,7 +83,9 @@
   }
   body {
     @apply text-foreground h-full;
-    background: #0c111d;
+    /* Base clara del tema. Se ve en la zona que no cubre el <main> —debajo del
+       contenido y en el rebote del scroll—, donde antes asomaba el azul oscuro. */
+    background: #f8fafc;
   }
   main, header, footer {
       background: transparent;
