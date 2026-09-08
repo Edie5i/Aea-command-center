@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getMetricsData, getAvisosAdminRecientes, getConstanciasPendientes } from '@/lib/firestore';
 import { getEventosProximos } from '@/services/calendarService';
 import { traerFichas } from '@/lib/fichaLuz';
+import { ConstanciaButton } from './ConstanciaButton';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -174,11 +175,14 @@ export default async function AdminPage() {
                       {c.edadAlumno ? `${c.edadAlumno} años · ` : ''}SEMOVI · $500
                     </p>
                   </div>
-                  <Link
-                    href={`/admin/conversaciones/${c.phone}`}
-                    className="shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-700">
-                    Ver →
-                  </Link>
+                  <div className="shrink-0 flex items-center gap-3">
+                    <Link
+                      href={`/admin/conversaciones/${c.phone}`}
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                      Ver
+                    </Link>
+                    <ConstanciaButton phone={c.phone} nombre={c.nombre} />
+                  </div>
                 </div>
               ))}
             </div>
