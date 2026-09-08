@@ -616,6 +616,18 @@ async function recordarEnvio(wamid: string, to: string, text: string, phoneId: s
   }
 }
 
+
+/** Extrae el wamid de la respuesta de Meta y lo registra. Sin esto, el eco de un
+ *  envío que no es de texto se confundiría con una respuesta humana. */
+function recordarEnvioDesdeRespuesta(responseText: string, to: string, etiqueta: string, phoneId: string): void {
+  try {
+    const wamid = JSON.parse(responseText)?.messages?.[0]?.id;
+    if (wamid) void recordarEnvio(wamid, to, etiqueta, phoneId);
+  } catch {
+    /* respuesta no-JSON: el envío ya se registró en el log */
+  }
+}
+
 /** Códigos de Meta que significan "no hay forma de entregarlo": reintentar es inútil. */
 const ERRORES_SIN_REMEDIO = [131047, 131051, 131026, 131052];
 
@@ -797,6 +809,7 @@ async function sendImageMessage(to: string, mediaId: string, caption?: string, p
     console.error('[WEBHOOK] WhatsApp image API error:', res.status, responseText);
   } else {
     console.log('[WEBHOOK] Imagen reenviada OK:', responseText.slice(0, 120));
+    recordarEnvioDesdeRespuesta(responseText, to, '[imagen]', actualPhoneId);
   }
 }
 
@@ -822,6 +835,7 @@ async function sendDocumentMessage(to: string, mediaId: string, filename: string
     console.error('[WEBHOOK] WhatsApp document API error:', res.status, responseText);
   } else {
     console.log('[WEBHOOK] Documento reenviado OK:', responseText.slice(0, 120));
+    recordarEnvioDesdeRespuesta(responseText, to, '[documento]', actualPhoneId);
   }
 }
 
@@ -845,8 +859,11 @@ async function sendLocationRequest(to: string, direccionConocida: string, phoneI
     headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+  const locResponseText = await res.text();
   if (!res.ok) {
-    console.error('[WEBHOOK] Location request error:', res.status, await res.text());
+    console.error('[WEBHOOK] Location request error:', res.status, locResponseText);
+  } else {
+    recordarEnvioDesdeRespuesta(locResponseText, to, '[peticion de ubicacion]', actualPhoneId);
   }
 }
 
@@ -1065,6 +1082,46 @@ export async function POST(request: NextRequest) {
         } else {
           console.log('[WA-STATUS]', base);
         }
+      }
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+
+    // Eco de lo que sale del número de la escuela. Meta lo manda solo si el campo
+    // 'message_echoes' está suscrito en la app (Webhooks → WhatsApp Business
+    // Account); si no lo está, este bloque simplemente nunca entra.
+    //
+    // El id es lo que distingue quién escribió: todo lo que envía el sistema queda
+    // en 'mensajes_enviados' con su wamid. Si el eco trae un id que NO está ahí,
+    // lo tecleó una persona desde el celular. Sin esa comprobación Luz se pausaría
+    // a sí misma con cada respuesta que manda.
+    const echoes = body?.entry?.[0]?.changes?.[0]?.value?.message_echoes;
+    if (Array.isArray(echoes) && echoes.length > 0) {
+      const [{ db }, { Timestamp }] = await Promise.all([
+        import('@/lib/firestore'),
+        import('firebase-admin/firestore'),
+      ]);
+      for (const eco of echoes) {
+        const wamid = String(eco?.id ?? '');
+        const destino = normalizePhone(String(eco?.to ?? ''));
+        if (!wamid || !destino) continue;
+        // Los avisos al admin no se registran en 'mensajes_enviados' a propósito,
+        // así que su eco parecería escrito a mano. El admin no es un lead: fuera.
+        if (destino === ADMIN_PHONE) continue;
+
+        const nuestro = await db.collection('mensajes_enviados').doc(wamid).get()
+          .then(d => d.exists)
+          .catch(() => true); // ante la duda, tratarlo como nuestro y no pausar
+
+        if (nuestro) continue;
+
+        console.log('[ECO] Respuesta humana desde el número de la escuela a', destino, '— pausando a Luz');
+        const docId = await resolveDocId(db, destino);
+        await db.collection('conversations').doc(docId).set({
+          botPaused: true,
+          chatLastBy: 'humano',
+          nextFollowupAt: null,
+          pausadoPorHumanoAt: Timestamp.now(),
+        }, { merge: true }).catch(e => console.error('[ECO] Error pausando:', e));
       }
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
