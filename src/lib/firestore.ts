@@ -73,6 +73,9 @@ export interface Conversation {
   qualifiedAt?: Timestamp | null;
   followUpsSent?: FollowUpRecord[];
   nextFollowupAt?: Timestamp | null;
+  /** Momento en que llegó el comprobante. Corta el seguimiento automático aunque
+      la inscripción todavía no esté confirmada. */
+  comprobanteRecibidoAt?: Timestamp | null;
   closedAt?: Timestamp | null;
   closedOutcome?: 'ganado' | 'perdido' | null;
   contactName?: string | null;

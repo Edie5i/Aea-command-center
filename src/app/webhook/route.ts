@@ -1226,6 +1226,26 @@ export async function POST(request: NextRequest) {
       `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
+    // Corta el seguimiento automático en cuanto llega el comprobante, ANTES de
+    // intentar agendar. Si la inscripción no se completa —dirección incompleta,
+    // conflicto de horario, menos de 4 slots— la conversación no llega a
+    // 'cerrado' y el cron la seguía tratando como lead abierto: le mandaba la
+    // secuencia 2h→24h→72h→7d a alguien que ya depositó, y acababa marcándola
+    // como 'frío'. Con await: en Cloud Run lo que queda en segundo plano después
+    // de responder el HTTP puede no ejecutarse nunca.
+    try {
+      const [{ db }, { Timestamp }] = await Promise.all([
+        import('@/lib/firestore'),
+        import('firebase-admin/firestore'),
+      ]);
+      await db.collection('conversations').doc(from).set(
+        { comprobanteRecibidoAt: Timestamp.now(), nextFollowupAt: null },
+        { merge: true }
+      );
+    } catch (e) {
+      console.error('[WEBHOOK] Error marcando comprobante recibido:', e);
+    }
+
     // Reenviar el comprobante al admin para verificar monto y banco
     if (mediaId) {
       if (messageType === 'document') {
@@ -1268,9 +1288,10 @@ export async function POST(request: NextRequest) {
       if (!leadInfo.colonia) {
         console.warn('[WEBHOOK] Dirección incompleta — falta colonia. Abortando agendamiento.');
         notificarAdmin(
-          `⚠️ *Dirección incompleta — ${leadInfo.nombre}*\n📱 +${from}\n\n` +
-          `Tiene: "${leadInfo.zona}"\nFalta: colonia (y preferiblemente calle + número)\n\n` +
-          `Luz pedirá los datos faltantes.`
+          `🚨 *YA PAGÓ — falta dirección*\n\n` +
+          `👤 ${leadInfo.nombre} | 📱 +${from}\n\n` +
+          `Tiene: "${leadInfo.zona}"\nFalta: colonia (y de preferencia calle + número)\n\n` +
+          `Luz se la está pidiendo. Si no contesta, márcale tú — el depósito ya entró.`
         ).catch(e => console.error('[WEBHOOK] Error notificando admin dir incompleta:', e));
         // Permitir que Luz responda al cliente pidiendo los datos faltantes
         const reply = await generateReply(
@@ -1315,8 +1336,8 @@ export async function POST(request: NextRequest) {
           const plural = conflictos.length > 1;
           const conflictosTexto = conflictos.map(c => `${c.date} a las ${c.time}`).join(', ');
           notificarAdmin(
-            `⚠️ *Conflicto de horario — ${leadInfo.nombre}*\n\n` +
-            `📱 +${leadInfo.telefono}\n` +
+            `🚨 *YA PAGÓ — se cayeron sus fechas*\n\n` +
+            `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
             `De las 4 fechas acordadas, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: *${conflictosTexto}*.\n\n` +
             `Luz le está pidiendo opciones alternativas al alumno.`
           ).catch(e => console.error('[WEBHOOK] Error notif conflicto horario:', e));
@@ -1436,10 +1457,10 @@ export async function POST(request: NextRequest) {
         }
       } else {
         notificarAdmin(
-          `⚠️ *COMPROBANTE RECIBIDO — Horario pendiente*\n\n` +
+          `🚨 *YA PAGÓ — falta asignarle horario*\n\n` +
           `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
           `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
-          `No había suficientes slots disponibles. Asigna horario manualmente.`
+          `No había 4 espacios libres. Asígnale horario a mano — el depósito ya entró.`
         ).catch((e) => console.error('[WEBHOOK] Error notificando admin (sin slots):', e));
         syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
       }

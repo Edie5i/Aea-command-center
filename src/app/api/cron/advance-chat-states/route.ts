@@ -19,11 +19,16 @@ const FOLLOWUP_MS: Record<string, number> = {
   '7d':  7  * 24 * 60 * 60 * 1000,
 };
 
-// Un alumno con inscripción confirmada ya pagó: nunca lo enfríes ni le mandes
-// follow-ups de venta, por más días que lleve callado. La verdad es el pago, no
-// la conversación — mismo criterio que recalculateChatState en lib/chat-state.ts.
+// Quien ya pagó nunca se enfría ni recibe follow-ups de venta, por más días que
+// lleve callado. La verdad es el pago, no la conversación — mismo criterio que
+// recalculateChatState en lib/chat-state.ts.
+//
+// Cuenta el comprobante, no solo la inscripción confirmada: entre depositar y
+// confirmar puede pasar rato (dirección incompleta, conflicto de horario), y en
+// esa ventana el cron perseguía con mensajes de venta a alguien que ya había
+// pagado y acababa marcándolo como frío.
 function esInscrito(data: FirebaseFirestore.DocumentData): boolean {
-  return data.inscripcion?.status === 'confirmado';
+  return data.inscripcion?.status === 'confirmado' || !!data.comprobanteRecibidoAt;
 }
 
 function buildMsg2h(nombre: string | null, curso: string | null): string {
