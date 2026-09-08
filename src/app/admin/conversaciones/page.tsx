@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getConversations, type Conversation, type ChatState } from '@/lib/firestore';
+import { WhatsAppIcon } from '@/components/whatsapp-icon';
 import { nombreLead } from '@/lib/nombre-lead';
 import Link from 'next/link';
 import AutoRefresh from './AutoRefresh';
@@ -165,7 +166,10 @@ export default async function ConversacionesPage({
             // Sin esto, un alumno con nombre sólo en la inscripción salía como número anónimo.
             const { nombre: name, tieneNombre } = nombreLead(conv, conv.phone);
             const isRegistroLead = conv.source === 'registro_landing';
-            const waMsg = encodeURIComponent(`¡Hola ${tieneNombre ? name : ''}! 👋 Te escribo de Auto Escuela Americana. Vi que te registraste en nuestra página — ¿en qué te puedo ayudar?`);
+            const saludo = `¡Hola ${tieneNombre ? name : ''}! 👋 Te escribo de Auto Escuela Americana.`;
+            const waMsg = encodeURIComponent(isRegistroLead
+              ? `${saludo} Vi que te registraste en nuestra página — ¿en qué te puedo ayudar?`
+              : `${saludo} ¿En qué te puedo ayudar?`);
             const waUrl = `https://wa.me/${conv.phone}?text=${waMsg}`;
 
             return (
@@ -173,7 +177,7 @@ export default async function ConversacionesPage({
                 style={{ borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
                 <Link
                   href={`/admin/conversaciones/${conv.phone}?tab=${activeTab}`}
-                  className={`flex items-start gap-4 px-4 py-4 flex-1 min-w-0 transition-colors ${isRegistroLead ? 'pr-16' : ''}`}
+                  className="flex items-start gap-4 px-4 py-4 flex-1 min-w-0 pr-16 transition-colors"
                   style={{ background: needsAttention ? 'rgba(239,68,68,0.04)' : 'transparent' }}
                 >
                   {/* Urgency strip */}
@@ -208,9 +212,7 @@ export default async function ConversacionesPage({
                       </p>
                     )}
 
-                    {tieneNombre && (
-                      <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{phone}</p>
-                    )}
+                    <p className="font-mono text-sm font-semibold tracking-wider mt-0.5 text-slate-700">{phone}</p>
 
                     <p className="text-sm mt-1 line-clamp-2 leading-snug" style={{ color: '#64748b' }}>
                       {conv.lastSender === 'bot' ? '🤖 ' : '👤 '}
@@ -232,21 +234,16 @@ export default async function ConversacionesPage({
                   </div>
                 </Link>
 
-                {isRegistroLead && (
-                  <a
-                    href={waUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-colors shadow"
-                    style={{ background: 'rgba(22,163,74,0.85)' }}
-                    title="Escribir por WhatsApp"
-                  >
-                    <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.528 5.845L.057 23.617a.75.75 0 0 0 .921.921l5.773-1.471A11.943 11.943 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.896 0-3.674-.52-5.194-1.427l-.372-.22-3.862.985.999-3.754-.242-.386A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-                    </svg>
-                  </a>
-                )}
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-colors shadow"
+                  style={{ background: 'rgba(22,163,74,0.85)' }}
+                  title="Escribir por WhatsApp"
+                >
+                  <WhatsAppIcon className="w-5 h-5 text-white" />
+                </a>
               </div>
             );
           })

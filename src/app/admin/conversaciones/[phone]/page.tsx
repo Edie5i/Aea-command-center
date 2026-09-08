@@ -6,6 +6,7 @@ import Link from 'next/link';
 import FichaButton from './FichaButton';
 import ReplyBox from './ReplyBox';
 import StateActions from './StateActions';
+import { PhoneActions } from '../PhoneActions';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -72,7 +73,9 @@ export default async function ConversacionPage({
 
           <div className="flex-1 min-w-0">
             <p className="font-bold text-base leading-tight truncate text-slate-800">{name}</p>
-            <p className="text-sm leading-none mt-0.5" style={{ color: '#475569' }}>{dp}</p>
+            <div className="mt-1">
+              <PhoneActions phone={phone} display={dp} />
+            </div>
           </div>
 
           {inscripcion && (
