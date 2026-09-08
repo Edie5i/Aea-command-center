@@ -891,7 +891,8 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
       '`!pausa <número>` — Luz deja de responder al lead',
       '`!reanudar <número>` — Luz vuelve a responder al lead',
       '`!estado <número>` — Ver estado actual del lead',
-      '`!cerrar <número>` — Marcar conversación como cerrada',
+      '`!cerrar <número>` — Cerrar como perdido',
+      '`!inscrito <número>` — Cerrar como GANADO (ya pagó)',
       '',
       '_El número puede ser con o sin código de país (ej: 5512345678 o 525512345678)_',
     ].join('\n');
@@ -932,18 +933,25 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
     ].filter(Boolean).join('\n');
   }
 
-  if (cmd === '!cerrar') {
+  // Dos comandos y no uno con parámetro: escribiéndolos desde el celular, un
+  // '!cerrar 55... ganado' se presta a que se olvide la última palabra, y el
+  // default silencioso era contar como perdido a alguien que sí pagó.
+  if (cmd === '!cerrar' || cmd === '!inscrito') {
+    const gano = cmd === '!inscrito';
     const docId = await resolveDocId(db, targetPhone);
     const { updateChatState } = await import('@/lib/firestore');
     const { Timestamp } = await import('firebase-admin/firestore');
     await updateChatState(docId, {
       chatState: 'cerrado',
-      chatReason: 'Cerrado manualmente por admin',
+      chatReason: gano ? 'Inscrito — cerrado por admin' : 'Cerrado manualmente por admin',
       chatUrgency: 'ninguna',
       closedAt: Timestamp.now(),
-      closedOutcome: 'perdido',
+      closedOutcome: gano ? 'ganado' : 'perdido',
+      nextFollowupAt: null,
     }, 'manual');
-    return `✅ Conversación con +${dp} marcada como cerrada.`;
+    return gano
+      ? `✅ +${dp} marcado como *inscrito*. Cuenta como venta ganada.`
+      : `✅ Conversación con +${dp} cerrada como *perdida*.\n\n_Si en realidad se inscribió, usa *!inscrito ${dp}* para que cuente en las métricas._`;
   }
 
   return `❓ Comando desconocido: *${cmd}*\n\nEscribe *!ayuda* para ver los comandos disponibles.`;
