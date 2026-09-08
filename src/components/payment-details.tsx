@@ -44,6 +44,9 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 }
 
 export function PaymentDetails() {
+  // Se muestran sin espacios y desde la misma constante que copia el botón:
+  // así seleccionar a mano pega un número válido y solo hay un lugar que
+  // actualizar cuando cambien la cuenta o la tarjeta.
   const accountNumber = '0484695739';
   const clabe = '012180004846957399';
   const debitCard = '4152314404288527';
@@ -61,7 +64,7 @@ export function PaymentDetails() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Cuenta</p>
-                <p className="font-mono text-base text-slate-800 tracking-wider">048 469 5739</p>
+                <p className="font-mono text-base text-slate-800 tracking-wider">{accountNumber}</p>
               </div>
               <CopyBtn text={accountNumber} />
             </div>
@@ -70,7 +73,7 @@ export function PaymentDetails() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>CLABE Interbancaria</p>
-                <p className="font-mono text-sm text-slate-800 tracking-wider">012 180 00484695739 9</p>
+                <p className="font-mono text-sm text-slate-800 tracking-wider">{clabe}</p>
               </div>
               <CopyBtn text={clabe} />
             </div>
@@ -86,7 +89,7 @@ export function PaymentDetails() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-widest mb-0.5" style={{ color: '#475569' }}>Tarjeta de Débito BBVA</p>
-              <p className="font-mono text-base text-slate-800 tracking-wider">4152 3144 0428 8527</p>
+              <p className="font-mono text-base text-slate-800 tracking-wider">{debitCard}</p>
             </div>
             <CopyBtn text={debitCard} />
           </div>
