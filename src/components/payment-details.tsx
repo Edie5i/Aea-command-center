@@ -128,6 +128,9 @@ export function PaymentDetails() {
           <p className="text-sm" style={{ color: '#64748b' }}>
             Al realizar tu pago, pon en el concepto o referencia el <strong style={{ color: '#0f172a' }}>nombre completo del alumno</strong>, o el <strong style={{ color: '#0f172a' }}>número de factura</strong> si es un pago empresarial.
           </p>
+          <p className="text-sm mt-1.5" style={{ color: '#64748b' }}>
+            Los precios <strong style={{ color: '#0f172a' }}>no incluyen IVA</strong>.
+          </p>
         </div>
       </div>
 
