@@ -23,8 +23,8 @@ export function PhoneActions({
   const waUrl = `https://wa.me/${phone}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
 
   return (
-    <div className="flex items-center gap-1.5">
-      <span className="font-mono text-base font-semibold tracking-wider text-slate-800">
+    <div className="flex items-center gap-2">
+      <span className="font-mono text-xl font-bold tracking-wider text-slate-800">
         {display}
       </span>
 
@@ -37,11 +37,11 @@ export function PhoneActions({
         }}
         aria-label="Copiar número"
         title="Copiar número"
-        className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border transition-colors"
+        className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center border transition-colors"
         style={copied
           ? { background: 'rgba(16,185,129,0.12)', borderColor: 'rgba(16,185,129,0.35)', color: '#059669' }
           : { background: 'white', borderColor: 'rgba(148,163,184,0.3)', color: '#64748b' }}>
-        {copied ? <Check className="w-4 h-4" /> : <ClipboardCopy className="w-4 h-4" />}
+        {copied ? <Check className="w-[18px] h-[18px]" /> : <ClipboardCopy className="w-[18px] h-[18px]" />}
       </button>
 
       <a
@@ -50,9 +50,9 @@ export function PhoneActions({
         rel="noopener noreferrer"
         aria-label="Abrir chat directo en WhatsApp"
         title="Abrir chat directo en WhatsApp"
-        className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white transition-colors"
+        className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-white transition-colors"
         style={{ background: '#25D366' }}>
-        <WhatsAppIcon className="w-4 h-4" />
+        <WhatsAppIcon className="w-[18px] h-[18px]" />
       </a>
     </div>
   );

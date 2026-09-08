@@ -73,9 +73,6 @@ export default async function ConversacionPage({
 
           <div className="flex-1 min-w-0">
             <p className="font-bold text-base leading-tight truncate text-slate-800">{name}</p>
-            <div className="mt-1">
-              <PhoneActions phone={phone} display={dp} />
-            </div>
           </div>
 
           {inscripcion && (
@@ -83,6 +80,12 @@ export default async function ConversacionPage({
               <FichaButton data={inscripcion} />
             </div>
           )}
+        </div>
+
+        {/* En su propio renglón: en la fila del nombre competía por el ancho
+            con el botón de la ficha y quedaba apretado en pantalla de celular. */}
+        <div className="mt-2">
+          <PhoneActions phone={phone} display={dp} />
         </div>
 
         {needsAttention && (

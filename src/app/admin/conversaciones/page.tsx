@@ -212,7 +212,7 @@ export default async function ConversacionesPage({
                       </p>
                     )}
 
-                    <p className="font-mono text-sm font-semibold tracking-wider mt-0.5 text-slate-700">{phone}</p>
+                    <p className="font-mono text-base font-bold tracking-wider mt-0.5 text-slate-800">{phone}</p>
 
                     <p className="text-sm mt-1 line-clamp-2 leading-snug" style={{ color: '#64748b' }}>
                       {conv.lastSender === 'bot' ? '🤖 ' : '👤 '}
