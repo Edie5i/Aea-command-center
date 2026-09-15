@@ -26,6 +26,17 @@ const PHONE_ID  = process.env.META_PHONE_NUMBER_ID ?? '';
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const GEMINI_TIMEOUT_MS = 60_000;
 
+/**
+ * Vía Urb: la app del instructor.
+ *
+ * Marco califica platicando; de ahí en adelante todo pasa en la app —
+ * registro, documentos y el filtro. Él solo entrega la liga, y como ya guarda
+ * las respuestas en `candidatos_instructor`, la app las lee y el candidato no
+ * contesta las mismas siete preguntas otra vez.
+ */
+const VIAURB_URL =
+  process.env.VIAURB_URL ?? 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app';
+
 // ── Historial en memoria (TTL 4h — las conversaciones de reclutamiento son más largas) ──
 type MsgItem = { role: 'user' | 'marco'; text: string };
 const chats = new Map<string, { messages: MsgItem[]; lastActivity: number }>();
@@ -90,9 +101,17 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 
 **Si califica (todo ok):**
 - Felicitarlo genuinamente, no exageradamente
+- Pasarle la liga de la app para que suba sus documentos: ${VIAURB_URL}/registro
+- Decirle qué necesita a la mano: INE, licencia y comprobante de domicilio, con el celular
+- Aclararle que ahí ya no le van a preguntar lo mismo: sus datos ya están, solo revisa y sube
 - Decirle que el siguiente paso es una evaluación de manejo de 30 minutos en nuestras instalaciones — es para conocerse y ver cómo explica mientras maneja
 - Usar la herramienta agendarEvaluacion para buscar fecha y hora
 - Confirmar la cita con dirección: Av. Universidad 1404, Col. Axotla, CDMX
+
+**Sobre la liga:**
+- Se manda UNA vez, cuando ya calificó. No antes: sin sus datos guardados, la app le preguntaría todo de nuevo
+- Si dice que no le abre o que se le perdió, se la vuelves a mandar tal cual, sin cambiarle nada
+- Entra con el mismo WhatsApp desde el que te escribe; le llega un código por ahí mismo
 
 **Si NO califica:**
 - Ser honesto sin ser grosero
