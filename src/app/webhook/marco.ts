@@ -13,6 +13,13 @@ import {
 } from '@/lib/firestore';
 import type { CandidatoInstructor } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
+import {
+  esquemaCandidato,
+  fusionar,
+  faltan,
+  PROMPT_EXTRACTOR,
+  type DatosCandidato,
+} from '@/lib/extraer-candidato';
 
 const WA_TOKEN  = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID  = process.env.META_PHONE_NUMBER_ID ?? '';
@@ -171,6 +178,53 @@ async function generateMarcoReply(
   return Promise.race([generate, timeout]);
 }
 
+// ── Extracción de los datos del candidato ───────────────────────────────────
+
+/**
+ * Lee la conversación y guarda lo que el candidato ya contestó.
+ *
+ * Marco conversaba y tiraba las respuestas: solo escribía `estado`. Así no
+ * había forma de revisar por qué se rechazó a alguien, ni de pasarle esos
+ * datos a Vía Urb.
+ *
+ * Es una segunda llamada al modelo, aparte de la respuesta: son trabajos
+ * distintos y mezclarlos empeora los dos. Se deja de llamar en cuanto los
+ * siete campos están llenos, así que no se paga de más por conversación.
+ *
+ * Nunca lanza: perder un dato no debe tumbar la respuesta al candidato.
+ */
+async function guardarRespuestas(
+  phone: string,
+  candidato: CandidatoInstructor | null,
+  history: MsgItem[],
+  userMsg: string,
+  marcoMsg: string
+): Promise<void> {
+  try {
+    const actual = (candidato ?? {}) as DatosCandidato;
+    if (faltan(actual).length === 0) return;
+
+    const conversacion = [...history, { role: 'user' as const, text: userMsg }, { role: 'marco' as const, text: marcoMsg }]
+      .map(m => `${m.role === 'user' ? 'Candidato' : 'Reclutador'}: ${m.text}`)
+      .join('\n');
+
+    const r = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
+      system: PROMPT_EXTRACTOR,
+      prompt: conversacion,
+      output: { schema: esquemaCandidato },
+    });
+
+    const cambios = fusionar(actual, r.output);
+    if (Object.keys(cambios).length > 0) {
+      await upsertCandidato(phone, cambios);
+      console.log(`[MARCO] datos de +${phone}:`, Object.keys(cambios).join(', '));
+    }
+  } catch (e) {
+    console.error('[MARCO] no se pudieron extraer los datos de', phone, e);
+  }
+}
+
 // ── Handler para instructores activos ───────────────────────────────────────
 
 async function handleInstructor(
@@ -312,20 +366,15 @@ async function handleInstructor(
 
 // ── Detector de intent: ¿es candidato a instructor? ─────────────────────────
 
-// Palabras sueltas como "instructor", "dar clases" o "enseñar" son vocabulario
-// normal de un cliente de la autoescuela (Luz las usa todo el tiempo) — deben
-// ir acompañadas de contexto de "busco trabajo" para no secuestrar una venta
-// normal (confirmado en producción: le pasó a un lead real, quedó atrapado
-// hablando con Marco a mitad de agendar su curso).
-const INSTRUCTOR_REGEX = /ser (instructor|maestro)|trabajar (de|como) instructor|puesto de instructor|vacante (de|para) instructor|instructor.*(vacante|empleo|trabajo)|quiero aplicar.*(instructor|vacante)|trabajar.*manejo|conductor.*trabajo|uber.*trabajo|didi.*trabajo|reclutar/i;
-
-export function esIntentInstructor(text: string): boolean {
-  return INSTRUCTOR_REGEX.test(text);
-}
+// El detector vive en lib/intent-instructor.ts: es lógica pura y ahí sí se
+// puede probar. Falla en las dos direcciones —un candidato que cae con Luz
+// se pierde, un cliente que cae con Marco es una venta secuestrada— así que
+// tiene pruebas de los dos lados.
+export { esIntentInstructor } from '@/lib/intent-instructor';
 
 export async function esCandidatoExistente(phone: string): Promise<boolean> {
   const c = await getCandidato(phone);
-  // Un candidato rechazado (incluyendo falsos positivos de INSTRUCTOR_REGEX)
+  // Un candidato rechazado (incluyendo falsos positivos del detector)
   // no debe quedar atrapado con Marco para siempre — puede volver a Luz.
   return c !== null && c.estado !== 'rechazado';
 }
@@ -354,8 +403,6 @@ export async function handleMarco(
       ).catch(() => {});
     }
 
-    // Detectar si Marco extrajo datos relevantes en el mensaje para actualizar Firestore
-    // (actualización pasiva — Marco decide en el prompt, aquí solo guardamos estado)
     const updates: Record<string, unknown> = { estado: 'calificando' };
     if (history.length >= 12) updates.estado = 'calificado';
 
@@ -391,6 +438,11 @@ export async function handleMarco(
     }
 
     await upsertCandidato(phone, updates);
+
+    // Se guarda lo que haya contestado. Va antes de responderle para que el
+    // dato quede aunque el envío falle, y no lanza si el modelo no coopera.
+    await guardarRespuestas(phone, candidato, history, userMsg, reply);
+
     saveChat(phone, userMsg, reply);
     await sendWA(phone, reply);
 
