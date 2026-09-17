@@ -15,8 +15,19 @@ const SECTIONS = [
     ],
   },
   {
+    title: 'Vía Urb — instructores',
+    links: [
+      { label: 'Registro de instructores', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/registro' },
+      { label: 'Candidatos por evaluar', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/candidatos' },
+      { label: 'Reservas por cerrar', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/reservas' },
+      { label: 'Cobros de instructores', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/pagos' },
+      { label: 'Aviso de privacidad (instructores)', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/privacidad' },
+    ],
+  },
+  {
     title: 'Para alumnos',
     links: [
+      { label: 'Datos de pago', url: 'https://app.autoescuelaamericana.com/pagos' },
       { label: 'Agendar clases', url: 'https://app.autoescuelaamericana.com/agenda' },
       { label: 'Registro', url: 'https://app.autoescuelaamericana.com/registro' },
       { label: 'Evaluación', url: 'https://app.autoescuelaamericana.com/evaluacion' },

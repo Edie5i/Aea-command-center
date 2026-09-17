@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getRecentInscripciones } from '@/lib/firestore';
 import type { InscripcionData } from '@/lib/firestore';
 import FichaButton from '@/app/admin/conversaciones/[phone]/FichaButton';
+import { CobroButton } from './CobroButton';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -131,6 +132,7 @@ export default async function FichasPage() {
                 <div className="rounded-xl p-2" style={{ background: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.2)' }}>
                   <FichaButton data={ins} />
                 </div>
+                <CobroButton nombre={ins.nombre} curso={ins.curso} />
                 <Link
                   href={`/admin/conversaciones/${ins.phone}`}
                   className="block text-center text-xs font-medium py-1"
