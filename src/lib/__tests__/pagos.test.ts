@@ -9,26 +9,32 @@ describe('tabla de precios', () => {
     }
   });
 
-  it('el monto de Openpay es coherente con el saldo y su recargo', () => {
-    // Esta es la prueba que habría cachado lo del Intermedio antes de que se
-    // cotizara mal durante meses.
-    const sospechosos: string[] = [];
+  it('cada curso cobra su recargo de 3 MSI, salvo los de promoción', () => {
+    // Un monto de Openpay mal escrito se paga en comisión de cada venta. Esto
+    // lo caza antes de que llegue a un mensaje.
+    const mal: string[] = [];
 
     for (const c of CURSOS) {
-      const saldo = c.total - RESERVA;
-      const esperado = saldo * (1 + RECARGO_MSI);
+      if (c.sinRecargo) continue;
+      const esperado = (c.total - RESERVA) * (1 + RECARGO_MSI);
       // ±1.5% para absorber redondeos a peso cerrado.
       if (Math.abs(c.openpay - esperado) / esperado > 0.015) {
-        sospechosos.push(`${c.nombre}: openpay ${c.openpay}, se esperaba ~${Math.round(esperado)}`);
+        mal.push(`${c.nombre}: openpay ${c.openpay}, se esperaba ~${Math.round(esperado)}`);
       }
     }
 
-    // Intermedio está mal a propósito hasta que Lalo decida si es error de
-    // captura o una decisión comercial. Cuando se resuelva, esta lista queda
-    // vacía y la prueba vuelve a proteger toda la tabla.
-    expect(sospechosos).toEqual([
-      'Intermedio: openpay 2210, se esperaba ~2409',
-    ]);
+    expect(mal).toEqual([]);
+  });
+
+  it('un curso en promoción cobra el saldo limpio', () => {
+    // Si alguien le quita la promoción a Intermedio, que sea a propósito: esta
+    // prueba falla y lo obliga a mirar el precio.
+    const promos = CURSOS.filter(c => c.sinRecargo);
+    expect(promos.map(c => c.nombre)).toEqual(['Intermedio']);
+
+    for (const c of promos) {
+      expect(c.openpay, c.nombre).toBe(c.total - RESERVA);
+    }
   });
 
   it('los tres cursos de $5,600 cotizan igual', () => {
@@ -95,5 +101,18 @@ describe('mensajeCobro', () => {
 
   it('aguanta un nombre vacío', () => {
     expect(() => mensajeCobro('', undefined)).not.toThrow();
+  });
+});
+
+describe('promoción en el mensaje', () => {
+  it('a Intermedio se le dice que no lleva recargo', () => {
+    const m = mensajeCobro('Ana', 'Curso Intermedio');
+    expect(m).toContain('sin recargo');
+    expect(m).toContain('$2,210');
+  });
+
+  it('a los demás no se les promete eso', () => {
+    const m = mensajeCobro('Ana', 'Curso Principiante (Automático)');
+    expect(m).not.toContain('sin recargo');
   });
 });

@@ -1,15 +1,15 @@
 /**
  * Cuánto se cobra y cómo, en un solo lugar.
  *
- * Estas cifras vivían únicamente dentro del prompt de Luz, como texto suelto.
- * Ahí nadie las puede revisar ni probar: el 2026-09-16 se descubrió que el
- * monto de Openpay del Curso Intermedio ($2,210) es exactamente el saldo sin
- * recargo, mientras todos los demás llevan ~9% por los 3 meses sin intereses.
- * Está marcado abajo; se conserva tal cual hasta que se decida si es error.
+ * Estas cifras vivían únicamente dentro del prompt de Luz, como texto suelto,
+ * donde nadie las podía revisar ni probar.
  *
  * Con los datos aquí, `pagos.test.ts` verifica en cada corrida que el recargo
- * sea consistente. Una cifra mal escrita revienta en las pruebas y no en la
- * comisión de una venta.
+ * de los 3 MSI sea consistente. Una cifra mal escrita revienta en las pruebas
+ * y no en la comisión de una venta.
+ *
+ * La única excepción es deliberada y va marcada con `sinRecargo`: ver el
+ * Curso Intermedio.
  */
 
 import { CUENTA, TIENDAS, tarjetaConEspacios } from './cuenta';
@@ -24,12 +24,19 @@ export interface Curso {
   total: number;
   /** Saldo a 3 MSI por liga de Openpay, ya con su recargo. */
   openpay: number;
+  /**
+   * Promoción: se absorbe la comisión de los 3 MSI y el alumno paga el saldo
+   * limpio. Va aquí y no como un número suelto para que se note que es una
+   * decisión y no un descuido — y para que la prueba del recargo lo exima sin
+   * tener que nombrarlo.
+   */
+  sinRecargo?: true;
 }
 
 export const CURSOS: Curso[] = [
   { nombre: 'Avanzado',       total: 1900, openpay: 1319 },
-  // ⚠️ Sin recargo, a diferencia de todos los demás. Ver el encabezado.
-  { nombre: 'Intermedio',     total: 2900, openpay: 2210 },
+  // Promoción vigente: paga el saldo sin el ~9% de los meses sin intereses.
+  { nombre: 'Intermedio',     total: 2900, openpay: 2210, sinRecargo: true },
   { nombre: 'Estándar',       total: 3400, openpay: 2955 },
   { nombre: 'Automático',     total: 3900, openpay: 3500 },
   { nombre: 'Moto',           total: 4300, openpay: 3936 },
@@ -101,7 +108,10 @@ export function mensajeCobro(nombre: string, curso: string | undefined): string 
   if (c) {
     lineas.push(
       '',
-      `Si prefieres a 3 meses sin intereses, el saldo queda en ${pesos(c.openpay)} por liga de Openpay. Pídemela y te la mando.`
+      c.sinRecargo
+        ? // Vale la pena decirlo: es lo único que distingue a este curso al pagar.
+          `Si prefieres a 3 meses sin intereses, el saldo se queda igual, en ${pesos(c.openpay)} — sin recargo. Pídeme la liga y te la mando.`
+        : `Si prefieres a 3 meses sin intereses, el saldo queda en ${pesos(c.openpay)} por liga de Openpay. Pídemela y te la mando.`
     );
   }
 
