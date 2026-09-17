@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Banknote, Landmark, MessageSquare, CreditCard, Info, Check, ClipboardCopy } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/whatsapp-icon';
+import { CUENTA } from '@/lib/cuenta';
 import Image from 'next/image';
 
 const CARD: React.CSSProperties = {
@@ -48,9 +49,9 @@ export function PaymentDetails() {
   // Se muestran sin espacios y desde la misma constante que copia el botón:
   // así seleccionar a mano pega un número válido y solo hay un lugar que
   // actualizar cuando cambien la cuenta o la tarjeta.
-  const accountNumber = '0484695739';
-  const clabe = '012180004846957399';
-  const debitCard = '4152314404288527';
+  const accountNumber = CUENTA.numero;
+  const clabe = CUENTA.clabe;
+  const debitCard = CUENTA.tarjeta;
   // El QR solo sirve si la página se ve en computadora: desde el celular nadie
   // puede escanear su propia pantalla, y la liga casi siempre se abre ahí.
   // Por eso manda el botón, y el QR queda como alternativa en pantalla grande.

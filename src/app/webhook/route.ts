@@ -4,6 +4,7 @@ import { AEA_TOOLS } from '@/ai/tools/aea-tools';
 import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { checkCoverage, type CoverageResult } from '@/lib/coverage';
+import { TIENDAS, tarjetaConEspacios } from '@/lib/cuenta';
 import { normalizePhone } from '@/lib/phone';
 import { notificarAdmin } from '@/lib/adminNotify';
 
@@ -154,7 +155,7 @@ Para apartar tu lugar son $690 — al hacer la transferencia aceptas nuestros t�
 BBVA | Eduardo W. Czaplewski (cuenta PYME)
 Cuenta: 048 469 5739 | CLABE: 012 180 00484695739 9
 
-(Si no puedes transferir, también se recibe en Oxxo, Walmart o 7-Eleven con la tarjeta 4152 3144 0428 8527)
+(Si no puedes transferir, también se recibe en ${TIENDAS} con la tarjeta ${tarjetaConEspacios()})
 
 En el concepto pon tu nombre completo y mándame el comprobante por aquí. ¿Alguna duda?"
 
