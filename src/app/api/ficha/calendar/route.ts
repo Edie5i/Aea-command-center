@@ -47,12 +47,12 @@ export async function POST(request: NextRequest) {
 
     if (sendFicha && fichaPayload) {
       const payload = fichaPayload;
-      import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
-        enviarFichaAdminWhatsApp(payload)
+      import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
+        enviarFicha(payload)
           .catch(e => console.error('[FICHA] Error enviando ficha PDF al admin:', e));
-        enviarFichaAdminWhatsApp(payload, payload.telefono)
+        enviarFicha(payload, payload.telefono)
           .catch(e => console.error('[FICHA] Error enviando ficha PDF al alumno:', e));
-      }).catch(e => console.error('[FICHA] Error importando ficha-pdf-server:', e));
+      }).catch(e => console.error('[FICHA] Error importando ficha-enlace:', e));
     }
 
     return NextResponse.json({

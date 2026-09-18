@@ -1483,7 +1483,7 @@ export async function POST(request: NextRequest) {
           });
 
           // Enviar ficha PDF al admin y al alumno
-          import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
+          import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
             const fichaPayload = {
               nombre: leadInfo.nombre,
               telefono: from,
@@ -1491,11 +1491,11 @@ export async function POST(request: NextRequest) {
               transmision: leadInfo.transmision,
               fechas: fichaFechas,
             };
-            enviarFichaAdminWhatsApp(fichaPayload)
+            enviarFicha(fichaPayload)
               .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al admin:', e));
-            enviarFichaAdminWhatsApp(fichaPayload, from)
+            enviarFicha(fichaPayload, from)
               .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al alumno:', e));
-          }).catch(e => console.error('[WEBHOOK] Error importando ficha-pdf-server:', e));
+          }).catch(e => console.error('[WEBHOOK] Error importando ficha-enlace:', e));
 
           // Ficha de inscripción para el cliente (WhatsApp)
           const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12

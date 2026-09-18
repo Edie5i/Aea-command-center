@@ -1,91 +1,64 @@
-import { NextRequest, NextResponse } from 'next/server';
+/**
+ * Manda al alumno el enlace de su ficha por WhatsApp, desde el panel.
+ *
+ * Antes recibía un PDF en base64 que el navegador armaba con jsPDF y lo subía
+ * a Meta como documento. Ahora manda la página: se abre en cualquier teléfono
+ * sin lector de PDF, se reenvía como texto, y muestra el estado de HOY en vez
+ * de una foto del día que se generó.
+ *
+ * ── Dos cosas que cambiaron además del formato ──────────────────────────
+ *
+ * 1. Pide el PIN de admin. Antes no: cualquiera con la URL podía hacer POST
+ *    con un teléfono y un archivo, y mandar lo que quisiera desde el número de
+ *    la escuela. La ruta hermana (`/api/ficha/pdf`) sí lo pedía.
+ *
+ * 2. Los datos salen de Firestore, no del cuerpo de la petición. El navegador
+ *    mandaba nombre, zona y fechas; si la pestaña llevaba horas abierta, se le
+ *    mandaba al alumno información vieja — y cualquiera podía inventarlos.
+ */
 
-const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
-const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { getInscripcionData } from '@/lib/firestore';
+import { enviarFicha } from '@/lib/ficha-enlace';
+
+const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
 export async function POST(req: NextRequest) {
-  const { phone, pdfBase64, filename, caption, nombre, zona, curso, transmision, fechas } = (await req.json()) as {
-    phone: string;
-    pdfBase64: string;
-    filename: string;
-    caption?: string;
-    nombre?: string;
-    zona?: string;
-    curso?: string;
-    transmision?: string;
-    fechas?: { date: string; time: string }[];
+  const cookieStore = await cookies();
+  if (cookieStore.get('admin_pin')?.value !== ADMIN_PIN) {
+    return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 });
+  }
+
+  const { phone } = (await req.json()) as { phone?: string };
+  if (!phone) {
+    return NextResponse.json({ ok: false, error: 'Falta el teléfono' }, { status: 400 });
+  }
+
+  const data = await getInscripcionData(phone);
+  if (!data) {
+    return NextResponse.json({ ok: false, error: 'No se encontró la ficha' }, { status: 404 });
+  }
+
+  const ficha = {
+    nombre: data.nombre,
+    telefono: data.telefono,
+    zona: data.zona,
+    curso: data.curso,
+    transmision: data.transmision,
+    fechas: data.fechas,
   };
 
-  if (!phone || !pdfBase64 || !filename) {
-    return NextResponse.json({ ok: false, error: 'Faltan parámetros' }, { status: 400 });
-  }
-  if (!WA_TOKEN || !PHONE_ID) {
-    return NextResponse.json({ ok: false, error: 'WhatsApp no configurado' }, { status: 500 });
-  }
-
-  // 1. Subir PDF a WhatsApp Media API
-  const pdfBuffer = Buffer.from(pdfBase64, 'base64');
-  const formData = new FormData();
-  formData.append('messaging_product', 'whatsapp');
-  formData.append('type', 'application/pdf');
-  formData.append(
-    'file',
-    new Blob([pdfBuffer], { type: 'application/pdf' }),
-    filename
-  );
-
-  const uploadRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/media`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${WA_TOKEN}` },
-    body: formData,
-  });
-
-  if (!uploadRes.ok) {
-    const err = await uploadRes.text();
-    console.error('[send-whatsapp] Upload error:', err);
-    return NextResponse.json({ ok: false, error: 'Error subiendo PDF a WhatsApp' }, { status: 502 });
+  try {
+    await enviarFicha(ficha, data.telefono);
+  } catch (e) {
+    console.error('[FICHA] error mandando el enlace al alumno:', e);
+    return NextResponse.json({ ok: false, error: 'No se pudo enviar' }, { status: 502 });
   }
 
-  const { id: mediaId } = (await uploadRes.json()) as { id: string };
-
-  // 2. Enviar documento al número del lead
-  const sendRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_ID}/messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: phone,
-      type: 'document',
-      document: {
-        id: mediaId,
-        filename,
-        caption: caption ?? '📋 Tu ficha — Auto Escuela Americana',
-      },
-    }),
-  });
-
-  if (!sendRes.ok) {
-    const err = await sendRes.text();
-    console.error('[send-whatsapp] Send error:', err);
-    return NextResponse.json({ ok: false, error: 'Error enviando documento por WhatsApp' }, { status: 502 });
-  }
-
-  // Mirror al admin — el botón antes solo le mandaba al alumno, sin que a
-  // Eduardo le llegara copia ni confirmación de que se envió.
-  if (nombre) {
-    const { enviarFichaAdminWhatsApp } = await import('@/lib/ficha-pdf-server');
-    enviarFichaAdminWhatsApp({
-      nombre,
-      telefono: phone,
-      zona: zona ?? '',
-      curso,
-      transmision,
-      fechas: fechas ?? [],
-    }).catch((e) => console.error('[send-whatsapp] Error en mirror al admin:', e));
-  }
+  // Copia al admin: antes el botón solo le mandaba al alumno y no quedaba
+  // constancia de que se hubiera mandado.
+  enviarFicha(ficha).catch(e => console.error('[FICHA] error en la copia al admin:', e));
 
   return NextResponse.json({ ok: true });
 }

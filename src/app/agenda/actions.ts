@@ -66,12 +66,12 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
 
     // Igual que en el flujo de Luz: manda el PDF al alumno y, en paralelo, al
     // admin (con respaldo de link si la ventana de 24h está cerrada).
-    import('@/lib/ficha-pdf-server').then(({ enviarFichaAdminWhatsApp }) => {
-      enviarFichaAdminWhatsApp(fichaPayload)
+    import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
+      enviarFicha(fichaPayload)
         .catch(e => console.error('[AGENDA] Error enviando ficha PDF al admin:', e));
-      enviarFichaAdminWhatsApp(fichaPayload, phone)
+      enviarFicha(fichaPayload, phone)
         .catch(e => console.error('[AGENDA] Error enviando ficha PDF al alumno:', e));
-    }).catch(e => console.error('[AGENDA] Error importando ficha-pdf-server:', e));
+    }).catch(e => console.error('[AGENDA] Error importando ficha-enlace:', e));
 
     return { success: true, message: result.message, error: null };
   } catch (error) {
