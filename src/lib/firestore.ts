@@ -365,6 +365,8 @@ export interface CandidatoInstructor {
   rating?: number;
   transmisiones?: 'estandar' | 'automatico' | 'ambas';
   licenciaB?: boolean;
+  /** Coche para dar las clases: se dan en el del instructor, no en uno de la escuela. */
+  coche?: boolean;
   zonas?: string;
   disponibilidad?: string;
   estado: EstadoCandidato;

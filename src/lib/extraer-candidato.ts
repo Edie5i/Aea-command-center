@@ -2,7 +2,7 @@
  * Los datos que Marco pregunta, guardados.
  *
  * Marco conversaba, decidía y tiraba las respuestas: solo escribía `estado`.
- * Al 2026-09-15 los 5 candidatos reales tenían los siete campos vacíos, así
+ * Al 2026-09-15 los 5 candidatos reales tenían los campos vacíos, así
  * que no había forma de saber por qué se rechazó a nadie, ni de pasarle esos
  * datos a Vía Urb.
  *
@@ -22,6 +22,10 @@ export const esquemaCandidato = z.object({
     .nullable()
     .describe('Qué transmisión maneja'),
   licenciaB: z.boolean().nullable().describe('Si tiene licencia tipo B vigente'),
+  coche: z
+    .boolean()
+    .nullable()
+    .describe('Si tiene coche para dar las clases — las clases se dan en el suyo'),
   zonas: z.string().nullable().describe('Colonias o zonas de CDMX donde se mueve'),
   disponibilidad: z
     .string()
@@ -37,6 +41,7 @@ export interface DatosCandidato {
   rating?: number;
   transmisiones?: 'estandar' | 'automatico' | 'ambas';
   licenciaB?: boolean;
+  coche?: boolean;
   zonas?: string;
   disponibilidad?: string;
 }
@@ -47,6 +52,7 @@ export const CAMPOS: Array<keyof DatosCandidato> = [
   'rating',
   'transmisiones',
   'licenciaB',
+  'coche',
   'zonas',
   'disponibilidad',
 ];
@@ -64,6 +70,7 @@ function valido(campo: keyof DatosCandidato, v: unknown): boolean {
     case 'rating':
       return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 5;
     case 'licenciaB':
+    case 'coche':
       return typeof v === 'boolean';
     case 'transmisiones':
       return v === 'estandar' || v === 'automatico' || v === 'ambas';
@@ -104,5 +111,6 @@ Reglas:
 - "manejo los dos" o "estándar y automático" es "ambas".
 - El rating es de 0 a 5 (Uber o DiDi). Si dice "4.8 estrellas", es 4.8.
 - La licencia tipo B es la azul de conductor profesional. Solo true si dijo que SÍ la tiene vigente.
+- El coche es el suyo, el que usa para trabajar: las clases se dan en él. true solo si dijo que tiene uno; si dijo que maneja uno rentado o prestado y puede usarlo, también es true. Si no se habló del tema, null.
 - Los años son de manejar en ciudad, en número. "Como 6" es 6; "toda mi vida" es null.
 - Las zonas y la disponibilidad van tal como las describió, en pocas palabras.`;

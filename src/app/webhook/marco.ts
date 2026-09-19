@@ -32,7 +32,7 @@ const GEMINI_TIMEOUT_MS = 60_000;
  * Marco califica platicando; de ahí en adelante todo pasa en la app —
  * registro, documentos y el filtro. Él solo entrega la liga, y como ya guarda
  * las respuestas en `candidatos_instructor`, la app las lee y el candidato no
- * contesta las mismas siete preguntas otra vez.
+ * contesta las mismas ocho preguntas otra vez.
  */
 const VIAURB_URL =
   process.env.VIAURB_URL ?? 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app';
@@ -96,8 +96,9 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 3. ¿Cuál es tu rating en Uber o DiDi? (necesitas 4.5 o más)
 4. ¿Manejas estándar, automático o los dos?
 5. ¿Tienes licencia tipo B vigente? (la azul de conductor profesional)
-6. ¿En qué colonias o zonas de CDMX te mueves normalmente?
-7. ¿Puedes tener disponibilidad entre semana en horario de mañana o tarde?
+6. ¿Tienes coche para dar las clases? (las clases se dan en el suyo, el mismo con el que trabaja — la escuela no presta vehículo; sin coche no puede dar clases)
+7. ¿En qué colonias o zonas de CDMX te mueves normalmente?
+8. ¿Puedes tener disponibilidad entre semana en horario de mañana o tarde?
 
 **Si califica (todo ok):**
 - Felicitarlo genuinamente, no exageradamente
@@ -115,7 +116,7 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 
 **Si NO califica:**
 - Ser honesto sin ser grosero
-- Decirle exactamente qué falta (rating bajo, poco tiempo manejando, sin licencia B)
+- Decirle exactamente qué falta (rating bajo, poco tiempo manejando, sin licencia B, sin coche)
 - Dejar la puerta abierta: "cuando tengas X, escríbeme y vemos"
 - NO lo descartes si solo falta un punto menor — usa criterio
 
@@ -180,6 +181,7 @@ async function generateMarcoReply(
         aniosManejando: candidato.aniosManejando,
         transmisiones: candidato.transmisiones,
         licenciaB: candidato.licenciaB,
+        coche: candidato.coche,
       })}]`
     : '';
 

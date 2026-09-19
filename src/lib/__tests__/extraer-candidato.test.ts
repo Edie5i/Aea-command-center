@@ -8,12 +8,13 @@ const completo = {
   rating: 4.8,
   transmisiones: 'ambas' as const,
   licenciaB: true,
+  coche: true,
   zonas: 'Coyoacán',
   disponibilidad: 'mañanas entre semana',
 };
 
 describe('faltan', () => {
-  it('sin nada, faltan los siete', () => {
+  it('sin nada, faltan todos', () => {
     expect(faltan(vacio)).toHaveLength(CAMPOS.length);
   });
 
@@ -24,6 +25,9 @@ describe('faltan', () => {
   it('un false o un cero SÍ son dato', () => {
     expect(faltan({ licenciaB: false, aniosManejando: 0 })).not.toContain('licenciaB');
     expect(faltan({ licenciaB: false, aniosManejando: 0 })).not.toContain('aniosManejando');
+    // "no tengo coche" es una respuesta, y de las que descartan: si contara
+    // como faltante, Marco se la volvería a preguntar.
+    expect(faltan({ coche: false })).not.toContain('coche');
   });
 });
 
@@ -54,6 +58,21 @@ describe('fusionar — qué se escribe', () => {
   it('sin extracción, nada', () => {
     expect(fusionar(vacio, null)).toEqual({});
     expect(fusionar(vacio, undefined)).toEqual({});
+  });
+});
+
+describe('el coche', () => {
+  it('se guarda dicho o negado', () => {
+    expect(fusionar(vacio, { coche: true })).toEqual({ coche: true });
+    expect(fusionar(vacio, { coche: false })).toEqual({ coche: false });
+  });
+
+  it('si no se habló del tema, no se escribe', () => {
+    expect(fusionar(vacio, { coche: null })).toEqual({});
+  });
+
+  it('lo que no sea un sí o un no se descarta', () => {
+    expect(fusionar(vacio, { coche: 'tal vez' } as never)).toEqual({});
   });
 });
 
