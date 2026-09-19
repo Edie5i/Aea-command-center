@@ -11,13 +11,14 @@ import {
   getClasesDeInstructor,
   updateClaseEstado,
 } from '@/lib/firestore';
-import type { CandidatoInstructor } from '@/lib/firestore';
+import type { CandidatoInstructor, EstadoCandidato } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
 import {
   esquemaCandidato,
   fusionar,
   faltan,
   PROMPT_EXTRACTOR,
+  motivoDescarte,
   type DatosCandidato,
 } from '@/lib/extraer-candidato';
 
@@ -128,6 +129,16 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 - Máximo 2-3 párrafos por mensaje. Los conductores no tienen tiempo para textos largos.
 - Si alguien llega confundido (quiere tomar clases, no ser instructor) → redirige amable a Luz: "Para tomar clases escríbenos igual aquí, Luz te atiende 🙂"`;
 
+/**
+ * Cómo suena un rechazo cuando el motivo no es un booleano.
+ *
+ * Lista frágil a propósito de reconocer: el modelo no repite frases. Por eso
+ * es el segundo criterio y no el primero — lo que se puede leer del dato se
+ * lee del dato (`motivoDescarte`).
+ */
+const RECHAZO =
+  /no cumples|no calificas|no podemos avanzar|no tienes la licencia|rating muy bajo|no podr[íi]as aplicar|no puedes aplicar|no podemos seguir/i;
+
 // ── Herramienta: agendar evaluación ─────────────────────────────────────────
 
 async function buscarSlotEvaluacion(): Promise<{ fecha: string; hora: string } | null> {
@@ -213,6 +224,9 @@ async function generateMarcoReply(
  * siete campos están llenos, así que no se paga de más por conversación.
  *
  * Nunca lanza: perder un dato no debe tumbar la respuesta al candidato.
+ *
+ * Devuelve cómo quedaron los datos del candidato —lo que ya tenía más lo de
+ * este turno—, porque de ahí sale el descarte.
  */
 async function guardarRespuestas(
   phone: string,
@@ -220,10 +234,11 @@ async function guardarRespuestas(
   history: MsgItem[],
   userMsg: string,
   marcoMsg: string
-): Promise<void> {
+): Promise<DatosCandidato> {
+  const actual = (candidato ?? {}) as DatosCandidato;
+
   try {
-    const actual = (candidato ?? {}) as DatosCandidato;
-    if (faltan(actual).length === 0) return;
+    if (faltan(actual).length === 0) return actual;
 
     const conversacion = [...history, { role: 'user' as const, text: userMsg }, { role: 'marco' as const, text: marcoMsg }]
       .map(m => `${m.role === 'user' ? 'Candidato' : 'Reclutador'}: ${m.text}`)
@@ -236,13 +251,15 @@ async function guardarRespuestas(
       output: { schema: esquemaCandidato },
     });
 
-    const cambios = fusionar(actual, r.output);
-    if (Object.keys(cambios).length > 0) {
-      await upsertCandidato(phone, cambios);
-      console.log(`[MARCO] datos de +${phone}:`, Object.keys(cambios).join(', '));
+    const nuevos = fusionar(actual, r.output);
+    if (Object.keys(nuevos).length > 0) {
+      await upsertCandidato(phone, nuevos);
+      console.log(`[MARCO] datos de +${phone}:`, Object.keys(nuevos).join(', '));
     }
+    return { ...actual, ...nuevos };
   } catch (e) {
     console.error('[MARCO] no se pudieron extraer los datos de', phone, e);
+    return actual;
   }
 }
 
@@ -424,8 +441,22 @@ export async function handleMarco(
       ).catch(() => {});
     }
 
-    const updates: Record<string, unknown> = { estado: 'calificando' };
-    if (history.length >= 12) updates.estado = 'calificado';
+    /**
+     * El estado se calcula aquí y se escribe UNA vez, al final.
+     *
+     * Antes se escribía tres veces en el mismo turno —agendado, rechazado y
+     * este— y la última pisaba a las otras dos: un candidato recién agendado
+     * o recién rechazado volvía a `calificando` en la misma llamada. Por eso
+     * ninguno de los dos estados se veía nunca en Firestore.
+     */
+    const cambios: Partial<CandidatoInstructor> = {};
+    let estado: EstadoCandidato =
+      // Lo ya alcanzado no se pierde por seguir platicando.
+      candidato?.estado === 'evaluacion_agendada'
+        ? 'evaluacion_agendada'
+        : history.length >= 12
+          ? 'calificado'
+          : 'calificando';
 
     // Detectar si hay que agendar (Marco usará la frase clave)
     let reply = await generateMarcoReply(userMsg, history, phone);
@@ -437,11 +468,9 @@ export async function handleMarco(
         const nombre = candidato?.nombre ?? `+${phone}`;
         const ok = await agendarEvaluacion(phone, nombre, slot.fecha, slot.hora);
         if (ok) {
-          await upsertCandidato(phone, {
-            estado: 'evaluacion_agendada',
-            evaluacionFecha: slot.fecha,
-            evaluacionHora: slot.hora,
-          });
+          estado = 'evaluacion_agendada';
+          cambios.evaluacionFecha = slot.fecha;
+          cambios.evaluacionHora = slot.hora;
           const [y, m, d] = slot.fecha.split('-');
           reply += `\n\n📅 Quedas agendado para el *${d}/${m}/${y} a las ${slot.hora}* en Av. Universidad 1404, Col. Axotla, CDMX. Te espero.`;
           notificarAdmin(
@@ -453,16 +482,25 @@ export async function handleMarco(
       }
     }
 
-    // Detectar rechazo para marcar estado
-    if (/no cumples|no calificas|no podemos avanzar|no tienes la licencia|rating muy bajo/i.test(reply)) {
-      await upsertCandidato(phone, { estado: 'rechazado', razonRechazo: reply.slice(0, 200) });
-    }
-
-    await upsertCandidato(phone, updates);
-
     // Se guarda lo que haya contestado. Va antes de responderle para que el
     // dato quede aunque el envío falle, y no lanza si el modelo no coopera.
-    await guardarRespuestas(phone, candidato, history, userMsg, reply);
+    const datos = await guardarRespuestas(phone, candidato, history, userMsg, reply);
+
+    /**
+     * El descarte sale primero del dato y solo después del texto.
+     *
+     * `motivoDescarte` mira lo guardado: sin licencia B o sin coche no hay
+     * vuelta de hoja, lo diga Marco como lo diga. Las frases se quedan para
+     * lo que no es booleano —un rating bajo, poco tiempo manejando—, donde no
+     * hay más señal que lo que él escribió.
+     */
+    const motivo = motivoDescarte(datos) ?? (RECHAZO.test(reply) ? reply.slice(0, 200) : null);
+    if (motivo) {
+      estado = 'rechazado';
+      cambios.razonRechazo = motivo;
+    }
+
+    await upsertCandidato(phone, { estado, ...cambios });
 
     saveChat(phone, userMsg, reply);
     await sendWA(phone, reply);

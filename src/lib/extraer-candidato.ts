@@ -114,3 +114,24 @@ Reglas:
 - El coche es el suyo, el que usa para trabajar: las clases se dan en él. true solo si dijo que tiene uno; si dijo que maneja uno rentado o prestado y puede usarlo, también es true. Si no se habló del tema, null.
 - Los años son de manejar en ciudad, en número. "Como 6" es 6; "toda mi vida" es null.
 - Las zonas y la disponibilidad van tal como las describió, en pocas palabras.`;
+
+/**
+ * Los dos requisitos que no admiten criterio, leídos del dato y no del texto.
+ *
+ * ── Por qué no basta con leer lo que contestó Marco ─────────────────────
+ * El estado se decidía buscando frases fijas en su respuesta ("no calificas",
+ * "rating muy bajo"). El modelo no repite frases: al candidato sin coche le
+ * dijo "por ahora no podrías aplicar", que no está en la lista, y se quedó
+ * marcado como `calificando` — atrapado con Marco, sin poder volver con Luz.
+ *
+ * Aquí se mira el dato guardado. Solo estos dos: son booleanos, no admiten
+ * zona gris y descartan por sí solos. Los años y el rating tienen margen —
+ * "no lo descartes si solo falta un punto menor"— y esa decisión sigue
+ * siendo de Vía Urb (`screenCandidate`), que es donde viven los umbrales.
+ */
+export function motivoDescarte(d: DatosCandidato | null | undefined): string | null {
+  if (!d) return null;
+  if (d.licenciaB === false) return 'No tiene licencia tipo B vigente.';
+  if (d.coche === false) return 'No tiene coche para dar las clases.';
+  return null;
+}

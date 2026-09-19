@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fusionar, faltan, CAMPOS } from '../extraer-candidato';
+import { fusionar, faltan, motivoDescarte, CAMPOS } from '../extraer-candidato';
 
 const vacio = {};
 const completo = {
@@ -111,5 +111,39 @@ describe('fusionar — descarta lo que el modelo aluciné', () => {
     expect(fusionar(vacio, { zonas: '  Coyoacán, Tlalpan  ' })).toEqual({
       zonas: 'Coyoacán, Tlalpan',
     });
+  });
+});
+
+/**
+ * El estado se decidía leyendo frases fijas en lo que Marco escribió, y el
+ * modelo no repite frases: al candidato sin coche le dijo "por ahora no
+ * podrías aplicar" y se quedó en `calificando`, atrapado con Marco.
+ */
+describe('motivoDescarte — lo que se lee del dato, no del texto', () => {
+  it('sin licencia B descarta', () => {
+    expect(motivoDescarte({ licenciaB: false })).toMatch(/licencia/i);
+  });
+
+  it('sin coche descarta', () => {
+    expect(motivoDescarte({ coche: false })).toMatch(/coche/i);
+  });
+
+  it('quien cumple los dos no se descarta aquí', () => {
+    expect(motivoDescarte(completo)).toBeNull();
+  });
+
+  it('lo que todavía no contesta no descarta a nadie', () => {
+    expect(motivoDescarte({})).toBeNull();
+    expect(motivoDescarte({ nombre: 'Ana' })).toBeNull();
+    expect(motivoDescarte(null)).toBeNull();
+  });
+
+  /**
+   * Los años y el rating tienen margen —"no lo descartes si solo falta un
+   * punto menor"— y esa decisión vive en Vía Urb, con sus umbrales. Aquí
+   * solo lo que no admite criterio.
+   */
+  it('un rating bajo no se decide aquí', () => {
+    expect(motivoDescarte({ ...completo, rating: 3.1, aniosManejando: 1 })).toBeNull();
   });
 });
