@@ -293,6 +293,19 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const MSG_FALLBACK = 'Perdón, ¿me repites tu último mensaje? Quiero anotar bien tus datos 📝';
+
+/**
+ * Cuando pedir que repita ya falló una vez.
+ *
+ * El 2026-09-19 un lead real contestó "En las mañanas", Luz devolvió vacío y
+ * le pidió repetir; el lead repitió —"Si en las mañanas me acomoda muy bien"—
+ * y recibió el MISMO mensaje. Ahí se acabó la conversación. Pedirle tres
+ * veces lo mismo a alguien que ya contestó bien no es un tropiezo, es una
+ * puerta cerrada: mejor pasarlo con una persona, que es lo único que de
+ * verdad lo destraba.
+ */
+const MSG_ESCALA =
+  'Perdón, se me trabó el sistema. Te paso con un asesor para no hacerte perder tiempo: 56 3443 3212 📞';
 const GEMINI_TIMEOUT_MS = 90_000;
 
 // Dedup de mensajes recibidos
@@ -560,7 +573,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
     return MSG_FALLBACK;
   }
   console.log('[WEBHOOK] Gemini usage:', JSON.stringify(result.usage));
-  let text = result.text?.trim();
+  let text: string | undefined = result.text?.trim();
 
   // Gemini a veces devuelve texto vacío justo después de ejecutar una herramienta
   // (sin timeout, sin error — el modelo simplemente no generó texto en ese turno).
@@ -588,12 +601,37 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
     }
   }
 
+  /**
+   * Un tercer intento SIN herramientas se probó y se descartó: al replayar el
+   * turno que falló el 2026-09-19, el modelo escribió la llamada como texto
+   * —"consultarDisponibilidad(dias=14)"— y se inventó cuatro fechas con hora
+   * que no existían en el calendario. Eso se le habría mandado tal cual al
+   * cliente. Quedarse callada es malo; ofrecerle horarios falsos es peor.
+   *
+   * Por eso el último recurso es una persona, no otro intento del modelo.
+   */
+
+  // Red de seguridad para lo mismo por otra vía: si en la respuesta viene el
+  // nombre de una herramienta escrito como si fuera código, el modelo está
+  // narrando lo que debió ejecutar. Lo que siga es inventado.
+  if (text && /\b(consultarDisponibilidad|confirmarInscripcion|guardarPreReserva|cancelarClaseAlumno|consultarCatalogoCursos|consultarProgramaCurso)\s*\(/.test(text)) {
+    console.error('[WEBHOOK] La respuesta narra una llamada a herramienta — se descarta:', text.slice(0, 160));
+    text = undefined;
+  }
+
   if (!text) {
-    console.error('[WEBHOOK] Gemini devolvió respuesta vacía tras reintento');
+    // ¿Ya le habíamos pedido que repitiera? Entonces repetir no es el camino.
+    const ultimoDeLuz = [...history].reverse().find(h => h.role === 'bot')?.text;
+    const yaPedimosRepetir = ultimoDeLuz === MSG_FALLBACK;
+
+    console.error(
+      `[WEBHOOK] Sin respuesta utilizable tras el reintento — ${yaPedimosRepetir ? 'pasando a asesor' : 'pidiendo que repita'}`
+    );
     notificarAdmin(
-      `⚠️ *Luz respondió vacío (2 intentos)*\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\nSe le pidió al lead repetir su mensaje. Revisa por si acaso.`
+      `⚠️ *Luz respondió vacío (2 intentos)*\n\n📱 +${clientPhone ?? 'desconocido'}\n💬 "${userMessage.slice(0, 120)}"\n\n${yaPedimosRepetir ? 'Es la SEGUNDA vez seguida: se le pasó el número del asesor. Contéstale tú.' : 'Se le pidió al lead repetir su mensaje. Revisa por si acaso.'}`
     ).catch(e => console.error('[WEBHOOK] Error notificando respuesta vacía:', e));
-    return MSG_FALLBACK;
+
+    return yaPedimosRepetir ? MSG_ESCALA : MSG_FALLBACK;
   }
   return text;
 }
