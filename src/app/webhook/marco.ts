@@ -36,7 +36,7 @@ const GEMINI_TIMEOUT_MS = 60_000;
  * contesta las mismas ocho preguntas otra vez.
  */
 const VIAURB_URL =
-  process.env.VIAURB_URL ?? 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app';
+  process.env.VIAURB_URL ?? 'https://viaurb.app';
 
 // ── Historial en memoria (TTL 4h — las conversaciones de reclutamiento son más largas) ──
 type MsgItem = { role: 'user' | 'marco'; text: string };
@@ -103,8 +103,8 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 
 **Si califica (todo ok):**
 - Felicitarlo genuinamente, no exageradamente
-- Pasarle la liga de la app para que suba sus documentos: ${VIAURB_URL}/registro
-- Decirle qué necesita a la mano: INE, licencia y comprobante de domicilio, con el celular
+- Pasarle la liga de la app para que suba su licencia: ${VIAURB_URL}/registro
+- Decirle qué necesita a la mano: su licencia tipo B vigente, con el celular
 - Aclararle que ahí ya no le van a preguntar lo mismo: sus datos ya están, solo revisa y sube
 - Decirle que el siguiente paso es una evaluación de manejo de 30 minutos en nuestras instalaciones — es para conocerse y ver cómo explica mientras maneja
 - Usar la herramienta agendarEvaluacion para buscar fecha y hora
@@ -493,11 +493,25 @@ export async function handleMarco(
      * vuelta de hoja, lo diga Marco como lo diga. Las frases se quedan para
      * lo que no es booleano —un rating bajo, poco tiempo manejando—, donde no
      * hay más señal que lo que él escribió.
+     *
+     * Si la persona es un alumno (quiere tomar clases o Marco la manda con
+     * Luz), se marca como rechazado y se borra el chat para que
+     * `esCandidatoExistente` devuelva false y el siguiente mensaje caiga
+     * directamente con Luz sin quedar atrapado con Marco.
      */
-    const motivo = motivoDescarte(datos) ?? (RECHAZO.test(reply) ? reply.slice(0, 200) : null);
+    const quiereClases =
+      /Luz te atiende|tomar clases|aprender a manejar/i.test(reply) ||
+      /\b(quiero|busco|necesito|para) (tomar clases|aprender a manejar|un curso|el curso)\b/i.test(userMsg);
+
+    const motivo = quiereClases
+      ? 'quiere_tomar_clases'
+      : (motivoDescarte(datos) ?? (RECHAZO.test(reply) ? reply.slice(0, 200) : null));
     if (motivo) {
       estado = 'rechazado';
       cambios.razonRechazo = motivo;
+      if (quiereClases) {
+        chats.delete(phone);
+      }
     }
 
     await upsertCandidato(phone, { estado, ...cambios });

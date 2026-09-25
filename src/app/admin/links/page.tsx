@@ -17,11 +17,11 @@ const SECTIONS = [
   {
     title: 'Vía Urb — instructores',
     links: [
-      { label: 'Registro de instructores', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/registro' },
-      { label: 'Candidatos por evaluar', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/candidatos' },
-      { label: 'Reservas por cerrar', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/reservas' },
-      { label: 'Cobros de instructores', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/pagos' },
-      { label: 'Aviso de privacidad (instructores)', url: 'https://marketplace--aea-25-85385059-83402.us-central1.hosted.app/privacidad' },
+      { label: 'Registro de instructores', url: 'https://viaurb.app/registro' },
+      { label: 'Candidatos por evaluar', url: 'https://viaurb.app/candidatos' },
+      { label: 'Reservas por cerrar', url: 'https://viaurb.app/reservas' },
+      { label: 'Cobros de instructores', url: 'https://viaurb.app/pagos' },
+      { label: 'Aviso de privacidad (instructores)', url: 'https://viaurb.app/privacidad' },
     ],
   },
   {
