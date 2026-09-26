@@ -21,6 +21,12 @@ npm run typecheck  # TypeScript sin build
 firebase deploy --only apphosting
 ```
 
+El proyecto por defecto (`aea-25-85385059-83402`) está fijado en `.firebaserc`, así que el CLI ya no pide elegirlo. Si el rollout automático no arranca tras un push a `master`, se fuerza desde el commit ya subido:
+
+```bash
+firebase apphosting:rollouts:create studio --git-branch master
+```
+
 > El backend de App Hosting es `studio`. No usar `--only hosting` ni `--only functions`.
 
 ## Variables de entorno
