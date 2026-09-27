@@ -47,6 +47,10 @@ const EMPLEO = [
   // Un alumno dice "tomar clases"; quien dice "DAR clases" quiere el puesto.
   /\bdar clases (de manejo|de conducir)\b/,
   /\bquiero dar clases\b/,
+  // Pedir «el puesto» o «la vacante» ya es pedir trabajo, sin nombrar el
+  // oficio. El alumno que escribe «solicito información del curso» no cae
+  // aquí: lo que pide no es ninguna de estas palabras.
+  /\b(solicit\w*|pid\w*|quiero) (el |la |un |una )?(puesto|vacante|empleo)\b/,
 ];
 
 /**
@@ -55,10 +59,34 @@ const EMPLEO = [
  */
 const AMBIGUAS = /\b(instructor|maestro|profesor|uber|didi|chofer|conductor|manejo)\b/;
 const CONTEXTO_LABORAL =
-  /\b(trabajo|trabajar|empleo|chamba|vacante|puesto|sueldo|salario|pagan|paga|ingreso|ganar|aplicar|postular|curriculum|cv|experiencia laboral|requisitos)\b/;
+  // Raíces y no conjugaciones sueltas: el 26 de septiembre de 2026 alguien
+  // escribió «yo aplique para instructor» y se fue con Luz porque la lista
+  // decía `aplicar` y no `aplique`.
+  //
+  // Y van DOS raíces para aplicar —`aplic` y `apliqu`—: en español la c se
+  // vuelve qu antes de e, así que «apliqué» no contiene «aplic». Una sola
+  // raíz deja fuera justo la forma en que la gente cuenta lo que ya hizo.
+  /\b(trabajo|trabajar|empleo|chamba|vacante|puesto|sueldo|salario|pagan|paga|ingreso|ganar|aplic\w*|apliqu\w*|postul\w*|curriculum|cv|experiencia laboral|requisitos)\b/;
+
+/**
+ * Darse de alta EN UN PUESTO. Ninguna de las dos mitades basta sola —un
+ * alumno se inscribe todo el tiempo, y «instructor» la dice cualquiera— pero
+ * juntas no dejan lugar a dudas: quien se registra *como instructor* no
+ * quiere tomar clases.
+ *
+ * Sale de un caso real del 27 de septiembre de 2026: «Pero yo m estoy
+ * registrando como instructor». Luz le contestó «nosotros solo vendemos
+ * cursos para alumnos» después de media conversación vendiéndole el curso
+ * Avanzado.
+ */
+const DARSE_DE_ALTA =
+  /\b(aplic\w*|apliqu\w*|postul\w*|registr\w*|inscrib\w*|inscripcion|anot\w*|solicit\w*|contrat\w*|dar(me)? de alta)\b/;
+const EN_EL_PUESTO =
+  /\b(como|de|para) (instructor|instructora|maestro|maestra|profesor|profesora|chofer|conductor)\b/;
 
 export function esIntentInstructor(texto: string): boolean {
   const t = normalizar(texto);
   if (EMPLEO.some(r => r.test(t))) return true;
+  if (DARSE_DE_ALTA.test(t) && EN_EL_PUESTO.test(t)) return true;
   return AMBIGUAS.test(t) && CONTEXTO_LABORAL.test(t);
 }
