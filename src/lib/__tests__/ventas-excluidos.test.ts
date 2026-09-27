@@ -3,6 +3,7 @@ import {
   esNumeroDeLaEscuela,
   numerosDeLaEscuela,
   candidatoBloqueaVentas,
+  yaPago,
   EXPLICACION,
 } from '../ventas-excluidos';
 
@@ -35,7 +36,7 @@ describe('números de la escuela', () => {
   });
 
   it('sin lista configurada, al menos protege al admin', () => {
-    const lista = numerosDeLaEscuela({} as NodeJS.ProcessEnv);
+    const lista = numerosDeLaEscuela({});
     expect(esNumeroDeLaEscuela('525634433212', lista)).toBe(true);
   });
 
@@ -43,13 +44,13 @@ describe('números de la escuela', () => {
     const lista = numerosDeLaEscuela({
       ADMIN_NOTIFICATION_PHONE: '525634433212',
       NUMEROS_DE_LA_ESCUELA: '525586163794, 5215526836188',
-    } as NodeJS.ProcessEnv);
+    });
     expect(esNumeroDeLaEscuela('525586163794', lista)).toBe(true);
     expect(esNumeroDeLaEscuela('525526836188', lista)).toBe(true);
   });
 
   it('una lista con basura no rompe nada', () => {
-    const lista = numerosDeLaEscuela({ NUMEROS_DE_LA_ESCUELA: ' , ,, ' } as NodeJS.ProcessEnv);
+    const lista = numerosDeLaEscuela({ NUMEROS_DE_LA_ESCUELA: ' , ,, ' });
     expect(esNumeroDeLaEscuela('525516998936', lista)).toBe(false);
   });
 });
@@ -79,5 +80,31 @@ describe('explicaciones', () => {
     for (const texto of Object.values(EXPLICACION)) {
       expect(texto.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('quien ya pagó', () => {
+  it('con inscripción confirmada', () => {
+    expect(yaPago({ inscripcion: { status: 'confirmado' } })).toBe(true);
+  });
+
+  it('con solo el comprobante recibido, sin confirmar todavía', () => {
+    // Entre depositar y confirmar puede pasar rato: dirección incompleta,
+    // conflicto de horario. En esa ventana no se le persigue.
+    expect(yaPago({ comprobanteRecibidoAt: { seconds: 1 } })).toBe(true);
+  });
+
+  it('una inscripción a medias no cuenta', () => {
+    expect(yaPago({ inscripcion: { status: 'pendiente' } })).toBe(false);
+  });
+
+  it('un prospecto pelón no cuenta', () => {
+    expect(yaPago({})).toBe(false);
+    expect(yaPago(null)).toBe(false);
+    expect(yaPago(undefined)).toBe(false);
+  });
+
+  it('un comprobante nulo no cuenta como pago', () => {
+    expect(yaPago({ comprobanteRecibidoAt: null })).toBe(false);
   });
 });

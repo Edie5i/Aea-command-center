@@ -37,7 +37,9 @@ export const EXPLICACION: Record<MotivoExclusion, string> = {
  * desplegar código, pero traen el del admin por defecto: es el que siempre
  * está y el que más ruido recibía.
  */
-export function numerosDeLaEscuela(env: NodeJS.ProcessEnv = process.env): string[] {
+export function numerosDeLaEscuela(
+  env: Record<string, string | undefined> = process.env
+): string[] {
   const admin = (env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
   const extra = (env.NUMEROS_DE_LA_ESCUELA ?? '')
     .split(',')
@@ -63,4 +65,23 @@ export function esNumeroDeLaEscuela(
  */
 export function candidatoBloqueaVentas(estado: string | null | undefined): boolean {
   return Boolean(estado) && estado !== 'rechazado';
+}
+
+/**
+ * Ya pagó: no se le persigue con mensajes de venta.
+ *
+ * Cuenta el comprobante y no solo la inscripción confirmada, porque entre
+ * depositar y confirmar puede pasar rato —dirección incompleta, conflicto de
+ * horario— y en esa ventana el seguimiento perseguía a alguien que ya había
+ * pagado.
+ *
+ * Vivía suelto dentro del cron de seguimiento; el job de recordatorios nunca
+ * lo comprobó, así que una alumna inscrita seguía recibiendo «¿Sigues pensando
+ * en tomar clases de manejo?». Ahora es uno solo para los dos.
+ */
+export function yaPago(
+  datos: { inscripcion?: { status?: string }; comprobanteRecibidoAt?: unknown } | null | undefined
+): boolean {
+  if (!datos) return false;
+  return datos.inscripcion?.status === 'confirmado' || Boolean(datos.comprobanteRecibidoAt);
 }

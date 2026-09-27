@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, updateChatState, logStateChange, motivoNoEsProspecto } from '@/lib/firestore';
-import { EXPLICACION } from '@/lib/ventas-excluidos';
+import { EXPLICACION, yaPago } from '@/lib/ventas-excluidos';
 import { Timestamp } from 'firebase-admin/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
 
@@ -20,17 +20,6 @@ const FOLLOWUP_MS: Record<string, number> = {
   '7d':  7  * 24 * 60 * 60 * 1000,
 };
 
-// Quien ya pagó nunca se enfría ni recibe follow-ups de venta, por más días que
-// lleve callado. La verdad es el pago, no la conversación — mismo criterio que
-// recalculateChatState en lib/chat-state.ts.
-//
-// Cuenta el comprobante, no solo la inscripción confirmada: entre depositar y
-// confirmar puede pasar rato (dirección incompleta, conflicto de horario), y en
-// esa ventana el cron perseguía con mensajes de venta a alguien que ya había
-// pagado y acababa marcándolo como frío.
-function esInscrito(data: FirebaseFirestore.DocumentData): boolean {
-  return data.inscripcion?.status === 'confirmado' || !!data.comprobanteRecibidoAt;
-}
 
 function buildMsg2h(nombre: string | null, curso: string | null): string {
   const saludo = nombre ? `Hola ${nombre.split(' ')[0]} 👋` : '¡Hola!';
@@ -129,7 +118,7 @@ export async function GET(request: NextRequest) {
     if (data.botPaused || data.chatLastBy === 'humano') continue;
 
     // Ya pagó: ni follow-up de venta ni 'frío' por agotar la secuencia.
-    if (esInscrito(data)) {
+    if (yaPago(data)) {
       results.inscritosSaltados++;
       continue;
     }
@@ -202,7 +191,7 @@ export async function GET(request: NextRequest) {
     if (state === 'cerrado' || state === 'frio' || state === 'tu_turno') continue;
 
     // Ya pagó: el silencio no significa que se perdió el lead.
-    if (esInscrito(data)) {
+    if (yaPago(data)) {
       results.inscritosSaltados++;
       continue;
     }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPendingReminders, markReminderSent, motivoNoEsProspecto } from '@/lib/firestore';
-import { EXPLICACION } from '@/lib/ventas-excluidos';
+import { getPendingReminders, markReminderSent, motivoNoEsProspecto, type Conversation } from '@/lib/firestore';
+import { EXPLICACION, yaPago } from '@/lib/ventas-excluidos';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -42,10 +42,21 @@ async function sendMessage(to: string, text: string): Promise<void> {
  * elegido en cada corrida.
  */
 async function recordar(
-  phone: string,
+  conv: Conversation,
   texto: string,
   tipo: '1h' | '23h'
 ): Promise<boolean> {
+  const phone = conv.phone;
+
+  // Ya pagó: el recordatorio le preguntaría si sigue pensando en tomar clases
+  // a alguien que ya las compró. El cron de seguimiento siempre lo comprobó;
+  // este job, nunca.
+  if (yaPago(conv)) {
+    await markReminderSent(phone, tipo);
+    console.log(`[REMINDER] ${tipo} omitido a ${phone}: ya pagó`);
+    return false;
+  }
+
   const motivo = await motivoNoEsProspecto(phone).catch(() => null);
   if (motivo) {
     await markReminderSent(phone, tipo);
@@ -72,13 +83,13 @@ export async function GET(request: NextRequest) {
 
   // Recordatorio 1h
   for (const conv of await getPendingReminders('1h')) {
-    if (await recordar(conv.phone, MSG_1H, '1h')) enviados++;
+    if (await recordar(conv, MSG_1H, '1h')) enviados++;
     else omitidos++;
   }
 
   // Recordatorio 23h
   for (const conv of await getPendingReminders('23h')) {
-    if (await recordar(conv.phone, MSG_23H, '23h')) enviados++;
+    if (await recordar(conv, MSG_23H, '23h')) enviados++;
     else omitidos++;
   }
 
