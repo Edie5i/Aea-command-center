@@ -27,6 +27,18 @@ const PHONE_ID  = process.env.META_PHONE_NUMBER_ID ?? '';
 const ADMIN_PHONE = (process.env.ADMIN_NOTIFICATION_PHONE ?? '525634433212').trim();
 const GEMINI_TIMEOUT_MS = 60_000;
 
+const MSG_FALLBACK = 'Perdón, tuve un problema técnico un momento. ¿Me repites lo último que dijiste?';
+
+/**
+ * Cuando pedir que repita ya falló una vez.
+ *
+ * Lo mismo que le pasó a Luz el 2026-09-19: si el modelo se queda mudo dos
+ * veces seguidas, pedirle al candidato por tercera vez lo que ya contestó es
+ * cerrarle la puerta. Mejor pasarlo con una persona.
+ */
+const MSG_ESCALA =
+  'Perdón, se me trabó el sistema. Te paso con alguien del equipo para no hacerte perder tiempo: 56 3443 3212 📞';
+
 /**
  * Vía Urb: la app del instructor.
  *
@@ -196,18 +208,41 @@ async function generateMarcoReply(
       })}]`
     : '';
 
-  const timeout = new Promise<string>(resolve =>
-    setTimeout(() => resolve('Perdón, tuve un problema técnico un momento. ¿Me repites lo último que dijiste?'), GEMINI_TIMEOUT_MS)
-  );
+  // Marco no tiene herramientas, así que volver a generar desde cero no
+  // duplica nada: el reintento es la misma llamada otra vez. Cada intento
+  // lleva su propio reloj; uno compartido dejaría al segundo ya vencido.
+  const intentar = () =>
+    Promise.race([
+      ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        system: MARCO_PROMPT + contextExtra,
+        messages,
+        prompt: userMsg,
+      }).then(r => r.text?.trim() || null),
+      new Promise<null>(resolve => setTimeout(() => resolve(null), GEMINI_TIMEOUT_MS)),
+    ]);
 
-  const generate = ai.generate({
-    model: 'googleai/gemini-2.5-flash',
-    system: MARCO_PROMPT + contextExtra,
-    messages,
-    prompt: userMsg,
-  }).then(r => r.text ?? '');
+  let text = await intentar();
+  if (!text) {
+    console.error('[MARCO] Respuesta vacía o timeout — reintentando');
+    try {
+      text = await intentar();
+    } catch (e) {
+      console.error('[MARCO] Error en reintento de respuesta vacía:', e);
+    }
+  }
+  if (text) return text;
 
-  return Promise.race([generate, timeout]);
+  // ¿Ya le habíamos pedido que repitiera? Entonces repetir no es el camino.
+  const ultimoDeMarco = [...history].reverse().find(h => h.role === 'marco')?.text;
+  const yaPedimosRepetir = ultimoDeMarco === MSG_FALLBACK || ultimoDeMarco === MSG_ESCALA;
+
+  console.error(`[MARCO] Sin respuesta tras el reintento — ${yaPedimosRepetir ? 'pasando a una persona' : 'pidiendo que repita'}`);
+  notificarAdmin(
+    `⚠️ *Marco respondió vacío (2 intentos)*\n\n📱 +${phone}\n💬 "${userMsg.slice(0, 120)}"\n\n${yaPedimosRepetir ? 'Es la SEGUNDA vez seguida: se le pasó el número del equipo. Contéstale tú.' : 'Se le pidió al candidato repetir su mensaje. Revisa por si acaso.'}`
+  ).catch(e => console.error('[MARCO] Error notificando respuesta vacía:', e));
+
+  return yaPedimosRepetir ? MSG_ESCALA : MSG_FALLBACK;
 }
 
 // ── Extracción de los datos del candidato ───────────────────────────────────
