@@ -2,6 +2,12 @@ import { randomInt } from 'node:crypto';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { decidirOtp, OTP_TTL_MS, OTP_MAX_INTENTOS } from '@/lib/otp-policy';
+import { normalizePhone } from '@/lib/phone';
+import {
+  esNumeroDeLaEscuela,
+  candidatoBloqueaVentas,
+  type MotivoExclusion,
+} from '@/lib/ventas-excluidos';
 
 function initAdmin() {
   if (getApps().length > 0) return;
@@ -154,12 +160,23 @@ export async function saveLeadSource(phone: string, source: string): Promise<voi
   await convDoc(phone).set({ source }, { merge: true });
 }
 
+/**
+ * Marca que el prospecto acaba de escribir.
+ *
+ * **No reinicia las banderas de recordatorio**, y esa es la diferencia que
+ * importa. Antes las ponía en `false` en cada mensaje, así que la secuencia de
+ * seguimiento —pensada para mandarse una vez— se reiniciaba sola: cualquiera
+ * que conversara recibía un «¿Sigues pensando en tomar clases de manejo?» tras
+ * cada hora de silencio, para siempre. Una alumna que ya había pagado llevaba
+ * ocho en cuatro días.
+ *
+ * Con las banderas quietas, cada persona recibe el de 1 h y el de 23 h como
+ * mucho una vez en su vida. No hace falta inicializarlas: `getPendingReminders`
+ * filtra por `!== true`, así que una bandera ausente ya cuenta como pendiente.
+ */
 export async function updateLeadActivity(phone: string): Promise<void> {
   const now = Timestamp.now();
-  await convDoc(phone).set(
-    { phone, lastLeadActivity: now, reminder1hSent: false, reminder23hSent: false },
-    { merge: true }
-  );
+  await convDoc(phone).set({ phone, lastLeadActivity: now }, { merge: true });
 }
 
 export async function getPendingReminders(type: '1h' | '23h'): Promise<Conversation[]> {
@@ -792,4 +809,36 @@ export async function getRecentMessages(phone: string, limit = 6): Promise<ChatM
     .limit(limit)
     .get();
   return snap.docs.map(d => d.data() as ChatMessage).reverse();
+}
+
+// ── Quién queda fuera del embudo de ventas ─────────────────────────────────────
+
+/**
+ * Por qué esta persona no debe recibir mensajes de venta, o `null` si sí es un
+ * prospecto. El porqué de cada caso está en `lib/ventas-excluidos.ts`.
+ *
+ * Tres lecturas por teléfono, y ninguna se puede ahorrar: el candidato se
+ * busca por id, el instructor por campo y el número propio ni siquiera toca
+ * la red. Los volúmenes son de decenas al día, no de miles.
+ */
+export async function motivoNoEsProspecto(phone: string): Promise<MotivoExclusion | null> {
+  if (esNumeroDeLaEscuela(phone)) return 'numero_de_la_escuela';
+
+  const p = normalizePhone(phone);
+
+  const candidato = await db.collection('candidatos_instructor').doc(p).get();
+  if (candidato.exists && candidatoBloqueaVentas(candidato.data()?.estado)) {
+    return 'candidato_instructor';
+  }
+
+  // Vía Urb vive en el mismo proyecto, en su propia colección. Se busca por
+  // `whatsappPhone` porque el id del perfil es un uid, no el teléfono.
+  const instructor = await db
+    .collection(process.env.VIAURB_INSTRUCTORES ?? 'viaurb_instructores')
+    .where('whatsappPhone', '==', p)
+    .limit(1)
+    .get();
+  if (!instructor.empty) return 'instructor_viaurb';
+
+  return null;
 }

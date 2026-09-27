@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPendingReminders, markReminderSent } from '@/lib/firestore';
+import { getPendingReminders, markReminderSent, motivoNoEsProspecto } from '@/lib/firestore';
+import { EXPLICACION } from '@/lib/ventas-excluidos';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -31,6 +32,35 @@ async function sendMessage(to: string, text: string): Promise<void> {
   }
 }
 
+/**
+ * Manda el recordatorio solo si quien lo recibiría es de verdad un prospecto.
+ *
+ * Aquí caían candidatos a instructor, instructores de Vía Urb y el propio
+ * teléfono de la escuela: todos aparecen en `conversations` por el simple
+ * hecho de haber escrito, y la consulta solo miraba la hora. La bandera se
+ * marca igual aunque no se mande, para que el excluido no vuelva a salir
+ * elegido en cada corrida.
+ */
+async function recordar(
+  phone: string,
+  texto: string,
+  tipo: '1h' | '23h'
+): Promise<boolean> {
+  const motivo = await motivoNoEsProspecto(phone).catch(() => null);
+  if (motivo) {
+    await markReminderSent(phone, tipo);
+    console.log(`[REMINDER] ${tipo} omitido a ${phone}: ${EXPLICACION[motivo]}`);
+    return false;
+  }
+
+  await sendMessage(phone, texto).catch((e) =>
+    console.error(`[REMINDER] Error ${tipo} a`, phone, e)
+  );
+  await markReminderSent(phone, tipo);
+  console.log(`[REMINDER] ${tipo} enviado a`, phone);
+  return true;
+}
+
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
   if (token !== TOKEN) {
@@ -38,28 +68,19 @@ export async function GET(request: NextRequest) {
   }
 
   let enviados = 0;
+  let omitidos = 0;
 
   // Recordatorio 1h
-  const pending1h = await getPendingReminders('1h');
-  for (const conv of pending1h) {
-    await sendMessage(conv.phone, MSG_1H).catch((e) =>
-      console.error('[REMINDER] Error 1h a', conv.phone, e)
-    );
-    await markReminderSent(conv.phone, '1h');
-    enviados++;
-    console.log('[REMINDER] 1h enviado a', conv.phone);
+  for (const conv of await getPendingReminders('1h')) {
+    if (await recordar(conv.phone, MSG_1H, '1h')) enviados++;
+    else omitidos++;
   }
 
   // Recordatorio 23h
-  const pending23h = await getPendingReminders('23h');
-  for (const conv of pending23h) {
-    await sendMessage(conv.phone, MSG_23H).catch((e) =>
-      console.error('[REMINDER] Error 23h a', conv.phone, e)
-    );
-    await markReminderSent(conv.phone, '23h');
-    enviados++;
-    console.log('[REMINDER] 23h enviado a', conv.phone);
+  for (const conv of await getPendingReminders('23h')) {
+    if (await recordar(conv.phone, MSG_23H, '23h')) enviados++;
+    else omitidos++;
   }
 
-  return NextResponse.json({ ok: true, enviados });
+  return NextResponse.json({ ok: true, enviados, omitidos });
 }

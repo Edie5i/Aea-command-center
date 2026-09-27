@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, updateChatState, logStateChange } from '@/lib/firestore';
+import { db, updateChatState, logStateChange, motivoNoEsProspecto } from '@/lib/firestore';
+import { EXPLICACION } from '@/lib/ventas-excluidos';
 import { Timestamp } from 'firebase-admin/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
 
@@ -75,11 +76,11 @@ async function sendFollowup(
   }
 
   if (type === '24h') {
-    // Mensaje automático al cliente + aviso silencioso al admin
+    // Sin aviso al admin: decía "Luz mandó mensaje automático, monitorea si
+    // responde" y no pedía nada que hacer. Los de 72h y 7d sí preguntan algo
+    // —¿lo llamas tú?, ¿lo retomamos?— y por eso se quedan. Un aviso que no
+    // pide nada entrena a no leer los que sí.
     await sendWA(phone, buildMsg24h(nombre));
-    await notificarAdmin(
-      `⏰ *Follow-up 24h enviado*\n\n${quien}\nLuz mandó mensaje automático. Monitorea si responde.`
-    );
     return;
   }
 
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
 
   const now = Date.now();
   const nowTs = Timestamp.fromMillis(now);
-  const results = { followups: 0, frio: 0, errors: 0, inscritosSaltados: 0 };
+  const results = { followups: 0, frio: 0, errors: 0, inscritosSaltados: 0, ajenos: 0 };
 
   // ── 1. Follow-ups pendientes ───────────────────────────────────────────────
   const followupSnap = await db
@@ -130,6 +131,21 @@ export async function GET(request: NextRequest) {
     // Ya pagó: ni follow-up de venta ni 'frío' por agotar la secuencia.
     if (esInscrito(data)) {
       results.inscritosSaltados++;
+      continue;
+    }
+
+    // Nunca fue un prospecto: candidato a instructor, instructor de Vía Urb o
+    // un número de la propia escuela. Perseguirlo con mensajes de venta es
+    // ruido para él y para el admin, que recibe un aviso por cada paso.
+    const ajeno = await motivoNoEsProspecto(phone).catch(() => null);
+    if (ajeno) {
+      await updateChatState(
+        phone,
+        { chatState: 'cerrado', chatReason: `Fuera del embudo: ${EXPLICACION[ajeno]}`, chatUrgency: 'ninguna', nextFollowupAt: null },
+        'cron'
+      ).catch(e => console.error('[CRON] Error cerrando ajeno:', phone, e));
+      console.log(`[CRON] ${phone} fuera del embudo: ${EXPLICACION[ajeno]}`);
+      results.ajenos++;
       continue;
     }
 
@@ -192,6 +208,15 @@ export async function GET(request: NextRequest) {
     }
 
     const phone: string = data.phone ?? doc.id;
+
+    // Vanessa Annese, instructora de Vía Urb, quedó marcada "frío — 7 días sin
+    // actividad" el 24 de septiembre de 2026 por este camino. Un instructor
+    // callado no es una venta perdida.
+    const ajenoSilencio = await motivoNoEsProspecto(phone).catch(() => null);
+    if (ajenoSilencio) {
+      results.ajenos++;
+      continue;
+    }
     const diasSilencio = Math.floor((now - (data.lastActivity?.toMillis?.() ?? now)) / 86400000);
 
     await updateChatState(
