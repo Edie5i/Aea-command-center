@@ -54,12 +54,24 @@ export default async function FichasPage() {
         style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
         <div className="flex items-center gap-3">
           <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
-          <h1 className="text-base font-bold text-white">Fichas de Inscripción</h1>
+          <h1 className="text-base font-bold" style={{ color: '#1e293b' }}>Inscripciones (vista vieja)</h1>
           <span className="ml-auto text-xs" style={{ color: '#475569' }}>{inscripciones.length} registros</span>
         </div>
       </header>
 
       <div className="max-w-2xl mx-auto p-4 space-y-3">
+        {/* Esta pantalla leía `conversations.inscripcion` mientras /admin/reservas
+            leía `fichas`: dos vistas del mismo alumno que podían no coincidir. La
+            de reservas es la que queda —tiene la liga del alumno, el apartado y el
+            comprobante—; esta sobrevive sólo para alcanzar registros viejos que
+            nunca tuvieron ficha. */}
+        <div className="rounded-2xl p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' }}>
+          <p className="text-xs" style={{ color: '#b45309' }}>
+            Esta es la lista vieja, sin liga de ficha ni apartado.{' '}
+            <Link href="/admin/reservas" className="font-semibold underline">Ir a Fichas →</Link>
+          </p>
+        </div>
+
         {inscripciones.length === 0 && (
           <div className="rounded-2xl p-10 text-center" style={CARD}>
             <p className="text-sm" style={{ color: '#64748b' }}>Aún no hay inscripciones registradas.</p>

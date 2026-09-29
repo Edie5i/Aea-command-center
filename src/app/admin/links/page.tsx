@@ -8,7 +8,7 @@ const SECTIONS = [
     title: 'Admin',
     links: [
       { label: 'Panel principal', url: 'https://app.autoescuelaamericana.com/admin' },
-      { label: 'Fichas', url: 'https://app.autoescuelaamericana.com/admin/fichas' },
+      { label: 'Fichas', url: 'https://app.autoescuelaamericana.com/admin/reservas' },
       { label: 'Alumnos', url: 'https://app.autoescuelaamericana.com/admin/alumnos' },
       { label: 'Conversaciones', url: 'https://app.autoescuelaamericana.com/admin/conversaciones' },
       { label: 'Instructores', url: 'https://app.autoescuelaamericana.com/admin/instructores' },

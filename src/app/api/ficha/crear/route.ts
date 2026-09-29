@@ -14,6 +14,7 @@ import { normalizePhone } from '@/lib/phone';
 import { guardarFicha, APARTADO } from '@/lib/fichaLuz';
 import { enlaceFicha } from '@/lib/ficha-enlace';
 import { buscarCurso } from '@/lib/pagos';
+import { calcularFechas, HORARIOS_INICIO, type Patron } from '@/lib/patron-fechas';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -22,7 +23,9 @@ type Body = {
   telefono?: string;
   zona?: string;
   curso?: string;
-  fechas?: { date?: string; time?: string }[];
+  patron?: Patron;
+  fechaInicio?: string;
+  hora?: string;
   apartado?: number | string;
   nota?: string;
 };
@@ -38,7 +41,15 @@ export async function POST(req: NextRequest) {
   const telefono = normalizePhone(body.telefono ?? '');
   const zona = (body.zona ?? '').trim();
   const curso = buscarCurso(body.curso);
-  const fechas = (body.fechas ?? []).filter((f): f is { date: string; time: string } => !!f.date && !!f.time);
+  // Las cuatro clases salen del patrón, no se escriben una por una: es como se
+  // acuerdan con el alumno y como las calcula Luz.
+  const patron = body.patron;
+  const fechaInicio = (body.fechaInicio ?? '').trim();
+  const hora = (body.hora ?? '').trim();
+  const fechas =
+    patron && /^\d{4}-\d{2}-\d{2}$/.test(fechaInicio) && HORARIOS_INICIO.includes(hora)
+      ? calcularFechas(patron, fechaInicio, hora).map((f) => ({ date: f.date.split('T')[0], time: f.time }))
+      : [];
 
   if (!nombre) return NextResponse.json({ ok: false, error: 'Falta el nombre' }, { status: 400 });
   if (telefono.length !== 12) {
@@ -46,7 +57,10 @@ export async function POST(req: NextRequest) {
   }
   if (!curso) return NextResponse.json({ ok: false, error: 'Falta el curso' }, { status: 400 });
   if (!fechas.length) {
-    return NextResponse.json({ ok: false, error: 'Falta al menos una sesión con fecha y hora' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: 'Falta el patrón, la fecha de inicio o la hora' },
+      { status: 400 }
+    );
   }
 
   // Lo que ya pagó por transferencia o depósito en tienda, confirmado a mano.

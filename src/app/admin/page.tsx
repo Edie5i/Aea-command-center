@@ -50,7 +50,7 @@ const DIVIDER = '1px solid rgba(148,163,184,0.2)';
 const navItems = [
   { href: '/admin/conversaciones', icon: '💬', label: 'Conversaciones', accent: '#3b82f6' },
   { href: '/admin/ficha-nueva',    icon: '📋', label: 'Nueva ficha',     accent: '#1d4ed8' },
-  { href: '/admin/fichas',         icon: '🗂️', label: 'Fichas',          accent: '#10b981' },
+  { href: '/admin/reservas',       icon: '🗂️', label: 'Fichas',          accent: '#10b981' },
   { href: '/admin/metricas',       icon: '📊', label: 'Métricas',        accent: '#8b5cf6' },
   { href: '/admin/alumnos',        icon: '👥', label: 'Alumnos',         accent: '#6366f1' },
   { href: '/notas-alumno',         icon: '📝', label: 'Notas alumno',    accent: '#14b8a6' },

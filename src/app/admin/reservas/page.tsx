@@ -2,6 +2,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { traerFichas, linkCierre, type Ficha } from '@/lib/fichaLuz';
+import { getRecentInscripciones, type InscripcionData } from '@/lib/firestore';
+import FichaButton from '@/app/admin/conversaciones/[phone]/FichaButton';
+import { CobroButton } from '@/app/admin/fichas/CobroButton';
 import { confirmarApartado } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +34,34 @@ function timeAgo(ms: number): string {
   return `${Math.floor(days / 30)}mes`;
 }
 
+/**
+ * La ficha, con la forma que esperan los botones.
+ *
+ * FichaButton y CobroButton se escribieron para /admin/fichas, que leía
+ * `conversations.inscripcion`. Lo que necesitan —nombre, teléfono, zona, curso y
+ * las fechas— ya está en la ficha; sólo cambia de nombre. Traducir aquí es más
+ * barato que mantener dos pantallas, y deja la colección vieja fuera del camino.
+ */
+function comoInscripcion(f: Ficha & { id: string }): InscripcionData {
+  return {
+    nombre: f.studentName,
+    // El id de la ficha es el teléfono a 12 dígitos; el campo `telefono` está a
+    // 10 porque lo usa wa.me. Los botones llaman a Calendar y a WhatsApp, que
+    // quieren lada.
+    telefono: f.id,
+    zona: f.zona ?? '',
+    curso: f.curso,
+    transmision: f.curso,
+    fechas: f.opcionesFechaHora
+      .map((s) => {
+        const [date, time] = s.split(' ');
+        return { date, time: time ?? '' };
+      })
+      .filter((x) => x.date && x.time),
+    fechaConfirmacion: f.creada,
+  };
+}
+
 function badge(f: Ficha): { texto: string; color: string } {
   if (f.estado === 'perdida') return { texto: '❌ PERDIDA', color: '#64748b' };
   if (f.faltantes.length === 0) return { texto: '✅ RESERVADA', color: '#22c55e' };
@@ -52,6 +83,12 @@ export default async function ReservasPage({
   }
 
   const todas = await traerFichas().catch((): (Ficha & { id: string })[] => []);
+  // Antes de que toda inscripción sincronizara su ficha, había registros que
+  // vivían sólo en la colección vieja. Si queda alguno, se dice aquí en vez de
+  // dejarlo invisible al mandar /admin/fichas a esta pantalla.
+  const huerfanas = await getRecentInscripciones(60)
+    .then((ins) => ins.filter((i) => !todas.some((f) => f.id === i.phone)).length)
+    .catch(() => 0);
   const verPerdidas = searchParams.perdidas === '1';
   const perdidas = todas.filter(f => f.estado === 'perdida');
   const fichas = verPerdidas ? todas : todas.filter(f => f.estado !== 'perdida');
@@ -66,6 +103,15 @@ export default async function ReservasPage({
           <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
           <h1 className="text-base font-bold text-slate-800">Reservas (web + Luz)</h1>
           <span className="ml-auto text-xs" style={{ color: '#475569' }}>{fichas.length} fichas</span>
+          {huerfanas > 0 && (
+            <Link
+              href="/admin/fichas"
+              className="text-xs px-2 py-1 rounded-full"
+              style={{ color: '#b45309', border: '1px solid rgba(245,158,11,0.4)' }}
+            >
+              {huerfanas} sin ficha
+            </Link>
+          )}
           <Link
             href={verPerdidas ? '/admin/reservas' : '/admin/reservas?perdidas=1'}
             className="text-xs px-2 py-1 rounded-full"
@@ -144,11 +190,25 @@ export default async function ReservasPage({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-semibold px-3 py-1.5 rounded-full"
-                    style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
+                    style={{ background: 'rgba(34,197,94,0.15)', color: '#15803d', border: '1px solid rgba(34,197,94,0.3)' }}
                   >
                     Cerrar por WhatsApp
                   </a>
                 )}
+              </div>
+
+              {/* Lo que antes obligaba a abrir /admin/fichas: ver la ficha,
+                  mandársela, sincronizar Calendar y copiar el cobro. */}
+              <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
+                <FichaButton data={comoInscripcion(f)} />
+                <CobroButton nombre={f.studentName} curso={f.curso} />
+                <Link
+                  href={`/admin/conversaciones/${f.id}`}
+                  className="block text-center text-xs font-medium py-1"
+                  style={{ color: '#2563eb' }}
+                >
+                  Ver conversación →
+                </Link>
               </div>
             </div>
           );
