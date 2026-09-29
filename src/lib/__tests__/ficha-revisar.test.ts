@@ -15,14 +15,15 @@ describe('revisarFicha', () => {
     expect(revisarFicha(completa)).toEqual([]);
   });
 
-  it('el cobro en la sede cuenta como depósito, aunque no haya comprobante', () => {
-    // La ficha de mostrador se paga en efectivo: no hay imagen que subir. Antes
-    // se quedaba pendiente para siempre y el alumno veía que le pedían pagar.
-    const mostrador = { ...completa, comprobanteURL: null, pagoEfectivo: 780 };
+  it('un apartado registrado a mano cuenta, aunque la imagen no esté', () => {
+    // En el mostrador se captura un depósito que ya entró —transferencia o
+    // Oxxo— y que no siempre trae imagen. Antes la ficha se quedaba pendiente
+    // para siempre y el alumno veía que le pedían pagar de nuevo.
+    const mostrador = { ...completa, comprobanteURL: null, depositoRegistrado: 780 };
     expect(revisarFicha(mostrador)).toEqual([]);
   });
 
-  it('sin comprobante ni efectivo, el depósito sigue faltando', () => {
+  it('sin comprobante ni apartado registrado, el depósito sigue faltando', () => {
     const { comprobanteURL, ...sinPago } = completa;
     expect(revisarFicha(sinPago)).toContain('depósito');
   });

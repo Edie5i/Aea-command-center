@@ -99,8 +99,8 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
     // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
     creada: existente?.creada ?? Date.now(),
     fichaToken,
-    ...(datos.pagoEfectivo ?? existente?.pagoEfectivo
-      ? { pagoEfectivo: datos.pagoEfectivo ?? existente?.pagoEfectivo }
+    ...(datos.depositoRegistrado ?? existente?.depositoRegistrado
+      ? { depositoRegistrado: datos.depositoRegistrado ?? existente?.depositoRegistrado }
       : {}),
     ...(datos.nota ?? existente?.nota ? { nota: datos.nota ?? existente?.nota } : {}),
   };
@@ -142,7 +142,7 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     zona: datos.zona,
     creada: datos.creada ?? Date.now(),
     fichaToken: (actual as Ficha | undefined)?.fichaToken ?? generarToken(),
-    ...(datos.pagoEfectivo ? { pagoEfectivo: datos.pagoEfectivo } : {}),
+    ...(datos.depositoRegistrado ? { depositoRegistrado: datos.depositoRegistrado } : {}),
     ...(datos.nota ? { nota: datos.nota } : {}),
   };
   await ref.set(ficha, { merge: true });

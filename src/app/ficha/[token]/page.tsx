@@ -97,9 +97,9 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
               <p className="text-sm mt-0.5" style={{ color: '#2563eb' }}>
                 ${ficha.precio.toLocaleString('es-MX')} · Depósito ${ficha.depositoMonto.toLocaleString('es-MX')}
               </p>
-              {ficha.pagoEfectivo ? (
+              {ficha.depositoRegistrado ? (
                 <p className="text-xs mt-1" style={{ color: '#059669' }}>
-                  Recibido en la sede: ${ficha.pagoEfectivo.toLocaleString('es-MX')}
+                  Apartado recibido: ${ficha.depositoRegistrado.toLocaleString('es-MX')}
                 </p>
               ) : null}
             </div>

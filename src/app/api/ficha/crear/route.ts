@@ -49,8 +49,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Falta al menos una sesión con fecha y hora' }, { status: 400 });
   }
 
-  // Lo cobrado en la sede. Sólo cuenta como apartado si alcanza el depósito del
-  // curso: si entregó menos, la ficha sigue pendiente y el panel lo enseña así.
+  // Lo que ya pagó por transferencia o depósito en tienda, confirmado a mano.
+  // Sólo cuenta como apartado si alcanza el depósito del curso: si entró menos,
+  // la ficha sigue pendiente y el panel lo enseña así.
   const apartado = Number(body.apartado ?? 0) || 0;
   const deposito = calcularDeposito(curso.total);
   const cubreDeposito = apartado >= deposito;
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       // linkCierre arma wa.me/52{telefono}: se guarda a 10 dígitos, igual que
       // en el flujo de Luz.
       telefono: telefono.slice(2),
-      ...(cubreDeposito ? { depositoPagado: true, pagoEfectivo: apartado } : {}),
+      ...(cubreDeposito ? { depositoPagado: true, depositoRegistrado: apartado } : {}),
       ...(body.nota?.trim() ? { nota: body.nota.trim() } : {}),
     },
     'mostrador'

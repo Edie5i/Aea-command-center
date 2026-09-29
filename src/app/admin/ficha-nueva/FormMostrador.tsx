@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { TIENDAS } from '@/lib/cuenta';
 
 type CursoOpt = { nombre: string; total: number; deposito: number };
 type Slot = { date: string; time: string };
@@ -168,9 +169,14 @@ export default function FormMostrador({ cursos }: { cursos: CursoOpt[] }) {
       </div>
 
       <div className="rounded-2xl p-4 space-y-3" style={CARD}>
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>04 · Cobrado hoy</p>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>04 · Apartado ya pagado</p>
         <input className={INPUT} value={apartado} onChange={(e) => setApartado(e.target.value)}
-          inputMode="numeric" placeholder={elegido ? String(elegido.deposito) : 'Monto en efectivo o transferencia'} />
+          inputMode="numeric" placeholder={elegido ? String(elegido.deposito) : 'Monto que ya entró'} />
+        <p className="text-xs" style={{ color: '#64748b' }}>
+          Sólo si ya lo viste en la cuenta —transferencia o depósito en {TIENDAS}—. Si todavía
+          no entra, déjalo vacío: la ficha le muestra los datos de pago al alumno y se marca
+          sola cuando manda el comprobante.
+        </p>
         {elegido && apartado !== '' && Number(apartado) < elegido.deposito && (
           <p className="text-xs" style={{ color: '#d97706' }}>
             Menos del apartado (${elegido.deposito.toLocaleString('es-MX')}): la ficha queda pendiente.

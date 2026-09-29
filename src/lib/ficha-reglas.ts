@@ -26,10 +26,12 @@ export type Ficha = {
   creada: number;
   // Solo cuando estado === 'perdida': por qué se marcó así, para contexto en el panel.
   perdidaRazon?: string;
-  // Cobro en efectivo en la sede: no hay comprobante que subir, pero el depósito
-  // está pagado igual. Sin esto, una ficha cobrada en mostrador se quedaba
-  // "pendiente de depósito" para siempre y el alumno veía que le pedían pagar.
-  pagoEfectivo?: number;
+  // Apartado que ya entró y se registró a mano, sin imagen del comprobante.
+  // No es efectivo en la sede —no se recibe efectivo—: el alumno transfirió o
+  // depositó en Oxxo/Walmart con la tarjeta, y quien captura la ficha lo
+  // confirma porque ya lo vio en la cuenta. El comprobante puede llegar después
+  // por WhatsApp; hasta entonces esto es lo único que dice que ya está pagado.
+  depositoRegistrado?: number;
   // Observaciones de quien la capturó. Van en la ficha del alumno.
   nota?: string;
   // Identificador opaco para /ficha/[token] — no es el teléfono, no debe salir
@@ -44,7 +46,7 @@ export function revisarFicha(f: Partial<Ficha>): string[] {
   if (!f.studentName) x.push('nombre');
   if (!f.curso) x.push('curso');
   if (!f.opcionesFechaHora?.length) x.push('fechas');
-  if (!f.depositoPagado || !(f.comprobanteURL || f.pagoEfectivo)) x.push('depósito');
+  if (!f.depositoPagado || !(f.comprobanteURL || f.depositoRegistrado)) x.push('depósito');
   if (!f.telefono) x.push('teléfono');
   return x;
 }
