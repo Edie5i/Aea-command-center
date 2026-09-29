@@ -169,19 +169,28 @@ function revisarPreReservasProximas(
 
   const avisos: string[] = [];
   for (const doc of fichas) {
-    const f = doc.data() as { estado?: string; studentName?: string; opcionesFechaHora?: string[] };
+    const f = doc.data() as {
+      estado?: string; studentName?: string; opcionesFechaHora?: string[];
+      comprobanteURL?: string | null; depositoPagado?: boolean;
+    };
     if (f.estado === 'reservada' || f.estado === 'perdida') continue;
+    // Mandó comprobante y nadie lo ha confirmado: no es que no haya pagado, es
+    // que falta mirarlo. Se marca distinto para que el aviso no acuse al alumno.
+    const porRevisar = !!f.comprobanteURL && !f.depositoPagado;
     for (const slot of f.opcionesFechaHora ?? []) {
       const [dia, hora] = slot.split(' ');
       if (!dia || !hora || dia < hoy || dia > limite) continue;
       const choca = ocupados.has(`${dia}T${hora}`);
-      avisos.push(`${f.studentName || 'sin nombre'} ${dia} ${hora}${choca ? ' ⚠️OCUPADO' : ''}`);
+      avisos.push(
+        `${f.studentName || 'sin nombre'} ${dia} ${hora}` +
+        `${choca ? ' ⚠️OCUPADO' : ''}${porRevisar ? ' 📎por revisar' : ''}`
+      );
     }
   }
   if (avisos.length === 0) return null;
   return {
     grave: avisos.some(a => a.includes('OCUPADO')),
-    texto: `⏳ ${avisos.length} horario(s) apartado(s) SIN pagar en los próximos ${DIAS_PREAVISO}d — ${avisos.slice(0, 4).join(' · ')}`,
+    texto: `⏳ ${avisos.length} horario(s) SIN apartado confirmado en los próximos ${DIAS_PREAVISO}d — ${avisos.slice(0, 4).join(' · ')}`,
   };
 }
 
@@ -221,9 +230,13 @@ function revisarFichasEstancadas(
     .filter(f => f.estado !== 'reservada' && f.estado !== 'perdida' && (f.creada ?? Date.now()) < corte);
   if (estancadas.length === 0) return null;
   const nombres = estancadas.slice(0, 3).map(f => f.studentName || 'sin nombre').join(', ');
+  // Las que traen comprobante sin confirmar no están frías: están esperándote.
+  const porRevisar = estancadas.filter(f => f.comprobanteURL && !f.depositoPagado).length;
   return {
     grave: false,
-    texto: `🟡 ${estancadas.length} ficha(s) sin depósito hace +${FICHA_ESTANCADA_DIAS}d — ${nombres}`,
+    texto:
+      `🟡 ${estancadas.length} ficha(s) sin apartado confirmado hace +${FICHA_ESTANCADA_DIAS}d — ${nombres}` +
+      (porRevisar ? ` · ${porRevisar} con comprobante POR REVISAR` : ''),
   };
 }
 
