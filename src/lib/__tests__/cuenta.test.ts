@@ -44,3 +44,41 @@ describe('cuenta a la que deposita el alumno', () => {
     expect(TIENDAS).toMatch(/Walmart/i);
   });
 });
+
+/**
+ * La razón de existir de cuenta.ts: que nadie vuelva a escribir estos números
+ * en otro archivo. Al 2026-09-28 seguían copiados a mano en la ficha del alumno
+ * y en el prompt de Luz, los dos con espacios y por lo tanto invisibles a un
+ * grep del número pegado.
+ */
+describe('los números no están copiados en ningún otro lado', () => {
+  const EXENTOS = [
+    'src/lib/cuenta.ts',
+    'src/lib/__tests__/cuenta.test.ts',
+    // Salida generada por `npm run cc`, no se escribe a mano.
+    'scripts/command-center-artifact/command-center.html',
+  ];
+
+  function fuentes(dir: string): string[] {
+    const { readdirSync, statSync, existsSync } = require('node:fs') as typeof import('node:fs');
+    const { join } = require('node:path') as typeof import('node:path');
+    if (!existsSync(dir)) return [];
+    return readdirSync(dir).flatMap((nombre) => {
+      const ruta = join(dir, nombre);
+      if (statSync(ruta).isDirectory()) return fuentes(ruta);
+      return /\.(ts|tsx|js|mjs|html)$/.test(nombre) ? [ruta] : [];
+    });
+  }
+
+  it('sólo cuenta.ts los escribe', () => {
+    const { readFileSync } = require('node:fs') as typeof import('node:fs');
+    const culpables = [...fuentes('src'), ...fuentes('public'), ...fuentes('scripts')]
+      .filter((f) => !EXENTOS.some((e) => f.endsWith(e)))
+      .filter((f) => {
+        // Sin espacios: así se detecta también "048 469 5739".
+        const pegado = readFileSync(f, 'utf8').replace(/[  ]/g, '');
+        return [CUENTA.numero, CUENTA.clabe, CUENTA.tarjeta].some((n) => pegado.includes(n));
+      });
+    expect(culpables, 'importa CUENTA en vez de escribir el número').toEqual([]);
+  });
+});

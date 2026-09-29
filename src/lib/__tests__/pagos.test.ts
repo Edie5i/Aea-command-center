@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CURSOS, RESERVA, RECARGO_MSI, buscarCurso, pesos, mensajeCobro } from '../pagos';
-import { CUENTA } from '../cuenta';
+import { CUENTA, tarjetaConEspacios } from '../cuenta';
 
 describe('tabla de precios', () => {
   it('ningún curso cuesta menos que la reserva', () => {
@@ -81,7 +81,7 @@ describe('mensajeCobro', () => {
 
   it('trae los datos de depósito, de una sola fuente', () => {
     expect(m).toContain(CUENTA.clabe);
-    expect(m).toContain('4152 3146 8351 1045');
+    expect(m).toContain(tarjetaConEspacios());
     expect(m).toContain(CUENTA.titular);
   });
 

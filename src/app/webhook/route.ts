@@ -4,7 +4,7 @@ import { AEA_TOOLS } from '@/ai/tools/aea-tools';
 import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { checkCoverage, type CoverageResult } from '@/lib/coverage';
-import { TIENDAS, tarjetaConEspacios } from '@/lib/cuenta';
+import { CUENTA, TIENDAS, tarjetaConEspacios } from '@/lib/cuenta';
 import { normalizePhone } from '@/lib/phone';
 import { notificarAdmin } from '@/lib/adminNotify';
 
@@ -152,8 +152,8 @@ Manda TODO en un solo mensaje. SIEMPRE incluye los tres datos (nombre, horario y
 
 Para apartar tu lugar son $690 — al hacer la transferencia aceptas nuestros términos de contratación. Preferimos transferencia porque confirma al instante 👇
 
-BBVA | Eduardo W. Czaplewski (cuenta PYME)
-Cuenta: 048 469 5739 | CLABE: 012 180 00484695739 9
+${CUENTA.banco} | ${CUENTA.titular}
+Cuenta: ${CUENTA.numero} | CLABE: ${CUENTA.clabe}
 
 (Si no puedes transferir, también se recibe en ${TIENDAS} con la tarjeta ${tarjetaConEspacios()})
 

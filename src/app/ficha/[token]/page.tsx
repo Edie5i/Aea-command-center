@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/firestore';
 import type { Ficha } from '@/lib/fichaLuz';
-import { TIENDAS, tarjetaConEspacios } from '@/lib/cuenta';
+import { CUENTA, TIENDAS } from '@/lib/cuenta';
 
 export const dynamic = 'force-dynamic';
 
@@ -131,11 +131,19 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
         {!reservada && !perdida && (
           <div className="rounded-2xl p-5" style={CARD}>
             <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#d97706' }}>Datos para tu depósito</p>
+            {/* Los números salen de lib/cuenta.ts, no escritos aquí: estaban
+                copiados a mano y al cambiar la cuenta esta página se quedaba
+                mandando alumnos a depositar a la anterior. Van pegados, con
+                tracking como separador visual, para que copiarlos dé un número
+                válido. */}
             <p className="text-sm" style={{ color: '#334155' }}>
-              BBVA · Eduardo W. Czaplewski (cuenta PYME)<br />
-              Cuenta: 048 469 5739<br />
-              CLABE: 012 180 00484695739 9<br />
-              <span style={{ color: '#64748b' }}>(También se recibe en {TIENDAS} con la tarjeta {tarjetaConEspacios()})</span>
+              {CUENTA.banco} · {CUENTA.titular}<br />
+              Cuenta: <span className="font-mono tracking-wider">{CUENTA.numero}</span><br />
+              CLABE: <span className="font-mono tracking-wider">{CUENTA.clabe}</span><br />
+              <span style={{ color: '#64748b' }}>
+                (También se recibe en {TIENDAS} con la tarjeta{' '}
+                <span className="font-mono tracking-wider">{CUENTA.tarjeta}</span>)
+              </span>
             </p>
             <p className="text-xs mt-3" style={{ color: '#64748b' }}>
               En el concepto pon tu nombre completo y manda el comprobante por WhatsApp a Luz. Este link se actualiza solo — no hace falta que te mandemos nada más.
