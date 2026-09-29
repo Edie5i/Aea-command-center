@@ -126,14 +126,14 @@ export default function Home() {
           <header className="text-center px-4 pt-10 pb-20 flex flex-col items-center max-w-4xl mx-auto">
 
             {/* Rating Pill */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 border border-slate-200 shadow-sm mb-12 hover:scale-105 transition-transform cursor-default">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 border border-slate-200 shadow-sm mb-12 hover:scale-105 transition-transform cursor-default opacity-0 animate-fade-up">
               <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
               <span className="text-base font-bold text-slate-800">4.8 en Google</span>
               <span className="text-base text-slate-500 font-medium"> (220+ reseñas)</span>
             </div>
 
             {/* Logo Element */}
-            <div className="relative mb-12 group">
+            <div className="relative mb-12 group opacity-0 animate-fade-up" style={{ animationDelay: '80ms' }}>
               <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-2xl group-hover:bg-blue-500/20 transition-all duration-700" />
               <div className="w-80 sm:w-96 md:w-[28rem] h-auto bg-transparent relative z-10 hover:scale-105 transition-transform duration-700">
                 <img src="/logo.png" alt="Logo Auto Escuela Americana" className="w-full h-auto object-contain drop-shadow-xl" />
@@ -141,19 +141,19 @@ export default function Home() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter text-slate-800 mb-8 leading-[1.05]">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter text-slate-800 mb-8 leading-[1.05] opacity-0 animate-fade-up" style={{ animationDelay: '150ms' }}>
               Aprende a <br className="sm:hidden" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-500 via-slate-400 to-slate-600 drop-shadow-sm">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-500 drop-shadow-sm">
                 manejar hoy.
               </span>
             </h1>
 
-            <p className="text-xl sm:text-2xl mb-12 max-w-lg mx-auto text-slate-500 font-medium leading-relaxed">
+            <p className="text-xl sm:text-2xl mb-12 max-w-lg mx-auto text-slate-500 font-medium leading-relaxed opacity-0 animate-fade-up" style={{ animationDelay: '220ms' }}>
               Instructores pacientes, autos seguros y servicio a domicilio en CDMX.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4 sm:px-0">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4 sm:px-0 opacity-0 animate-fade-up" style={{ animationDelay: '290ms' }}>
               <Link href="/agenda"
                 className="group relative w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl font-bold text-white text-lg transition-all hover:scale-[1.02] active:scale-95 overflow-hidden"
                 style={{
@@ -172,32 +172,46 @@ export default function Home() {
             </div>
           </header>
 
-          {/* Módulos (Tarjetas Alargadas Modernas) */}
-          <section className="px-4 pb-12 max-w-4xl mx-auto w-full relative z-10">
-            <div className="flex flex-col gap-4">
-              {courseCards.map(({ icon: Icon, title, desc, href, label, internal }) => {
+          {/* Módulos (Grid de tarjetas) */}
+          <section className="px-4 pb-14 max-w-5xl mx-auto w-full relative z-10">
+            <div className="flex items-end justify-between mb-6 px-1">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-1.5">Empieza aquí</p>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">¿Qué quieres hacer hoy?</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {courseCards.map(({ icon: Icon, title, desc, href, label, internal, accent }, i) => {
                 const content = (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 rounded-[2rem] p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group bg-white/80 backdrop-blur-md border-[6px] shadow-[0_4px_20px_-4px_rgba(148,163,184,0.3)] relative overflow-hidden"
-                       style={{ borderImage: 'linear-gradient(to bottom right, #94a3b8, #64748b, #cbd5e1) 1' }}>
-                    {/* Inner metallic glow for silver effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-100/40 via-transparent to-slate-200/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                    
-                    {/* Metallic border inside (optional but adds depth) */}
-                    <div className="absolute inset-0 rounded-[2rem] border border-white/50 pointer-events-none" />
-                    
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 relative z-10 shadow-inner">
-                      <Icon className="w-7 h-7 text-blue-600" />
+                  <div
+                    className="h-full flex flex-col gap-4 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1.5 group bg-white border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.08)] hover:shadow-[0_16px_36px_-12px_rgba(15,23,42,0.18)] relative overflow-hidden opacity-0 animate-fade-up"
+                    style={{ animationDelay: `${i * 70}ms` }}
+                  >
+                    {/* Glow de acento en la esquina, en el color de la categoría */}
+                    <div
+                      className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 pointer-events-none"
+                      style={{ background: accent }}
+                    />
+                    {/* Barra de acento superior */}
+                    <div
+                      className="absolute top-0 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                      style={{ background: accent }}
+                    />
+
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 relative z-10"
+                      style={{ background: `${accent}1a` }}
+                    >
+                      <Icon className="w-6 h-6" style={{ color: accent }} />
                     </div>
-                    
+
                     <div className="flex-1 relative z-10">
-                      <h3 className="font-black text-xl leading-tight text-slate-800 mb-1">{title}</h3>
+                      <h3 className="font-black text-lg leading-tight text-slate-800 mb-1.5">{title}</h3>
                       <p className="text-sm leading-relaxed text-slate-500 font-medium">{desc}</p>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto mt-2 sm:mt-0 relative z-10 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-200">
-                      <div className="flex items-center gap-1.5 text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors bg-slate-50 sm:bg-transparent px-4 py-2 sm:p-0 rounded-xl border border-slate-200 sm:border-transparent">
-                        {label} <span className="group-hover:translate-x-1 transition-transform">→</span>
-                      </div>
+                    <div className="flex items-center gap-1.5 text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors relative z-10">
+                      {label} <span className="group-hover:translate-x-1 transition-transform" style={{ color: accent }}>→</span>
                     </div>
                   </div>
                 );
@@ -214,10 +228,7 @@ export default function Home() {
           <section className="px-4 pb-12 max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
             {/* Columna Izquierda: Mapa y Value Props */}
             <div className="lg:col-span-7 flex flex-col gap-6">
-              <div className="rounded-[2rem] p-6 flex flex-col bg-white/80 backdrop-blur-md border-[6px] shadow-[0_4px_20px_-4px_rgba(148,163,184,0.3)] relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                style={{ borderImage: 'linear-gradient(to bottom right, #94a3b8, #64748b, #cbd5e1) 1' }}>
-                <div className="absolute inset-0 rounded-[2rem] border border-white/50 pointer-events-none" />
-                
+              <div className="rounded-[2rem] p-6 flex flex-col bg-white border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.08)] relative overflow-hidden group hover:shadow-[0_16px_36px_-12px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-1">
                 <div className="flex items-center gap-4 mb-5 relative z-10">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 flex items-center justify-center shadow-inner">
                     <MapPin className="w-6 h-6 text-blue-600" />
@@ -267,10 +278,7 @@ export default function Home() {
               <div className="absolute -top-6 -right-6 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute -bottom-6 -left-6 w-72 h-72 bg-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="relative rounded-[2rem] bg-white/80 backdrop-blur-xl border-[6px] p-8 shadow-[0_8px_30px_-4px_rgba(148,163,184,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(148,163,184,0.5)] transition-all duration-300 hover:-translate-y-1 h-full flex flex-col"
-                style={{ borderImage: 'linear-gradient(to bottom right, #94a3b8, #64748b, #cbd5e1) 1' }}>
-                <div className="absolute inset-0 rounded-[2rem] border border-white/50 pointer-events-none" />
-                
+              <div className="relative rounded-[2rem] bg-white border border-slate-200/80 p-8 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.08)] hover:shadow-[0_16px_36px_-12px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-8 relative z-10">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-3 py-1 text-xs font-bold text-blue-600 shadow-sm">
                     <Star className="w-3.5 h-3.5 fill-blue-500" /> Reseña Destacada

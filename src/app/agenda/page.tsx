@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2, Star } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, Check, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2, Star } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -128,6 +128,39 @@ function CalendarModal({ selected, onConfirm, onClose }: {
           <button type="button" onClick={() => onConfirm(picked)} disabled={picked.length === 0} className="px-5 py-3 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40">Confirmar</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+const STEPS = [
+  { n: 1, label: 'Fechas' },
+  { n: 2, label: 'Horario' },
+  { n: 3, label: 'Datos' },
+] as const;
+
+function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
+  return (
+    <div className="flex items-center justify-center mb-2">
+      {STEPS.map((s, i) => (
+        <div key={s.n} className="flex items-center">
+          <div className="flex flex-col items-center gap-1.5">
+            <div className={[
+              'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300',
+              s.n < current ? 'bg-blue-600 text-white' : '',
+              s.n === current ? 'bg-blue-600 text-white ring-4 ring-blue-100' : '',
+              s.n > current ? 'bg-slate-100 text-slate-400' : '',
+            ].join(' ')}>
+              {s.n < current ? <Check className="w-4 h-4" /> : s.n}
+            </div>
+            <span className={['text-[11px] font-semibold whitespace-nowrap', s.n <= current ? 'text-slate-700' : 'text-slate-400'].join(' ')}>
+              {s.label}
+            </span>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div className={['w-12 sm:w-20 h-0.5 mx-1.5 -mt-5 rounded-full transition-colors duration-300', s.n < current ? 'bg-blue-600' : 'bg-slate-200'].join(' ')} />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -362,6 +395,7 @@ function AgendaContent() {
 
   const DARK_INPUT = "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-blue-500";
   const DARK_LABEL = "text-slate-700 text-sm font-semibold";
+  const currentStep: 1 | 2 | 3 = selectedDates.length === 0 ? 1 : (!selectedDates.every(d => !!d.time) ? 2 : 3);
 
   return (
     <main className="flex min-h-screen flex-col" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
@@ -374,7 +408,7 @@ function AgendaContent() {
         <div className="absolute inset-0 pointer-events-none opacity-[0.05]"
           style={{ backgroundImage: 'radial-gradient(circle, #64748b 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
-        <div className="relative z-10">
+        <div className="relative z-10 opacity-0 animate-fade-up">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Link href="/" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-slate-100"
               style={{ background: 'white', border: '1px solid rgba(148,163,184,0.3)', color: '#475569' }}>
@@ -397,18 +431,25 @@ function AgendaContent() {
             {courseScheduled ? 'Tu inscripción está completa.' : 'Selecciona fechas, horario y tus datos.'}
           </p>
         </div>
+
+        {!courseScheduled && (
+          <div className="relative z-10 mt-7 opacity-0 animate-fade-up" style={{ animationDelay: '80ms' }}>
+            <StepIndicator current={currentStep} />
+          </div>
+        )}
       </section>
 
       <div className="flex-1 px-4 py-6 flex flex-col items-center">
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl opacity-0 animate-fade-up" style={{ animationDelay: '140ms' }}>
 
           {/* Card principal */}
-          <div className="rounded-2xl overflow-hidden mb-8 bg-white shadow-md border border-slate-200">
+          <div className="rounded-2xl overflow-hidden mb-8 bg-white shadow-[0_2px_12px_-4px_rgba(15,23,42,0.08)] border border-slate-200/80">
 
             {courseScheduled ? (
               <div className="p-6 text-center">
-                <div className="inline-flex w-14 h-14 items-center justify-center rounded-full mb-4 bg-emerald-50 border border-emerald-200 text-emerald-600">
-                  <CheckCircle className="w-7 h-7" style={{ color: '#059669' }} />
+                <div className="relative inline-flex w-16 h-16 items-center justify-center rounded-full mb-4 bg-emerald-50 border border-emerald-200 text-emerald-600">
+                  <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-xl" />
+                  <CheckCircle className="w-8 h-8 relative z-10" style={{ color: '#059669' }} />
                 </div>
                 <h2 className="text-lg font-bold text-slate-800 mb-1">¡Inscripción y Agenda Completas!</h2>
                 <p className="text-sm mb-6" style={{ color: '#475569' }}>
@@ -416,8 +457,7 @@ function AgendaContent() {
                 </p>
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
                   <button onClick={handleDownloadPdf} disabled={isProcessing}
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40"
-                    style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#cbd5e1' }}>
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100">
                     {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     {isProcessing ? 'Generando...' : 'Descargar PDF'}
                   </button>
@@ -444,7 +484,7 @@ function AgendaContent() {
               <div className="p-5 space-y-6">
                 {/* Paso 1: Fechas */}
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>Paso 1 — Días de clase</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>Días de clase</p>
                   <button type="button" onClick={() => setCalOpen(true)}
                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors text-left bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100">
                     <span>{selectedDates.length > 0
@@ -478,7 +518,7 @@ function AgendaContent() {
                   <>
                     {/* Paso 2: Horarios */}
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#64748b' }}>Paso 2 — Horarios</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#64748b' }}>Horarios</p>
                       <div className="space-y-2">
                         {selectedDates.map((item, index) => (
                           <div key={item.date.toISOString()}
@@ -505,7 +545,7 @@ function AgendaContent() {
 
                     {/* Paso 3: Datos */}
                     <div className="mt-8">
-                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#64748b' }}>Paso 3 — Tus datos</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#64748b' }}>Tus datos</p>
                       <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
