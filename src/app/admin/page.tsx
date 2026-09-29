@@ -49,7 +49,7 @@ const DIVIDER = '1px solid rgba(148,163,184,0.2)';
 
 const navItems = [
   { href: '/admin/conversaciones', icon: '💬', label: 'Conversaciones', accent: '#3b82f6' },
-  { href: '/ficha',                icon: '📋', label: 'Nueva ficha',     accent: '#1d4ed8' },
+  { href: '/admin/ficha-nueva',    icon: '📋', label: 'Nueva ficha',     accent: '#1d4ed8' },
   { href: '/admin/fichas',         icon: '🗂️', label: 'Fichas',          accent: '#10b981' },
   { href: '/admin/metricas',       icon: '📊', label: 'Métricas',        accent: '#8b5cf6' },
   { href: '/admin/alumnos',        icon: '👥', label: 'Alumnos',         accent: '#6366f1' },
@@ -266,7 +266,7 @@ export default async function AdminPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs truncate text-slate-500">
-                          {f.curso || 'Curso ?'} · {f.origen === 'luz' ? '💬 Luz' : '🌐 Web'}
+                          {f.curso || 'Curso ?'} · {f.origen === 'luz' ? '💬 Luz' : f.origen === 'mostrador' ? '🏫 Mostrador' : '🌐 Web'}
                         </span>
                         <span className="text-xs shrink-0 font-bold" style={{ color: reservada ? '#059669' : '#d97706' }}>
                           {reservada ? '✅ Reservada' : `Falta: ${f.faltantes.join(', ')}`}

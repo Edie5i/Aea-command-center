@@ -15,6 +15,7 @@ const CARD: React.CSSProperties = {
 const ORIGEN_CHIP: Record<Ficha['origen'], { label: string; color: string }> = {
   web: { label: '🌐 Web', color: '#3b82f6' },
   luz: { label: '💬 Luz', color: '#22c55e' },
+  mostrador: { label: '🏫 Mostrador', color: '#8b5cf6' },
 };
 
 function timeAgo(ms: number): string {

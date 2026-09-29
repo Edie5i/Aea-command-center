@@ -39,7 +39,9 @@ async function notifyAdmin(input: CreateEventInput): Promise<void> {
   await notificarAdmin(texto);
 }
 
-export async function createCalendarEventsAction(input: CreateEventInput): Promise<{ success: boolean; message: string | null; error: string | null; }> {
+export async function createCalendarEventsAction(
+  input: CreateEventInput
+): Promise<{ success: boolean; message: string | null; error: string | null; fichaUrl: string | null }> {
   try {
     const result = await scheduleAndCreateEvents(input);
     notifyAdmin(input);
@@ -61,22 +63,31 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
       transmision: input.transmission ?? 'Estándar',
       fechas,
     };
-    saveInscripcionData(phone, fichaPayload, 'web')
-      .catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
 
-    // Igual que en el flujo de Luz: manda el PDF al alumno y, en paralelo, al
-    // admin (con respaldo de link si la ventana de 24h está cerrada).
-    import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
+    // Con await, no en paralelo: enviarFicha resuelve el token leyendo la ficha
+    // ya guardada. Lanzadas al mismo tiempo, la lectura llegaba antes de que la
+    // escritura terminara —lo normal en un alumno nuevo—, así que el alumno no
+    // recibía nada y al admin le llegaba el aviso de "sin ficha guardada".
+    let fichaUrl: string | null = null;
+    try {
+      await saveInscripcionData(phone, fichaPayload, 'web');
+      const { enviarFicha, tokenDeFicha, enlaceFicha } = await import('@/lib/ficha-enlace');
+      // Mismo enlace para el alumno, el admin y el botón de esta pantalla: una
+      // sola ficha, la que se actualiza sola.
+      const token = await tokenDeFicha(phone);
+      fichaUrl = token ? enlaceFicha(token) : null;
       enviarFicha(fichaPayload)
-        .catch(e => console.error('[AGENDA] Error enviando ficha PDF al admin:', e));
+        .catch(e => console.error('[AGENDA] Error enviando la ficha al admin:', e));
       enviarFicha(fichaPayload, phone)
-        .catch(e => console.error('[AGENDA] Error enviando ficha PDF al alumno:', e));
-    }).catch(e => console.error('[AGENDA] Error importando ficha-enlace:', e));
+        .catch(e => console.error('[AGENDA] Error enviando la ficha al alumno:', e));
+    } catch (e) {
+      console.error('[AGENDA] Error guardando inscripcion en Firestore:', e);
+    }
 
-    return { success: true, message: result.message, error: null };
+    return { success: true, message: result.message, error: null, fichaUrl };
   } catch (error) {
     console.error('Error in createCalendarEventsAction:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while creating calendar events.';
-    return { success: false, message: null, error: errorMessage };
+    return { success: false, message: null, error: errorMessage, fichaUrl: null };
   }
 }

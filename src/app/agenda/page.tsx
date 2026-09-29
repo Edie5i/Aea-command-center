@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, Download, User, Phone, MapPin, MessageSquare, UserCheck, Loader2, Star } from 'lucide-react';
+import { Calendar as CalendarIcon, ArrowLeft, CreditCard, List, CalendarCheck, CheckCircle, FileText, User, Phone, MapPin, MessageSquare, UserCheck, Loader2, Star } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -138,6 +138,7 @@ function AgendaContent() {
   const [calOpen, setCalOpen] = useState(false);
   const [courseScheduled, setCourseScheduled] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<SubmissionData | null>(null);
+  const [fichaUrl, setFichaUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
@@ -178,109 +179,8 @@ function AgendaContent() {
     setCourseScheduled(false);
     setSelectedDates([]);
     setLastSubmission(null);
+    setFichaUrl(null);
     form.reset();
-  };
-
-  const handleDownloadPdf = async () => {
-    if (!lastSubmission) return;
-
-    toast({ title: 'Generando PDF...' });
-    setIsProcessing(true);
-
-    try {
-      const { default: jsPDF } = await import('jspdf');
-      const { values, dates } = lastSubmission;
-      
-      const doc = new jsPDF();
-      
-      doc.setFillColor(0, 74, 173);
-      doc.rect(0, 0, 210, 25, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text("AUTO ESCUELA AMERICANA", 105, 15, { align: 'center' });
-      
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 74, 173);
-      doc.text("Ficha de Inscripción", 105, 38, { align: 'center' });
-      
-      let y = 55;
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text("Datos del Alumno", 14, y);
-      y += 8;
-
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Nombre: ${values.name}`, 14, y);
-      y += 7;
-      doc.text(`Teléfono: ${values.phone}`, 14, y);
-      y += 7;
-      
-      const addressLines = doc.splitTextToSize(`Punto de Encuentro: ${values.address}`, 180);
-      doc.text(addressLines, 14, y);
-      y += (addressLines.length * 5) + 2;
-
-      doc.text(`Transmisión: ${values.transmission}`, 14, y);
-      y += 7;
-
-      if (values.isMinor) {
-          doc.setFont('helvetica', 'bold');
-          doc.text("Modalidad: El curso es para un MENOR DE EDAD.", 14, y);
-          y += 7;
-          doc.setFont('helvetica', 'normal');
-      }
-
-      if (values.notes) {
-          y += 2;
-          const notesLines = doc.splitTextToSize(`Notas Adicionales: ${values.notes}`, 180);
-          doc.text(notesLines, 14, y);
-          y += (notesLines.length * 5) + 3;
-      }
-
-      y += 5;
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text("Fechas y Horarios Solicitados", 14, y);
-      y += 8;
-      
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      dates.forEach(item => {
-          if (y > 280) {
-            doc.addPage();
-            y = 20;
-          }
-          const formattedTime = item.time ? format(parse(item.time, 'HH:mm', new Date()), 'h:mm a') : 'Sin hora';
-          doc.text(`• ${format(item.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })} a las ${formattedTime}`, 14, y);
-          y += 7;
-      });
-      
-      const blob = doc.output('blob');
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Ficha_${values.name.replace(/ /g, '_')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      toast({ title: 'PDF generado exitosamente.' });
-
-    } catch (error) {
-      console.error("Error al generar PDF:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-      toast({
-        variant: 'destructive',
-        title: 'Error al Generar PDF',
-        description: `Hubo un problema al crear la ficha: ${errorMessage}`,
-      });
-    } finally {
-        setIsProcessing(false);
-    }
   };
 
   async function onSubmit(values: ScheduleFormValues) {
@@ -310,6 +210,7 @@ function AgendaContent() {
         // Only if the calendar part was successful, we proceed.
         const submissionData = { values, dates: selectedDates };
         setLastSubmission(submissionData);
+        setFichaUrl(calendarResult.fichaUrl);
         setCourseScheduled(true);
         if (typeof window !== 'undefined' && (window as any).gtag) {
           (window as any).gtag('event', 'agenda_submit', { transmission: values.transmission });
@@ -336,7 +237,17 @@ function AgendaContent() {
   }
 
   let whatsAppUrl = '';
-  if (lastSubmission) {
+  if (lastSubmission && fichaUrl) {
+      // Con ficha guardada no se repiten los datos: se manda el enlace, que es
+      // la única versión que se mantiene al día.
+      const { values } = lastSubmission;
+      const message =
+        `*¡Hola! Ya llené mi ficha de inscripción.*\n\n` +
+        `*Nombre:* ${values.name}\n` +
+        `Mi ficha: ${fichaUrl}\n\n` +
+        `¿Me confirman los horarios? ¡Gracias!`;
+      whatsAppUrl = `https://api.whatsapp.com/send?phone=525634433212&text=${encodeURIComponent(message)}`;
+  } else if (lastSubmission) {
       const { values, dates } = lastSubmission;
       let message = `*¡Hola! Quiero solicitar mi inscripción.*\n\n`;
       message += `*Nombre:* ${values.name}\n`;
@@ -412,15 +323,20 @@ function AgendaContent() {
                 </div>
                 <h2 className="text-lg font-bold text-slate-800 mb-1">¡Inscripción y Agenda Completas!</h2>
                 <p className="text-sm mb-6" style={{ color: '#475569' }}>
-                  Tus clases se agendaron en el calendario. Descarga tu ficha o envíala por WhatsApp.
+                  Tus clases se agendaron en el calendario. Tu ficha ya está en tu WhatsApp
+                  y aquí abajo — se actualiza sola cuando cambie algo.
                 </p>
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
-                  <button onClick={handleDownloadPdf} disabled={isProcessing}
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40"
-                    style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.15)', color: '#cbd5e1' }}>
-                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    {isProcessing ? 'Generando...' : 'Descargar PDF'}
-                  </button>
+                  {/* La ficha es la página, no un PDF: se ve igual en cualquier
+                      teléfono y muestra el estado de hoy. Es la misma que recibe
+                      el alumno por WhatsApp y la que abre el panel. */}
+                  {fichaUrl && (
+                    <a href={fichaUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                      style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
+                      <FileText className="w-4 h-4" /> Ver mi ficha
+                    </a>
+                  )}
                   <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer"
                     onClick={() => { if (typeof window !== 'undefined' && (window as any).gtag) (window as any).gtag('event', 'whatsapp_click', { location: 'agenda_success' }); }}
                     className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"

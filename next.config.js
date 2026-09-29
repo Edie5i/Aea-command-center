@@ -31,14 +31,6 @@ const nextConfig = {
     ];
   },
 
-  async rewrites() {
-    return {
-      beforeFiles: [
-        { source: '/ficha', destination: '/ficha.html' },
-      ],
-    };
-  },
-
   async headers() {
     return [
       {

@@ -2,67 +2,36 @@
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
+import { type Ficha, calcularDeposito, revisarFicha } from '@/lib/ficha-reglas';
 
-export type Ficha = {
-  studentName: string;
-  curso: string;
-  precio: number;
-  opcionesFechaHora: string[];
-  depositoMonto: number; // 20% del curso, mín $690
-  depositoPagado: boolean;
-  comprobanteURL: string | null;
-  origen: 'web' | 'luz'; // orgánico o WhatsApp — para que ninguno sea invisible
-  estado: 'nueva' | 'pendiente' | 'reservada' | 'perdida';
-  faltantes: string[];
-  telefono: string;
-  // Dirección de recogida. NO entra en revisarFicha a propósito: se vigila para
-  // avisar en cuanto llega, pero no bloquea que la ficha cuente como reservada.
-  zona?: string;
-  creada: number;
-  // Solo cuando estado === 'perdida': por qué se marcó así, para contexto en el panel.
-  perdidaRazon?: string;
-  // Identificador opaco para /ficha/[token] — no es el teléfono, no debe salir
-  // nunca en una URL (dato personal). Se genera una sola vez, al crear la ficha.
-  fichaToken?: string;
-};
+// Reexportadas: media app importa la ficha desde aquí.
+export { calcularDeposito, revisarFicha };
+export type { Ficha };
 
 const generarToken = () => randomBytes(9).toString('base64url');
 
-// Manda el link de la ficha directo al alumno por WhatsApp (texto simple, sin
-// documento adjunto — así no depende de tener Acrobat ni de que WhatsApp lo
-// reconozca como PDF). Best-effort: si la ventana de 24h está cerrada, Meta
-// lo rechaza y no hay plantilla de respaldo para un alumno arbitrario (esa
-// sólo existe para el admin, ver adminNotify.ts).
-async function enviarLinkFichaAlumno(telefono: string, nombre: string, token: string): Promise<void> {
-  const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
-  const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
-  if (!waToken || !phoneId || !telefono) return;
-
-  const link = `https://app.autoescuelaamericana.com/ficha/${token}`;
-  const texto = `📋 Hola ${nombre || ''}, aquí está tu ficha de Auto Escuela Americana:\n\n${link}\n\nAhí puedes ver tus datos, fechas y el estatus de tu apartado.`;
-
-  await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      to: telefono,
-      type: 'text',
-      text: { body: texto },
-    }),
-  }).catch((e) => console.error('[FICHA] Error mandando link de ficha al alumno:', e));
-}
-
-export const calcularDeposito = (p: number) => Math.max(Math.round(p * 0.2), 690);
-
-export function revisarFicha(f: Partial<Ficha>): string[] {
-  const x: string[] = [];
-  if (!f.studentName) x.push('nombre');
-  if (!f.curso) x.push('curso');
-  if (!f.opcionesFechaHora?.length) x.push('fechas');
-  if (!f.depositoPagado || !f.comprobanteURL) x.push('depósito');
-  if (!f.telefono) x.push('teléfono');
-  return x;
+// El enlace de la ficha se manda con ficha-enlace.ts, el mismo módulo que usa
+// la web, el panel y confirmarInscripcion. Antes esta función armaba su propio
+// mensaje —sin las fechas, sin revisar la respuesta de Meta— y lo mandaba al
+// `telefono` de la ficha, que se guarda a 10 dígitos para armar el wa.me. Meta
+// necesita lada: ese envío se rechazaba siempre y nadie lo veía en los logs.
+async function mandarEnlaceAlAlumno(id: string, ficha: Ficha): Promise<void> {
+  const { enviarFicha } = await import('@/lib/ficha-enlace');
+  await enviarFicha(
+    {
+      nombre: ficha.studentName,
+      // El id de la ficha es el teléfono normalizado a 52XXXXXXXXXX: sirve para
+      // resolver el token y es lo que Meta acepta como destinatario.
+      telefono: id,
+      zona: ficha.zona ?? '',
+      curso: ficha.curso,
+      fechas: ficha.opcionesFechaHora.map((f) => {
+        const [date, time] = f.split(' ');
+        return { date, time: time ?? '' };
+      }),
+    },
+    id
+  );
 }
 
 // Aviso puntual al admin: cuando cambia el estado, o cuando llega la dirección
@@ -72,7 +41,7 @@ async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void>
   const llegoZona = !prev?.zona && !!ficha.zona;
   if (!cambioEstado && !llegoZona) return;
 
-  const chip = ficha.origen === 'web' ? '🌐 Web' : '💬 Luz';
+  const chip = ficha.origen === 'web' ? '🌐 Web' : ficha.origen === 'mostrador' ? '🏫 Mostrador' : '💬 Luz';
   const nombre = ficha.studentName || 'Sin nombre';
   const dir = ficha.zona ? `\n📍 ${ficha.zona}` : '';
   const linkFicha = ficha.fichaToken ? `\n📋 Ficha: https://app.autoescuelaamericana.com/ficha/${ficha.fichaToken}` : '';
@@ -97,7 +66,7 @@ async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void>
 }
 
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.
-export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'web' | 'luz') {
+export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Ficha['origen']) {
   const ref = db.collection('fichas').doc(id);
   const snap = await ref.get();
   const existente = snap.exists ? (snap.data() as Ficha) : null;
@@ -130,14 +99,18 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
     // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
     creada: existente?.creada ?? Date.now(),
     fichaToken,
+    ...(datos.pagoEfectivo ?? existente?.pagoEfectivo
+      ? { pagoEfectivo: datos.pagoEfectivo ?? existente?.pagoEfectivo }
+      : {}),
+    ...(datos.nota ?? existente?.nota ? { nota: datos.nota ?? existente?.nota } : {}),
   };
   await ref.set(ficha, { merge: true });
   await notificarCambios(existente, ficha);
-  // Ficha nueva (no un re-guardado): mandarle el link al alumno de una vez,
+  // Ficha nueva (no un re-guardado): mandarle el enlace al alumno de una vez,
   // aunque todavía no haya pagado — es lo que pidió Eduardo explícitamente.
   if (!existente && ficha.telefono) {
-    await enviarLinkFichaAlumno(ficha.telefono, ficha.studentName, fichaToken).catch(
-      (e) => console.error('[FICHA] Error mandando link al alumno:', e)
+    await mandarEnlaceAlAlumno(id, ficha).catch(
+      (e) => console.error('[FICHA] Error mandando el enlace al alumno:', e)
     );
   }
   return ficha;
@@ -169,6 +142,8 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     zona: datos.zona,
     creada: datos.creada ?? Date.now(),
     fichaToken: (actual as Ficha | undefined)?.fichaToken ?? generarToken(),
+    ...(datos.pagoEfectivo ? { pagoEfectivo: datos.pagoEfectivo } : {}),
+    ...(datos.nota ? { nota: datos.nota } : {}),
   };
   await ref.set(ficha, { merge: true });
   await notificarCambios(actual as Ficha | null, ficha);

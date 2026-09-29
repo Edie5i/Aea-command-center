@@ -108,15 +108,13 @@ export default function LinksPage() {
 
         {/* Hero button */}
         <a
-          href="https://app.autoescuelaamericana.com/ficha"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/admin/ficha-nueva"
           className="flex items-center justify-between w-full rounded-2xl px-6 py-5 group transition-all"
           style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: '0 4px 20px rgba(37,99,235,0.25)' }}>
           <div>
             <p className="text-xs mb-0.5" style={{ color: 'rgba(147,197,253,0.8)' }}>Sistema interno</p>
-            <p className="text-lg font-bold text-white">Generador de Fichas</p>
-            <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.7)' }}>app.autoescuelaamericana.com/ficha</p>
+            <p className="text-lg font-bold text-white">Ficha nueva</p>
+            <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.7)' }}>Captura en sede · se la manda al alumno</p>
           </div>
           <span className="text-3xl text-slate-800 transition-transform group-hover:translate-x-1">→</span>
         </a>

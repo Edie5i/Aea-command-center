@@ -97,6 +97,11 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
               <p className="text-sm mt-0.5" style={{ color: '#2563eb' }}>
                 ${ficha.precio.toLocaleString('es-MX')} · Depósito ${ficha.depositoMonto.toLocaleString('es-MX')}
               </p>
+              {ficha.pagoEfectivo ? (
+                <p className="text-xs mt-1" style={{ color: '#059669' }}>
+                  Recibido en la sede: ${ficha.pagoEfectivo.toLocaleString('es-MX')}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -113,6 +118,14 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
             </div>
           )}
         </div>
+
+        {/* Nota de captura, si trae */}
+        {ficha.nota ? (
+          <div className="rounded-2xl p-4" style={CARD}>
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>Nota</p>
+            <p className="text-sm mt-1" style={{ color: '#334155' }}>{ficha.nota}</p>
+          </div>
+        ) : null}
 
         {/* Pago (solo si falta) */}
         {!reservada && !perdida && (
