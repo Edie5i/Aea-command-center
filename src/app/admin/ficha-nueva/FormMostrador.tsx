@@ -144,7 +144,7 @@ export default function FormMostrador({ cursos }: { cursos: CursoOpt[] }) {
         </select>
         {elegido && (
           <p className="text-xs" style={{ color: '#64748b' }}>
-            Apartado del curso: <strong style={{ color: '#2563eb' }}>${elegido.deposito.toLocaleString('es-MX')}</strong> (20%, mínimo $690)
+            Apartado: <strong style={{ color: '#2563eb' }}>${elegido.deposito.toLocaleString('es-MX')}</strong> · saldo ${(elegido.total - elegido.deposito).toLocaleString('es-MX')}
           </p>
         )}
       </div>

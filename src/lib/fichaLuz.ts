@@ -2,10 +2,10 @@
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
-import { type Ficha, calcularDeposito, revisarFicha } from '@/lib/ficha-reglas';
+import { type Ficha, APARTADO, revisarFicha } from '@/lib/ficha-reglas';
 
 // Reexportadas: media app importa la ficha desde aquí.
-export { calcularDeposito, revisarFicha };
+export { APARTADO, revisarFicha };
 export type { Ficha };
 
 const generarToken = () => randomBytes(9).toString('base64url');
@@ -81,7 +81,7 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
     curso: datos.curso ?? '',
     precio,
     opcionesFechaHora: datos.opcionesFechaHora ?? [],
-    depositoMonto: calcularDeposito(precio),
+    depositoMonto: APARTADO,
     depositoPagado: datos.depositoPagado ?? false,
     comprobanteURL: datos.comprobanteURL ?? null,
     origen,
@@ -130,7 +130,7 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     curso: datos.curso ?? '',
     precio,
     opcionesFechaHora: datos.opcionesFechaHora ?? [],
-    depositoMonto: calcularDeposito(precio),
+    depositoMonto: APARTADO,
     depositoPagado: datos.depositoPagado ?? false,
     comprobanteURL: datos.comprobanteURL ?? null,
     origen: datos.origen ?? 'luz',
@@ -170,5 +170,5 @@ export async function traerFichas() {
 // Link de WhatsApp pre-armado para que TÚ cierres manual, con tu escasez.
 export const linkCierre = (f: Ficha) =>
   `https://wa.me/52${f.telefono}?text=${encodeURIComponent(
-    `Hola ${f.studentName}, vi tu solicitud de clases. Te aparto tu lugar con el depósito del 20% ($${f.depositoMonto}). ¿Te va?`
+    `Hola ${f.studentName}, vi tu solicitud de clases. Te aparto tu lugar con $${f.depositoMonto.toLocaleString('es-MX')}. ¿Te va?`
   )}`;

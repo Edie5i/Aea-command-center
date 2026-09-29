@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { revisarFicha, calcularDeposito, type Ficha } from '../ficha-reglas';
+import { revisarFicha, APARTADO, type Ficha } from '../ficha-reglas';
+import { RESERVA } from '../pagos';
 
 const completa: Partial<Ficha> = {
   studentName: 'María Fernanda López',
@@ -29,12 +30,13 @@ describe('revisarFicha', () => {
   });
 });
 
-describe('calcularDeposito', () => {
-  it('es el 20% del curso', () => {
-    expect(calcularDeposito(3900)).toBe(780);
+describe('el apartado', () => {
+  it('es el mismo que cobra el mensaje de pago', () => {
+    // Si estos dos se separan, Luz promete una cifra y la ficha cobra otra.
+    expect(APARTADO).toBe(RESERVA);
   });
 
-  it('nunca baja de los $690 del apartado', () => {
-    expect(calcularDeposito(3400)).toBe(690);
+  it('no depende del curso', () => {
+    expect(APARTADO).toBe(690);
   });
 });

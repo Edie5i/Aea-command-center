@@ -6,12 +6,17 @@
  * deciden si un alumno tiene su lugar apartado— se pueden probar solas.
  */
 
+import { RESERVA } from './pagos';
+
 export type Ficha = {
   studentName: string;
   curso: string;
   precio: number;
   opcionesFechaHora: string[];
-  depositoMonto: number; // 20% del curso, mín $690
+  // Lo que aparta el lugar. Se guarda en la ficha, y no se recalcula al leerla,
+  // para que un cambio futuro de RESERVA no altere lo que ya se le prometió a
+  // alguien que reservó antes.
+  depositoMonto: number;
   depositoPagado: boolean;
   comprobanteURL: string | null;
   // De dónde salió: la web (/agenda), WhatsApp (Luz) o la captura de mostrador
@@ -39,7 +44,18 @@ export type Ficha = {
   fichaToken?: string;
 };
 
-export const calcularDeposito = (p: number) => Math.max(Math.round(p * 0.2), 690);
+/**
+ * Lo que se le pide al alumno para apartar: $690, el mismo para todos los cursos.
+ *
+ * Antes esto era `max(20% del curso, 690)`. Nadie se lo dijo nunca así al
+ * alumno: Luz promete $690 en seis lugares del prompt —y como gancho de venta,
+ * "el apartado es la promo"— y `mensajeCobro` cobra `RESERVA`. El 20% sólo
+ * existía aquí, y salía a la cara del cliente en tres lados: la ficha decía
+ * "Depósito $780" para Automático, el mensaje de cierre le pedía "el depósito
+ * del 20%", y la plantilla de seguimiento le dictaba ese mismo número. Se le
+ * prometía una cifra y se le cobraba otra.
+ */
+export const APARTADO = RESERVA;
 
 export function revisarFicha(f: Partial<Ficha>): string[] {
   const x: string[] = [];

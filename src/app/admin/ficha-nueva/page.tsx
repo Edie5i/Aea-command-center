@@ -11,7 +11,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { CURSOS } from '@/lib/pagos';
-import { calcularDeposito } from '@/lib/fichaLuz';
+import { APARTADO } from '@/lib/fichaLuz';
 import FormMostrador from './FormMostrador';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
@@ -28,7 +28,7 @@ export default async function FichaNuevaPage() {
   const cursos = CURSOS.map((c) => ({
     nombre: c.nombre,
     total: c.total,
-    deposito: calcularDeposito(c.total),
+    deposito: APARTADO,
   }));
 
   return (

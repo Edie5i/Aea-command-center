@@ -5,6 +5,7 @@ import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { checkCoverage, type CoverageResult } from '@/lib/coverage';
 import { CUENTA, TIENDAS, tarjetaConEspacios } from '@/lib/cuenta';
+import { APARTADO } from '@/lib/ficha-reglas';
 import { normalizePhone } from '@/lib/phone';
 import { notificarAdmin } from '@/lib/adminNotify';
 
@@ -730,12 +731,14 @@ async function avisarPreReservaPorPlantilla(to: string, phoneId: string): Promis
     const ficha = await db.collection('fichas').doc(to).get();
     if (!ficha.exists) return false;
 
-    const f = ficha.data() as { studentName?: string; curso?: string; depositoMonto?: number; estado?: string };
-    if (f.estado === 'reservada') return false; // ya pagó, no hay nada que cobrarle
+    const f = ficha.data() as { studentName?: string; curso?: string; depositoMonto?: number; estado?: string; comprobanteURL?: string | null };
+    // Ya pagó, o mandó comprobante y está en revisión: en los dos casos pedirle
+    // el apartado otra vez es perseguir a quien ya depositó.
+    if (f.estado === 'reservada' || f.comprobanteURL) return false;
 
     const nombre = (f.studentName || '').split(' ')[0] || 'Hola';
     const curso = f.curso || 'de manejo';
-    const monto = `$${(f.depositoMonto ?? 690).toLocaleString('es-MX')}`;
+    const monto = `$${(f.depositoMonto ?? APARTADO).toLocaleString('es-MX')}`;
 
     const ok = await sendTemplateMessage(to, 'prereserva_pendiente', 'es_MX', [nombre, curso, monto], phoneId);
     if (ok) console.log('[WA-STATUS] 📨 plantilla de pre-reserva enviada a', to);
@@ -1329,7 +1332,8 @@ export async function POST(request: NextRequest) {
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
 
     notificarAdmin(
-      `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇`
+      `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇\n` +
+        `👉 Confirmar el apartado: https://app.autoescuelaamericana.com/admin/reservas`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     // Corta el seguimiento automático en cuanto llega el comprobante, ANTES de
@@ -1364,14 +1368,19 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Copia permanente al bucket privado + marcar depósito en la ficha única.
-      // Fire-and-forget: si falla, la inscripción sigue su curso normal.
+      // Copia permanente al bucket privado y se cuelga de la ficha. Lo que NO se
+      // hace aquí es marcar el depósito como pagado: por aquí entra CUALQUIER
+      // imagen o PDF que manden —una licencia, una identificación, una captura
+      // de pantalla, una foto del coche— y con eso la ficha pasaba a 'reservada'
+      // sin que nadie mirara el monto ni el banco. El alumno leía "✅ Lugar
+      // confirmado — depósito recibido" en su ficha por haber mandado una foto,
+      // y al admin le llegaba "Depósito PAGADO". Ahora el comprobante queda
+      // adjunto y en revisión; lo confirma una persona en /admin/reservas.
       import('@/lib/comprobantes')
         .then(async ({ subirComprobante }) => {
           const path = await subirComprobante(mediaId, from);
           const { actualizarFicha } = await import('@/lib/fichaLuz');
           await actualizarFicha(from, {
-            depositoPagado: true,
             comprobanteURL: `/api/admin/comprobante?path=${encodeURIComponent(path)}`,
           });
           console.log('[WEBHOOK] Comprobante en Storage:', path);

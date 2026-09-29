@@ -40,6 +40,9 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
   const fechaEmision = new Date(ficha.creada).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
   const reservada = ficha.estado === 'reservada';
   const perdida = ficha.estado === 'perdida';
+  // Mandó su comprobante y todavía nadie lo revisa. Antes no existía este estado:
+  // la ficha le decía "pendiente de depósito" a alguien que acababa de pagar.
+  const enRevision = !reservada && !perdida && !!ficha.comprobanteURL;
 
   return (
     <main className="min-h-screen py-8 px-4" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
@@ -52,7 +55,7 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0" style={{ background: '#004aad' }}>A</div>
               <div>
-                <p className="font-bold text-white leading-tight">AUTO ESCUELA<br />AMERICANA</p>
+                <p className="font-bold leading-tight" style={{ color: '#1e293b' }}>AUTO ESCUELA<br />AMERICANA</p>
                 <p className="text-xs mt-0.5" style={{ color: '#64748b' }}>APRENDE A MANEJAR · CDMX</p>
               </div>
             </div>
@@ -66,12 +69,20 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
         </div>
 
         {/* Estatus */}
+        {/* Los colores se leen sobre fondo claro: el verde y el ámbar de antes
+            (#4ade80, #fbbf24) venían del tema oscuro y casi no se veían. */}
         <div className="rounded-2xl p-4 text-center font-semibold text-sm" style={{
-          background: perdida ? 'rgba(100,116,139,0.12)' : reservada ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)',
-          border: `1px solid ${perdida ? 'rgba(100,116,139,0.3)' : reservada ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}`,
-          color: perdida ? '#64748b' : reservada ? '#4ade80' : '#fbbf24',
+          background: perdida ? 'rgba(100,116,139,0.12)' : reservada ? 'rgba(34,197,94,0.12)' : enRevision ? 'rgba(37,99,235,0.1)' : 'rgba(245,158,11,0.12)',
+          border: `1px solid ${perdida ? 'rgba(100,116,139,0.3)' : reservada ? 'rgba(34,197,94,0.35)' : enRevision ? 'rgba(37,99,235,0.3)' : 'rgba(245,158,11,0.35)'}`,
+          color: perdida ? '#64748b' : reservada ? '#15803d' : enRevision ? '#1d4ed8' : '#b45309',
         }}>
-          {perdida ? '❌ Este apartado ya no está vigente' : reservada ? '✅ Lugar confirmado — depósito recibido' : '⏳ Pendiente de depósito para confirmar tu lugar'}
+          {perdida
+            ? '❌ Este apartado ya no está vigente'
+            : reservada
+            ? '✅ Lugar confirmado — depósito recibido'
+            : enRevision
+            ? '⏳ Recibimos tu comprobante — estamos confirmando tu apartado'
+            : '⏳ Pendiente de depósito para confirmar tu lugar'}
         </div>
 
         {/* Datos del alumno */}
@@ -128,7 +139,7 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
         ) : null}
 
         {/* Pago (solo si falta) */}
-        {!reservada && !perdida && (
+        {!reservada && !perdida && !enRevision && (
           <div className="rounded-2xl p-5" style={CARD}>
             <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#d97706' }}>Datos para tu depósito</p>
             {/* Los números salen de lib/cuenta.ts, no escritos aquí: estaban

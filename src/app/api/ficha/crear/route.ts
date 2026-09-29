@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { normalizePhone } from '@/lib/phone';
-import { guardarFicha, calcularDeposito } from '@/lib/fichaLuz';
+import { guardarFicha, APARTADO } from '@/lib/fichaLuz';
 import { enlaceFicha } from '@/lib/ficha-enlace';
 import { buscarCurso } from '@/lib/pagos';
 
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   // Sólo cuenta como apartado si alcanza el depósito del curso: si entró menos,
   // la ficha sigue pendiente y el panel lo enseña así.
   const apartado = Number(body.apartado ?? 0) || 0;
-  const deposito = calcularDeposito(curso.total);
+  const deposito = APARTADO;
   const cubreDeposito = apartado >= deposito;
 
   const ficha = await guardarFicha(

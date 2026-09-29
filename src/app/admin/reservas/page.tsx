@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { traerFichas, linkCierre, type Ficha } from '@/lib/fichaLuz';
+import { confirmarApartado } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,9 +33,12 @@ function timeAgo(ms: number): string {
 
 function badge(f: Ficha): { texto: string; color: string } {
   if (f.estado === 'perdida') return { texto: '❌ PERDIDA', color: '#64748b' };
-  return f.faltantes.length === 0
-    ? { texto: '✅ RESERVADA', color: '#22c55e' }
-    : { texto: `⚠️ FALTA: ${f.faltantes.join(', ')}`, color: '#f59e0b' };
+  if (f.faltantes.length === 0) return { texto: '✅ RESERVADA', color: '#22c55e' };
+  // Mandó algo y nadie lo ha mirado: no es lo mismo que no haber pagado.
+  if (f.comprobanteURL && !f.depositoPagado) {
+    return { texto: '⏳ COMPROBANTE POR REVISAR', color: '#2563eb' };
+  }
+  return { texto: `⚠️ FALTA: ${f.faltantes.join(', ')}`, color: '#f59e0b' };
 }
 
 export default async function ReservasPage({
@@ -119,6 +123,20 @@ export default async function ReservasPage({
                   >
                     📎 Ver comprobante
                   </a>
+                )}
+                {/* Mandó comprobante y nadie lo ha revisado. El botón es de quien
+                    ya vio el monto y el banco en la imagen de al lado. */}
+                {f.comprobanteURL && !f.depositoPagado && (
+                  <form action={confirmarApartado}>
+                    <input type="hidden" name="id" value={f.id} />
+                    <button
+                      type="submit"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-full"
+                      style={{ background: 'rgba(34,197,94,0.15)', color: '#15803d', border: '1px solid rgba(34,197,94,0.35)' }}
+                    >
+                      ✅ Confirmar apartado
+                    </button>
+                  </form>
                 )}
                 {f.telefono && (
                   <a
