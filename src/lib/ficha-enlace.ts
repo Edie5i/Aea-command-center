@@ -113,12 +113,12 @@ export async function tokenDeFicha(telefono: string): Promise<string | null> {
   }
 }
 
-async function mandarTexto(to: string, texto: string, quien: string): Promise<void> {
+async function mandarTexto(to: string, texto: string, quien: string): Promise<boolean> {
   const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
   const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
   if (!waToken || !phoneId) {
     console.error('[FICHA] faltan credenciales de WhatsApp');
-    return;
+    return false;
   }
 
   const res = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
@@ -137,12 +137,13 @@ async function mandarTexto(to: string, texto: string, quien: string): Promise<vo
     return null;
   });
 
-  if (!res) return;
+  if (!res) return false;
   if (!res.ok) {
     console.error(`[FICHA] Meta rechazó el envío a ${quien}:`, res.status, await res.text());
-    return;
+    return false;
   }
   console.log(`[FICHA] enlace enviado a ${quien} (${to}) — 200 no garantiza entrega`);
+  return true;
 }
 
 /**
@@ -165,7 +166,17 @@ export async function enviarFicha(data: FichaData, to?: string): Promise<void> {
   }
 
   if (to) {
-    await mandarTexto(to, mensajeAlumno(data, token), 'el alumno');
+    const llego = await mandarTexto(to, mensajeAlumno(data, token), 'el alumno');
+    if (!llego) {
+      // Desde que Luz dejó de dictar la cuenta en el chat, la ficha es el único
+      // lugar donde el alumno ve a dónde depositar. Si no le llegó, se queda sin
+      // saber cómo pagar y nadie se enteraría: el log no lo lee nadie a tiempo.
+      const { notificarAdmin } = await import('@/lib/adminNotify');
+      await notificarAdmin(
+        `⚠️ *No le llegó su ficha* — ${data.nombre}\n📱 +${data.telefono}\n` +
+        `Mándasela tú: ${enlaceFicha(token)}`
+      ).catch(() => {});
+    }
     return;
   }
 

@@ -26,4 +26,7 @@ export async function confirmarApartado(formData: FormData): Promise<void> {
   // cuando de verdad está confirmado.
   await actualizarFicha(id, { depositoPagado: true });
   revalidatePath('/admin/reservas');
+  // Se confirma desde dos lados: el panel y la liga que llega por WhatsApp.
+  const token = String(formData.get('token') ?? '');
+  if (token) revalidatePath(`/admin/confirmar/${token}`);
 }

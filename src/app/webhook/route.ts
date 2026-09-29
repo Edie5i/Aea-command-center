@@ -4,7 +4,8 @@ import { AEA_TOOLS } from '@/ai/tools/aea-tools';
 import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { checkCoverage, type CoverageResult } from '@/lib/coverage';
-import { CUENTA, TIENDAS, tarjetaConEspacios } from '@/lib/cuenta';
+// Sólo TIENDAS: la cuenta y la tarjeta ya no se dictan en el chat, van en la ficha.
+import { TIENDAS } from '@/lib/cuenta';
 import { APARTADO } from '@/lib/ficha-reglas';
 import { normalizePhone } from '@/lib/phone';
 import { notificarAdmin } from '@/lib/adminNotify';
@@ -151,14 +152,13 @@ Manda TODO en un solo mensaje. SIEMPRE incluye los tres datos (nombre, horario y
 🕐 [las 4 fechas y hora acordadas, ej: lunes 22, martes 23, miércoles 24 y jueves 25, a las 10am]
 📍 [dirección completa: calle, número y colonia]
 
-Para apartar tu lugar son $690 — al hacer la transferencia aceptas nuestros términos de contratación. Preferimos transferencia porque confirma al instante 👇
+Para apartar tu lugar son $690 — al hacer la transferencia aceptas nuestros términos de contratación.
 
-${CUENTA.banco} | ${CUENTA.titular}
-Cuenta: ${CUENTA.numero} | CLABE: ${CUENTA.clabe}
+Aquí mismo te llega tu ficha en un segundo: ahí están tus fechas, tu horario y los datos para depositar (transferencia, o en ${TIENDAS} si te queda más cerca). Se actualiza sola en cuanto entre tu apartado.
 
-(Si no puedes transferir, también se recibe en ${TIENDAS} con la tarjeta ${tarjetaConEspacios()})
+Cuando deposites, pon tu nombre completo en el concepto y mándame el comprobante por aquí. ¿Alguna duda?"
 
-En el concepto pon tu nombre completo y mándame el comprobante por aquí. ¿Alguna duda?"
+NO dictes la cuenta, la CLABE ni la tarjeta en el chat. Van en la ficha, que se manda sola al guardar la pre-reserva: un solo lugar, siempre al día, y el alumno acaba en la página donde va a reservar en vez de quedarse en la conversación. Si te los pide explícitamente, mándale la liga de la ficha otra vez.
 
 Inmediatamente después de mandar este mensaje → llama a guardarPreReserva con nombre (el del ALUMNO), teléfono, dirección, curso, transmisión, patrón, la fechaInicio + hora que acordaste, y edadAlumno si la mencionaron. No esperes el comprobante — guárdalo ya. Esto calcula y guarda las 4 fechas reales, no solo la primera.
 
@@ -190,7 +190,7 @@ NO pidas más información — todo quedó registrado.
 - "¿puedo conocer las instalaciones?" → "Claro, puedes pasar sin cita a Av. Universidad 1407 (metro Viveros). ¿Qué día te queda?"
 - "vi otras opciones" / "está caro comparado" → "Tiene sentido comparar. El mercado en CDMX cobra hasta $8,999 — en AEA es desde $3,400, 73.4% más accesible. ¿Qué te importa más: precio, horarios o calidad del instructor?"
 
-⚠️ **Negociación de un monto fuera de catálogo** — esto es DISTINTO a una objeción de precio. Pasa cuando el cliente propone o pide un número específico que tú no tienes autorizado: "¿me lo dejas en $X?", "¿si pago junto/en efectivo me haces un precio?", "te doy $X y ya", "bájale tantito y cerramos ahorita". NUNCA inventes, aceptes ni niegues un monto por tu cuenta — no tienes autoridad para negociar precio, solo para explicar el catálogo. Respondé exactamente: "Eso ya no lo manejo yo, te conecto con un asesor: 56 3443 3212." y detente ahí, sin ofrecer nada más.
+⚠️ **Negociación de un monto fuera de catálogo** — esto es DISTINTO a una objeción de precio. Pasa cuando el cliente propone o pide un número específico que tú no tienes autorizado: "¿me lo dejas en $X?", "¿si pago junto/en efectivo me haces un precio?", "te doy $X y ya", "bájale tantito y cerramos ahorita". NUNCA inventes, aceptes ni niegues un monto por tu cuenta — no tienes autoridad para negociar precio, solo para explicar el catálogo. Responde exactamente: "Eso ya no lo manejo yo, te conecto con un asesor: 56 3443 3212." y detente ahí, sin ofrecer nada más.
 
 ## PAGOS A PLAZOS (OPENPAY 3 MSI)
 
@@ -1332,8 +1332,7 @@ export async function POST(request: NextRequest) {
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
 
     notificarAdmin(
-      `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇\n` +
-        `👉 Confirmar el apartado: https://app.autoescuelaamericana.com/admin/reservas`
+      `🔴 *COMPROBANTE — ${nombreRapido}*\n📱 +${from}\n⏳ Verificar monto y banco 👇`
     ).catch((e) => console.error('[WEBHOOK] Error notificando admin (imagen):', e));
 
     // Corta el seguimiento automático en cuanto llega el comprobante, ANTES de
@@ -1356,14 +1355,27 @@ export async function POST(request: NextRequest) {
       console.error('[WEBHOOK] Error marcando comprobante recibido:', e);
     }
 
-    // Reenviar el comprobante al admin para verificar monto y banco
+    // Reenviar el comprobante al admin para verificar monto y banco. El pie
+    // lleva la liga que lo confirma: la decisión se toma mirando esta imagen, así
+    // que el botón vive aquí y no al final de un viaje por el panel. Si la ficha
+    // todavía no existe (mandó el comprobante antes de cerrar con Luz) no hay
+    // token y el pie va sin liga.
     if (mediaId) {
+      const tokenFicha = await import('@/lib/ficha-enlace')
+        .then(({ tokenDeFicha }) => tokenDeFicha(from))
+        .catch(() => null);
+      const pie =
+        `${nombreRapido} · +${from}` +
+        (tokenFicha
+          ? `\n👉 Confirmar apartado: https://app.autoescuelaamericana.com/admin/confirmar/${tokenFicha}`
+          : '');
+
       if (messageType === 'document') {
-        sendDocumentMessage(ADMIN_PHONE, mediaId, documentFilename, `${nombreRapido} · +${from}`, phoneId).catch(
+        sendDocumentMessage(ADMIN_PHONE, mediaId, documentFilename, pie, phoneId).catch(
           (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
         );
       } else {
-        sendImageMessage(ADMIN_PHONE, mediaId, `${nombreRapido} · +${from}`, phoneId).catch(
+        sendImageMessage(ADMIN_PHONE, mediaId, pie, phoneId).catch(
           (e) => console.error('[WEBHOOK] Error reenviando comprobante al admin:', e)
         );
       }
