@@ -7,7 +7,7 @@ const completo = {
   aniosManejando: 6,
   rating: 4.8,
   transmisiones: 'ambas' as const,
-  licenciaB: true,
+  licencia: true,
   coche: true,
   zonas: 'Coyoacán',
   disponibilidad: 'mañanas entre semana',
@@ -23,8 +23,8 @@ describe('faltan', () => {
   });
 
   it('un false o un cero SÍ son dato', () => {
-    expect(faltan({ licenciaB: false, aniosManejando: 0 })).not.toContain('licenciaB');
-    expect(faltan({ licenciaB: false, aniosManejando: 0 })).not.toContain('aniosManejando');
+    expect(faltan({ licencia: false, aniosManejando: 0 })).not.toContain('licencia');
+    expect(faltan({ licencia: false, aniosManejando: 0 })).not.toContain('aniosManejando');
     // "no tengo coche" es una respuesta, y de las que descartan: si contara
     // como faltante, Marco se la volvería a preguntar.
     expect(faltan({ coche: false })).not.toContain('coche');
@@ -41,7 +41,7 @@ describe('fusionar — qué se escribe', () => {
   });
 
   it('lo que no se dijo (null) no se escribe', () => {
-    expect(fusionar(vacio, { nombre: 'Juan', rating: null, licenciaB: null })).toEqual({
+    expect(fusionar(vacio, { nombre: 'Juan', rating: null, licencia: null })).toEqual({
       nombre: 'Juan',
     });
   });
@@ -93,7 +93,7 @@ describe('fusionar — descarta lo que el modelo aluciné', () => {
 
   it('una licencia que no es sí o no', () => {
     // @ts-expect-error a propósito
-    expect(fusionar(vacio, { licenciaB: 'tal vez' })).toEqual({});
+    expect(fusionar(vacio, { licencia: 'tal vez' })).toEqual({});
   });
 
   it('texto vacío o de puros espacios', () => {
@@ -101,9 +101,9 @@ describe('fusionar — descarta lo que el modelo aluciné', () => {
   });
 
   it('pero cero años y sin licencia SÍ se guardan: son respuestas', () => {
-    expect(fusionar(vacio, { aniosManejando: 0, licenciaB: false })).toEqual({
+    expect(fusionar(vacio, { aniosManejando: 0, licencia: false })).toEqual({
       aniosManejando: 0,
-      licenciaB: false,
+      licencia: false,
     });
   });
 
@@ -120,8 +120,8 @@ describe('fusionar — descarta lo que el modelo aluciné', () => {
  * podrías aplicar" y se quedó en `calificando`, atrapado con Marco.
  */
 describe('motivoDescarte — lo que se lee del dato, no del texto', () => {
-  it('sin licencia B descarta', () => {
-    expect(motivoDescarte({ licenciaB: false })).toMatch(/licencia/i);
+  it('sin licencia vigente descarta', () => {
+    expect(motivoDescarte({ licencia: false })).toMatch(/licencia/i);
   });
 
   it('sin coche descarta', () => {

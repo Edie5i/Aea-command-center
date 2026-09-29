@@ -381,7 +381,7 @@ export interface CandidatoInstructor {
   aniosManejando?: number;
   rating?: number;
   transmisiones?: 'estandar' | 'automatico' | 'ambas';
-  licenciaB?: boolean;
+  licencia?: boolean;
   /** Coche para dar las clases: se dan en el del instructor, no en uno de la escuela. */
   coche?: boolean;
   zonas?: string;

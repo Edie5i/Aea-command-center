@@ -118,10 +118,10 @@ function CandidatoCard({
             <span className="capitalize" style={{ color: '#64748b' }}>{c.transmisiones}</span>
           </div>
         )}
-        {c.licenciaB !== undefined && (
+        {c.licencia !== undefined && (
           <div className="flex items-center gap-1">
-            <span>{c.licenciaB ? '✅' : '❌'}</span>
-            <span style={{ color: '#64748b' }}>Licencia B</span>
+            <span>{c.licencia ? '✅' : '❌'}</span>
+            <span style={{ color: '#64748b' }}>Licencia</span>
           </div>
         )}
         {c.zonas && (

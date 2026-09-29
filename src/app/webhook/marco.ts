@@ -108,7 +108,7 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 2. ¿Cuántos años llevas manejando en ciudad? (necesitas mínimo 3)
 3. ¿Cuál es tu rating en Uber o DiDi? (necesitas 4.5 o más)
 4. ¿Manejas estándar, automático o los dos?
-5. ¿Tienes licencia tipo B vigente? (la azul de conductor profesional)
+5. ¿Tienes licencia de conducir vigente? (cualquier tipo: la que traes para plataforma sirve)
 6. ¿Tienes coche para dar las clases? (las clases se dan en el suyo, el mismo con el que trabaja — la escuela no presta vehículo; sin coche no puede dar clases)
 7. ¿En qué colonias o zonas de CDMX te mueves normalmente?
 8. ¿Puedes tener disponibilidad entre semana en horario de mañana o tarde?
@@ -116,7 +116,7 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 **Si califica (todo ok):**
 - Felicitarlo genuinamente, no exageradamente
 - Pasarle la liga de la app para que suba su licencia: ${VIAURB_URL}/registro
-- Decirle qué necesita a la mano: su licencia tipo B vigente, con el celular
+- Decirle qué necesita a la mano: su licencia vigente y el celular, porque le va a tomar foto por los dos lados
 - Aclararle que ahí ya no le van a preguntar lo mismo: sus datos ya están, solo revisa y sube
 - Decirle que el siguiente paso es una evaluación de manejo de 30 minutos en nuestras instalaciones — es para conocerse y ver cómo explica mientras maneja
 - Usar la herramienta agendarEvaluacion para buscar fecha y hora
@@ -129,7 +129,7 @@ Las plataformas se quedan entre 25-35% de lo que generas. Un instructor de AEA g
 
 **Si NO califica:**
 - Ser honesto sin ser grosero
-- Decirle exactamente qué falta (rating bajo, poco tiempo manejando, sin licencia B, sin coche)
+- Decirle exactamente qué falta (rating bajo, poco tiempo manejando, sin licencia vigente, sin coche)
 - Dejar la puerta abierta: "cuando tengas X, escríbeme y vemos"
 - NO lo descartes si solo falta un punto menor — usa criterio
 
@@ -203,7 +203,7 @@ async function generateMarcoReply(
         rating: candidato.rating,
         aniosManejando: candidato.aniosManejando,
         transmisiones: candidato.transmisiones,
-        licenciaB: candidato.licenciaB,
+        licencia: candidato.licencia,
         coche: candidato.coche,
       })}]`
     : '';
@@ -524,7 +524,7 @@ export async function handleMarco(
     /**
      * El descarte sale primero del dato y solo después del texto.
      *
-     * `motivoDescarte` mira lo guardado: sin licencia B o sin coche no hay
+     * `motivoDescarte` mira lo guardado: sin licencia vigente o sin coche no hay
      * vuelta de hoja, lo diga Marco como lo diga. Las frases se quedan para
      * lo que no es booleano —un rating bajo, poco tiempo manejando—, donde no
      * hay más señal que lo que él escribió.

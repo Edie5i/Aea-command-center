@@ -21,7 +21,7 @@ export const esquemaCandidato = z.object({
     .enum(['estandar', 'automatico', 'ambas'])
     .nullable()
     .describe('Qué transmisión maneja'),
-  licenciaB: z.boolean().nullable().describe('Si tiene licencia tipo B vigente'),
+  licencia: z.boolean().nullable().describe('Si tiene licencia de conducir vigente, del tipo que sea'),
   coche: z
     .boolean()
     .nullable()
@@ -40,7 +40,20 @@ export interface DatosCandidato {
   aniosManejando?: number;
   rating?: number;
   transmisiones?: 'estandar' | 'automatico' | 'ambas';
-  licenciaB?: boolean;
+  /**
+   * Licencia de conducir vigente, sin tipo.
+   *
+   * Antes era `licenciaB` y preguntaba por la tipo B, la de transporte público
+   * de pasajeros. No la pide ninguna norma —los lineamientos de las escuelas
+   * de conducción de la CDMX piden del instructor "licencia para conducir
+   * vigente" a secas— y descartaba justo a quien queremos reclutar: quien
+   * maneja para plataformas trae A2 o E1.
+   *
+   * El campo cambió de nombre a propósito. Un `licenciaB: false` guardado
+   * contestaba otra pregunta, y leerlo como si contestara esta descartaría a
+   * alguien por algo que nunca se le preguntó.
+   */
+  licencia?: boolean;
   coche?: boolean;
   zonas?: string;
   disponibilidad?: string;
@@ -51,7 +64,7 @@ export const CAMPOS: Array<keyof DatosCandidato> = [
   'aniosManejando',
   'rating',
   'transmisiones',
-  'licenciaB',
+  'licencia',
   'coche',
   'zonas',
   'disponibilidad',
@@ -69,7 +82,7 @@ function valido(campo: keyof DatosCandidato, v: unknown): boolean {
       return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 70;
     case 'rating':
       return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 5;
-    case 'licenciaB':
+    case 'licencia':
     case 'coche':
       return typeof v === 'boolean';
     case 'transmisiones':
@@ -110,7 +123,7 @@ Reglas:
 - Si un dato no se dijo, devuélvelo como null. NO adivines ni infieras.
 - "manejo los dos" o "estándar y automático" es "ambas".
 - El rating es de 0 a 5 (Uber o DiDi). Si dice "4.8 estrellas", es 4.8.
-- La licencia tipo B es la azul de conductor profesional. Solo true si dijo que SÍ la tiene vigente.
+- La licencia es cualquier licencia de conducir vigente, del tipo que sea: la A2 o la E1 con la que maneja en plataforma cuentan igual que cualquier otra. true solo si dijo que SÍ tiene una vigente; si dijo que la trae vencida o que no tiene, false.
 - El coche es el suyo, el que usa para trabajar: las clases se dan en él. true solo si dijo que tiene uno; si dijo que maneja uno rentado o prestado y puede usarlo, también es true. Si no se habló del tema, null.
 - Los años son de manejar en ciudad, en número. "Como 6" es 6; "toda mi vida" es null.
 - Las zonas y la disponibilidad van tal como las describió, en pocas palabras.`;
@@ -131,7 +144,7 @@ Reglas:
  */
 export function motivoDescarte(d: DatosCandidato | null | undefined): string | null {
   if (!d) return null;
-  if (d.licenciaB === false) return 'No tiene licencia tipo B vigente.';
+  if (d.licencia === false) return 'No tiene licencia de conducir vigente.';
   if (d.coche === false) return 'No tiene coche para dar las clases.';
   return null;
 }
