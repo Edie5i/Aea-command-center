@@ -1,18 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { Creada, type Resultado } from './Creada';
 import { TIENDAS } from '@/lib/cuenta';
 import { PATRONES, HORARIOS_INICIO, calcularFechas, horaCorta, type Patron } from '@/lib/patron-fechas';
 
 type CursoOpt = { nombre: string; total: number; deposito: number };
-type Resultado = {
-  url: string | null;
-  estado: string;
-  faltantes: string[];
-  deposito: number;
-  apartado: number;
-};
+
 
 // Las clases viven en `aea.css`, junto a las de la ficha que ve el alumno:
 // quien captura y quien recibe ven el mismo sistema.
@@ -90,36 +84,9 @@ export default function FormMostrador({
     setApartado(''); setNota(''); setResultado(null); setError('');
   }
 
-  // Ya creada: lo único que queda por hacer es abrirla. El alumno ya la tiene en
-  // su WhatsApp — se la manda guardarFicha al crearse.
-  if (resultado) {
-    const reservada = resultado.estado === 'reservada';
-    return (
-      <div className="panel">
-        <div className={`estado ${reservada ? 'estado-verde' : 'estado-ambar'}`}>
-          <span className={`testigo ${reservada ? 't-verde' : 't-ambar'}`} aria-hidden />
-          {reservada ? 'Ficha reservada' : 'Ficha creada'}
-        </div>
-        <div className="cuerpo">
-          <p className="texto">Se le mandó el enlace al alumno por WhatsApp.</p>
-          {!reservada && resultado.faltantes.length > 0 && (
-            <p className="aviso-ambar" style={{ marginTop: '0.5rem' }}>
-              Falta: {resultado.faltantes.join(', ')}
-            </p>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.25rem' }}>
-            {resultado.url && (
-              <a className="plata" href={resultado.url} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="ico" aria-hidden />
-                Abrir la ficha
-              </a>
-            )}
-            <button className="secundario" onClick={otra}>Capturar otra</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Ya creada. La pantalla vive en `Creada.tsx`: sin sacarla no hay forma de
+  // verla sin capturar una ficha de verdad en producción.
+  if (resultado) return <Creada resultado={resultado} alumno={nombre} onOtra={otra} />;
 
   return (
     <div className="space-y-3">

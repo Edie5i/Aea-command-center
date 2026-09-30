@@ -20,7 +20,7 @@ import { db } from '@/lib/firestore';
 import type { Ficha } from '@/lib/fichaLuz';
 import { apartadoRecibido } from '@/lib/ficha-reglas';
 import { CUENTA, TIENDAS } from '@/lib/cuenta';
-import { Copiar } from './Copiar';
+import { Copiar } from '../Copiar';
 import '../aea.css';
 
 export const dynamic = 'force-dynamic';
