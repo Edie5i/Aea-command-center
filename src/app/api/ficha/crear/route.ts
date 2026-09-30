@@ -81,7 +81,12 @@ export async function POST(req: NextRequest) {
       // linkCierre arma wa.me/52{telefono}: se guarda a 10 dígitos, igual que
       // en el flujo de Luz.
       telefono: telefono.slice(2),
-      ...(cubreDeposito ? { depositoPagado: true, depositoRegistrado: apartado } : {}),
+      // Lo que entró se registra aunque no alcance el apartado: ese dinero ya
+      // está en la cuenta, y antes se tiraba —la ficha le seguía pidiendo los
+      // $690 completos a quien ya había dado una parte, y no quedaba rastro de
+      // cuánto—. Pagado sólo si cubre: es lo que aparta el lugar.
+      ...(apartado > 0 ? { depositoRegistrado: apartado } : {}),
+      ...(cubreDeposito ? { depositoPagado: true } : {}),
       ...(body.nota?.trim() ? { nota: body.nota.trim() } : {}),
     },
     'mostrador'
@@ -94,6 +99,6 @@ export async function POST(req: NextRequest) {
     estado: ficha.estado,
     faltantes: ficha.faltantes,
     deposito,
-    apartado: cubreDeposito ? apartado : 0,
+    apartado,
   });
 }

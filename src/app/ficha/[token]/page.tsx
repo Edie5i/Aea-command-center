@@ -76,7 +76,15 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
 
   const clases = ficha.opcionesFechaHora.map(partirFecha);
   const primera = clases[0];
-  const saldo = ficha.precio > 0 ? ficha.precio - ficha.depositoMonto : 0;
+  // El saldo se cuenta contra lo que de verdad entró. Cuando el apartado se
+  // registra a mano puede no ser $690 —el alumno transfirió más, o abonó una
+  // parte—, y restar siempre el de tabla le daba un saldo que no era el suyo.
+  const apartadoRecibido = ficha.depositoRegistrado ?? ficha.depositoMonto;
+  const saldo = ficha.precio > 0 ? ficha.precio - apartadoRecibido : 0;
+  // Un abono que todavía no alcanza para apartar: lo que se le pide es la
+  // diferencia, no el apartado completo otra vez.
+  const abonado = !reservada && ficha.depositoRegistrado ? ficha.depositoRegistrado : 0;
+  const porApartar = Math.max(ficha.depositoMonto - abonado, 0);
   const nombrePila = (ficha.studentName || '').trim().split(/\s+/)[0];
 
   return (
@@ -136,10 +144,17 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
         ) : (
           <div className="rounded-2xl overflow-hidden" style={{ background: 'white', border: '1px solid rgba(245,158,11,0.45)' }}>
             <div className="px-5 pt-5">
-              <p className="text-xs uppercase tracking-wide" style={{ color: '#b45309' }}>Para apartar tu lugar</p>
-              <p className="text-4xl font-black leading-none mt-1" style={{ color: '#1e293b' }}>
-                ${ficha.depositoMonto.toLocaleString('es-MX')}
+              <p className="text-xs uppercase tracking-wide" style={{ color: '#b45309' }}>
+                {abonado > 0 ? 'Te falta para apartar tu lugar' : 'Para apartar tu lugar'}
               </p>
+              <p className="text-4xl font-black leading-none mt-1" style={{ color: '#1e293b' }}>
+                ${porApartar.toLocaleString('es-MX')}
+              </p>
+              {abonado > 0 && (
+                <p className="text-xs mt-1.5" style={{ color: '#334155' }}>
+                  Ya recibimos <strong>${abonado.toLocaleString('es-MX')}</strong> de tu apartado de ${ficha.depositoMonto.toLocaleString('es-MX')}.
+                </p>
+              )}
               <p className="text-xs mt-1.5" style={{ color: '#64748b' }}>
                 Se descuenta del total{ficha.precio > 0 ? ` de $${ficha.precio.toLocaleString('es-MX')}` : ''}. Reembolsable hasta 48 h antes de tu primera clase.
               </p>

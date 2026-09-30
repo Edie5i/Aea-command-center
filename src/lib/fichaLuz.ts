@@ -72,25 +72,28 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
   const existente = snap.exists ? (snap.data() as Ficha) : null;
 
   const precio = datos.precio ?? 0;
-  const faltantes = revisarFicha(datos);
   // El token se genera UNA vez y se preserva — el mismo link sirve toda la
   // vida de la ficha, la página siempre lee el estado actual en vivo.
   const fichaToken = existente?.fichaToken ?? generarToken();
-  const ficha: Ficha = {
+  // Primero los campos, y lo que falta se revisa sobre ELLOS. Antes se revisaba
+  // `datos` —sólo lo que trae la llamada—, así que un re-guardado que no manda el
+  // depósito lo reportaba faltante aunque estuviera pagado desde antes.
+  const campos: Omit<Ficha, 'estado' | 'faltantes'> = {
     studentName: datos.studentName ?? '',
     curso: datos.curso ?? '',
     precio,
     opcionesFechaHora: datos.opcionesFechaHora ?? [],
-    depositoMonto: APARTADO,
-    depositoPagado: datos.depositoPagado ?? false,
-    comprobanteURL: datos.comprobanteURL ?? null,
+    // Lo del apartado se preserva igual que 'zona' o 'creada'. Antes estas tres
+    // líneas pisaban lo guardado con APARTADO/false/null, y como guardarPreReserva
+    // vuelve a llamar aquí cada vez que Luz toca la pre-reserva —sin mandar estos
+    // campos—, un alumno que ya había apartado y luego cambiaba fechas volvía a
+    // 'pendiente': su ficha le pedía otra vez los $690 y al admin le llegaba
+    // "Falta: depósito". El monto además es una promesa: el que se le dijo cuando
+    // reservó, no el APARTADO de hoy.
+    depositoMonto: existente?.depositoMonto ?? APARTADO,
+    depositoPagado: datos.depositoPagado ?? existente?.depositoPagado ?? false,
+    comprobanteURL: datos.comprobanteURL ?? existente?.comprobanteURL ?? null,
     origen,
-    // Una ficha marcada 'perdida' a mano no debe revivir sola porque Luz vuelva
-    // a llamar guardarPreReserva u otro re-guardado toque el mismo teléfono.
-    estado: existente?.estado === 'perdida'
-      ? 'perdida'
-      : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
-    faltantes,
     telefono: datos.telefono ?? '',
     // Se preserva igual que 'creada': un re-guardado sin dirección no debe
     // borrar la que ya se había capturado.
@@ -103,6 +106,16 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
       ? { depositoRegistrado: datos.depositoRegistrado ?? existente?.depositoRegistrado }
       : {}),
     ...(datos.nota ?? existente?.nota ? { nota: datos.nota ?? existente?.nota } : {}),
+  };
+  const faltantes = revisarFicha(campos);
+  const ficha: Ficha = {
+    ...campos,
+    // Una ficha marcada 'perdida' a mano no debe revivir sola porque Luz vuelva
+    // a llamar guardarPreReserva u otro re-guardado toque el mismo teléfono.
+    estado: existente?.estado === 'perdida'
+      ? 'perdida'
+      : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
+    faltantes,
   };
   await ref.set(ficha, { merge: true });
   await notificarCambios(existente, ficha);
@@ -130,7 +143,9 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     curso: datos.curso ?? '',
     precio,
     opcionesFechaHora: datos.opcionesFechaHora ?? [],
-    depositoMonto: APARTADO,
+    // `datos` ya trae la ficha guardada: el apartado prometido se queda como
+    // estaba, no se recalcula al APARTADO de hoy.
+    depositoMonto: datos.depositoMonto ?? APARTADO,
     depositoPagado: datos.depositoPagado ?? false,
     comprobanteURL: datos.comprobanteURL ?? null,
     origen: datos.origen ?? 'luz',
