@@ -7,6 +7,15 @@ export default function LoginPage() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const router = useRouter();
+  // A dónde iba antes del PIN. Sin esto, quien teclea /ficha acaba en el panel
+  // y tiene que volver a buscar el formulario. Se lee en el submit y no con
+  // useSearchParams porque eso obliga a envolver la página en un Suspense.
+  // Sólo rutas de esta app —una '/' sola y sin '//'— para que ?next no se
+  // vuelva un brinco a otro sitio.
+  function aDondeIba(): string {
+    const pedido = new URLSearchParams(window.location.search).get('next') ?? '';
+    return /^\/(?!\/)/.test(pedido) ? pedido : '/admin';
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -16,7 +25,7 @@ export default function LoginPage() {
       body: JSON.stringify({ pin }),
     });
     if (res.ok) {
-      router.push('/admin');
+      router.push(aDondeIba());
       router.refresh();
     } else {
       setError(true);

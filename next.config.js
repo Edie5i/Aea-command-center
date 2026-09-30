@@ -22,14 +22,10 @@ const nextConfig = {
     const WWW = 'https://autoescuelaamericana.com';
     return [
       // /ficha era el "Generador de Fichas" (public/ficha.html): el PDF suelto
-      // que se bajaba del navegador. Se borró cuando la ficha pasó a ser una
-      // sola, la que vive en Firestore y se actualiza sola, pero la costumbre
-      // —y los bookmarks— siguen apuntando ahí, y ahí no quedó nada: 404. La
-      // captura de mostrador vive en /admin/ficha-nueva y pide el PIN.
-      // Temporal (307) a propósito: no se cachea para siempre en el navegador
-      // por si /ficha llega a servir otra cosa.
-      { source: '/ficha',             destination: '/admin/ficha-nueva',      permanent: false },
-      { source: '/ficha.html',        destination: '/admin/ficha-nueva',      permanent: false },
+      // que se bajaba del navegador. Hoy /ficha es la captura de verdad —una
+      // página, ya no un redirect—, así que aquí sólo queda la dirección con
+      // .html, que es la que sigue en bookmarks viejos.
+      { source: '/ficha.html',        destination: '/ficha',                  permanent: false },
       { source: '/catalogo',          destination: `${WWW}/cursos`,           permanent: true },
       { source: '/english-course',    destination: `${WWW}/english`,          permanent: true },
       { source: '/programa',          destination: `${WWW}/programa`,         permanent: true },

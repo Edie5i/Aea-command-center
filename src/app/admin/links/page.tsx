@@ -108,7 +108,7 @@ export default function LinksPage() {
 
         {/* Hero button */}
         <a
-          href="/admin/ficha-nueva"
+          href="/ficha"
           className="flex items-center justify-between w-full rounded-2xl px-6 py-5 group transition-all"
           style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', boxShadow: '0 4px 20px rgba(37,99,235,0.25)' }}>
           <div>
