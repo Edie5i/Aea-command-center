@@ -3,6 +3,7 @@ import { db, updateChatState, logStateChange, motivoNoEsProspecto } from '@/lib/
 import { EXPLICACION, yaPago } from '@/lib/ventas-excluidos';
 import { Timestamp } from 'firebase-admin/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
+import { diasDeAtraso } from '@/lib/chat-state';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
 
   const now = Date.now();
   const nowTs = Timestamp.fromMillis(now);
-  const results = { followups: 0, frio: 0, errors: 0, inscritosSaltados: 0, ajenos: 0 };
+  const results = { followups: 0, frio: 0, vencidos: 0, errors: 0, inscritosSaltados: 0, ajenos: 0 };
 
   // ── 1. Follow-ups pendientes ───────────────────────────────────────────────
   const followupSnap = await db
@@ -135,6 +136,27 @@ export async function GET(request: NextRequest) {
       ).catch(e => console.error('[CRON] Error cerrando ajeno:', phone, e));
       console.log(`[CRON] ${phone} fuera del embudo: ${EXPLICACION[ajeno]}`);
       results.ajenos++;
+      continue;
+    }
+
+    // Vencido: ya no se persigue. Se deja de perseguir igual que cuando se agota
+    // la secuencia —frío y sin siguiente fecha— en vez de mandar el mensaje
+    // atrasado. Va después de yaPago y del filtro de ajenos: a quien ya pagó o
+    // nunca fue prospecto no se le toca el estado por esto.
+    const dias = diasDeAtraso(data.nextFollowupAt?.toMillis?.(), now);
+    if (dias !== null) {
+      await updateChatState(
+        phone,
+        {
+          chatState: 'frio',
+          chatReason: `Seguimiento vencido: el follow-up quedó ${dias} día${dias === 1 ? '' : 's'} atrasado y ya no se manda`,
+          chatUrgency: 'ninguna',
+          nextFollowupAt: null,
+        },
+        'cron'
+      ).catch(e => console.error('[CRON] Error marcando vencido:', phone, e));
+      console.log(`[CRON] Follow-up vencido (${dias}d) en ${phone}: no se manda, pasa a frío`);
+      results.vencidos++;
       continue;
     }
 

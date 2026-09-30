@@ -61,6 +61,41 @@ export function quienEscribioAlFinal(
 }
 
 /**
+ * Cuánto atraso aguanta un follow-up antes de que deje de tener sentido
+ * mandarlo.
+ *
+ * Dos días es holgado para un cron caído y corto para que el mensaje siga
+ * viniendo al caso.
+ */
+export const VENCIDO_MS = 2 * 24 * 60 * 60 * 1000;
+
+/**
+ * Cuántos días lleva atrasado un follow-up, si ya venció. `null` si todavía
+ * vale la pena mandarlo.
+ *
+ * El cron manda el siguiente mensaje de Luz a toda conversación con
+ * `nextFollowupAt` cumplido, sin mirar de cuándo. El 2026-09-29 había 16 con
+ * entre 15 y 131 días de atraso: un lead de hace dos meses recibía hoy un
+ * «¿sigues pensando en tomar clases?» como si acabara de escribir. Se
+ * acumulan por dos caminos —el job no corrió en días, o la conversación
+ * estuvo pausada semanas y al reactivarse trae su fecha vieja—, así que
+ * limpiar la cola una vez no alcanza: el margen tiene que estar en el código.
+ *
+ * Sin fecha programada devuelve `null`: una conversación a la que nunca se le
+ * puso `nextFollowupAt` no está atrasada, le falta el dato. Darla por vencida
+ * la marcaría fría por un hueco de la base.
+ */
+export function diasDeAtraso(
+  programadoMs: number | null | undefined,
+  ahoraMs: number
+): number | null {
+  if (typeof programadoMs !== 'number' || Number.isNaN(programadoMs)) return null;
+  const atraso = ahoraMs - programadoMs;
+  if (atraso <= VENCIDO_MS) return null;
+  return Math.floor(atraso / 86400000);
+}
+
+/**
  * Recalculates and persists the pipeline state for a conversation.
  * Safe to call fire-and-forget — all errors are caught internally.
  */
