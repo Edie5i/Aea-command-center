@@ -8,7 +8,11 @@ import { WhatsAppIcon } from '@/components/whatsapp-icon';
 
 export function FloatingWhatsappButton() {
   const pathname = usePathname();
-  if (pathname?.startsWith('/admin')) return null;
+  // En la ficha del alumno no va: esa página ya tiene su propio botón de
+  // WhatsApp con el mensaje escrito y su folio, y este manda el genérico de
+  // «quiero información sobre los cursos» —que es lo que NO necesita alguien
+  // que ya tiene ficha—. Encima flota sobre el contenido y tapaba una clase.
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/ficha')) return null;
 
   const whatsAppNumber = "525634433212";
   const message = "Hola, me gustaría recibir información sobre los cursos de manejo y agendar mi sesión.";

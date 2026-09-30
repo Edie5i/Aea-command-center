@@ -44,7 +44,13 @@ export default function RootLayout({
   return (
     <html lang="es-MX" className={`${lexend.variable} ${noto_sans.variable}`}>
       <head>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
+        {/*
+          El logo de verdad, no un emoji. Antes esto era un 🚗 dentro de un SVG
+          en data: URI, y Safari no dibuja emojis ahí: dejaba un cuadro vacío en
+          la pestaña justo donde va la marca. El PNG lo pinta cualquiera.
+        */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/logo-32.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/icons/logo-64.png" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         {/* GA4 — init sincrónico en <head> garantiza que dataLayer exista antes de que gtag.js ejecute */}
         <script

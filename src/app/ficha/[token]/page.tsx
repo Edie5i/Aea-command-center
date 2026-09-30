@@ -8,15 +8,25 @@
  * Lo primero de la página es lo que falta por hacer: si no ha apartado, el monto
  * y a dónde depositar; si ya apartó, cuándo y dónde es su primera clase. Sus
  * datos y el folio van al final, en chico: están para comprobar, no para leer.
+ *
+ * El vestido vive en `ficha.css`: el oficio de Vía Urb —relieve, cromo,
+ * semáforo, el dinero en blanco— pero en los colores de AEA, sacados de su
+ * propio logo. Esta ficha es suya.
  */
 
 import { notFound } from 'next/navigation';
+import { Building2, CalendarDays, MapPin, MessageCircle, StickyNote } from 'lucide-react';
 import { db } from '@/lib/firestore';
 import type { Ficha } from '@/lib/fichaLuz';
 import { apartadoRecibido } from '@/lib/ficha-reglas';
 import { CUENTA, TIENDAS } from '@/lib/cuenta';
+import { Copiar } from './Copiar';
+import './ficha.css';
 
 export const dynamic = 'force-dynamic';
+
+/** El WhatsApp al que se le manda el comprobante. */
+const WHATSAPP_ESCUELA = '525634433212';
 
 const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -44,21 +54,12 @@ async function getFichaPorToken(token: string): Promise<(Ficha & { id: string })
   return { id: doc.id, ...(doc.data() as Ficha) };
 }
 
-const CARD: React.CSSProperties = {
-  background: 'white',
-  border: '1px solid rgba(148,163,184,0.25)',
-};
-
-const MONO: React.CSSProperties = {
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-};
-
 /** Un par etiqueta/valor de los datos de abajo. */
 function Dato({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between gap-4 py-2" style={{ borderTop: '1px solid rgba(148,163,184,0.18)' }}>
-      <span className="text-xs shrink-0" style={{ color: '#64748b' }}>{etiqueta}</span>
-      <span className="text-xs text-right" style={{ color: '#334155' }}>{children}</span>
+    <div className="dato">
+      <span className="dato-et">{etiqueta}</span>
+      <span className="dato-v">{children}</span>
     </div>
   );
 }
@@ -87,161 +88,211 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
   const porApartar = Math.max(ficha.depositoMonto - abonado, 0);
   const nombrePila = (ficha.studentName || '').trim().split(/\s+/)[0];
 
+  // El mensaje ya escrito: así no tiene que explicar quién es ni de qué ficha
+  // habla, que es donde se atora quien nunca ha escrito por WhatsApp.
+  const avisoComprobante = `Hola, les mando el comprobante de mi apartado. Folio ${folio}${ficha.studentName ? ` · ${ficha.studentName}` : ''}`;
+  const ligaWhatsapp = `https://wa.me/${WHATSAPP_ESCUELA}?text=${encodeURIComponent(avisoComprobante)}`;
+
   return (
-    <main className="min-h-screen py-6 px-4" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
-      <div className="max-w-md mx-auto space-y-4">
+    <main className="ficha">
+      <div className="hoja">
 
         {/* Membrete: una línea. No es la portada de un documento. */}
-        <div className="flex items-center gap-2.5 px-1">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ background: '#004aad' }}>A</div>
-          <p className="text-sm font-bold leading-none" style={{ color: '#1e293b' }}>Auto Escuela Americana</p>
-          <span className="ml-auto text-xs" style={{ ...MONO, color: '#94a3b8' }}>{folio}</span>
+        <div className="membrete">
+          {/* El logo de verdad, recortado en círculo con fondo transparente.
+              `logo.png` es ese mismo círculo dentro de un cuadro BLANCO y sin
+              canal alfa, así que sobre el petróleo enseñaba el cuadro. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="marca" src="/logo-circulo.png" alt="Auto Escuela Americana" width={36} height={36} />
+          <p className="membrete-nombre">Auto Escuela Americana</p>
+          <span className="folio">{folio}</span>
         </div>
 
         {/* Lo que falta por hacer. Es lo único grande de la página. */}
         {perdida ? (
-          <div className="rounded-2xl p-5 text-center" style={{ background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.3)' }}>
-            <p className="font-semibold text-sm" style={{ color: '#475569' }}>Este apartado ya no está vigente</p>
-            <p className="text-xs mt-1" style={{ color: '#64748b' }}>Escríbenos por WhatsApp si quieres retomarlo.</p>
+          <div className="panel">
+            <div className="estado" style={{ background: 'rgba(143,163,160,0.1)', color: 'var(--suave)' }}>
+              <span className="testigo t-gris" aria-hidden />
+              Este apartado ya no está vigente
+            </div>
+            <div className="cuerpo">
+              <p className="texto">
+                Si quieres retomarlo, escríbenos y lo vemos. Tu lugar y tu precio se
+                revisan otra vez.
+              </p>
+              <div style={{ marginTop: '1rem' }}>
+                <a className="plata" href={`https://wa.me/${WHATSAPP_ESCUELA}?text=${encodeURIComponent(`Hola, quiero retomar mi inscripción. Folio ${folio}`)}`}>
+                  <MessageCircle className="ico" aria-hidden />
+                  Escribirnos por WhatsApp
+                </a>
+              </div>
+            </div>
           </div>
         ) : reservada ? (
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'white', border: '1px solid rgba(34,197,94,0.4)' }}>
-            <div className="px-5 py-2.5" style={{ background: 'rgba(34,197,94,0.12)' }}>
-              <p className="text-sm font-bold" style={{ color: '#15803d' }}>
-                ✅ Tu lugar está apartado{nombrePila ? `, ${nombrePila}` : ''}
-              </p>
+          <div className="panel">
+            <div className="estado estado-verde">
+              <span className="testigo t-verde" aria-hidden />
+              Tu lugar está apartado{nombrePila ? `, ${nombrePila}` : ''}
             </div>
-            <div className="p-5">
-              <p className="text-xs uppercase tracking-wide" style={{ color: '#64748b' }}>Tu primera clase</p>
+            <div className="cuerpo">
+              <p className="rotulo">Tu primera clase</p>
               {primera ? (
                 <>
-                  <p className="text-2xl font-bold leading-tight mt-1" style={{ color: '#1e293b' }}>{primera.dia}</p>
-                  <p className="text-lg font-semibold" style={{ color: '#1d4ed8' }}>{primera.hora}</p>
+                  <p className="fecha-grande">{primera.dia}</p>
+                  <p className="hora-grande">{primera.hora}</p>
                 </>
               ) : (
-                <p className="text-sm mt-1" style={{ color: '#475569' }}>Te confirmamos la fecha por WhatsApp.</p>
+                <p className="texto" style={{ marginTop: '0.375rem' }}>
+                  Te confirmamos la fecha por WhatsApp.
+                </p>
               )}
               {ficha.zona && (
-                <p className="text-sm mt-3" style={{ color: '#334155' }}>
-                  📍 Tu instructor llega a <strong>{ficha.zona}</strong>
+                <p className="texto" style={{ marginTop: '0.875rem', display: 'flex', gap: '0.5rem' }}>
+                  <MapPin className="ico" style={{ marginTop: '0.2rem', flexShrink: 0, color: 'var(--tenue)' }} aria-hidden />
+                  <span>Tu instructor llega a <strong>{ficha.zona}</strong></span>
                 </p>
               )}
               {saldo > 0 && (
-                <p className="text-xs mt-3 pt-3" style={{ color: '#64748b', borderTop: '1px solid rgba(148,163,184,0.2)' }}>
-                  Saldo del curso: <strong style={{ color: '#334155' }}>${saldo.toLocaleString('es-MX')}</strong> — se paga antes de terminar, o a 3 meses sin intereses si prefieres.
+                <p
+                  className="nota-chica"
+                  style={{ marginTop: '0.875rem', paddingTop: '0.875rem', borderTop: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  Saldo del curso: <strong>${saldo.toLocaleString('es-MX')}</strong> — se paga antes de
+                  terminar, o a 3 meses sin intereses si prefieres.
                 </p>
               )}
             </div>
           </div>
         ) : enRevision ? (
-          <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid rgba(37,99,235,0.35)' }}>
-            <p className="text-sm font-bold" style={{ color: '#1d4ed8' }}>⏳ Recibimos tu comprobante</p>
-            <p className="text-sm mt-2" style={{ color: '#334155' }}>
-              Lo estamos confirmando. No tienes que hacer nada: esta misma página te va a decir
-              «apartado» en cuanto quede, y te avisamos por WhatsApp.
-            </p>
+          <div className="panel">
+            <div className="estado estado-ambar">
+              <span className="testigo t-ambar" aria-hidden />
+              Recibimos tu comprobante
+            </div>
+            <div className="cuerpo">
+              <p className="texto">
+                Lo estamos confirmando. No tienes que hacer nada: esta misma página va a
+                decir <strong>«apartado»</strong> en cuanto quede, y te avisamos por WhatsApp.
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'white', border: '1px solid rgba(245,158,11,0.45)' }}>
-            <div className="px-5 pt-5">
-              <p className="text-xs uppercase tracking-wide" style={{ color: '#b45309' }}>
+          <div className="panel">
+            <div className="cuerpo" style={{ paddingBottom: 0 }}>
+              <p className="rotulo">
                 {abonado > 0 ? 'Te falta para apartar tu lugar' : 'Para apartar tu lugar'}
               </p>
-              <p className="text-4xl font-black leading-none mt-1" style={{ color: '#1e293b' }}>
-                ${porApartar.toLocaleString('es-MX')}
-              </p>
+              <p className="cifra">${porApartar.toLocaleString('es-MX')}</p>
               {abonado > 0 && (
-                <p className="text-xs mt-1.5" style={{ color: '#334155' }}>
-                  Ya recibimos <strong>${abonado.toLocaleString('es-MX')}</strong> de tu apartado de ${ficha.depositoMonto.toLocaleString('es-MX')}.
+                <p className="nota-chica" style={{ marginTop: '0.5rem' }}>
+                  Ya recibimos <strong>${abonado.toLocaleString('es-MX')}</strong> de tu apartado de
+                  ${ficha.depositoMonto.toLocaleString('es-MX')}.
                 </p>
               )}
-              <p className="text-xs mt-1.5" style={{ color: '#64748b' }}>
-                Se descuenta del total{ficha.precio > 0 ? ` de $${ficha.precio.toLocaleString('es-MX')}` : ''}. Reembolsable hasta 48 h antes de tu primera clase.
+              <p className="nota-chica" style={{ marginTop: '0.5rem' }}>
+                Se descuenta del total{ficha.precio > 0 ? ` de $${ficha.precio.toLocaleString('es-MX')}` : ''}.
+                Reembolsable hasta 48 h antes de tu primera clase.
               </p>
             </div>
 
-            <div className="mt-4 px-5 py-4" style={{ background: 'rgba(148,163,184,0.07)', borderTop: '1px solid rgba(148,163,184,0.2)' }}>
-              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#475569' }}>Transferencia · {CUENTA.banco}</p>
-              <div className="mt-2 space-y-1.5">
-                <div>
-                  <p className="text-xs" style={{ color: '#64748b' }}>CLABE</p>
-                  <p className="text-base font-semibold tracking-wider" style={{ ...MONO, color: '#1e293b' }}>{CUENTA.clabe}</p>
-                </div>
-                <div className="flex gap-6">
-                  <div>
-                    <p className="text-xs" style={{ color: '#64748b' }}>Cuenta</p>
-                    <p className="text-sm tracking-wider" style={{ ...MONO, color: '#334155' }}>{CUENTA.numero}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs" style={{ color: '#64748b' }}>A nombre de</p>
-                    <p className="text-sm" style={{ color: '#334155' }}>{CUENTA.titular}</p>
-                  </div>
+            {/* A dónde depositar, hundido: esto se copia, no se lee. */}
+            <div className="hueco banco">
+              <p className="rotulo" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Building2 className="ico" aria-hidden />
+                Transferencia · {CUENTA.banco}
+              </p>
+
+              <div style={{ marginTop: '0.75rem' }}>
+                <p className="nota-chica">CLABE</p>
+                <div className="clabe-fila" style={{ marginTop: '0.125rem' }}>
+                  <span className="clabe">{CUENTA.clabe}</span>
+                  <Copiar valor={CUENTA.clabe} que="la CLABE" />
                 </div>
               </div>
-              <p className="text-xs mt-3" style={{ color: '#64748b' }}>
+
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                <div>
+                  <p className="nota-chica">Cuenta</p>
+                  <p className="mono" style={{ fontSize: '0.8125rem' }}>{CUENTA.numero}</p>
+                </div>
+                <div>
+                  <p className="nota-chica">A nombre de</p>
+                  <p className="texto" style={{ fontSize: '0.8125rem' }}>{CUENTA.titular}</p>
+                </div>
+              </div>
+
+              <p className="nota-chica" style={{ marginTop: '0.75rem' }}>
                 ¿En efectivo? En {TIENDAS} con la tarjeta{' '}
-                <span className="tracking-wider" style={{ ...MONO, color: '#334155' }}>{CUENTA.tarjeta}</span>
+                <span className="mono">{CUENTA.tarjeta}</span>
               </p>
             </div>
 
-            <div className="px-5 py-3" style={{ background: 'rgba(245,158,11,0.08)', borderTop: '1px solid rgba(245,158,11,0.2)' }}>
-              <p className="text-xs" style={{ color: '#92400e' }}>
-                Pon <strong>tu nombre completo</strong> en el concepto y mándanos el comprobante por WhatsApp.
-                Esta página se actualiza sola en cuanto lo confirmemos.
+            {/* La acción. Antes decía «mándanos el comprobante por WhatsApp» y
+                no había por dónde: había que salirse a buscar el número. */}
+            <div className="cuerpo" style={{ paddingTop: '1rem' }}>
+              <p className="nota-chica" style={{ marginBottom: '0.75rem' }}>
+                Pon <strong>tu nombre completo</strong> en el concepto. Esta página se
+                actualiza sola en cuanto lo confirmemos.
               </p>
+              <a className="plata" href={ligaWhatsapp}>
+                <MessageCircle className="ico" aria-hidden />
+                Mandar mi comprobante
+              </a>
             </div>
           </div>
         )}
 
         {/* Las clases: es a lo que vuelve el alumno cada vez que abre la liga. */}
         {clases.length > 0 && (
-          <div className="rounded-2xl overflow-hidden" style={CARD}>
-            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>
-              {clases.length === 1 ? 'Tu clase' : `Tus ${clases.length} clases`}
-            </p>
-            <div className="px-5 py-3">
-              {clases.map((c, i) => (
-                <div
-                  key={i}
-                  className="flex items-baseline justify-between gap-3 py-2"
-                  style={i > 0 ? { borderTop: '1px solid rgba(148,163,184,0.18)' } : undefined}
-                >
-                  <span className="text-sm font-medium" style={{ color: i === 0 ? '#1e293b' : '#475569' }}>{c.dia}</span>
-                  <span className="text-sm shrink-0" style={{ color: i === 0 ? '#1d4ed8' : '#64748b' }}>{c.hora}</span>
-                </div>
-              ))}
+          <div className="panel">
+            <div className="cuerpo">
+              <p className="rotulo" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <CalendarDays className="ico" aria-hidden />
+                {clases.length === 1 ? 'Tu clase' : `Tus ${clases.length} clases`}
+              </p>
+              <div style={{ marginTop: '0.5rem' }}>
+                {clases.map((c, i) => (
+                  <div key={i} className={`clase${i === 0 ? ' clase-1' : ''}`}>
+                    <span className="clase-dia">{c.dia}</span>
+                    <span className="clase-hora">{c.hora}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {ficha.nota && (
-          <div className="rounded-2xl p-4" style={CARD}>
-            <p className="text-xs" style={{ color: '#334155' }}>📝 {ficha.nota}</p>
+          <div className="panel">
+            <div className="cuerpo" style={{ padding: '0.875rem 1.25rem', display: 'flex', gap: '0.5rem' }}>
+              <StickyNote className="ico" style={{ marginTop: '0.15rem', flexShrink: 0, color: 'var(--tenue)' }} aria-hidden />
+              <p className="texto" style={{ fontSize: '0.8125rem' }}>{ficha.nota}</p>
+            </div>
           </div>
         )}
 
         {/* Para comprobar que es suya, no para leer. */}
-        <div className="rounded-2xl px-5 py-3" style={CARD}>
-          <Dato etiqueta="Alumno">{ficha.studentName || '—'}</Dato>
-          <Dato etiqueta="Curso">
-            {ficha.curso || '—'}
-            {ficha.precio > 0 ? ` · $${ficha.precio.toLocaleString('es-MX')}` : ''}
-          </Dato>
-          {ficha.zona && <Dato etiqueta="Punto de encuentro">{ficha.zona}</Dato>}
-          {ficha.depositoRegistrado ? (
-            <Dato etiqueta="Apartado recibido">${recibido.toLocaleString('es-MX')}</Dato>
-          ) : null}
+        <div className="panel">
+          <div className="cuerpo" style={{ padding: '0.25rem 1.25rem' }}>
+            <Dato etiqueta="Alumno">{ficha.studentName || '—'}</Dato>
+            <Dato etiqueta="Curso">
+              {ficha.curso || '—'}
+              {ficha.precio > 0 ? ` · $${ficha.precio.toLocaleString('es-MX')}` : ''}
+            </Dato>
+            {ficha.zona && <Dato etiqueta="Punto de encuentro">{ficha.zona}</Dato>}
+            {ficha.depositoRegistrado ? (
+              <Dato etiqueta="Apartado recibido">${recibido.toLocaleString('es-MX')}</Dato>
+            ) : null}
+          </div>
         </div>
 
-        <p className="text-xs text-center px-4" style={{ color: '#94a3b8' }}>
+        <p className="pie">
           Al apartar aceptas los{' '}
-          <a href="https://autoescuelaamericana.com/terminos" style={{ color: '#2563eb' }}>términos y condiciones</a>.
+          <a href="https://autoescuelaamericana.com/terminos">términos y condiciones</a>.
           Cancelaciones con menos de 48 h no son reembolsables.
         </p>
 
-        <p className="text-center text-xs" style={{ color: '#64748b' }}>
-          Torreón 49, Roma Sur, CDMX · 56 3443 3212
-        </p>
+        <p className="pie">Torreón 49, Roma Sur, CDMX · 56 3443 3212</p>
       </div>
     </main>
   );
