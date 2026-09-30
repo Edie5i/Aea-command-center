@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { TIENDAS } from '@/lib/cuenta';
 import { PATRONES, HORARIOS_INICIO, calcularFechas, horaCorta, type Patron } from '@/lib/patron-fechas';
 
@@ -13,15 +14,10 @@ type Resultado = {
   apartado: number;
 };
 
-const CARD: React.CSSProperties = {
-  background: 'white',
-  border: '1px solid rgba(148,163,184,0.25)',
-};
-
-const INPUT =
-  'w-full rounded-xl px-3 py-2.5 text-sm bg-white border border-slate-300 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500';
-
-const LABEL = 'block text-xs font-semibold uppercase tracking-wide mb-1';
+// Las clases viven en `aea.css`, junto a las de la ficha que ve el alumno:
+// quien captura y quien recibe ven el mismo sistema.
+const TARJETA = 'panel';
+const CUERPO = 'p-4 space-y-3';
 
 export default function FormMostrador({
   transmisiones,
@@ -99,32 +95,27 @@ export default function FormMostrador({
   if (resultado) {
     const reservada = resultado.estado === 'reservada';
     return (
-      <div className="rounded-2xl p-6 text-center" style={CARD}>
-        <p className="text-2xl mb-2">{reservada ? '✅' : '🟡'}</p>
-        <h2 className="text-lg font-bold mb-1" style={{ color: '#1e293b' }}>
+      <div className="panel">
+        <div className={`estado ${reservada ? 'estado-verde' : 'estado-ambar'}`}>
+          <span className={`testigo ${reservada ? 't-verde' : 't-ambar'}`} aria-hidden />
           {reservada ? 'Ficha reservada' : 'Ficha creada'}
-        </h2>
-        <p className="text-sm mb-1" style={{ color: '#475569' }}>
-          Se le mandó el enlace al alumno por WhatsApp.
-        </p>
-        {!reservada && resultado.faltantes.length > 0 && (
-          <p className="text-xs mb-4" style={{ color: '#d97706' }}>
-            Falta: {resultado.faltantes.join(', ')}
-          </p>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 justify-center mt-4">
-          {resultado.url && (
-            <a href={resultado.url} target="_blank" rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-              style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
-              📋 Abrir ficha
-            </a>
+        </div>
+        <div className="cuerpo">
+          <p className="texto">Se le mandó el enlace al alumno por WhatsApp.</p>
+          {!reservada && resultado.faltantes.length > 0 && (
+            <p className="aviso-ambar" style={{ marginTop: '0.5rem' }}>
+              Falta: {resultado.faltantes.join(', ')}
+            </p>
           )}
-          <button onClick={otra}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: 'rgba(148,163,184,0.15)', color: '#475569' }}>
-            Capturar otra
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.25rem' }}>
+            {resultado.url && (
+              <a className="plata" href={resultado.url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="ico" aria-hidden />
+                Abrir la ficha
+              </a>
+            )}
+            <button className="secundario" onClick={otra}>Capturar otra</button>
+          </div>
         </div>
       </div>
     );
@@ -132,26 +123,29 @@ export default function FormMostrador({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl p-4 space-y-3" style={CARD}>
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>01 · Datos del alumno</p>
+      <div className={TARJETA}>
+        <div className={CUERPO}>
+        <p className="paso"><span className="paso-n">01</span> Datos del alumno</p>
         <div>
-          <label className={LABEL} style={{ color: '#475569' }}>Nombre completo</label>
-          <input className={INPUT} value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Juan Pérez García" />
+          <label className="et">Nombre completo</label>
+          <input className="campo" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Juan Pérez García" />
         </div>
         <div>
-          <label className={LABEL} style={{ color: '#475569' }}>WhatsApp (10 dígitos)</label>
-          <input className={INPUT} value={telefono} onChange={(e) => setTelefono(e.target.value)} inputMode="numeric" placeholder="5512345678" />
-          <p className="text-xs mt-1" style={{ color: '#64748b' }}>Ahí le llega su ficha.</p>
+          <label className="et">WhatsApp (10 dígitos)</label>
+          <input className="campo" value={telefono} onChange={(e) => setTelefono(e.target.value)} inputMode="numeric" placeholder="5512345678" />
+          <p className="nota-chica" style={{ marginTop: '0.35rem' }}>Ahí le llega su ficha.</p>
         </div>
         <div>
-          <label className={LABEL} style={{ color: '#475569' }}>Dirección / punto de encuentro</label>
-          <input className={INPUT} value={zona} onChange={(e) => setZona(e.target.value)} placeholder="Calle Puebla 345, Col. Roma" />
+          <label className="et">Dirección / punto de encuentro</label>
+          <input className="campo" value={zona} onChange={(e) => setZona(e.target.value)} placeholder="Calle Puebla 345, Col. Roma" />
+        </div>
         </div>
       </div>
 
       {hayAlumno && (
-      <div className="rounded-2xl p-4 space-y-3" style={CARD}>
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>02 · Transmisión</p>
+      <div className={TARJETA}>
+        <div className={CUERPO}>
+        <p className="paso"><span className="paso-n">02</span> Transmisión</p>
         {/* Una sola: o estándar o automático. Es la decisión del alumno, y el
             curso queda definido con ella. */}
         <div className="grid grid-cols-2 gap-2">
@@ -162,18 +156,11 @@ export default function FormMostrador({
                 key={c.nombre}
                 type="button"
                 onClick={() => setCurso(c.nombre)}
-                className="rounded-xl px-3 py-3 text-left transition-all"
-                style={{
-                  background: activo ? 'rgba(37,99,235,0.08)' : 'white',
-                  border: `1px solid ${activo ? '#2563eb' : 'rgba(148,163,184,0.35)'}`,
-                }}
+                aria-pressed={activo}
+                className={`opcion${activo ? ' opcion-on' : ''}`}
               >
-                <span className="block text-sm font-bold" style={{ color: activo ? '#1d4ed8' : '#1e293b' }}>
-                  {c.nombre}
-                </span>
-                <span className="block text-xs mt-0.5" style={{ color: '#64748b' }}>
-                  ${c.total.toLocaleString('es-MX')}
-                </span>
+                <span className="opcion-tit">{c.nombre}</span>
+                <span className="opcion-pie">${c.total.toLocaleString('es-MX')}</span>
               </button>
             );
           })}
@@ -181,8 +168,8 @@ export default function FormMostrador({
 
         {/* Los demás cursos existen, pero no compiten con la decisión de arriba. */}
         <details>
-          <summary className="text-xs cursor-pointer" style={{ color: '#2563eb' }}>Otro curso (moto, inglés, intensivo…)</summary>
-          <select className={`${INPUT} mt-2`} value={otros.some((c) => c.nombre === curso) ? curso : ''} onChange={(e) => setCurso(e.target.value)}>
+          <summary className="nota-chica" style={{ cursor: 'pointer', color: 'var(--liga)' }}>Otro curso (moto, inglés, intensivo…)</summary>
+          <select className="campo" style={{ marginTop: '0.5rem' }} value={otros.some((c) => c.nombre === curso) ? curso : ''} onChange={(e) => setCurso(e.target.value)}>
             <option value="">— Ninguno —</option>
             {otros.map((c) => (
               <option key={c.nombre} value={c.nombre}>
@@ -193,16 +180,18 @@ export default function FormMostrador({
         </details>
 
         {elegido && (
-          <p className="text-xs" style={{ color: '#64748b' }}>
-            {elegido.nombre} · apartado <strong style={{ color: '#2563eb' }}>${elegido.deposito.toLocaleString('es-MX')}</strong> · saldo ${(elegido.total - elegido.deposito).toLocaleString('es-MX')}
+          <p className="nota-chica">
+            {elegido.nombre} · apartado <strong>${elegido.deposito.toLocaleString('es-MX')}</strong> · saldo ${(elegido.total - elegido.deposito).toLocaleString('es-MX')}
           </p>
         )}
+        </div>
       </div>
       )}
 
       {verDias && (
-      <div className="rounded-2xl p-4 space-y-3" style={CARD}>
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>03 · Días y hora</p>
+      <div className={TARJETA}>
+        <div className={CUERPO}>
+        <p className="paso"><span className="paso-n">03</span> Días y hora</p>
 
         <div className="grid grid-cols-3 gap-2">
           {PATRONES.map((p) => {
@@ -212,28 +201,24 @@ export default function FormMostrador({
                 key={p.valor}
                 type="button"
                 onClick={() => setPatron(p.valor)}
-                className="rounded-xl px-2 py-2.5 transition-all"
-                style={{
-                  background: activo ? 'rgba(37,99,235,0.08)' : 'white',
-                  border: `1px solid ${activo ? '#2563eb' : 'rgba(148,163,184,0.35)'}`,
-                }}
+                aria-pressed={activo}
+                className={`opcion${activo ? ' opcion-on' : ''}`}
+                style={{ padding: '0.55rem 0.5rem', textAlign: 'center' }}
               >
-                <span className="block text-xs font-bold" style={{ color: activo ? '#1d4ed8' : '#1e293b' }}>
-                  {p.etiqueta}
-                </span>
-                <span className="block text-xs mt-0.5" style={{ color: '#64748b' }}>{p.dias}</span>
+                <span className="opcion-tit" style={{ fontSize: '0.75rem' }}>{p.etiqueta}</span>
+                <span className="opcion-pie">{p.dias}</span>
               </button>
             );
           })}
         </div>
 
         <div>
-          <label className={LABEL} style={{ color: '#475569' }}>Primera clase</label>
-          <input type="date" className={INPUT} value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <label className="et">Primera clase</label>
+          <input type="date" className="campo" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
         </div>
 
         <div>
-          <label className={LABEL} style={{ color: '#475569' }}>Hora</label>
+          <label className="et">Hora</label>
           <div className="flex gap-2 flex-wrap">
             {HORARIOS_INICIO.map((h) => {
               const activo = hora === h;
@@ -242,12 +227,9 @@ export default function FormMostrador({
                   key={h}
                   type="button"
                   onClick={() => setHora(h)}
-                  className="rounded-xl px-3 py-2 text-sm font-semibold transition-all"
-                  style={{
-                    background: activo ? 'rgba(37,99,235,0.08)' : 'white',
-                    color: activo ? '#1d4ed8' : '#475569',
-                    border: `1px solid ${activo ? '#2563eb' : 'rgba(148,163,184,0.35)'}`,
-                  }}
+                  aria-pressed={activo}
+                  className={`opcion${activo ? ' opcion-on' : ''}`}
+                  style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem', fontWeight: 600 }}
                 >
                   {horaCorta(h)}
                 </button>
@@ -257,48 +239,49 @@ export default function FormMostrador({
         </div>
 
         {clases.length > 0 && (
-          <div className="rounded-xl p-3 space-y-1" style={{ background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.15)' }}>
+          <div className="hueco" style={{ padding: '0.75rem' }}>
             {clases.map((c, i) => (
-              <p key={i} className="text-xs" style={{ color: '#334155' }}>
-                <span className="font-semibold" style={{ color: '#1d4ed8' }}>{i + 1}.</span> {c.label} · {horaCorta(c.time)}
+              <p key={i} className="texto" style={{ fontSize: '0.8125rem' }}>
+                <span className="mono" style={{ color: 'var(--liga)' }}>{i + 1}.</span> {c.label} · {horaCorta(c.time)}
               </p>
             ))}
           </div>
         )}
+        </div>
       </div>
       )}
 
       {verCobro && (
-      <div className="rounded-2xl p-4 space-y-3" style={CARD}>
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#3b82f6' }}>04 · Apartado ya pagado</p>
-        <input className={INPUT} value={apartado} onChange={(e) => setApartado(e.target.value)}
+      <div className={TARJETA}>
+        <div className={CUERPO}>
+        <p className="paso"><span className="paso-n">04</span> Apartado ya pagado</p>
+        <input className="campo" value={apartado} onChange={(e) => setApartado(e.target.value)}
           inputMode="numeric" placeholder={elegido ? String(elegido.deposito) : 'Monto que ya entró'} />
-        <p className="text-xs" style={{ color: '#64748b' }}>
+        <p className="nota-chica">
           Sólo si ya lo viste en la cuenta —transferencia o depósito en {TIENDAS}—. Si todavía
           no entra, déjalo vacío: la ficha le muestra los datos de pago al alumno y se marca
           sola cuando manda el comprobante.
         </p>
         {elegido && apartado !== '' && Number(apartado) < elegido.deposito && (
-          <p className="text-xs" style={{ color: '#d97706' }}>
+          <p className="aviso-ambar">
             Menos del apartado (${elegido.deposito.toLocaleString('es-MX')}): la ficha queda pendiente.
           </p>
         )}
         <div>
-          <label className={LABEL} style={{ color: '#475569' }}>Nota (opcional)</label>
-          <textarea className={INPUT} rows={2} value={nota} onChange={(e) => setNota(e.target.value)}
+          <label className="et">Nota (opcional)</label>
+          <textarea className="campo" rows={2} value={nota} onChange={(e) => setNota(e.target.value)}
             placeholder="Pidió horario matutino, ya manejó antes…" />
+        </div>
         </div>
       </div>
       )}
 
       {error && (
-        <p className="text-sm text-center" style={{ color: '#dc2626' }}>{error}</p>
+        <p className="aviso-rojo" role="status">{error}</p>
       )}
 
       {verCobro && (
-        <button onClick={crear} disabled={enviando}
-          className="w-full py-3.5 rounded-xl text-sm font-bold text-white disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg, #1d4ed8, #2563eb)' }}>
+        <button className="plata" onClick={crear} disabled={enviando}>
           {enviando ? 'Creando…' : 'Crear ficha y mandarla al alumno'}
         </button>
       )}

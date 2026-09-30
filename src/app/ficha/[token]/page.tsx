@@ -9,7 +9,7 @@
  * y a dónde depositar; si ya apartó, cuándo y dónde es su primera clase. Sus
  * datos y el folio van al final, en chico: están para comprobar, no para leer.
  *
- * El vestido vive en `ficha.css`: el oficio de Vía Urb —relieve, cromo,
+ * El vestido vive en `../aea.css`, compartido con la captura de mostrador: el oficio de Vía Urb —relieve, cromo,
  * semáforo, el dinero en blanco— pero en los colores de AEA, sacados de su
  * propio logo. Esta ficha es suya.
  */
@@ -21,7 +21,7 @@ import type { Ficha } from '@/lib/fichaLuz';
 import { apartadoRecibido } from '@/lib/ficha-reglas';
 import { CUENTA, TIENDAS } from '@/lib/cuenta';
 import { Copiar } from './Copiar';
-import './ficha.css';
+import '../aea.css';
 
 export const dynamic = 'force-dynamic';
 

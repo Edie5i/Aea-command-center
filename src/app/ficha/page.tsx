@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { CURSOS } from '@/lib/pagos';
 import { APARTADO } from '@/lib/fichaLuz';
 import FormMostrador from './FormMostrador';
+import './aea.css';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -51,15 +52,14 @@ export default async function FichaPage() {
     .map(ficha);
 
   return (
-    <main className="min-h-screen" style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)' }}>
-      <header className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3"
-        style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
-        <Link href="/admin" className="text-sm" style={{ color: '#475569' }}>← Admin</Link>
-        <h1 className="text-base font-bold" style={{ color: '#1e293b' }}>Ficha nueva</h1>
-        <span className="ml-auto text-xs" style={{ color: '#475569' }}>Captura en sede</span>
+    <main className="ficha" style={{ padding: 0 }}>
+      <header className="barra">
+        <Link href="/admin">← Admin</Link>
+        <h1>Ficha nueva</h1>
+        <span className="aparte">Captura en sede</span>
       </header>
 
-      <div className="max-w-xl mx-auto p-4">
+      <div className="hoja" style={{ padding: '1rem', maxWidth: '36rem' }}>
         <FormMostrador transmisiones={transmisiones} otros={otros} />
       </div>
     </main>

@@ -305,3 +305,116 @@
 @media (prefers-reduced-motion: reduce) {
   .plata:hover { filter: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * La captura de mostrador (/ficha).
+ *
+ * Es la otra cara de la misma hoja: quien captura y quien recibe ven el
+ * mismo sistema. Lo que cambia es que aquí sí hay campos que llenar, y un
+ * campo es una superficie donde se escribe —va en `hueco`, hundido— no una
+ * tarjeta que se lee.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(8, 28, 58, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.barra a { color: var(--suave); text-decoration: none; font-size: 0.875rem; }
+.barra a:hover { color: var(--tinta); }
+.barra h1 { font-size: 1rem; font-weight: 700; color: var(--tinta); }
+.barra .aparte { margin-left: auto; font-size: 0.75rem; color: var(--tenue); }
+
+/* El número del paso: aquí sí es una secuencia de verdad —no se puede elegir
+   la hora antes que el curso—, así que numerarlos dice algo cierto. */
+.paso {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--tenue);
+}
+.paso-n {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--liga);
+  font-variant-numeric: tabular-nums;
+}
+
+.et {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tenue);
+  margin-bottom: 0.35rem;
+}
+
+.campo {
+  width: 100%;
+  border-radius: 0.625rem;
+  padding: 0.65rem 0.75rem;
+  /* 16 px: menos de eso y iOS hace zoom al enfocar, y no regresa solo. */
+  font-size: 1rem;
+  color: var(--tinta);
+  background: var(--hueco);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  font-family: inherit;
+}
+.campo::placeholder { color: var(--tenue); opacity: 0.75; }
+.campo:focus { outline: none; border-color: var(--liga); }
+/* El selector de fecha del sistema viene en claro y sobre el marino desaparece. */
+.campo::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; }
+
+/* Una opción que se toca. Elegida, se enciende en celeste de marca: aquí el
+   celeste no es estado, es «esto es lo que escogiste». */
+.opcion {
+  border-radius: 0.625rem;
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--suave);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.opcion:hover { border-color: rgba(255, 255, 255, 0.22); }
+.opcion:focus-visible { outline: 2px solid var(--liga); outline-offset: 2px; }
+.opcion-on {
+  background: rgba(106, 169, 255, 0.12);
+  border-color: rgba(106, 169, 255, 0.5);
+  color: var(--liga);
+}
+.opcion-tit { display: block; font-size: 0.875rem; font-weight: 700; }
+.opcion-on .opcion-tit { color: var(--liga); }
+.opcion-pie { display: block; font-size: 0.75rem; margin-top: 0.1rem; color: var(--tenue); }
+
+.aviso-ambar { font-size: 0.75rem; color: var(--ambar); }
+.aviso-rojo { font-size: 0.875rem; color: #f57f77; text-align: center; }
+
+.secundario {
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--suave);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  font-family: inherit;
+}
+.secundario:hover { background: rgba(255, 255, 255, 0.12); color: var(--tinta); }
+
+.plata:disabled { opacity: 0.4; cursor: not-allowed; }
