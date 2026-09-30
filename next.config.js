@@ -26,6 +26,10 @@ const nextConfig = {
       // página, ya no un redirect—, así que aquí sólo queda la dirección con
       // .html, que es la que sigue en bookmarks viejos.
       { source: '/ficha.html',        destination: '/ficha',                  permanent: false },
+      // /admin/ficha-nueva fue la casa de la captura antes de /ficha. El alias
+      // vive aquí y no como una página que llama redirect(): esa se prerenderizó
+      // y la respuesta cacheada salía 307 SIN header Location, o sea colgada.
+      { source: '/admin/ficha-nueva', destination: '/ficha',                  permanent: false },
       { source: '/catalogo',          destination: `${WWW}/cursos`,           permanent: true },
       { source: '/english-course',    destination: `${WWW}/english`,          permanent: true },
       { source: '/programa',          destination: `${WWW}/programa`,         permanent: true },
