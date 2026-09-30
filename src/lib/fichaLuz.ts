@@ -75,6 +75,14 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
   // El token se genera UNA vez y se preserva — el mismo link sirve toda la
   // vida de la ficha, la página siempre lee el estado actual en vivo.
   const fichaToken = existente?.fichaToken ?? generarToken();
+  // Firestore rechaza `undefined` y al rechazarlo tira el `set` COMPLETO, no el
+  // campo. `zona` es el único campo opcional de la ficha, así que una ficha sin
+  // dirección —las de Luz no siempre la traen— no se guardaba, y el error se lo
+  // comían los `.catch` de los llamadores. Se preserva igual que 'creada' (un
+  // re-guardado sin dirección no debe borrar la que ya se capturó) y abajo va
+  // como llave condicional: con merge:true, no mandarla es exactamente "déjala
+  // como está".
+  const zona = datos.zona ?? existente?.zona;
   // Primero los campos, y lo que falta se revisa sobre ELLOS. Antes se revisaba
   // `datos` —sólo lo que trae la llamada—, así que un re-guardado que no manda el
   // depósito lo reportaba faltante aunque estuviera pagado desde antes.
@@ -95,9 +103,7 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
     comprobanteURL: datos.comprobanteURL ?? existente?.comprobanteURL ?? null,
     origen,
     telefono: datos.telefono ?? '',
-    // Se preserva igual que 'creada': un re-guardado sin dirección no debe
-    // borrar la que ya se había capturado.
-    zona: datos.zona ?? existente?.zona,
+    ...(zona ? { zona } : {}),
     // Preservar la fecha original — si no, cada re-guardado (ej. Luz llamando
     // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
     creada: existente?.creada ?? Date.now(),
@@ -154,7 +160,10 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
       : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
     telefono: datos.telefono ?? '',
-    zona: datos.zona,
+    // Condicional por lo mismo que en guardarFicha: `zona: undefined` tiraba el
+    // guardado entero. Pegaba al confirmar el apartado de una ficha vieja, de
+    // antes de que el campo existiera.
+    ...(datos.zona ? { zona: datos.zona } : {}),
     creada: datos.creada ?? Date.now(),
     fichaToken: (actual as Ficha | undefined)?.fichaToken ?? generarToken(),
     ...(datos.depositoRegistrado ? { depositoRegistrado: datos.depositoRegistrado } : {}),

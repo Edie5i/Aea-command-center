@@ -1391,11 +1391,22 @@ export async function POST(request: NextRequest) {
       import('@/lib/comprobantes')
         .then(async ({ subirComprobante }) => {
           const path = await subirComprobante(mediaId, from);
+          console.log('[WEBHOOK] Comprobante en Storage:', path);
+          // Se cuelga sólo si YA hay ficha: `tokenFicha` es null cuando no
+          // existe. actualizarFicha crea el documento si no está, y por aquí
+          // entra cualquier imagen —una licencia, una captura, la foto del
+          // coche—, así que sin esta guarda una foto de alguien que nunca cerró
+          // con Luz sembraba una ficha vacía, sin nombre ni teléfono, en
+          // /admin/reservas. El admin ya tiene la imagen: se la reenvía el
+          // bloque de arriba, con el pie sin liga.
+          if (!tokenFicha) {
+            console.log('[WEBHOOK] Comprobante sin ficha todavía, no se cuelga:', from);
+            return;
+          }
           const { actualizarFicha } = await import('@/lib/fichaLuz');
           await actualizarFicha(from, {
             comprobanteURL: `/api/admin/comprobante?path=${encodeURIComponent(path)}`,
           });
-          console.log('[WEBHOOK] Comprobante en Storage:', path);
         })
         .catch((e) => console.error('[WEBHOOK] Error subiendo comprobante a Storage:', e));
     }
