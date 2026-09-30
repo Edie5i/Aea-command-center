@@ -13,6 +13,7 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/firestore';
 import type { Ficha } from '@/lib/fichaLuz';
+import { apartadoRecibido } from '@/lib/ficha-reglas';
 import { CUENTA, TIENDAS } from '@/lib/cuenta';
 
 export const dynamic = 'force-dynamic';
@@ -76,11 +77,10 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
 
   const clases = ficha.opcionesFechaHora.map(partirFecha);
   const primera = clases[0];
-  // El saldo se cuenta contra lo que de verdad entró. Cuando el apartado se
-  // registra a mano puede no ser $690 —el alumno transfirió más, o abonó una
-  // parte—, y restar siempre el de tabla le daba un saldo que no era el suyo.
-  const apartadoRecibido = ficha.depositoRegistrado ?? ficha.depositoMonto;
-  const saldo = ficha.precio > 0 ? ficha.precio - apartadoRecibido : 0;
+  // El saldo se cuenta contra lo que de verdad entró, no contra el apartado de
+  // tabla. La regla vive en ficha-reglas.ts, que es donde se puede probar.
+  const recibido = apartadoRecibido(ficha);
+  const saldo = ficha.precio > 0 ? ficha.precio - recibido : 0;
   // Un abono que todavía no alcanza para apartar: lo que se le pide es la
   // diferencia, no el apartado completo otra vez.
   const abonado = !reservada && ficha.depositoRegistrado ? ficha.depositoRegistrado : 0;
@@ -229,7 +229,7 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
           </Dato>
           {ficha.zona && <Dato etiqueta="Punto de encuentro">{ficha.zona}</Dato>}
           {ficha.depositoRegistrado ? (
-            <Dato etiqueta="Apartado recibido">${ficha.depositoRegistrado.toLocaleString('es-MX')}</Dato>
+            <Dato etiqueta="Apartado recibido">${recibido.toLocaleString('es-MX')}</Dato>
           ) : null}
         </div>
 

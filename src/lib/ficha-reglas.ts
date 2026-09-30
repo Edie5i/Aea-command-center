@@ -57,6 +57,25 @@ export type Ficha = {
  */
 export const APARTADO = RESERVA;
 
+/**
+ * Lo que de verdad entró del apartado.
+ *
+ * Cuando se registra a mano puede no ser $690: el alumno transfirió más, o
+ * abonó una parte. Y una ficha reservada tiene el apartado cubierto por
+ * definición —quien confirmó el comprobante vio el monto y el banco—, así que
+ * ahí `depositoMonto` es el piso. Ese piso es el que faltaba cuando pasaban las
+ * dos cosas: abonó una parte en el mostrador y mandó el resto por WhatsApp.
+ * Confirmar sólo pone `depositoPagado`, `depositoRegistrado` se queda en la
+ * parte, y el saldo de su ficha le cargaba de vuelta la diferencia que ya había
+ * pagado.
+ */
+export function apartadoRecibido(
+  f: Pick<Ficha, 'estado' | 'depositoMonto' | 'depositoRegistrado'>
+): number {
+  const registrado = f.depositoRegistrado ?? 0;
+  return f.estado === 'reservada' ? Math.max(registrado, f.depositoMonto) : registrado;
+}
+
 export function revisarFicha(f: Partial<Ficha>): string[] {
   const x: string[] = [];
   if (!f.studentName) x.push('nombre');
