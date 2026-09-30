@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "cc": "node scripts/command-center-artifact/export.mjs && node scripts/command-center-artifact/build.mjs"
+    "cc": "node scripts/command-center-artifact/export.mjs && node scripts/command-center-artifact/build.mjs",
+    "ads": "node scripts/ads-estado.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.43",
