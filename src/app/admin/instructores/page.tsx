@@ -9,6 +9,7 @@ import {
 import type { CandidatoInstructor, EstadoCandidato, InscripcionData } from '@/lib/firestore';
 import AsignarModal from './AsignarModal';
 import ClasesActivasList from './ClasesActivasList';
+import { celularLocal } from '@/lib/phone';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -66,8 +67,7 @@ function CandidatoCard({
   inscripciones: InscripcionConPhone[];
 }) {
   const meta = ESTADO_META[c.estado];
-  const displayPhone = c.phone.startsWith('52') && c.phone.length === 12
-    ? c.phone.slice(2) : c.phone;
+  const displayPhone = celularLocal(c.phone);
   const waLink = `https://wa.me/${c.phone}`;
 
   return (

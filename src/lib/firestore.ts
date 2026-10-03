@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { decidirOtp, OTP_TTL_MS, OTP_MAX_INTENTOS } from '@/lib/otp-policy';
-import { normalizePhone } from '@/lib/phone';
+import { celularLocal, normalizePhone } from '@/lib/phone';
 import {
   esNumeroDeLaEscuela,
   candidatoBloqueaVentas,
@@ -281,7 +281,7 @@ export async function saveInscripcionData(
   try {
     const { actualizarFicha } = await import('@/lib/fichaLuz');
     const { PRECIO_CURSO } = await import('@/lib/precios');
-    const telefonoFicha = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    const telefonoFicha = celularLocal(phone);
     await actualizarFicha(phone, {
       studentName: data.nombre,
       curso: data.curso,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { nombreLead, telefonoVisible } from '../nombre-lead';
+import { nombreLead } from '../nombre-lead';
 
 describe('nombreLead', () => {
   it('prefiere el nombre de la inscripción sobre el perfil de WhatsApp', () => {
@@ -48,17 +48,5 @@ describe('nombreLead', () => {
 
   it('tolera null en ambas fuentes', () => {
     expect(nombreLead({ contactName: null, inscripcion: null }, '525512345678').tieneNombre).toBe(false);
-  });
-});
-
-describe('telefonoVisible', () => {
-  it('quita el 52 de país', () => {
-    expect(telefonoVisible('525512345678')).toBe('5512345678');
-  });
-  it('quita el 521 de país', () => {
-    expect(telefonoVisible('5215512345678')).toBe('5512345678');
-  });
-  it('deja intacto un número que no reconoce', () => {
-    expect(telefonoVisible('19012400340')).toBe('19012400340');
   });
 });

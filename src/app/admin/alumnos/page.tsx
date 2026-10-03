@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getRecentFichas, type FichaWithId } from '@/lib/firestore';
 import { Users } from 'lucide-react';
+import { celularLocal } from '@/lib/phone';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -11,13 +12,6 @@ function formatDate(ms: number): string {
     timeZone: 'America/Mexico_City',
     day: 'numeric', month: 'short', year: 'numeric',
   });
-}
-
-function displayPhone(phone: string): string {
-  const p = phone.replace(/\D/g, '');
-  if (p.startsWith('521') && p.length === 13) return p.slice(3);
-  if (p.startsWith('52') && p.length === 12) return p.slice(2);
-  return p;
 }
 
 const CARD: React.CSSProperties = {
@@ -99,7 +93,7 @@ export default async function AlumnosPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm truncate text-slate-800">{student.name}</p>
                     {student.phone && (
-                      <p className="text-xs" style={{ color: '#475569' }}>{displayPhone(student.phone)}</p>
+                      <p className="text-xs" style={{ color: '#475569' }}>{celularLocal(student.phone)}</p>
                     )}
                   </div>
                   <div className="text-right shrink-0">

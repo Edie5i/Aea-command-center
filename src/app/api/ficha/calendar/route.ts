@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { saveInscripcionData } from '@/lib/firestore';
-
-function normalizePhone(raw: string): string {
-  let p = raw.replace(/\D/g, '');
-  if (p.startsWith('521') && p.length === 13) p = '52' + p.slice(3);
-  if (p.startsWith('52') && p.length === 12) return p;
-  if (p.length === 10) return '52' + p;
-  return p;
-}
+import { normalizePhone } from '@/lib/phone';
 
 export async function POST(request: NextRequest) {
   try {

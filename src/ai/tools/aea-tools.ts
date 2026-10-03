@@ -4,7 +4,7 @@ import { getCourses } from '@/services/courseService';
 import { programData } from '@/lib/course-data';
 import { getAvailableSlots } from '@/services/calendarService';
 import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
-import { normalizePhone } from '@/lib/phone';
+import { celularLocal, normalizePhone } from '@/lib/phone';
 import { calcularFechas } from '@/lib/patron-fechas';
 import { PRECIO_CURSO } from '@/lib/precios';
 
@@ -281,7 +281,7 @@ export const guardarPreReservaTool = ai.defineTool(
           opcionesFechaHora: fechas.map((f) => `${f.date} ${f.time}`),
           zona,
           // linkCierre arma wa.me/52{telefono} → se guarda a 10 dígitos
-          telefono: telefono.startsWith('52') && telefono.length === 12 ? telefono.slice(2) : telefono,
+          telefono: celularLocal(telefono),
         },
         'luz'
       ).catch((e) => console.error('[TOOL] guardarFicha error:', e));

@@ -44,6 +44,8 @@ describe('celularLocal', () => {
   it('extranjero → sale como entró, sin recortarle dígitos', () => {
     expect(celularLocal('34689303362')).toBe('34689303362');
     expect(celularLocal('12155860897')).toBe('12155860897');
+    // Venía de telefonoVisible, que esta función reemplazó.
+    expect(celularLocal('19012400340')).toBe('19012400340');
   });
 });
 

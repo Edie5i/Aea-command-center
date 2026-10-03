@@ -1,3 +1,5 @@
+import { celularLocal } from '@/lib/phone';
+
 /**
  * Nombre a mostrar de un lead.
  *
@@ -32,13 +34,6 @@ function nombreUtil(raw: string | null | undefined): string | null {
   return n && /\p{L}|\p{N}/u.test(n) ? n : null;
 }
 
-/** Teléfono legible: quita el 52 o 521 de país. */
-export function telefonoVisible(phone: string): string {
-  if (phone.startsWith('521') && phone.length === 13) return phone.slice(3);
-  if (phone.startsWith('52') && phone.length === 12) return phone.slice(2);
-  return phone;
-}
-
 /**
  * Devuelve el mejor nombre disponible, o el teléfono si no hay ninguno.
  * `tieneNombre` distingue "se llama así" de "sólo tenemos su número", que es lo
@@ -60,5 +55,5 @@ export function nombreLead(
 
   if (perfil) return { nombre: perfil, tieneNombre: true, contacto: null };
 
-  return { nombre: telefonoVisible(phone), tieneNombre: false, contacto: null };
+  return { nombre: celularLocal(phone), tieneNombre: false, contacto: null };
 }

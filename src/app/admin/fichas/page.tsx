@@ -5,6 +5,7 @@ import { getRecentInscripciones } from '@/lib/firestore';
 import type { InscripcionData } from '@/lib/firestore';
 import FichaButton from '@/app/admin/conversaciones/[phone]/FichaButton';
 import { CobroButton } from './CobroButton';
+import { celularLocal } from '@/lib/phone';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -80,8 +81,7 @@ export default async function FichasPage() {
         )}
 
         {inscripciones.map((ins) => {
-          const displayPhone = ins.telefono.startsWith('52') && ins.telefono.length === 12
-            ? ins.telefono.slice(2) : ins.telefono;
+          const displayPhone = celularLocal(ins.telefono);
           const txAccent = TX_ACCENT[ins.transmision] ?? '#64748b';
           const primerFecha = ins.fechas[0];
           const esPreReserva = ins.status === 'pre_reserva';

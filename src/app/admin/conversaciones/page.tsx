@@ -5,6 +5,7 @@ import { WhatsAppIcon } from '@/components/whatsapp-icon';
 import { nombreLead } from '@/lib/nombre-lead';
 import Link from 'next/link';
 import AutoRefresh from './AutoRefresh';
+import { celularLocal } from '@/lib/phone';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -16,12 +17,6 @@ function timeAgo(ms: number): string {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h`;
   return `${Math.floor(hrs / 24)}d`;
-}
-
-function displayPhone(phone: string): string {
-  if (phone.startsWith('521') && phone.length === 13) return phone.slice(3);
-  if (phone.startsWith('52') && phone.length === 12) return phone.slice(2);
-  return phone;
 }
 
 const TABS_VALIDOS = ['atencion', 'activas', 'inscritos'] as const;
@@ -160,7 +155,7 @@ export default async function ConversacionesPage({
         ) : (
           filtered.map((conv) => {
             const ms = conv.lastActivity?.toMillis?.() ?? 0;
-            const phone = displayPhone(conv.phone);
+            const phone = celularLocal(conv.phone);
             const state = conv.chatState ?? 'luz_atendiendo';
             const needsAttention = state === 'tu_turno' || state === 'atascado';
             // Sin esto, un alumno con nombre sólo en la inscripción salía como número anónimo.

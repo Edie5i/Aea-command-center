@@ -7,7 +7,7 @@ import { checkCoverage, type CoverageResult } from '@/lib/coverage';
 // Sólo TIENDAS: la cuenta y la tarjeta ya no se dictan en el chat, van en la ficha.
 import { TIENDAS } from '@/lib/cuenta';
 import { APARTADO } from '@/lib/ficha-reglas';
-import { normalizePhone } from '@/lib/phone';
+import { celularLocal, normalizePhone } from '@/lib/phone';
 import { notificarAdmin } from '@/lib/adminNotify';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
@@ -388,7 +388,7 @@ ${conversation}`,
     const raw = result.text?.trim() ?? '{}';
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
     const json = JSON.parse(cleaned);
-    const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    const tel = celularLocal(phone);
     const validHorarios = ['mañana', 'tarde', 'fin-de-semana'];
     const calle   = json.calle  ? String(json.calle).trim()  : null;
     const numero  = json.numero ? String(json.numero).trim() : null;
@@ -409,7 +409,7 @@ ${conversation}`,
       telefono: tel,
     };
   } catch {
-    const tel = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    const tel = celularLocal(phone);
     return { nombre: 'Alumno', zona: 'Por confirmar', calle: null, numero: null, colonia: null, curso: 'Estándar', transmision: 'Estándar', horario: 'mañana' as const, telefono: tel };
   }
 }
@@ -486,7 +486,7 @@ async function extractLeadData(history: HistoryItem[], phone: string): Promise<R
   const params: Record<string, string> = {};
   if (json.name) params.name = String(json.name);
   if (json.address) params.address = String(json.address);
-  const displayPhone = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+  const displayPhone = celularLocal(phone);
   params.phone = displayPhone;
   return params;
 }
@@ -504,7 +504,7 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
     const leadInfo = await extractLeadInfo(history, phone);
     // Solo notificar si tenemos datos reales (no defaults)
     if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') return;
-    const dp = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+    const dp = celularLocal(phone);
     const coverage = checkCoverage(leadInfo.zona, leadInfo.colonia);
     const dirCompleta = leadInfo.zona +
       (!leadInfo.colonia ? ' ⚠️ *falta colonia*' : '') +
@@ -959,8 +959,7 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
     ].join('\n');
   }
 
-  const dp = targetPhone.startsWith('52') && targetPhone.length === 12
-    ? targetPhone.slice(2) : targetPhone;
+  const dp = celularLocal(targetPhone);
 
   if (cmd === '!pausa') {
     const docId = await resolveDocId(db, targetPhone);
@@ -975,11 +974,9 @@ async function handleAdminCommand(cmd: string, targetPhone: string): Promise<str
   }
 
   if (cmd === '!estado') {
-    let snap = await db.collection('conversations').doc(targetPhone).get();
-    if (!snap.exists) {
-      const alt = targetPhone.startsWith('52') ? targetPhone.slice(2) : '52' + targetPhone;
-      snap = await db.collection('conversations').doc(alt).get();
-    }
+    // Era el cuerpo de resolveDocId escrito otra vez, cinco líneas más abajo
+    // de la función que ya hace exactamente esto.
+    const snap = await db.collection('conversations').doc(await resolveDocId(db, targetPhone)).get();
     if (!snap.exists) return `❓ No encontré conversación con +${dp}`;
     const d = snap.data()!;
     const estado = d.chatState ?? 'desconocido';
@@ -1568,8 +1565,7 @@ export async function POST(request: NextRequest) {
           }).catch(e => console.error('[WEBHOOK] Error importando ficha-enlace:', e));
 
           // Ficha de inscripción para el cliente (WhatsApp)
-          const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
-            ? leadInfo.telefono.slice(2) : leadInfo.telefono;
+          const displayTel = celularLocal(leadInfo.telefono);
           const fichaLineas = [
             `📋 *Tu Ficha de Inscripción — Auto Escuela Americana*`,
             ``,

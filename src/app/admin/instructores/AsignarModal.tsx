@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CandidatoInstructor, InscripcionData } from '@/lib/firestore';
+import { celularLocal } from '@/lib/phone';
 
 type InscripcionConPhone = InscripcionData & { phone: string };
 
@@ -27,8 +28,7 @@ export default function AsignarModal({ instructor, inscripciones, clasesActivas 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<'ok' | 'error' | null>(null);
 
-  const displayPhone = instructor.phone.startsWith('52') && instructor.phone.length === 12
-    ? instructor.phone.slice(2) : instructor.phone;
+  const displayPhone = celularLocal(instructor.phone);
 
   function close() { setOpen(false); setSelected(null); setResult(null); }
 

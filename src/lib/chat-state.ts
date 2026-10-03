@@ -8,6 +8,7 @@ import {
   type StateChangeTrigger,
 } from '@/lib/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
+import { celularLocal } from '@/lib/phone';
 
 async function notifyAdminTuTurno(
   phone: string,
@@ -15,7 +16,7 @@ async function notifyAdminTuTurno(
   contactName: string | null,
   lastMessage: string
 ): Promise<void> {
-  const dp      = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+  const dp      = celularLocal(phone);
   const nombre  = contactName ? `👤 ${contactName} (+${dp})` : `📱 +${dp}`;
   const preview = lastMessage.length > 120 ? lastMessage.slice(0, 120) + '…' : lastMessage;
 

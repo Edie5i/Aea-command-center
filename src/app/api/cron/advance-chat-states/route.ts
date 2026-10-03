@@ -4,6 +4,7 @@ import { EXPLICACION, yaPago } from '@/lib/ventas-excluidos';
 import { Timestamp } from 'firebase-admin/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
 import { diasDeAtraso } from '@/lib/chat-state';
+import { celularLocal } from '@/lib/phone';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
@@ -58,7 +59,7 @@ async function sendFollowup(
   nombre: string | null,
   curso: string | null,
 ): Promise<void> {
-  const dp = phone.startsWith('52') && phone.length === 12 ? phone.slice(2) : phone;
+  const dp = celularLocal(phone);
   const quien = nombre ? `*${nombre}* (+${dp})` : `+${dp}`;
 
   if (type === '2h') {
