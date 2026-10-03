@@ -136,6 +136,16 @@ export default async function ReservasPage({
         {fichas.map((f) => {
           const b = badge(f);
           const chip = ORIGEN_CHIP[f.origen] ?? ORIGEN_CHIP.web;
+          // Cuántos botones acompañan al estado. Con los tres juntos —ver
+          // comprobante, confirmar apartado y cerrar por WhatsApp— la fila no
+          // cabía en 390 px y «Cerrar por WhatsApp» se salía de la pantalla,
+          // cortado. De dos botones en adelante el estado se va a su propio
+          // renglón y los botones envuelven debajo; con uno solo se queda la
+          // fila compacta de siempre.
+          const acciones =
+            (f.comprobanteURL ? 1 : 0) +
+            (f.comprobanteURL && !f.depositoPagado ? 1 : 0) +
+            (f.telefono ? 1 : 0);
           return (
             <div key={f.id} className="rounded-2xl p-4" style={CARD}>
               <div className="flex items-start justify-between gap-3">
@@ -162,8 +172,13 @@ export default async function ReservasPage({
                 <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(f.creada)}</span>
               </div>
 
-              <div className="flex items-center justify-between gap-3 mt-3">
-                <span className="text-xs font-semibold" style={{ color: b.color }}>{b.texto}</span>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <span
+                  className={`text-xs font-semibold ${acciones > 1 ? 'w-full' : 'mr-auto'}`}
+                  style={{ color: b.color }}
+                >
+                  {b.texto}
+                </span>
                 {f.comprobanteURL && (
                   <a
                     href={f.comprobanteURL.replace('/api/admin/comprobante', '/admin/comprobante')}
