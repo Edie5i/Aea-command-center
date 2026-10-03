@@ -78,12 +78,18 @@ export default async function ConversacionPage({
             )}
           </div>
 
-          {inscripcion && (
-            <div className="shrink-0">
-              <FichaButton data={inscripcion} />
-            </div>
-          )}
         </div>
+
+        {/* Los tres botones de la ficha —ver, enviar WA, Calendar— estaban en la
+            fila del nombre con `shrink-0`: no cabían en 390 px, y como no podían
+            encoger se salían de la pantalla con «Calendar» cortado contra el
+            borde, además de aplastar el nombre a nada. En su propio renglón
+            caben, y si no, envuelven. */}
+        {inscripcion && (
+          <div className="mt-2">
+            <FichaButton data={inscripcion} />
+          </div>
+        )}
 
         {/* En su propio renglón: en la fila del nombre competía por el ancho
             con el botón de la ficha y quedaba apretado en pantalla de celular. */}
