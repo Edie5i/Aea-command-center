@@ -8,14 +8,10 @@ import ReplyBox from './ReplyBox';
 import StateActions from './StateActions';
 import { PhoneActions } from '../PhoneActions';
 import { ConstanciaToggle } from '../ConstanciaToggle';
+import { DatosCopiables } from '@/components/datos-copiables';
+import { celularLocal } from '@/lib/phone';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
-
-function displayPhone(phone: string): string {
-  if (phone.startsWith('521') && phone.length === 13) return phone.slice(3);
-  if (phone.startsWith('52') && phone.length === 12) return phone.slice(2);
-  return phone;
-}
 
 const TABS_VALIDOS = ['atencion', 'activas', 'inscritos'] as const;
 
@@ -45,7 +41,7 @@ export default async function ConversacionPage({
     getConversation(phone),
   ]);
 
-  const dp = displayPhone(phone);
+  const dp = celularLocal(phone);
   const { nombre: name, contacto } = nombreLead(conv ?? {}, phone);
   const state = conv?.chatState ?? 'luz_atendiendo';
   const needsAttention = state === 'tu_turno' || state === 'atascado';
@@ -113,14 +109,19 @@ export default async function ConversacionPage({
         </div>
 
         {inscripcion && (
-          <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2"
+          <div className="mt-2 rounded-lg px-3 py-2 flex items-start gap-2"
             style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
             <span className="text-base">🎉</span>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-bold" style={{ color: '#059669' }}>Alumno inscrito</p>
               <p className="text-xs" style={{ color: '#64748b' }}>
-                {inscripcion.nombre} · {inscripcion.transmision} · {inscripcion.zona}
+                {inscripcion.nombre} · {inscripcion.transmision}
               </p>
+              {/* La dirección iba pegada al nombre y la transmisión en una sola
+                  tira: no se podía seleccionar sola, que es justo para lo que
+                  se abre esta pantalla —pegarla en Calendar o en Maps—. El
+                  celular no va aquí: ya tiene su renglón en PhoneActions. */}
+              <DatosCopiables zona={inscripcion.zona} />
             </div>
           </div>
         )}

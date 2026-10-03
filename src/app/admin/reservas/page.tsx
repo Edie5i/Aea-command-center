@@ -6,7 +6,7 @@ import { getRecentInscripciones, type InscripcionData } from '@/lib/firestore';
 import FichaButton from '@/app/admin/conversaciones/[phone]/FichaButton';
 import { CobroButton } from '@/app/admin/fichas/CobroButton';
 import { confirmarApartado } from './actions';
-import { DatosCopiables } from './DatosCopiables';
+import { DatosCopiables } from '@/components/datos-copiables';
 
 export const dynamic = 'force-dynamic';
 

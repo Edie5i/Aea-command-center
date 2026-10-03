@@ -3,11 +3,10 @@
 /**
  * El celular y la dirección de la ficha, listos para pegar.
  *
- * La tarjeta no los traía: para saber a qué número escribirle o a dónde llega
- * el instructor había que abrir la ficha o la conversación, y de ahí
- * seleccionar el texto a mano. Es el dato que más se mueve de esta pantalla
- * hacia afuera —Calendar, Maps, el WhatsApp del instructor—, así que va en la
- * tarjeta con su botón.
+ * Son los datos que más se mueven de la pantalla hacia afuera —Calendar, Maps,
+ * el WhatsApp del instructor— y había que sacarlos a mano. Los usa la tarjeta
+ * de /admin/reservas con los dos, y la conversación sólo con la dirección: ahí
+ * el celular ya tiene su propio renglón en `PhoneActions`.
  *
  * El agrupado y los diez dígitos que se copian salen de `lib/phone`, el mismo
  * módulo que usa la ficha del alumno: si algún día las fichas guardan la lada,
