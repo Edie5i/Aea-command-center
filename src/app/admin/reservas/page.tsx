@@ -6,6 +6,7 @@ import { getRecentInscripciones, type InscripcionData } from '@/lib/firestore';
 import FichaButton from '@/app/admin/conversaciones/[phone]/FichaButton';
 import { CobroButton } from '@/app/admin/fichas/CobroButton';
 import { confirmarApartado } from './actions';
+import { DatosCopiables } from './DatosCopiables';
 
 export const dynamic = 'force-dynamic';
 
@@ -153,6 +154,10 @@ export default async function ReservasPage({
                       📅 {f.opcionesFechaHora.join(' · ')}
                     </p>
                   )}
+                  {/* El celular y la dirección, con botón: es lo que se pega en
+                      Calendar, en Maps y en el WhatsApp del instructor, y antes
+                      obligaba a abrir la ficha para sacarlo. */}
+                  <DatosCopiables telefono={f.telefono} zona={f.zona} />
                 </div>
                 <span className="text-xs shrink-0" style={{ color: '#475569' }}>{timeAgo(f.creada)}</span>
               </div>

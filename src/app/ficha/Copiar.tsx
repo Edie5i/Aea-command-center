@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 
 /**
@@ -12,9 +12,29 @@ import { Check, Copy } from 'lucide-react';
  *
  * Si el navegador no deja copiar —contexto sin permiso, o un navegador viejo—
  * no pasa nada: el número sigue completo y a la vista, que es lo que importa.
+ *
+ * `hecho` es el acuse, y existe porque también se copian cosas masculinas —el
+ * celular, el folio—: «Copiada» leído junto a un teléfono se nota.
  */
-export function Copiar({ valor, que }: { valor: string; que: string }) {
+export function Copiar({
+  valor,
+  que,
+  hecho = 'Copiada',
+}: {
+  valor: string;
+  que: string;
+  hecho?: string;
+}) {
   const [copiado, setCopiado] = useState(false);
+
+  // El acuse se borra solo, pero el temporizador vive atado al componente: si la
+  // fila se desmonta antes —la lista se revalida, la ficha cambia de estado— el
+  // `clearTimeout` evita escribirle estado a algo que ya no está.
+  useEffect(() => {
+    if (!copiado) return;
+    const t = setTimeout(() => setCopiado(false), 2000);
+    return () => clearTimeout(t);
+  }, [copiado]);
 
   return (
     <button
@@ -23,7 +43,6 @@ export function Copiar({ valor, que }: { valor: string; que: string }) {
         try {
           await navigator.clipboard.writeText(valor);
           setCopiado(true);
-          setTimeout(() => setCopiado(false), 2000);
         } catch {
           // Sin portapapeles no hay nada que avisar: el valor está impreso.
         }
@@ -34,7 +53,7 @@ export function Copiar({ valor, que }: { valor: string; que: string }) {
       {copiado ? (
         <>
           <Check className="ico" aria-hidden />
-          Copiada
+          {hecho}
         </>
       ) : (
         <>

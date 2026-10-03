@@ -298,6 +298,18 @@
 .dato-et { color: var(--tenue); flex-shrink: 0; }
 .dato-v { color: var(--suave); text-align: right; }
 
+/* El valor con su botón de copiar. Envuelve porque una dirección completa
+   —calle, número, interior, colonia— más el botón no caben en un renglón de
+   390 px, y la dirección no se puede recortar. */
+.dato-copia {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.dato-copia .copiar { padding: 0.25rem 0.45rem; min-height: 1.75rem; font-size: 0.6875rem; }
+
 .pie { font-size: 0.6875rem; color: var(--tenue); text-align: center; line-height: 1.6; padding: 0 1rem; }
 .pie a { color: var(--liga); text-decoration: none; }
 .pie a:hover { text-decoration: underline; }

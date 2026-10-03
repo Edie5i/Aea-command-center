@@ -20,6 +20,7 @@ import { db } from '@/lib/firestore';
 import type { Ficha } from '@/lib/fichaLuz';
 import { apartadoRecibido } from '@/lib/ficha-reglas';
 import { CUENTA, TIENDAS } from '@/lib/cuenta';
+import { agruparCelular, celularLocal } from '@/lib/phone';
 import { Copiar } from '../Copiar';
 import '../aea.css';
 
@@ -60,6 +61,41 @@ function Dato({ etiqueta, children }: { etiqueta: string; children: React.ReactN
     <div className="dato">
       <span className="dato-et">{etiqueta}</span>
       <span className="dato-v">{children}</span>
+    </div>
+  );
+}
+
+/**
+ * Lo mismo, con botón de copiar.
+ *
+ * El celular y la dirección de abajo no se leen: se pegan —en Calendar, en el
+ * WhatsApp del instructor, en Maps—. Tecleados a mano desde un teléfono es
+ * donde se cambia un dígito o se pierde el número interior.
+ *
+ * `valor` es lo que va al portapapeles y `children` lo que se ve: el celular se
+ * muestra en grupos para poder revisarlo y se copia en diez dígitos seguidos,
+ * que es como lo quieren las apps donde se pega. `hecho` se pasa siempre, para
+ * que el acuse concuerde con la etiqueta de al lado.
+ */
+function DatoCopiable({
+  etiqueta,
+  valor,
+  hecho,
+  children,
+}: {
+  etiqueta: string;
+  valor: string;
+  /** Obligatorio a propósito: es lo único que puede no concordar. */
+  hecho: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="dato">
+      <span className="dato-et">{etiqueta}</span>
+      <span className="dato-v dato-copia">
+        <span>{children ?? valor}</span>
+        <Copiar valor={valor} que={etiqueta.toLowerCase()} hecho={hecho} />
+      </span>
     </div>
   );
 }
@@ -279,7 +315,18 @@ export default async function FichaPublicaPage({ params }: { params: Promise<{ t
               {ficha.curso || '—'}
               {ficha.precio > 0 ? ` · $${ficha.precio.toLocaleString('es-MX')}` : ''}
             </Dato>
-            {ficha.zona && <Dato etiqueta="Punto de encuentro">{ficha.zona}</Dato>}
+            {ficha.telefono && (
+              <DatoCopiable
+                etiqueta="Celular"
+                valor={celularLocal(ficha.telefono)}
+                hecho="Copiado"
+              >
+                {agruparCelular(ficha.telefono)}
+              </DatoCopiable>
+            )}
+            {ficha.zona && (
+              <DatoCopiable etiqueta="Punto de encuentro" valor={ficha.zona} hecho="Copiada" />
+            )}
             {ficha.depositoRegistrado ? (
               <Dato etiqueta="Apartado recibido">${recibido.toLocaleString('es-MX')}</Dato>
             ) : null}
