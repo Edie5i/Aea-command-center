@@ -1320,7 +1320,7 @@ export async function POST(request: NextRequest) {
     const history = await getHistory(from);
     let syntheticMsg: string;
     let inscriptionOk = false;
-    let fichaClienteMsg: string | null = null;
+    let fichaCliente: import('@/lib/ficha-enlace').FichaData | null = null;
     let leadNombre = '';
     let leadZona = 'Por confirmar';
     let claimed = false;
@@ -1520,43 +1520,20 @@ export async function POST(request: NextRequest) {
             fechas: fichaFechas,
           });
 
-          // Enviar ficha PDF al admin y al alumno
-          import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
-            const fichaPayload = {
-              nombre: leadInfo.nombre,
-              telefono: from,
-              zona: leadInfo.zona,
-              transmision: leadInfo.transmision,
-              fechas: fichaFechas,
-            };
-            enviarFicha(fichaPayload)
-              .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al admin:', e));
-            enviarFicha(fichaPayload, from)
-              .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al alumno:', e));
-          }).catch(e => console.error('[WEBHOOK] Error importando ficha-enlace:', e));
-
-          // Ficha de inscripción para el cliente (WhatsApp)
-          const displayTel = leadInfo.telefono.startsWith('52') && leadInfo.telefono.length === 12
-            ? leadInfo.telefono.slice(2) : leadInfo.telefono;
-          const fichaLineas = [
-            `📋 *Tu Ficha de Inscripción — Auto Escuela Americana*`,
-            ``,
-            `👤 *${leadInfo.nombre}*`,
-            `📱 ${displayTel}`,
-            `🚗 Curso ${leadInfo.curso}`,
-            `📍 ${leadInfo.zona}`,
-            ``,
-            `📅 *Tus clases:*`,
-            ...pickedSlots.slice(0, 4).map((s, i) => {
-              const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
-              const d = new Date(yyyy, mm - 1, dd);
-              const label = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
-              return `${i + 1}. ${label} · ${s.time}`;
-            }),
-            ``,
-            `Guarda este mensaje 📌 El día antes de tu primera clase te mandamos los datos del instructor.`,
-          ];
-          fichaClienteMsg = fichaLineas.join('\n');
+          // La ficha va como enlace. Al admin, ya; al alumno, después de la
+          // respuesta de Luz (abajo). Antes el alumno recibía DOS fichas: este
+          // enlace y un texto armado aquí con los mismos datos.
+          fichaCliente = {
+            nombre: leadInfo.nombre,
+            telefono: from,
+            zona: leadInfo.zona,
+            transmision: leadInfo.transmision,
+            fechas: fichaFechas,
+          };
+          const fichaAdmin = fichaCliente;
+          import('@/lib/ficha-enlace')
+            .then(({ enviarFicha }) => enviarFicha(fichaAdmin))
+            .catch(e => console.error('[WEBHOOK] Error enviando ficha al admin:', e));
 
           inscriptionOk = true;
           syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
@@ -1595,8 +1572,11 @@ export async function POST(request: NextRequest) {
 
     if (inscriptionOk) {
       // Ficha de inscripción al cliente
-      if (fichaClienteMsg) {
-        sendMessage(from, fichaClienteMsg, phoneId).catch(e => console.error('[WEBHOOK] Error enviando ficha cliente:', e));
+      if (fichaCliente) {
+        const ficha = fichaCliente;
+        import('@/lib/ficha-enlace')
+          .then(({ enviarFicha }) => enviarFicha(ficha, from))
+          .catch(e => console.error('[WEBHOOK] Error enviando ficha al alumno:', e));
       }
 
       // Enviar términos y condiciones + aviso de privacidad al alumno

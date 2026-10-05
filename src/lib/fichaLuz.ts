@@ -2,6 +2,7 @@
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/firestore';
 import { notificarAdmin } from '@/lib/adminNotify';
+import { normalizePhone } from '@/lib/phone';
 
 export type Ficha = {
   studentName: string;
@@ -28,6 +29,10 @@ export type Ficha = {
 
 const generarToken = () => randomBytes(9).toString('base64url');
 
+// Firestore rechaza campos undefined, y zona puede faltar.
+const sinUndefined = <T extends object>(o: T): T =>
+  Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
+
 // Manda el link de la ficha directo al alumno por WhatsApp (texto simple, sin
 // documento adjunto — así no depende de tener Acrobat ni de que WhatsApp lo
 // reconozca como PDF). Best-effort: si la ventana de 24h está cerrada, Meta
@@ -37,6 +42,9 @@ async function enviarLinkFichaAlumno(telefono: string, nombre: string, token: st
   const waToken = process.env.META_WHATSAPP_TOKEN ?? '';
   const phoneId = process.env.META_PHONE_NUMBER_ID ?? '';
   if (!waToken || !phoneId || !telefono) return;
+  // La ficha guarda el teléfono a 10 dígitos (por linkCierre). Así, sin el 52,
+  // Meta lo leía como un número de Brasil (+55) y el alumno nunca lo recibía.
+  const to = normalizePhone(telefono);
 
   const link = `https://app.autoescuelaamericana.com/ficha/${token}`;
   const texto = `📋 Hola ${nombre || ''}, aquí está tu ficha de Auto Escuela Americana:\n\n${link}\n\nAhí puedes ver tus datos, fechas y el estatus de tu apartado.`;
@@ -46,7 +54,7 @@ async function enviarLinkFichaAlumno(telefono: string, nombre: string, token: st
     headers: { Authorization: `Bearer ${waToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to: telefono,
+      to,
       type: 'text',
       text: { body: texto },
     }),
@@ -99,44 +107,49 @@ async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void>
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.
 export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'web' | 'luz') {
   const ref = db.collection('fichas').doc(id);
-  const snap = await ref.get();
-  const existente = snap.exists ? (snap.data() as Ficha) : null;
+  // Leer y escribir en una transacción: si otro proceso toca la misma ficha a la
+  // vez (comprobante, inscripción), Firestore reintenta en vez de pisarlo.
+  const { existente, ficha } = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const existente = snap.exists ? (snap.data() as Ficha) : null;
 
-  const precio = datos.precio ?? 0;
-  const faltantes = revisarFicha(datos);
-  // El token se genera UNA vez y se preserva — el mismo link sirve toda la
-  // vida de la ficha, la página siempre lee el estado actual en vivo.
-  const fichaToken = existente?.fichaToken ?? generarToken();
-  const ficha: Ficha = {
-    studentName: datos.studentName ?? '',
-    curso: datos.curso ?? '',
-    precio,
-    opcionesFechaHora: datos.opcionesFechaHora ?? [],
-    depositoMonto: calcularDeposito(precio),
-    depositoPagado: datos.depositoPagado ?? false,
-    comprobanteURL: datos.comprobanteURL ?? null,
-    origen,
-    // Una ficha marcada 'perdida' a mano no debe revivir sola porque Luz vuelva
-    // a llamar guardarPreReserva u otro re-guardado toque el mismo teléfono.
-    estado: existente?.estado === 'perdida'
-      ? 'perdida'
-      : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
-    faltantes,
-    telefono: datos.telefono ?? '',
-    // Se preserva igual que 'creada': un re-guardado sin dirección no debe
-    // borrar la que ya se había capturado.
-    zona: datos.zona ?? existente?.zona,
-    // Preservar la fecha original — si no, cada re-guardado (ej. Luz llamando
-    // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
-    creada: existente?.creada ?? Date.now(),
-    fichaToken,
-  };
-  await ref.set(ficha, { merge: true });
+    const precio = datos.precio ?? 0;
+    const faltantes = revisarFicha(datos);
+    // El token se genera UNA vez y se preserva — el mismo link sirve toda la
+    // vida de la ficha, la página siempre lee el estado actual en vivo.
+    const fichaToken = existente?.fichaToken ?? generarToken();
+    const ficha: Ficha = {
+      studentName: datos.studentName ?? '',
+      curso: datos.curso ?? '',
+      precio,
+      opcionesFechaHora: datos.opcionesFechaHora ?? [],
+      depositoMonto: calcularDeposito(precio),
+      depositoPagado: datos.depositoPagado ?? false,
+      comprobanteURL: datos.comprobanteURL ?? null,
+      origen,
+      // Una ficha marcada 'perdida' a mano no debe revivir sola porque Luz vuelva
+      // a llamar guardarPreReserva u otro re-guardado toque el mismo teléfono.
+      estado: existente?.estado === 'perdida'
+        ? 'perdida'
+        : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
+      faltantes,
+      telefono: datos.telefono ?? '',
+      // Se preserva igual que 'creada': un re-guardado sin dirección no debe
+      // borrar la que ya se había capturado.
+      zona: datos.zona ?? existente?.zona,
+      // Preservar la fecha original — si no, cada re-guardado (ej. Luz llamando
+      // guardarPreReserva varias veces) corre la ficha al tope de /admin/reservas.
+      creada: existente?.creada ?? Date.now(),
+      fichaToken,
+    };
+    tx.set(ref, sinUndefined(ficha), { merge: true });
+    return { existente, ficha };
+  });
   await notificarCambios(existente, ficha);
   // Ficha nueva (no un re-guardado): mandarle el link al alumno de una vez,
   // aunque todavía no haya pagado — es lo que pidió Eduardo explícitamente.
-  if (!existente && ficha.telefono) {
-    await enviarLinkFichaAlumno(ficha.telefono, ficha.studentName, fichaToken).catch(
+  if (!existente && ficha.telefono && ficha.fichaToken) {
+    await enviarLinkFichaAlumno(ficha.telefono, ficha.studentName, ficha.fichaToken).catch(
       (e) => console.error('[FICHA] Error mandando link al alumno:', e)
     );
   }
@@ -147,31 +160,37 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: 'w
 // depósito/estado/faltantes. (guardarFicha con datos parciales pisaría campos con vacíos.)
 export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promise<Ficha> {
   const ref = db.collection('fichas').doc(id);
-  const snap = await ref.get();
-  const actual = (snap.exists ? snap.data() : {}) as Partial<Ficha>;
-  const datos = { ...actual, ...patch };
-  const precio = datos.precio ?? 0;
-  const faltantes = revisarFicha(datos);
-  const ficha: Ficha = {
-    studentName: datos.studentName ?? '',
-    curso: datos.curso ?? '',
-    precio,
-    opcionesFechaHora: datos.opcionesFechaHora ?? [],
-    depositoMonto: calcularDeposito(precio),
-    depositoPagado: datos.depositoPagado ?? false,
-    comprobanteURL: datos.comprobanteURL ?? null,
-    origen: datos.origen ?? 'luz',
-    estado: (actual as Ficha | undefined)?.estado === 'perdida' && patch.estado === undefined
-      ? 'perdida'
-      : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
-    faltantes,
-    telefono: datos.telefono ?? '',
-    zona: datos.zona,
-    creada: datos.creada ?? Date.now(),
-    fichaToken: (actual as Ficha | undefined)?.fichaToken ?? generarToken(),
-  };
-  await ref.set(ficha, { merge: true });
-  await notificarCambios(actual as Ficha | null, ficha);
+  // En transacción: el webhook marca el depósito mientras la inscripción
+  // reescribe la ficha. Sin esto, la que leía primero y escribía después
+  // devolvía depositoPagado a false y el alumno que ya pagó veía "Pendiente".
+  const { actual, ficha } = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const actual = (snap.exists ? snap.data() : null) as Ficha | null;
+    const datos = { ...(actual ?? {}), ...patch };
+    const precio = datos.precio ?? 0;
+    const faltantes = revisarFicha(datos);
+    const ficha: Ficha = {
+      studentName: datos.studentName ?? '',
+      curso: datos.curso ?? '',
+      precio,
+      opcionesFechaHora: datos.opcionesFechaHora ?? [],
+      depositoMonto: calcularDeposito(precio),
+      depositoPagado: datos.depositoPagado ?? false,
+      comprobanteURL: datos.comprobanteURL ?? null,
+      origen: datos.origen ?? 'luz',
+      estado: actual?.estado === 'perdida' && patch.estado === undefined
+        ? 'perdida'
+        : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
+      faltantes,
+      telefono: datos.telefono ?? '',
+      zona: datos.zona,
+      creada: datos.creada ?? Date.now(),
+      fichaToken: actual?.fichaToken ?? generarToken(),
+    };
+    tx.set(ref, sinUndefined(ficha), { merge: true });
+    return { actual, ficha };
+  });
+  await notificarCambios(actual, ficha);
   return ficha;
 }
 

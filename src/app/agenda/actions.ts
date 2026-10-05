@@ -61,17 +61,22 @@ export async function createCalendarEventsAction(input: CreateEventInput): Promi
       transmision: input.transmission ?? 'Estándar',
       fechas,
     };
-    saveInscripcionData(phone, fichaPayload, 'web')
-      .catch(e => console.error('[AGENDA] Error guardando inscripcion en Firestore:', e));
-
-    // Igual que en el flujo de Luz: manda el PDF al alumno y, en paralelo, al
-    // admin (con respaldo de link si la ventana de 24h está cerrada).
-    import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
-      enviarFicha(fichaPayload)
-        .catch(e => console.error('[AGENDA] Error enviando ficha PDF al admin:', e));
-      enviarFicha(fichaPayload, phone)
-        .catch(e => console.error('[AGENDA] Error enviando ficha PDF al alumno:', e));
-    }).catch(e => console.error('[AGENDA] Error importando ficha-enlace:', e));
+    // Primero se guarda y DESPUÉS se manda: el envío busca el token en la ficha,
+    // y en paralelo casi siempre llegaba antes de que existiera — el alumno no
+    // recibía nada y al admin le llegaba "Sin ficha guardada".
+    try {
+      await saveInscripcionData(phone, fichaPayload, 'web');
+      const { enviarFicha } = await import('@/lib/ficha-enlace');
+      await Promise.all([
+        enviarFicha(fichaPayload)
+          .catch(e => console.error('[AGENDA] Error enviando ficha al admin:', e)),
+        enviarFicha(fichaPayload, phone)
+          .catch(e => console.error('[AGENDA] Error enviando ficha al alumno:', e)),
+      ]);
+    } catch (e) {
+      // Las clases ya quedaron en Calendar: un fallo aquí no debe tumbar la reserva.
+      console.error('[AGENDA] Error guardando o enviando la ficha:', e);
+    }
 
     return { success: true, message: result.message, error: null };
   } catch (error) {
