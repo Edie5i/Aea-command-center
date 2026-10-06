@@ -2,6 +2,10 @@ import { google } from 'googleapis';
 import { JWT } from 'google-auth-library';
 import type { calendar_v3 } from 'googleapis';
 import { claveDesdeEvento } from '@/lib/calendar-keys';
+import type { FichaApartada } from '@/lib/apartados';
+
+/** Lo que se lee de la colección `fichas` para medir ocupación. */
+type FichaApartadaDoc = Omit<FichaApartada, 'id'>;
 
 const SLOTS_STANDARD = ['07:00', '10:00', '13:00', '16:00', '19:00'];
 const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -12,7 +16,17 @@ export interface SlotDisponible {
   horariosLibres: string[];
 }
 
-export async function getAvailableSlots(days: number = 7): Promise<SlotDisponible[]> {
+/**
+ * Los horarios libres, contando las dos cosas que ocupan un lugar: los eventos
+ * de Calendar y las fichas que tienen el horario apartado. Antes sólo miraba
+ * Calendar —donde una ficha pagada no aparece hasta que alguien la agenda— y
+ * por eso el mismo horario se vendía varias veces. `excluirTelefono` deja fuera
+ * el apartado del propio alumno por el que se pregunta.
+ */
+export async function getAvailableSlots(
+  days: number = 7,
+  opts: { excluirTelefono?: string } = {}
+): Promise<SlotDisponible[]> {
   const auth = getCalendarAuth();
   const calendar = google.calendar({ version: 'v3', auth });
   const calendarId = process.env.GOOGLE_CALENDAR_ID!;
@@ -30,6 +44,26 @@ export async function getAvailableSlots(days: number = 7): Promise<SlotDisponibl
   });
 
   const events = response.data.items ?? [];
+
+  // Las fichas con el horario tomado. Si la lectura falla se sigue con lo que
+  // diga Calendar: es mejor arriesgar un empalme que dejar a Luz sin poder
+  // ofrecer una sola fecha.
+  let apartados = new Map<string, string>();
+  try {
+    const [{ db }, { slotsApartados }] = await Promise.all([
+      import('@/lib/firestore'),
+      import('@/lib/apartados'),
+    ]);
+    // Acotado como en el chequeo de salud: una ficha con clases por venir se
+    // creó hace semanas, no hace meses, y así esto no crece con el histórico.
+    const snap = await db.collection('fichas').orderBy('creada', 'desc').limit(300).get();
+    apartados = slotsApartados(
+      snap.docs.map((d) => ({ id: d.id, ...(d.data() as FichaApartadaDoc) })),
+      { excluirTelefono: opts.excluirTelefono }
+    );
+  } catch (e) {
+    console.error('[Calendar] No se pudieron leer los apartados, se sigue con Calendar:', e);
+  }
 
   const result: SlotDisponible[] = [];
   for (let d = 1; d <= days; d++) {
@@ -54,7 +88,9 @@ export async function getAvailableSlots(days: number = 7): Promise<SlotDisponibl
       })
       .filter((t): t is string => t !== null);
 
-    const horariosLibres = SLOTS_STANDARD.filter(s => !busyStartTimes.includes(s));
+    const horariosLibres = SLOTS_STANDARD.filter(
+      s => !busyStartTimes.includes(s) && !apartados.has(`${dateStr} ${s}`)
+    );
     const dayOfWeek = new Date(dateStr + 'T12:00:00').getDay();
 
     result.push({

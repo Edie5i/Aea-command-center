@@ -36,7 +36,9 @@ async function mandarEnlaceAlAlumno(id: string, ficha: Ficha): Promise<void> {
 
 // Aviso puntual al admin: cuando cambia el estado, o cuando llega la dirección
 // por primera vez. Sin spam por re-guardados: si nada de eso cambió, no manda.
-async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void> {
+// `extra` es lo que pasó con Calendar al reservarse: va en este mismo mensaje
+// para que "quedó reservada" y "sus clases existen" no sean dos avisos sueltos.
+async function notificarCambios(prev: Ficha | null, ficha: Ficha, extra = ''): Promise<void> {
   const cambioEstado = prev?.estado !== ficha.estado;
   const llegoZona = !prev?.zona && !!ficha.zona;
   if (!cambioEstado && !llegoZona) return;
@@ -50,7 +52,7 @@ async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void>
   if (cambioEstado) {
     texto =
       ficha.estado === 'reservada'
-        ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO${dir}\n${chip} · 📱 ${ficha.telefono}${linkFicha}`
+        ? `✅ *FICHA RESERVADA* — ${nombre}\n🚗 ${ficha.curso} $${ficha.precio.toLocaleString('es-MX')} · Depósito $${ficha.depositoMonto.toLocaleString('es-MX')} PAGADO${dir}\n${chip} · 📱 ${ficha.telefono}${linkFicha}${extra}`
         : `🟡 *Ficha ${ficha.estado.toUpperCase()}* — ${nombre}\n🚗 ${ficha.curso || '¿curso?'} · Falta: ${ficha.faltantes.join(', ')}${dir}\n${chip} · 📱 ${ficha.telefono || '¿tel?'}` +
           (ficha.telefono ? `\n👉 Cerrar: ${linkCierre(ficha)}` : '') + linkFicha;
   } else {
@@ -63,6 +65,30 @@ async function notificarCambios(prev: Ficha | null, ficha: Ficha): Promise<void>
   }
 
   await notificarAdmin(texto).catch((e) => console.error('[FICHA] Error notificando cambio:', e));
+}
+
+/**
+ * La ficha acaba de pasar a 'reservada': sus clases se crean ahora.
+ *
+ * Aquí y no en cada pantalla porque son cuatro los caminos que reservan —el
+ * botón del panel, la liga que llega por WhatsApp con el comprobante, la
+ * captura de mostrador y la web— y ninguno agendaba nada. Lo que vale es la
+ * transición: un re-guardado de una ficha que ya estaba reservada no vuelve a
+ * pedir las clases (y si lo hiciera, el candado de Calendar las omite).
+ */
+async function agendarSiAcabaDeReservarse(
+  id: string,
+  prev: Ficha | null,
+  ficha: Ficha
+): Promise<string> {
+  if (ficha.estado !== 'reservada' || prev?.estado === 'reservada') return '';
+  try {
+    const { agendarClasesDeFicha } = await import('@/lib/agendar-ficha');
+    return await agendarClasesDeFicha(id, ficha);
+  } catch (e) {
+    console.error('[FICHA] Error agendando las clases:', e);
+    return '\n🚨 *NO se pudieron crear sus clases en Calendar* — agéndalas a mano desde /admin/reservas.';
+  }
 }
 
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.
@@ -124,7 +150,8 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
     faltantes,
   };
   await ref.set(ficha, { merge: true });
-  await notificarCambios(existente, ficha);
+  const agenda = await agendarSiAcabaDeReservarse(id, existente, ficha);
+  await notificarCambios(existente, ficha, agenda);
   // Ficha nueva (no un re-guardado): mandarle el enlace al alumno de una vez,
   // aunque todavía no haya pagado — es lo que pidió Eduardo explícitamente.
   if (!existente && ficha.telefono) {
@@ -170,7 +197,9 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     ...(datos.nota ? { nota: datos.nota } : {}),
   };
   await ref.set(ficha, { merge: true });
-  await notificarCambios(actual as Ficha | null, ficha);
+  const previa = snap.exists ? (actual as Ficha) : null;
+  const agenda = await agendarSiAcabaDeReservarse(id, previa, ficha);
+  await notificarCambios(previa, ficha, agenda);
   return ficha;
 }
 

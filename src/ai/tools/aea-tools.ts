@@ -21,6 +21,8 @@ export const consultarDisponibilidadTool = ai.defineTool(
       'Siempre úsala antes de responder preguntas de disponibilidad — no inventes horarios.',
     inputSchema: z.object({
       dias: z.number().optional().describe('Días hacia adelante a consultar (default 7)'),
+      telefono: z.string().optional()
+        .describe('Número de WhatsApp del cliente con el que estás hablando (viene en el contexto del turno). Sirve para que su propio apartado no cuente como horario ocupado.'),
     }),
     outputSchema: z.array(
       z.object({
@@ -30,9 +32,14 @@ export const consultarDisponibilidadTool = ai.defineTool(
       })
     ),
   },
-  async ({ dias = 7 }) => {
+  async ({ dias = 7, telefono }) => {
     try {
-      return await getAvailableSlots(dias);
+      // Un horario está ocupado si tiene evento en Calendar O si una ficha lo
+      // tiene apartado — el propio apartado del cliente no, que si no Luz le
+      // diría que su fecha ya no está libre.
+      return await getAvailableSlots(dias, {
+        ...(telefono ? { excluirTelefono: normalizePhone(telefono) } : {}),
+      });
     } catch (e) {
       console.error('[Tool] consultarDisponibilidad error:', e);
       return [];

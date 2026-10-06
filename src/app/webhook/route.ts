@@ -538,7 +538,7 @@ function buildTurnContext(clientPhone?: string): string {
   });
   let ctx = `[Fecha actual: ${hoy}. Usa este año para calcular cualquier fecha futura.]`;
   if (clientPhone) {
-    ctx += `\n[Número de WhatsApp del cliente en esta conversación: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a confirmarInscripcion. No uses ningún otro número.]`;
+    ctx += `\n[Número de WhatsApp del cliente en esta conversación: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a confirmarInscripcion, a guardarPreReserva y a consultarDisponibilidad. No uses ningún otro número.]`;
   }
   return ctx;
 }
@@ -1440,7 +1440,9 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('[WEBHOOK] Consultando slots disponibles...');
-      const slots = await getAvailableSlots(21);
+      // Con excluirTelefono: su propio apartado no cuenta como ocupado, o el
+      // candado de abajo le diría a todo el mundo que se le cayeron sus fechas.
+      const slots = await getAvailableSlots(21, { excluirTelefono: from });
       console.log('[WEBHOOK] Slots totales recibidos:', slots.length);
 
       // Leer pre-reserva para respetar las 4 fechas exactas prometidas por Luz (no solo la primera)
