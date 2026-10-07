@@ -1257,6 +1257,24 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
+  // ── La hora del mensaje entrante, antes de ramificar ─────────────────────
+  // La ventana de 24 h de Meta es del número de teléfono, no del bot que
+  // contestó. Antes esto se apuntaba hasta el flujo de Luz, así que a quien
+  // atendía Marco —los instructores— se le quedaba `lastLeadActivity` vieja y
+  // Vía Urb creía que la ventana estaba cerrada: nadie podía recibir su código
+  // por WhatsApp. Las ramas de ubicación, audio y comprobante también salían
+  // antes de llegar ahí. Una sola escritura aquí las cubre todas.
+  //
+  // Con AWAIT: las ramas de abajo regresan la respuesta HTTP de inmediato y
+  // Cloud Run puede suspender la instancia con la escritura a medias.
+  try {
+    const { updateLeadActivity } = await import('@/lib/firestore');
+    await updateLeadActivity(from);
+  } catch (e) {
+    // Fail-open: que no se pierda el mensaje por no poder apuntar la hora.
+    console.error('[WEBHOOK] Error actualizando lead activity:', e);
+  }
+
   // ── Routing UrbDriver / Marco ────────────────────────────────────────────
   {
     const { esIntentInstructor, esCandidatoExistente, handleMarco } = await import('./marco');
@@ -1668,14 +1686,12 @@ export async function POST(request: NextRequest) {
   const history = await getHistory(from);
   const isNewLead = history.length === 0;
 
-  import('@/lib/firestore')
-    .then(({ updateLeadActivity, saveLeadSource }) =>
-      Promise.all([
-        updateLeadActivity(from),
-        isNewLead && leadSource ? saveLeadSource(from, leadSource) : Promise.resolve(),
-      ])
-    )
-    .catch((e) => console.error('[WEBHOOK] Error actualizando lead activity:', e));
+  const fuente = leadSource;
+  if (isNewLead && fuente) {
+    import('@/lib/firestore')
+      .then(({ saveLeadSource }) => saveLeadSource(from, fuente))
+      .catch((e) => console.error('[WEBHOOK] Error guardando la fuente del lead:', e));
+  }
 
   // Nuevo lead — enviar menú de bienvenida y salir
   if (isNewLead) {
