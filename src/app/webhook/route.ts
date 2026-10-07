@@ -1285,6 +1285,36 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // ── Quien ya es de la casa no entra al embudo ────────────────────────────
+  // `motivoNoEsProspecto` decidía esto en los crons de recordatorio y
+  // seguimiento, pero NO en la respuesta en vivo: una instructora de Vía Urb
+  // que escribiera «va» recibía el saludo de ventas de Luz y un curso de
+  // manejo. Y escribir es justo lo que tiene que hacer para que se le pueda
+  // mandar su código —la ventana de 24 h la abre su mensaje—, así que el
+  // embudo la alcanzaba precisamente cuando entraba a trabajar.
+  //
+  // Va DESPUÉS de Marco a propósito: `motivoNoEsProspecto` también marca a los
+  // candidatos, y ponerlo antes se los tragaría a todos.
+  //
+  // La hora de su mensaje ya quedó apuntada arriba, que es lo único que ella
+  // necesita de este webhook. Aquí solo se calla el bot y lo ve una persona:
+  // una respuesta equivocada es peor que ninguna.
+  {
+    const { motivoNoEsProspecto } = await import('@/lib/firestore');
+    const { EXPLICACION } = await import('@/lib/ventas-excluidos');
+    const motivo = await motivoNoEsProspecto(from).catch(() => null);
+    if (motivo) {
+      console.log('[WEBHOOK] Luz no contesta a', from, '—', EXPLICACION[motivo]);
+      // Al propio número de la escuela no se le avisa de sí mismo.
+      if (motivo !== 'numero_de_la_escuela') {
+        notificarAdmin(
+          `💬 *Escribió alguien que no es prospecto*\n\n📱 +${from}\n${EXPLICACION[motivo]}\n\n_${textBody.slice(0, 300)}_\n\nLuz no le contestó.`
+        ).catch(e => console.error('[WEBHOOK] Error avisando de un no-prospecto:', e));
+      }
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
+    }
+  }
+
   // Nota de voz — transcribir con Gemini antes de pasar al flujo normal
   if (messageType === 'audio' && audioMediaId) {
     try {
