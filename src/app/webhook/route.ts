@@ -1300,15 +1300,34 @@ export async function POST(request: NextRequest) {
   // necesita de este webhook. Aquí solo se calla el bot y lo ve una persona:
   // una respuesta equivocada es peor que ninguna.
   {
-    const { motivoNoEsProspecto } = await import('@/lib/firestore');
+    const { motivoNoEsProspecto, saveUserMessage } = await import('@/lib/firestore');
     const { EXPLICACION } = await import('@/lib/ventas-excluidos');
     const motivo = await motivoNoEsProspecto(from).catch(() => null);
     if (motivo) {
       console.log('[WEBHOOK] Luz no contesta a', from, '—', EXPLICACION[motivo]);
+
+      // Lo que mandó, con nombre para lo que no es texto. La nota de voz no se
+      // transcribe: esa rama va más abajo y gastar Gemini en quien no va a
+      // recibir respuesta no tiene para qué.
+      const loQueEscribio =
+        textBody ||
+        (messageType === 'image' ? '[imagen]'
+          : messageType === 'document' ? `[documento] ${documentFilename}`
+          : messageType === 'audio' ? '[nota de voz]'
+          : messageType === 'location' ? '[ubicación]'
+          : `[${messageType}]`);
+
+      // Callar al bot no es borrar a la persona. Sin esto su mensaje no quedaba
+      // en ningún lado —solo la hora— y la conversación en el panel aparecía
+      // vacía: para quien la lee, nunca escribió.
+      await saveUserMessage(from, loQueEscribio).catch(e =>
+        console.error('[WEBHOOK] Error guardando el mensaje de un no-prospecto:', e)
+      );
+
       // Al propio número de la escuela no se le avisa de sí mismo.
       if (motivo !== 'numero_de_la_escuela') {
         notificarAdmin(
-          `💬 *Escribió alguien que no es prospecto*\n\n📱 +${from}\n${EXPLICACION[motivo]}\n\n_${textBody.slice(0, 300)}_\n\nLuz no le contestó.`
+          `💬 *Escribió alguien que no es prospecto*\n\n📱 +${from}\n${EXPLICACION[motivo]}\n\n_${loQueEscribio.slice(0, 300)}_\n\nLuz no le contestó.`
         ).catch(e => console.error('[WEBHOOK] Error avisando de un no-prospecto:', e));
       }
       return new NextResponse('EVENT_RECEIVED', { status: 200 });
