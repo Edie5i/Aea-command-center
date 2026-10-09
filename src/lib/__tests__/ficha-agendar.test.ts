@@ -32,6 +32,9 @@ vi.mock('../adminNotify', () => ({
 }));
 vi.mock('../ficha-enlace', () => ({ enviarFicha: async () => {} }));
 
+const alReservarse = vi.fn(async () => {});
+vi.mock('../ficha-reservada', () => ({ alReservarse: () => alReservarse() }));
+
 const agendar = vi.fn(async (id: string, ficha: Ficha) => `\n🗓️ 4 clases en Calendar ✅ (${id}, ${ficha.estado})`);
 vi.mock('../agendar-ficha', () => ({
   agendarClasesDeFicha: (id: string, ficha: Ficha) => agendar(id, ficha),
@@ -51,6 +54,7 @@ beforeEach(() => {
   guardado = null;
   avisos.length = 0;
   agendar.mockClear();
+  alReservarse.mockClear();
 });
 
 describe('la ficha que acaba de reservarse', () => {
@@ -79,6 +83,20 @@ describe('la ficha que acaba de reservarse', () => {
     agendar.mockClear();
     await actualizarFicha('525586146401', { zona: 'Circle K, La Mexicana' });
     expect(agendar).not.toHaveBeenCalled();
+  });
+
+  it('cierra la conversación y le avisa al alumno una sola vez, al reservarse', async () => {
+    await guardarFicha('525586146401', pendiente, 'luz');
+    expect(alReservarse).not.toHaveBeenCalled();
+
+    // Como en la vida real: el comprobante ya está colgado y alguien lo confirma.
+    await actualizarFicha('525586146401', { comprobanteURL: '/api/admin/comprobante?path=x' });
+    expect(alReservarse).not.toHaveBeenCalled();
+    await actualizarFicha('525586146401', { depositoPagado: true });
+    expect(alReservarse).toHaveBeenCalledTimes(1);
+
+    await actualizarFicha('525586146401', { zona: 'Circle K, La Mexicana' });
+    expect(alReservarse).toHaveBeenCalledTimes(1);
   });
 
   it('si Calendar truena, el aviso de la reserva lo grita', async () => {

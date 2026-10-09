@@ -39,6 +39,7 @@ vi.mock('../firestore', () => ({
 
 vi.mock('../adminNotify', () => ({ notificarAdmin: async () => {} }));
 vi.mock('../ficha-enlace', () => ({ enviarFicha: async () => {} }));
+vi.mock('../ficha-reservada', () => ({ alReservarse: async () => {} }));
 
 const { guardarFicha, actualizarFicha, APARTADO } = await import('../fichaLuz');
 

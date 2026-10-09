@@ -82,13 +82,21 @@ async function agendarSiAcabaDeReservarse(
   ficha: Ficha
 ): Promise<string> {
   if (ficha.estado !== 'reservada' || prev?.estado === 'reservada') return '';
+  let agenda: string;
   try {
     const { agendarClasesDeFicha } = await import('@/lib/agendar-ficha');
-    return await agendarClasesDeFicha(id, ficha);
+    agenda = await agendarClasesDeFicha(id, ficha);
   } catch (e) {
     console.error('[FICHA] Error agendando las clases:', e);
-    return '\n🚨 *NO se pudieron crear sus clases en Calendar* — agéndalas a mano desde /admin/reservas.';
+    agenda = '\n🚨 *NO se pudieron crear sus clases en Calendar* — agéndalas a mano desde /admin/reservas.';
   }
+  // Después de Calendar: la conversación se cierra como inscrito y el alumno
+  // recibe su confirmación. Aparte del try de arriba, para que un aviso que
+  // falla no le haga leer al admin que no se crearon las clases.
+  await import('@/lib/ficha-reservada')
+    .then(({ alReservarse }) => alReservarse(id, prev, ficha))
+    .catch((e) => console.error('[FICHA] Error cerrando la conversación al reservar:', e));
+  return agenda;
 }
 
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.

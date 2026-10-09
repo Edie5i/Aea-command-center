@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
 import { AEA_TOOLS } from '@/ai/tools/aea-tools';
-import { getAvailableSlots } from '@/services/calendarService';
-import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { checkCoverage, type CoverageResult } from '@/lib/coverage';
 // Sólo TIENDAS: la cuenta y la tarjeta ya no se dictan en el chat, van en la ficha.
 import { TIENDAS } from '@/lib/cuenta';
@@ -172,12 +170,12 @@ Después del CIERRE, si el cliente sigue escribiendo sin mandar el comprobante (
 
 ## CUANDO LLEGA EL COMPROBANTE (imagen)
 
-El sistema ya procesó la inscripción automáticamente y creó las clases en Calendar. Tu trabajo es confirmar de manera cálida en máximo 3 líneas: recibiste el pago, quedó inscrito/a, el día anterior a su primera clase le mandamos datos del instructor y punto de encuentro.
+Tú no ves la imagen y NO inscribes a nadie: el comprobante lo revisa una persona del equipo. Cuando confirma el depósito, las clases se agendan solas y la ficha del alumno se actualiza.
 
-NO llames a confirmarInscripcion — las clases ya están creadas.
-NO pidas más información — todo quedó registrado.
+Tu trabajo es acusar de recibido de manera cálida en máximo 3 líneas: lo recibiste, el equipo lo está revisando y en cuanto quede confirmado su ficha se actualiza sola con sus clases.
 
-**EXCEPCIÓN — conflicto de horario:** si el sistema te avisa que alguna de las fechas ya no está disponible (te lo dice explícitamente en ese mensaje), las clases NO se crearon todavía. En ese caso, cuando el alumno confirme las fechas/horarios alternativos, SÍ tienes que llamar a confirmarInscripcion con el patrón, fechaInicio y hora nuevos — si no la llamas, el alumno se queda creyendo que está inscrito sin que exista ninguna clase real.
+NUNCA digas que ya quedó inscrito ni que sus clases ya están agendadas por haber mandado el comprobante.
+Si después del comprobante el alumno quiere cambiar fechas u horario: consultarDisponibilidad y vuelve a llamar a guardarPreReserva con el patrón, fechaInicio y hora nuevos.
 
 ## OBJECIONES
 
@@ -274,7 +272,6 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - **consultarDisponibilidad**: Úsala en el Paso 3 (cuando sepas mañana/tarde/fin de semana) para proponer fechas reales. También cuando pregunten "¿hay lugar?" o "¿cuándo puedo empezar?". Nunca inventes horarios.
 - **consultarCatalogoCursos**: Para confirmar precios exactos.
 - **consultarProgramaCurso**: Si preguntan qué aprenden.
-- **confirmarInscripcion**: Solo si el alumno confirma patrón y fecha de forma conversacional (no aplica cuando llega comprobante y las fechas originales seguían libres — ese caso ya está procesado). SÍ aplica cuando llegó comprobante pero hubo conflicto de horario y el alumno acaba de confirmar fechas alternativas — ese caso NO se procesa solo, tienes que cerrarlo tú con esta herramienta.
 - **guardarPreReserva**: Llámala UNA SOLA VEZ al final del CIERRE (Paso 6), justo después de mandar los datos de pago. No esperes el comprobante. Pasa: nombre, teléfono (el número de WhatsApp del cliente), dirección completa, curso, transmisión, patrón (lunes-jueves / martes-viernes / fin-de-semana) y la fechaInicio + hora que acordaste. Esto calcula y reserva las 4 fechas reales, no solo la primera. NO la vuelvas a llamar en el resto de la conversación salvo que el patrón, horario o fecha cambien.
 
 ## REGLAS ABSOLUTAS
@@ -307,6 +304,8 @@ const MSG_FALLBACK = 'Perdón, ¿me repites tu último mensaje? Quiero anotar bi
  */
 const MSG_ESCALA =
   'Perdón, se me trabó el sistema. Te paso con un asesor para no hacerte perder tiempo: 56 3443 3212 📞';
+/** Acuse de una imagen cuando no toca (o no se pudo) contestar con el modelo. */
+const MSG_ACUSE_IMAGEN = '¡Recibido! 🙌 Lo revisa el equipo y te confirmamos por aquí.';
 const GEMINI_TIMEOUT_MS = 90_000;
 
 // Dedup de mensajes recibidos
@@ -414,66 +413,6 @@ ${conversation}`,
   }
 }
 
-function pickSlots(
-  slots: Awaited<ReturnType<typeof getAvailableSlots>>,
-  horario: string,
-  fechaMinima?: string
-) {
-  const mañana = ['07:00', '10:00'];
-  const tarde = ['13:00', '16:00', '19:00'];
-  const finde = ['sábado', 'domingo'];
-
-  const preferidos = horario === 'mañana' ? mañana : horario === 'tarde' ? tarde : ['10:00', '13:00'];
-
-  // Si hay fecha prometida, no tomar slots anteriores a ella
-  const slotsBase = fechaMinima ? slots.filter(s => s.fecha >= fechaMinima) : slots;
-
-  // Filtrar días según preferencia
-  const diasFiltrados = slotsBase.filter(slot => {
-    const esFinDeSemana = finde.includes(slot.diaSemana);
-    if (horario === 'fin-de-semana' && !esFinDeSemana) return false;
-    if (horario !== 'fin-de-semana' && esFinDeSemana) return false;
-    return true;
-  });
-
-  // Buscar 4 días al MISMO horario, preferencia: 4 días literalmente corridos (diff 1 día entre cada par)
-  for (const hora of preferidos) {
-    const diasConEstaHora = diasFiltrados.filter(s => s.horariosLibres.includes(hora));
-    if (diasConEstaHora.length < 4) continue;
-
-    // Prioridad 1: 4 días completamente corridos (cada par con diff exacto de 1 día)
-    for (let i = 0; i <= diasConEstaHora.length - 4; i++) {
-      const bloque = diasConEstaHora.slice(i, i + 4);
-      const corrido = bloque.every((s, idx) => {
-        if (idx === 0) return true;
-        const prev = new Date(bloque[idx - 1].fecha).getTime();
-        const curr = new Date(s.fecha).getTime();
-        return (curr - prev) === 86400000; // exactamente 1 día
-      });
-      if (corrido) return bloque.map(s => ({ date: s.fecha + 'T12:00:00', time: hora }));
-    }
-
-    // Prioridad 2: bloque más compacto (menor rango total de fechas)
-    let mejorBloque = diasConEstaHora.slice(0, 4);
-    let mejorRango = Infinity;
-    for (let i = 0; i <= diasConEstaHora.length - 4; i++) {
-      const bloque = diasConEstaHora.slice(i, i + 4);
-      const rango = new Date(bloque[3].fecha).getTime() - new Date(bloque[0].fecha).getTime();
-      if (rango < mejorRango) { mejorRango = rango; mejorBloque = bloque; }
-    }
-    return mejorBloque.map(s => ({ date: s.fecha + 'T12:00:00', time: hora }));
-  }
-
-  // Fallback: mezcla de horarios si ninguna hora tiene 4 días disponibles
-  const result: Array<{ date: string; time: string }> = [];
-  for (const slot of diasFiltrados) {
-    if (result.length >= 4) break;
-    const hora = preferidos.find(h => slot.horariosLibres.includes(h)) ?? slot.horariosLibres[0];
-    if (hora) result.push({ date: slot.fecha + 'T12:00:00', time: hora });
-  }
-  return result;
-}
-
 async function extractLeadData(history: HistoryItem[], phone: string): Promise<Record<string, string>> {
   const conversation = history
     .map((h) => `${h.role === 'user' ? 'Cliente' : 'Luz'}: ${h.text}`)
@@ -538,7 +477,7 @@ function buildTurnContext(clientPhone?: string): string {
   });
   let ctx = `[Fecha actual: ${hoy}. Usa este año para calcular cualquier fecha futura.]`;
   if (clientPhone) {
-    ctx += `\n[Número de WhatsApp del cliente en esta conversación: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a confirmarInscripcion, a guardarPreReserva y a consultarDisponibilidad. No uses ningún otro número.]`;
+    ctx += `\n[Número de WhatsApp del cliente en esta conversación: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a guardarPreReserva, a consultarDisponibilidad y a cancelarClaseAlumno. No uses ningún otro número.]`;
   }
   return ctx;
 }
@@ -883,34 +822,6 @@ async function sendDocumentMessage(to: string, mediaId: string, filename: string
   }
 }
 
-async function sendLocationRequest(to: string, direccionConocida: string, phoneId?: string): Promise<void> {
-  const actualPhoneId = phoneId || PHONE_ID;
-  const url = `https://graph.facebook.com/v21.0/${actualPhoneId}/messages`;
-  const payload = {
-    messaging_product: 'whatsapp',
-    to,
-    type: 'interactive',
-    interactive: {
-      type: 'location_request_message',
-      body: {
-        text: `Un último paso: comparte tu ubicación exacta para que el instructor llegue directo a tu puerta 📍\n\n_Dirección registrada: ${direccionConocida}_`,
-      },
-      action: { name: 'send_location' },
-    },
-  };
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  const locResponseText = await res.text();
-  if (!res.ok) {
-    console.error('[WEBHOOK] Location request error:', res.status, locResponseText);
-  } else {
-    recordarEnvioDesdeRespuesta(locResponseText, to, '[peticion de ubicacion]', actualPhoneId);
-  }
-}
-
 async function transcribeAudio(mediaId: string, mimeType = 'audio/ogg'): Promise<string> {
   const metaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaId}`, {
     headers: { Authorization: `Bearer ${WA_TOKEN}` },
@@ -1042,40 +953,6 @@ Somos la autoescuela con más reseñas en CDMX — 4.8★ con más de 220 alumno
   return `${saludo} 👋 Soy Luz, de Auto Escuela Americana.
 
 ¿Ya manejas algo o empiezas desde cero?`;
-}
-
-// Candado atómico de inscripción por teléfono. Devuelve true si se puede proceder (nueva
-// inscripción) o false si ya hubo una en los últimos 10 min (comprobante reenviado o webhook
-// duplicado). Ventana de 10 min para no bloquear reinscripciones legítimas futuras.
-// Fail-open: ante cualquier error de Firestore procede (mejor un raro duplicado que perder venta).
-async function claimInscripcion(phone: string): Promise<boolean> {
-  try {
-    const { db } = await import('@/lib/firestore');
-    const ref = db.collection('conversations').doc(phone);
-    let proceder = true;
-    await db.runTransaction(async (tx) => {
-      const snap = await tx.get(ref);
-      const last = (snap.exists ? (snap.data() as { ultimaInscripcionAt?: number })?.ultimaInscripcionAt : 0) || 0;
-      if (last && Date.now() - last < 10 * 60 * 1000) { proceder = false; return; }
-      tx.set(ref, { ultimaInscripcionAt: Date.now() }, { merge: true });
-    });
-    return proceder;
-  } catch (e) {
-    console.error('[WEBHOOK] claimInscripcion error — fail-open (procede):', e);
-    return true;
-  }
-}
-
-// Libera el candado de claimInscripcion cuando la creación de eventos falló después de
-// reclamarlo — si no, un reintento del cliente dentro de los 10 min cae en el mensaje de
-// "ya quedó inscrito" aunque nunca se creó nada en Calendar.
-async function releaseClaim(phone: string): Promise<void> {
-  try {
-    const { db } = await import('@/lib/firestore');
-    await db.collection('conversations').doc(phone).set({ ultimaInscripcionAt: 0 }, { merge: true });
-  } catch (e) {
-    console.error('[WEBHOOK] releaseClaim error:', e);
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -1381,17 +1258,18 @@ export async function POST(request: NextRequest) {
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   }
 
-  // Comprobante de pago (imagen o PDF) — inscripción automática
+  // Imagen o PDF: casi siempre un comprobante. Se adjunta y se avisa; NO agenda.
+  //
+  // Antes esta rama extraía los datos del lead con el modelo y creaba las
+  // cuatro clases en Calendar con sólo recibir la imagen, sin que nadie hubiera
+  // mirado el monto. Y como corre antes de revisar si la conversación está
+  // cerrada, un alumno ya inscrito que mandaba el comprobante de su saldo —o
+  // cualquier foto— recibía OTRO bloque de cuatro clases y sus fechas
+  // reescritas. Las clases se crean en un solo lugar: cuando una persona
+  // confirma el apartado y la ficha pasa a 'reservada' (lib/fichaLuz.ts).
   if (messageType === 'image' || messageType === 'document') {
     const mediaId = messageType === 'document' ? documentMediaId : imageMediaId;
     const history = await getHistory(from);
-    let syntheticMsg: string;
-    let inscriptionOk = false;
-    let fichaClienteMsg: string | null = null;
-    let leadNombre = '';
-    let leadZona = 'Por confirmar';
-    let claimed = false;
-
     // Extraer nombre del lead del historial para la notificación inicial
     const nombreRapido = history.find(h => h.role === 'user' && h.text.length > 2 && h.text.length < 40 && !/http|#|\?/.test(h.text))?.text ?? `+${from}`;
 
@@ -1424,10 +1302,11 @@ export async function POST(request: NextRequest) {
     // que el botón vive aquí y no al final de un viaje por el panel. Si la ficha
     // todavía no existe (mandó el comprobante antes de cerrar con Luz) no hay
     // token y el pie va sin liga.
+    const tokenFicha = await import('@/lib/ficha-enlace')
+      .then(({ tokenDeFicha }) => tokenDeFicha(from))
+      .catch(() => null);
+    let subida: Promise<void> = Promise.resolve();
     if (mediaId) {
-      const tokenFicha = await import('@/lib/ficha-enlace')
-        .then(({ tokenDeFicha }) => tokenDeFicha(from))
-        .catch(() => null);
       const pie =
         `${nombreRapido} · +${from}` +
         (tokenFicha
@@ -1452,7 +1331,7 @@ export async function POST(request: NextRequest) {
       // confirmado — depósito recibido" en su ficha por haber mandado una foto,
       // y al admin le llegaba "Depósito PAGADO". Ahora el comprobante queda
       // adjunto y en revisión; lo confirma una persona en /admin/reservas.
-      import('@/lib/comprobantes')
+      subida = import('@/lib/comprobantes')
         .then(async ({ subirComprobante }) => {
           const path = await subirComprobante(mediaId, from);
           console.log('[WEBHOOK] Comprobante en Storage:', path);
@@ -1463,264 +1342,88 @@ export async function POST(request: NextRequest) {
           // con Luz sembraba una ficha vacía, sin nombre ni teléfono, en
           // /admin/reservas. El admin ya tiene la imagen: se la reenvía el
           // bloque de arriba, con el pie sin liga.
+          const comprobanteURL = `/api/admin/comprobante?path=${encodeURIComponent(path)}`;
           if (!tokenFicha) {
-            console.log('[WEBHOOK] Comprobante sin ficha todavía, no se cuelga:', from);
+            // Se deja apuntado en la conversación: guardarPreReserva lo cuelga
+            // cuando la ficha nazca. Sin esto la ficha nacía sin comprobante y
+            // confirmar el apartado no la pasaba a 'reservada' —revisarFicha
+            // pide las dos cosas—, así que no se creaba ninguna clase.
+            console.log('[WEBHOOK] Comprobante sin ficha todavía, queda apuntado en la conversación:', from);
+            const { db } = await import('@/lib/firestore');
+            await db.collection('conversations').doc(from).set({ comprobantePendienteURL: comprobanteURL }, { merge: true });
             return;
           }
           const { actualizarFicha } = await import('@/lib/fichaLuz');
-          await actualizarFicha(from, {
-            comprobanteURL: `/api/admin/comprobante?path=${encodeURIComponent(path)}`,
-          });
+          await actualizarFicha(from, { comprobanteURL });
         })
         .catch((e) => console.error('[WEBHOOK] Error subiendo comprobante a Storage:', e));
     }
 
-    try {
-      const leadInfo = await extractLeadInfo(history, from);
-      leadNombre = leadInfo.nombre;
-      leadZona = leadInfo.zona;
-      console.log('[WEBHOOK] Lead info extraída:', JSON.stringify(leadInfo));
+    const etiqueta = messageType === 'document' ? `[documento] ${documentFilename}` : '[imagen]';
+    const { getConversation, saveImageMessage, saveUserMessage } = await import('@/lib/firestore');
+    const convData = await getConversation(from).catch(() => null);
 
-      if (leadInfo.nombre === 'Alumno' || leadInfo.zona === 'Por confirmar') {
-        console.warn('[WEBHOOK] Datos insuficientes para crear ficha — nombre o zona faltantes. Abortando agendamiento.');
-        return new NextResponse('EVENT_RECEIVED', { status: 200 });
-      }
-
-      // Validar dirección completa: colonia es mínimo requerido para confirmar cobertura
-      if (!leadInfo.colonia) {
-        console.warn('[WEBHOOK] Dirección incompleta — falta colonia. Abortando agendamiento.');
-        notificarAdmin(
-          `🚨 *YA PAGÓ — falta dirección*\n\n` +
-          `👤 ${leadInfo.nombre} | 📱 +${from}\n\n` +
-          `Tiene: "${leadInfo.zona}"\nFalta: colonia (y de preferencia calle + número)\n\n` +
-          `Luz se la está pidiendo. Si no contesta, márcale tú — el depósito ya entró.`
-        ).catch(e => console.error('[WEBHOOK] Error notificando admin dir incompleta:', e));
-        // Permitir que Luz responda al cliente pidiendo los datos faltantes
-        const reply = await generateReply(
-          `El cliente acaba de enviar su comprobante de pago pero aún falta su dirección completa (calle, número y colonia). ` +
-          `Confirma que recibiste el pago y pídele amablemente que te dé su calle, número y colonia para el punto de encuentro con el instructor.`,
-          history, from
-        );
-        await sendMessage(from, reply, phoneId);
-        saveHistory(from, '[comprobante de pago]', reply);
-        return new NextResponse('EVENT_RECEIVED', { status: 200 });
-      }
-
-      console.log('[WEBHOOK] Consultando slots disponibles...');
-      // Con excluirTelefono: su propio apartado no cuenta como ocupado, o el
-      // candado de abajo le diría a todo el mundo que se le cayeron sus fechas.
-      const slots = await getAvailableSlots(21, { excluirTelefono: from });
-      console.log('[WEBHOOK] Slots totales recibidos:', slots.length);
-
-      // Leer pre-reserva para respetar las 4 fechas exactas prometidas por Luz (no solo la primera)
-      let prometidas: Array<{ date: string; time: string }> | null = null;
-      try {
-        const { getInscripcionData } = await import('@/lib/firestore');
-        const preReserva = await getInscripcionData(from);
-        if (preReserva?.status === 'pre_reserva' && preReserva.fechas?.length >= 4) {
-          prometidas = preReserva.fechas.slice(0, 4);
-          console.log('[WEBHOOK] Pre-reserva encontrada (4 fechas):', JSON.stringify(prometidas));
-        }
-      } catch (e) {
-        console.error('[WEBHOOK] Error leyendo pre-reserva:', e);
-      }
-
-      let pickedSlots: Array<{ date: string; time: string }>;
-
-      if (prometidas) {
-        // Verificar que las 4 fechas prometidas SIGAN libres — si alguna ya no lo está,
-        // avisar en vez de reasignar en silencio un bloque distinto al que vio el alumno.
-        const conflictos = prometidas.filter(f => {
-          const slot = slots.find(s => s.fecha === f.date);
-          return !slot || !slot.horariosLibres.includes(f.time);
-        });
-
-        if (conflictos.length > 0) {
-          console.warn('[WEBHOOK] Fechas prometidas ya no disponibles:', JSON.stringify(conflictos));
-          const plural = conflictos.length > 1;
-          const conflictosTexto = conflictos.map(c => `${c.date} a las ${c.time}`).join(', ');
-          notificarAdmin(
-            `🚨 *YA PAGÓ — se cayeron sus fechas*\n\n` +
-            `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
-            `De las 4 fechas acordadas, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: *${conflictosTexto}*.\n\n` +
-            `Luz le está pidiendo opciones alternativas al alumno.`
-          ).catch(e => console.error('[WEBHOOK] Error notif conflicto horario:', e));
-
-          const replyConflicto = await generateReply(
-            `El alumno acaba de enviarnos su comprobante de pago — ¡gracias! Sin embargo, de las 4 fechas que habíamos acordado, ya no está${plural ? 'n' : ''} disponible${plural ? 's' : ''}: ${conflictosTexto} (se le adelantó a otro alumno). ` +
-            `Confírmale la recepción del pago, discúlpate brevemente por el inconveniente, y pídele que nos comparta 2 o 3 opciones de días y horarios que le funcionen para sus clases. ` +
-            `IMPORTANTE: estas 4 clases NO se crearon en Calendar — el sistema esperó porque hubo conflicto. En cuanto el alumno confirme fechas y horarios alternativos (en este mensaje o en los siguientes), tienes que llamar a la herramienta confirmarInscripcion con el patrón, fechaInicio y hora nuevos para cerrar la inscripción de verdad. Si no la llamas, el alumno se queda creyendo que está inscrito sin que exista ninguna clase real.`,
-            history, from
-          );
-          await sendMessage(from, replyConflicto, phoneId);
-          saveHistory(from, '[comprobante de pago]', replyConflicto);
-          import('@/lib/firestore')
-            .then(({ saveImageMessage }) => saveImageMessage(from, mediaId || 'unknown', replyConflicto))
-            .catch(e => console.error('[WEBHOOK] Firestore save error (conflicto):', e));
-          return new NextResponse('EVENT_RECEIVED', { status: 200 });
-        }
-
-        pickedSlots = prometidas.map(f => ({ date: `${f.date}T12:00:00`, time: f.time }));
-      } else {
-        // Sin pre-reserva completa (4 fechas) — fallback: elegir bloque según preferencia general
-        pickedSlots = pickSlots(slots, leadInfo.horario);
-      }
-      console.log('[WEBHOOK] Slots seleccionados:', JSON.stringify(pickedSlots));
-
-      // Candado: si ya hubo una inscripción para este número hace <10 min, es un comprobante
-      // duplicado (reenvío o webhook repetido con distinto mensaje) — no recrear eventos/ficha.
-      // Se reclama aquí adentro, justo antes de crear los eventos — no antes de saber si hay
-      // slots — porque si no hay suficientes o si scheduleAndCreateEvents falla, no debe quedar
-      // marcado como "ya procesado" (eso le mentiría al cliente en un reintento).
-      if (pickedSlots.length >= 4) {
-        const puedeInscribir = await claimInscripcion(from);
-        if (!puedeInscribir) {
-          console.log('[WEBHOOK] Inscripción duplicada para', from, '— NO se recrean eventos/ficha');
-          syntheticMsg = `El cliente (número de WhatsApp: ${from}) reenvió su comprobante pero su inscripción ya se procesó hace unos minutos. Confírmale cordialmente que su pago y sus 4 clases YA quedaron registrados. NO repitas datos, NO llames herramientas.`;
-        } else {
-          claimed = true;
-          console.log('[WEBHOOK] Creando 4 eventos en Calendar...');
-          await scheduleAndCreateEvents({
-            name: leadInfo.nombre,
-            phone: leadInfo.telefono,
-            address: leadInfo.zona,
-            transmission: leadInfo.transmision,
-            dates: pickedSlots,
-          });
-          console.log('[WEBHOOK] Eventos creados en Calendar');
-
-          const fechasTexto = pickedSlots.map(s => {
-            const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
-            const d = new Date(yyyy, mm - 1, dd);
-            return `${d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${s.time}`;
-          }).join('\n  ');
-
-          await notificarAdmin(
-            `✅ *VENTA CERRADA — Inscripción completada*\n\n` +
-            `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
-            `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
-            `📅 Clases agendadas:\n  ${fechasTexto}\n\n` +
-            `👉 Ver ficha: app.autoescuelaamericana.com/admin/fichas`
-          ).catch((e) => console.error('[WEBHOOK] Error admin final:', e));
-
-          // Persiste datos de inscripción para ficha PDF en admin panel (awaited — el E2E depende de esto)
-          const { saveInscripcionData } = await import('@/lib/firestore');
-          const fichaFechas = pickedSlots.map(s => ({ date: s.date.split('T')[0], time: s.time }));
-          await saveInscripcionData(from, {
-            nombre: leadInfo.nombre,
-            telefono: from,
-            zona: leadInfo.zona,
-            calle: leadInfo.calle ?? undefined,
-            numero: leadInfo.numero ?? undefined,
-            colonia: leadInfo.colonia ?? undefined,
-            curso: leadInfo.curso,
-            transmision: leadInfo.transmision,
-            fechas: fichaFechas,
-          });
-
-          // Enviar ficha PDF al admin y al alumno
-          import('@/lib/ficha-enlace').then(({ enviarFicha }) => {
-            const fichaPayload = {
-              nombre: leadInfo.nombre,
-              telefono: from,
-              zona: leadInfo.zona,
-              transmision: leadInfo.transmision,
-              fechas: fichaFechas,
-            };
-            enviarFicha(fichaPayload)
-              .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al admin:', e));
-            enviarFicha(fichaPayload, from)
-              .catch(e => console.error('[WEBHOOK] Error enviando ficha PDF al alumno:', e));
-          }).catch(e => console.error('[WEBHOOK] Error importando ficha-enlace:', e));
-
-          // Ficha de inscripción para el cliente (WhatsApp)
-          const displayTel = celularLocal(leadInfo.telefono);
-          const fichaLineas = [
-            `📋 *Tu Ficha de Inscripción — Auto Escuela Americana*`,
-            ``,
-            `👤 *${leadInfo.nombre}*`,
-            `📱 ${displayTel}`,
-            `🚗 Curso ${leadInfo.curso}`,
-            `📍 ${leadInfo.zona}`,
-            ``,
-            `📅 *Tus clases:*`,
-            ...pickedSlots.slice(0, 4).map((s, i) => {
-              const [yyyy, mm, dd] = s.date.split('T')[0].split('-').map(Number);
-              const d = new Date(yyyy, mm - 1, dd);
-              const label = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
-              return `${i + 1}. ${label} · ${s.time}`;
-            }),
-            ``,
-            `Guarda este mensaje 📌 El día antes de tu primera clase te mandamos los datos del instructor.`,
-          ];
-          fichaClienteMsg = fichaLineas.join('\n');
-
-          inscriptionOk = true;
-          syntheticMsg = `El cliente (número de WhatsApp: ${from}) envió su comprobante y sus 4 clases quedaron AGENDADAS AUTOMÁTICAMENTE en Calendar:\n${fechasTexto}\n\nConfírmale esto de manera cordial. Indícale que el día anterior a su primera clase recibirá un mensaje con los datos del instructor. IMPORTANTE: NO llames a confirmarInscripcion — las clases ya están agendadas.`;
-        }
-      } else {
-        notificarAdmin(
-          `🚨 *YA PAGÓ — falta asignarle horario*\n\n` +
-          `👤 ${leadInfo.nombre} | 📱 +${leadInfo.telefono}\n` +
-          `📍 ${leadInfo.zona} | 🚗 ${leadInfo.curso}\n\n` +
-          `No había 4 espacios libres. Asígnale horario a mano — el depósito ya entró.`
-        ).catch((e) => console.error('[WEBHOOK] Error notificando admin (sin slots):', e));
-        syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante. No hay suficientes horarios disponibles. Propónle un patrón de 4 clases y coordina con el equipo.`;
-      }
-    } catch (e) {
-      if (claimed) {
-        releaseClaim(from).catch(err => console.error('[WEBHOOK] Error liberando candado:', err));
-      }
-      console.error('[WEBHOOK] Error en inscripción automática:', e);
-      notificarAdmin(
-        `⚠️ *COMPROBANTE RECIBIDO — Requiere atención manual*\n\n` +
-        `📱 +${from}\n\n` +
-        `No se pudo procesar automáticamente. Entra al chat y coordina el horario.`
-      ).catch((err) => console.error('[WEBHOOK] Error notificando admin (error path):', err));
-      syntheticMsg = `El cliente (número de WhatsApp: ${from}) acaba de enviar su comprobante de pago. Confirma recepción y propónle un horario para sus 4 clases.`;
+    // Una persona ya lo está atendiendo: la imagen le llegó al admin arriba, con
+    // su liga. Se guarda para que se vea en el panel y Luz no se mete.
+    if (convData?.botPaused) {
+      await saveUserMessage(from, etiqueta).catch(e => console.error('[WEBHOOK] saveUserMessage (imagen, pausa):', e));
+      return new NextResponse('EVENT_RECEIVED', { status: 200 });
     }
 
-    const reply = await generateReply(syntheticMsg, history, from);
+    let reply: string;
+    if (convData?.chatState === 'cerrado') {
+      // Ya inscrito (o cerrado a mano): acuse fijo, sin modelo. Lo normal aquí
+      // es el comprobante del saldo, y lo que toca es que lo vea una persona.
+      reply = MSG_ACUSE_IMAGEN;
+    } else if (history.length === 0) {
+      // Primer mensaje de alguien nuevo y es una foto: se le saluda como a
+      // cualquiera, en vez de dejarlo sin respuesta.
+      reply = buildWelcomeMessage(waDisplayName, leadSource !== null);
+    } else {
+      // Sin ficha, Luz puede crearla en este mismo turno: el comprobante tiene
+      // que estar apuntado antes, o la ficha nace sin él.
+      if (!tokenFicha) await subida;
+      const queMando = messageType === 'document' ? 'un documento (PDF)' : 'una imagen';
+      const sobreLaFicha = tokenFicha
+        ? `Ya tiene su ficha guardada: NO llames ninguna herramienta.`
+        : `Todavía NO tiene ficha guardada. Si ya tienes nombre, dirección completa y las 4 fechas acordadas, llama a guardarPreReserva ahora; si te falta alguno de esos datos, pídeselo en este mismo mensaje.`;
+      reply = await generateReply(
+        `[El cliente acaba de mandar ${queMando}. Tú no puedes verlo; lo más probable es que sea su comprobante de pago. ` +
+        `Dile que lo recibiste y que el equipo lo está revisando: en cuanto quede confirmado, su ficha se actualiza sola y ahí aparecen sus clases. ` +
+        `NO le digas que ya quedó inscrito ni que sus clases ya están agendadas — eso pasa hasta que una persona confirma el depósito. ` +
+        `${sobreLaFicha} Máximo 3 líneas.]`,
+        history, from
+      );
+      // Pedirle que "repita su último mensaje" a quien mandó una foto no tiene
+      // sentido, y pasarlo con un asesor tampoco: el admin ya tiene la imagen.
+      if (reply === MSG_FALLBACK || reply === MSG_ESCALA) reply = MSG_ACUSE_IMAGEN;
+    }
+
     await sendMessage(from, reply, phoneId);
     saveHistory(from, '[comprobante de pago]', reply);
     try {
-      const { saveImageMessage } = await import('@/lib/firestore');
       await saveImageMessage(from, mediaId || 'unknown', reply);
     } catch (e) {
       console.error('[WEBHOOK] Firestore save error:', e);
     }
 
-    if (inscriptionOk) {
-      // Ficha de inscripción al cliente
-      if (fichaClienteMsg) {
-        sendMessage(from, fichaClienteMsg, phoneId).catch(e => console.error('[WEBHOOK] Error enviando ficha cliente:', e));
-      }
-
-      // Enviar términos y condiciones + aviso de privacidad al alumno
-      sendMessage(from,
-        `📋 *Términos y Condiciones*\nAl realizar tu pago aceptas los términos de Auto Escuela Americana:\nautoescuelaamericana.com/terminos\n\n🔒 *Aviso de Privacidad*\nTus datos son tratados conforme a nuestro aviso de privacidad:\nautoescuelaamericana.com/aviso-privacidad`,
-        phoneId
-      ).catch(e => console.error('[WEBHOOK] Error enviando T&C:', e));
-
-      // Solicitar ubicación GPS para confirmar punto de encuentro del instructor
-      sendLocationRequest(from, leadZona, phoneId).catch(e => console.error('[WEBHOOK] Error enviando location request:', e));
-
-      // Clases agendadas automáticamente — marcar como cerrado para evitar que Luz siga respondiendo
-      // El admin verifica monto y banco desde el panel, pero el cliente ya está inscrito
+    if (convData?.chatState === 'cerrado') {
+      // Igual que un texto después del cierre: queda marcado en el panel.
       try {
-        const { updateChatState } = await import('@/lib/firestore');
-        await updateChatState(from, {
-          chatState: 'cerrado',
-          chatReason: 'Inscripción completada automáticamente. Admin verifica comprobante.',
-          chatUrgency: 'baja',
-        }, 'manual');
+        const [{ db }, { Timestamp }] = await Promise.all([
+          import('@/lib/firestore'),
+          import('firebase-admin/firestore'),
+        ]);
+        await db.collection('conversations').doc(from).set({
+          postCierreAlerta: { texto: `(${messageType})`, tipo: messageType, at: Timestamp.now() },
+        }, { merge: true });
       } catch (e) {
-        console.error('[WEBHOOK] Error marcando inscripción completada:', e);
+        console.error('[WEBHOOK] postCierreAlerta (imagen):', e);
       }
     } else {
-      // Sin inscripción → recalcular estado normalmente. Con AWAIT: si se deja en
-      // segundo plano después de regresar la respuesta HTTP, Cloud Run puede
-      // suspender la instancia a medias y el recálculo nunca llega a ejecutarse.
+      // Con AWAIT: si se deja en segundo plano después de regresar la respuesta
+      // HTTP, Cloud Run puede suspender la instancia a medias y el recálculo
+      // nunca llega a ejecutarse.
       try {
         const { recalculateChatState } = await import('@/lib/chat-state');
         await recalculateChatState(from, 'mensaje_luz');

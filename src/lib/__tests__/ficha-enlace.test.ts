@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fechaLarga, enlaceFicha, mensajeAlumno, mensajeAdmin, type FichaData } from '../ficha-enlace';
+import { fechaLarga, enlaceFicha, mensajeAlumno, mensajeAdmin, mensajeConfirmado, type FichaData } from '../ficha-enlace';
 
 
 const ficha: FichaData = {
@@ -88,5 +88,19 @@ describe('mensajeAdmin', () => {
   it('sin curso no deja un renglón suelto', () => {
     const sinCurso = mensajeAdmin({ ...ficha, curso: undefined }, 'abc123');
     expect(sinCurso).not.toContain('🚗');
+  });
+});
+
+describe('mensajeConfirmado', () => {
+  const m = mensajeConfirmado(ficha, 'abc123');
+
+  it('dice que el apartado quedó confirmado, con sus clases y su ficha', () => {
+    expect(m).toMatch(/^✅ María, tu apartado quedó confirmado\./);
+    expect(m).toContain('• martes 22 de septiembre · 10:00 a.m.');
+    expect(m).toContain('https://app.autoescuelaamericana.com/ficha/abc123');
+  });
+
+  it('sin nombre no queda una coma colgada', () => {
+    expect(mensajeConfirmado({ ...ficha, nombre: ' ' }, 'abc123')).toMatch(/^✅ Tu apartado/);
   });
 });

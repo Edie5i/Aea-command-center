@@ -279,6 +279,13 @@ export const guardarPreReservaTool = ai.defineTool(
       // Ficha única (web + Luz): el panel /admin/reservas las ve todas
       const { guardarFicha } = await import('@/lib/fichaLuz');
       const cursoFicha = curso ?? 'Estándar';
+      // Si mandó el comprobante antes de tener ficha, el webhook lo dejó
+      // apuntado en la conversación: se cuelga aquí, al nacer la ficha.
+      const { db } = await import('@/lib/firestore');
+      const comprobantePendienteURL: string | undefined = await db
+        .collection('conversations').doc(telefono).get()
+        .then((d) => d.data()?.comprobantePendienteURL)
+        .catch(() => undefined);
       await guardarFicha(
         telefono,
         {
@@ -289,6 +296,7 @@ export const guardarPreReservaTool = ai.defineTool(
           zona,
           // linkCierre arma wa.me/52{telefono} → se guarda a 10 dígitos
           telefono: celularLocal(telefono),
+          ...(comprobantePendienteURL ? { comprobanteURL: comprobantePendienteURL } : {}),
         },
         'luz'
       ).catch((e) => console.error('[TOOL] guardarFicha error:', e));
@@ -363,7 +371,11 @@ export const AEA_TOOLS = [
   consultarDisponibilidadTool,
   consultarCatalogoCursosTool,
   consultarProgramaCursoTool,
-  confirmarInscripcionTool,
+  // confirmarInscripcionTool ya no va en la lista: creaba las cuatro clases en
+  // Calendar y cerraba la venta como ganada con la sola palabra del modelo, sin
+  // que nadie hubiera visto el depósito —y esta lista la usa también el chatbot
+  // público de la web—. Las clases se crean cuando una persona confirma el
+  // apartado y la ficha pasa a 'reservada' (lib/fichaLuz.ts).
   guardarPreReservaTool,
   cancelarClaseAlumnoTool,
 ];

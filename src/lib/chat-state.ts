@@ -144,16 +144,15 @@ export async function recalculateChatState(
       return;
     }
 
-    // Ya depositó pero la inscripción no se completó sola (dirección incompleta,
-    // conflicto de horario, menos de 4 slots libres). No es un lead que haya que
-    // perseguir: es un cliente que pagó y quedó a medias. Lo dejamos en manos de
+    // Mandó comprobante y falta que una persona lo revise y confirme el
+    // apartado. No es un lead que haya que perseguir: lo dejamos en manos de
     // una persona y sin follow-ups automáticos, y nunca se degrada a frío.
     if (conv.comprobanteRecibidoAt) {
       await updateChatState(
         phone,
         {
           chatState: 'tu_turno',
-          chatReason: 'Mandó comprobante y la inscripción quedó incompleta',
+          chatReason: 'Mandó comprobante: revísalo y confirma el apartado',
           chatUrgency: 'alta',
           nextFollowupAt: null,
         },

@@ -76,6 +76,30 @@ export function mensajeAlumno(data: FichaData, token: string): string {
   ].join('\n');
 }
 
+/**
+ * El mensaje para el ALUMNO cuando una persona confirmó su apartado.
+ *
+ * Es la confirmación de verdad. Antes se la daba Luz con sólo recibir una
+ * imagen —"quedaste inscrito"— sin que nadie hubiera visto el depósito; ahora
+ * sale de aquí, en el momento en que sus clases ya existen en Calendar.
+ */
+export function mensajeConfirmado(data: FichaData, token: string): string {
+  const pila = data.nombre.trim().split(/\s+/)[0] || '';
+  const fechas = data.fechas.slice(0, 4).map(f => `• ${fechaLarga(f.date, f.time)}`);
+
+  return [
+    `✅ ${pila ? `${pila}, t` : 'T'}u apartado quedó confirmado.`,
+    '',
+    ...(fechas.length ? ['Tus clases:', ...fechas, ''] : []),
+    'El día antes de la primera te mandamos los datos del instructor y el punto de encuentro.',
+    '',
+    `Tu ficha: ${enlaceFicha(token)}`,
+    '',
+    'Términos: autoescuelaamericana.com/terminos',
+    'Privacidad: autoescuelaamericana.com/aviso-privacidad',
+  ].join('\n');
+}
+
 /** El mensaje para el admin: quién es, cómo localizarlo y a dónde ir. */
 export function mensajeAdmin(data: FichaData, token: string): string {
   return [
@@ -184,4 +208,27 @@ export async function enviarFicha(data: FichaData, to?: string): Promise<void> {
   await notificarAdmin(mensajeAdmin(data, token)).catch(e =>
     console.error('[FICHA] no se pudo avisar al admin:', e)
   );
+}
+
+/**
+ * Le avisa al alumno que su apartado quedó confirmado. Devuelve el texto que
+ * se mandó, o null si no salió: en ese caso ya se le avisó al admin.
+ */
+export async function avisarApartadoConfirmado(data: FichaData): Promise<string | null> {
+  const token = await tokenDeFicha(data.telefono);
+  if (!token) return null;
+
+  const texto = mensajeConfirmado(data, token);
+  const llego = await mandarTexto(data.telefono, texto, 'el alumno');
+  if (llego) return texto;
+
+  // Típico fuera de la ventana de 24 h: confirmaste al día siguiente de que
+  // mandó el comprobante. Sin este aviso el alumno se queda sin saber que ya
+  // tiene lugar.
+  const { notificarAdmin } = await import('@/lib/adminNotify');
+  await notificarAdmin(
+    `⚠️ *No le llegó su confirmación* — ${data.nombre}\n📱 +${data.telefono}\n` +
+    `Avísale tú que ya quedó: ${enlaceFicha(token)}`
+  ).catch(() => {});
+  return null;
 }
