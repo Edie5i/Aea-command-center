@@ -69,10 +69,14 @@ export async function createCalendarEventsAction(
       // sola ficha, la que se actualiza sola.
       const token = await tokenDeFicha(phone);
       fichaUrl = token ? enlaceFicha(token) : null;
-      enviarFicha(fichaPayload)
-        .catch(e => console.error('[AGENDA] Error enviando la ficha al admin:', e));
-      enviarFicha(fichaPayload, phone)
-        .catch(e => console.error('[AGENDA] Error enviando la ficha al alumno:', e));
+      // Con await: lo que queda en segundo plano después de responder puede no
+      // correr nunca en Cloud Run, y el alumno se quedaba sin su enlace.
+      await Promise.all([
+        enviarFicha(fichaPayload)
+          .catch(e => console.error('[AGENDA] Error enviando la ficha al admin:', e)),
+        enviarFicha(fichaPayload, phone)
+          .catch(e => console.error('[AGENDA] Error enviando la ficha al alumno:', e)),
+      ]);
     } catch (e) {
       console.error('[AGENDA] Error guardando inscripcion en Firestore:', e);
     }

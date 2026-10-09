@@ -121,16 +121,21 @@ export function mensajeAdmin(data: FichaData, token: string): string {
 export async function tokenDeFicha(telefono: string): Promise<string | null> {
   try {
     const ref = db.collection('fichas').doc(telefono);
-    const snap = await ref.get();
-    if (!snap.exists) return null;
+    // En transacción: el aviso al admin y el del alumno salen en paralelo, y sin
+    // esto cada uno generaba su propio token para una ficha vieja — uno de los
+    // dos enlaces quedaba roto.
+    return await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return null;
 
-    const actual = snap.data()?.fichaToken;
-    if (typeof actual === 'string' && actual) return actual;
+      const actual = snap.data()?.fichaToken;
+      if (typeof actual === 'string' && actual) return actual;
 
-    const nuevo = randomBytes(9).toString('base64url');
-    await ref.update({ fichaToken: nuevo });
-    console.log('[FICHA] token generado para una ficha vieja:', telefono);
-    return nuevo;
+      const nuevo = randomBytes(9).toString('base64url');
+      tx.update(ref, { fichaToken: nuevo });
+      console.log('[FICHA] token generado para una ficha vieja:', telefono);
+      return nuevo;
+    });
   } catch (e) {
     console.error('[FICHA] no se pudo leer el token de', telefono, e);
     return null;

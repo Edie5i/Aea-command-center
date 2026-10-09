@@ -3,13 +3,24 @@ import { z } from 'genkit';
 import { getCourses } from '@/services/courseService';
 import { programData } from '@/lib/course-data';
 import { getAvailableSlots } from '@/services/calendarService';
-import { scheduleAndCreateEvents } from '@/ai/flows/create-calendar-event';
 import { celularLocal, normalizePhone } from '@/lib/phone';
 import { calcularFechas } from '@/lib/patron-fechas';
 import { PRECIO_CURSO } from '@/lib/precios';
 
-const DIAS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+/**
+ * El teléfono de quien está escribiendo, puesto por el servidor.
+ *
+ * Antes cada herramienta recibía `telefono` como argumento, o sea que lo
+ * dictaba el modelo: un «cancela la clase del 55…» cancelaba la de otro alumno,
+ * y una pre-reserva podía pisar la ficha de cualquier número y mandarle
+ * mensajes. Ahora lo pone el webhook en el contexto de la llamada, a partir del
+ * mensaje que de verdad llegó, y el modelo no lo puede cambiar. Sin teléfono
+ * —el chatbot de la web, que es anónimo— las herramientas que escriben se niegan.
+ */
+function telefonoDelTurno(ctx: { context?: Record<string, unknown> }): string | null {
+  const t = ctx.context?.telefono;
+  return typeof t === 'string' && t ? normalizePhone(t) : null;
+}
 
 export const consultarDisponibilidadTool = ai.defineTool(
   {
@@ -21,8 +32,6 @@ export const consultarDisponibilidadTool = ai.defineTool(
       'Siempre úsala antes de responder preguntas de disponibilidad — no inventes horarios.',
     inputSchema: z.object({
       dias: z.number().optional().describe('Días hacia adelante a consultar (default 7)'),
-      telefono: z.string().optional()
-        .describe('Número de WhatsApp del cliente con el que estás hablando (viene en el contexto del turno). Sirve para que su propio apartado no cuente como horario ocupado.'),
     }),
     outputSchema: z.array(
       z.object({
@@ -32,13 +41,14 @@ export const consultarDisponibilidadTool = ai.defineTool(
       })
     ),
   },
-  async ({ dias = 7, telefono }) => {
+  async ({ dias = 7 }, ctx) => {
     try {
+      const telefono = telefonoDelTurno(ctx);
       // Un horario está ocupado si tiene evento en Calendar O si una ficha lo
       // tiene apartado — el propio apartado del cliente no, que si no Luz le
       // diría que su fecha ya no está libre.
       return await getAvailableSlots(dias, {
-        ...(telefono ? { excluirTelefono: normalizePhone(telefono) } : {}),
+        ...(telefono ? { excluirTelefono: telefono } : {}),
       });
     } catch (e) {
       console.error('[Tool] consultarDisponibilidad error:', e);
@@ -95,140 +105,6 @@ export const consultarProgramaCursoTool = ai.defineTool(
 );
 
 
-export const confirmarInscripcionTool = ai.defineTool(
-  {
-    name: 'confirmarInscripcion',
-    description:
-      'Registra la inscripción del alumno y crea automáticamente las 4 clases en Google Calendar. ' +
-      'Úsala cuando el alumno haya confirmado su patrón de horario y fecha de inicio después de enviar el comprobante de pago.',
-    inputSchema: z.object({
-      nombre: z.string().describe('Nombre completo del alumno'),
-      telefono: z.string().describe('Número de WhatsApp con código de país, ej: 5215512345678'),
-      zona: z.string().describe('Colonia, zona o dirección de punto de encuentro'),
-      transmision: z.string().optional().describe('Estándar o Automático'),
-      patron: z.enum(['lunes-jueves', 'martes-viernes', 'fin-de-semana']).describe('Patrón de clases acordado'),
-      hora: z.string().describe('Horario en formato HH:mm, ej: 10:00'),
-      fechaInicio: z.string().describe('Fecha del primer día de clase en formato YYYY-MM-DD'),
-    }),
-    outputSchema: z.object({
-      exitoso: z.boolean(),
-      mensaje: z.string(),
-    }),
-  },
-  async ({ nombre, telefono: rawTelefono, zona, transmision, patron, hora, fechaInicio }) => {
-    // Normalize so Firestore key always matches the webhook's conversations/{from} doc
-    const telefono = normalizePhone(rawTelefono);
-    console.log('[TOOL] confirmarInscripcion llamado:', { nombre, telefono, rawTelefono, zona, patron, hora, fechaInicio });
-
-    // Se delega en @/lib/adminNotify, que revisa la respuesta de Meta y cae a
-    // plantilla si la ventana de 24h está cerrada. Aquí había una copia local
-    // que sólo capturaba errores de red: los rechazos de Meta se descartaban en
-    // silencio y avisos críticos —como que Calendar falló— nunca llegaban.
-    async function notificarAdmin(texto: string) {
-      const { notificarAdmin: enviar } = await import('@/lib/adminNotify');
-      await enviar(texto);
-    }
-
-    let calendarError: string | null = null;
-    try {
-      const fechas = calcularFechas(patron, fechaInicio, hora);
-      console.log('[TOOL] Fechas calculadas:', JSON.stringify(fechas));
-      await scheduleAndCreateEvents({
-        name: nombre,
-        phone: telefono,
-        address: zona,
-        transmission: transmision ?? 'Estándar',
-        dates: fechas,
-      });
-      console.log('[TOOL] Calendar events creados exitosamente');
-    } catch (e) {
-      calendarError = e instanceof Error ? e.message : String(e);
-      console.error('[TOOL] Error creando eventos en Calendar:', calendarError);
-    }
-
-    const patronLabel =
-      patron === 'lunes-jueves' ? 'Lunes a jueves' :
-      patron === 'martes-viernes' ? 'Martes a viernes' : 'Sábado y domingo';
-
-    if (calendarError) {
-      await notificarAdmin(
-        `⚠️ *Error al agendar clases*\n\n` +
-        `👤 ${nombre} | 📱 +${telefono}\n` +
-        `📍 ${zona} | 🚗 ${transmision ?? 'Estándar'}\n` +
-        `📅 ${patronLabel} ${hora} desde ${fechaInicio}\n\n` +
-        `❌ Error: ${calendarError}`
-      );
-      return { exitoso: false, mensaje: `Error al crear eventos: ${calendarError}` };
-    }
-
-    // Persiste datos de inscripción en Firestore para generar la ficha desde el admin panel
-    const fechasCalculadas = calcularFechas(patron, fechaInicio, hora).map(f => ({
-      date: f.date.split('T')[0],
-      time: hora,
-      label: f.label,
-    }));
-    try {
-      const { saveInscripcionData, updateChatState } = await import('@/lib/firestore');
-      const { Timestamp } = await import('firebase-admin/firestore');
-      await saveInscripcionData(telefono, {
-        nombre,
-        telefono,
-        zona,
-        curso: transmision ?? 'Estándar',
-        transmision: transmision ?? 'Estándar',
-        fechas: fechasCalculadas.map(({ date, time }) => ({ date, time })),
-      });
-      console.log('[TOOL] Inscripción guardada en Firestore para', telefono);
-      // Enviar ficha PDF al admin y al alumno
-      const { enviarFicha } = await import('@/lib/ficha-enlace');
-      const fichaPayload = {
-        nombre,
-        telefono,
-        zona,
-        transmision: transmision ?? 'Estándar',
-        fechas: fechasCalculadas.map(({ date, time }) => ({ date, time })),
-      };
-      enviarFicha(fichaPayload)
-        .catch(e => console.error('[TOOL] Error enviando ficha al admin:', e));
-      enviarFicha(fichaPayload, telefono)
-        .catch(e => console.error('[TOOL] Error enviando ficha al alumno:', e));
-      await updateChatState(telefono, {
-        chatState: 'cerrado',
-        chatReason: 'Inscripción confirmada por Luz',
-        chatUrgency: 'ninguna',
-        closedAt: Timestamp.now(),
-        closedOutcome: 'ganado',
-      }, 'manual');
-      console.log('[TOOL] Lead marcado como cerrado/ganado:', telefono);
-    } catch (e) {
-      console.error('[TOOL] Error guardando inscripcion en Firestore:', e);
-    }
-
-    await notificarAdmin(
-      `✅ *Inscripción confirmada*\n\n` +
-      `👤 *Nombre:* ${nombre}\n` +
-      `📱 *Teléfono:* +${telefono}\n` +
-      `📍 *Zona:* ${zona}\n` +
-      `🚗 *Transmisión:* ${transmision ?? 'Estándar'}\n` +
-      `📅 *Patrón:* ${patronLabel} a las ${hora}\n` +
-      `🗓️ *Inicio:* ${fechaInicio}\n\n` +
-      `4 clases agendadas en Calendar ✅`
-    );
-    const fechasTexto = fechasCalculadas
-      .map((f, i) => {
-        const fecha = new Date(f.date + 'T12:00:00');
-        const label = `${DIAS_ES[fecha.getDay()]} ${fecha.getDate()} de ${MESES_ES[fecha.getMonth()]}`;
-        const [hh, mm] = f.time.split(':');
-        const h = parseInt(hh);
-        const ampm = h >= 12 ? 'pm' : 'am';
-        const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-        return `  ${i + 1}. ${label} a las ${h12}:${mm} ${ampm}`;
-      })
-      .join('\n');
-    return { exitoso: true, mensaje: `4 clases agendadas en Calendar:\n${fechasTexto}` };
-  }
-);
-
 export const guardarPreReservaTool = ai.defineTool(
   {
     name: 'guardarPreReserva',
@@ -239,7 +115,6 @@ export const guardarPreReservaTool = ai.defineTool(
       'exactamente esas 4 fechas en vez de recalcular un bloque distinto.',
     inputSchema: z.object({
       nombre: z.string().describe('Nombre completo del prospecto'),
-      telefono: z.string().describe('Número de WhatsApp con código de país, ej: 5215512345678'),
       zona: z.string().describe('Dirección completa: calle, número y colonia'),
       curso: z.string().optional().describe('Curso acordado, ej: Automático'),
       transmision: z.string().optional().describe('Estándar o Automático'),
@@ -252,9 +127,13 @@ export const guardarPreReservaTool = ai.defineTool(
     }),
     outputSchema: z.object({ ok: z.boolean() }),
   },
-  async ({ nombre, telefono: rawTelefono, zona, curso, transmision, patron, fechaInicio, hora, edadAlumno }) => {
+  async ({ nombre, zona, curso, transmision, patron, fechaInicio, hora, edadAlumno }, ctx) => {
     try {
-      const telefono = normalizePhone(rawTelefono);
+      const telefono = telefonoDelTurno(ctx);
+      if (!telefono) {
+        console.warn('[TOOL] guardarPreReserva sin teléfono en el contexto — no se guarda');
+        return { ok: false };
+      }
       const { savePreReserva } = await import('@/lib/firestore');
       const fechas = patron && fechaInicio && hora
         ? calcularFechas(patron, fechaInicio, hora).map(f => ({ date: f.date.split('T')[0], time: f.time }))
@@ -317,23 +196,25 @@ export const cancelarClaseAlumnoTool = ai.defineTool(
       'Cancela la clase agendada de un alumno cuando ÉL pide cancelar (no cuando el instructor no puede — para eso es otro flujo). ' +
       'Úsala en cuanto el cliente diga que ya no puede o ya no quiere su clase agendada, por WhatsApp o si te dicen que llamó por teléfono a cancelar. ' +
       'Avisa automáticamente al instructor asignado y al equipo — no hace falta que tú lo hagas aparte.',
-    inputSchema: z.object({
-      telefono: z.string().describe('Número de WhatsApp del alumno con código de país, ej: 5215512345678'),
-    }),
+    // Sin argumentos: cancela la clase de quien está escribiendo, y de nadie más.
+    inputSchema: z.object({}),
     outputSchema: z.object({
       ok: z.boolean(),
       mensaje: z.string().describe('Si ok=false, explica por qué (ej: no se encontró clase activa) para que se lo digas al cliente.'),
     }),
   },
-  async ({ telefono: rawTelefono }) => {
+  async (_input, ctx) => {
     try {
-      const telefono = normalizePhone(rawTelefono);
+      const telefono = telefonoDelTurno(ctx);
+      if (!telefono) {
+        return { ok: false, mensaje: 'Por aquí no se puede cancelar: tiene que escribir desde el WhatsApp con el que se inscribió.' };
+      }
       const { getClasesDeAlumno, updateClaseEstado } = await import('@/lib/firestore');
       const clases = await getClasesDeAlumno(telefono);
       const activa = clases.find(c => c.estado === 'pendiente' || c.estado === 'confirmada');
 
       if (!activa) {
-        return { ok: false, mensaje: 'No se encontró ninguna clase activa asignada a este teléfono.' };
+        return { ok: false, mensaje: 'No se encontró ninguna clase activa a nombre de este número de WhatsApp.' };
       }
 
       await updateClaseEstado(activa.id, 'cancelada');
@@ -367,15 +248,19 @@ export const cancelarClaseAlumnoTool = ai.defineTool(
   }
 );
 
-export const AEA_TOOLS = [
+/** Las que sólo leen: lo único que se le da a quien no sabemos quién es. */
+export const AEA_TOOLS_LECTURA = [
   consultarDisponibilidadTool,
   consultarCatalogoCursosTool,
   consultarProgramaCursoTool,
-  // confirmarInscripcionTool ya no va en la lista: creaba las cuatro clases en
-  // Calendar y cerraba la venta como ganada con la sola palabra del modelo, sin
-  // que nadie hubiera visto el depósito —y esta lista la usa también el chatbot
-  // público de la web—. Las clases se crean cuando una persona confirma el
-  // apartado y la ficha pasa a 'reservada' (lib/fichaLuz.ts).
+];
+
+// confirmarInscripcion ya no existe: creaba las cuatro clases en Calendar y
+// cerraba la venta como ganada con la sola palabra del modelo, sin que nadie
+// hubiera visto el depósito. Las clases se crean cuando una persona confirma el
+// apartado y la ficha pasa a 'reservada' (lib/fichaLuz.ts).
+export const AEA_TOOLS = [
+  ...AEA_TOOLS_LECTURA,
   guardarPreReservaTool,
   cancelarClaseAlumnoTool,
 ];

@@ -16,6 +16,21 @@ let guardado: Partial<Ficha> | null = null;
 
 vi.mock('../firestore', () => ({
   db: {
+    // Las transacciones de mentira: leen y escriben sobre el mismo doble.
+    runTransaction: async <T,>(
+      fn: (tx: {
+        get: (ref: { get: () => unknown }) => unknown;
+        set: (ref: { set: (d: Partial<Ficha>) => Promise<void> }, d: Partial<Ficha>) => void;
+      }) => Promise<T>
+    ): Promise<T> => {
+      const escrituras: Promise<void>[] = [];
+      const r = await fn({
+        get: (ref) => ref.get(),
+        set: (ref, d) => { escrituras.push(ref.set(d)); },
+      });
+      await Promise.all(escrituras);
+      return r;
+    },
     collection: () => ({
       doc: () => ({
         get: async () => ({ exists: guardado !== null, data: () => guardado }),

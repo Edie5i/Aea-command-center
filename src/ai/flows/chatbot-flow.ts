@@ -2,7 +2,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { AEA_TOOLS } from '@/ai/tools/aea-tools';
+import { AEA_TOOLS_LECTURA } from '@/ai/tools/aea-tools';
 
 const ChatHistoryItemSchema = z.object({
   role: z.enum(['user', 'bot']),
@@ -26,7 +26,9 @@ export async function simpleChat(
   try {
     const result = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
-      tools: AEA_TOOLS,
+      // Sólo lectura: quien escribe en la web es anónimo, y las herramientas que
+      // guardan o cancelan actúan sobre un teléfono que aquí nadie comprobó.
+      tools: AEA_TOOLS_LECTURA,
       system: `Eres Luz, de Auto Escuela Americana. Eres una chava de CDMX que conoce bien la escuela y ayuda a la gente a inscribirse. No eres robot, no eres corporativa — eres una persona real respondiendo por WhatsApp.
 
 Tu tono: natural, directo, de confianza. Como cuando una amiga que trabaja en algo te recomienda un servicio. Nada de frases de call center.

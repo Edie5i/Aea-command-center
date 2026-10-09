@@ -102,7 +102,12 @@ async function agendarSiAcabaDeReservarse(
 // Web y Luz llaman ESTA función. Misma colección 'fichas'. Cero leads perdidos.
 export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Ficha['origen']) {
   const ref = db.collection('fichas').doc(id);
-  const snap = await ref.get();
+  // Leer y escribir en una transacción: si otro proceso toca la misma ficha a
+  // la vez —el comprobante que se cuelga mientras la inscripción la reescribe—,
+  // Firestore reintenta en vez de dejar que la última escritura pise a la otra.
+  // Así se perdía el depósito: quien ya había pagado volvía a "pendiente".
+  const { existente, ficha } = await db.runTransaction(async (tx) => {
+  const snap = await tx.get(ref);
   const existente = snap.exists ? (snap.data() as Ficha) : null;
 
   const precio = datos.precio ?? 0;
@@ -157,7 +162,9 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
       : faltantes.length === 0 ? 'reservada' : faltantes.length >= 3 ? 'nueva' : 'pendiente',
     faltantes,
   };
-  await ref.set(ficha, { merge: true });
+  tx.set(ref, ficha, { merge: true });
+  return { existente, ficha };
+  });
   const agenda = await agendarSiAcabaDeReservarse(id, existente, ficha);
   await notificarCambios(existente, ficha, agenda);
   // Ficha nueva (no un re-guardado): mandarle el enlace al alumno de una vez,
@@ -174,7 +181,9 @@ export async function guardarFicha(id: string, datos: Partial<Ficha>, origen: Fi
 // depósito/estado/faltantes. (guardarFicha con datos parciales pisaría campos con vacíos.)
 export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promise<Ficha> {
   const ref = db.collection('fichas').doc(id);
-  const snap = await ref.get();
+  // En transacción, por lo mismo que guardarFicha.
+  const { previa, ficha } = await db.runTransaction(async (tx) => {
+  const snap = await tx.get(ref);
   const actual = (snap.exists ? snap.data() : {}) as Partial<Ficha>;
   const datos = { ...actual, ...patch };
   const precio = datos.precio ?? 0;
@@ -204,8 +213,9 @@ export async function actualizarFicha(id: string, patch: Partial<Ficha>): Promis
     ...(datos.depositoRegistrado ? { depositoRegistrado: datos.depositoRegistrado } : {}),
     ...(datos.nota ? { nota: datos.nota } : {}),
   };
-  await ref.set(ficha, { merge: true });
-  const previa = snap.exists ? (actual as Ficha) : null;
+  tx.set(ref, ficha, { merge: true });
+  return { previa: snap.exists ? (actual as Ficha) : null, ficha };
+  });
   const agenda = await agendarSiAcabaDeReservarse(id, previa, ficha);
   await notificarCambios(previa, ficha, agenda);
   return ficha;

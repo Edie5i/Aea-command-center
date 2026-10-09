@@ -7,10 +7,12 @@ import { TIENDAS } from '@/lib/cuenta';
 import { APARTADO } from '@/lib/ficha-reglas';
 import { celularLocal, normalizePhone } from '@/lib/phone';
 import { notificarAdmin } from '@/lib/adminNotify';
+import { revisarFirma } from '@/lib/meta-firma';
 
 const TOKEN = process.env.META_VERIFY_TOKEN ?? 'aea_webhook_2026';
 const WA_TOKEN = process.env.META_WHATSAPP_TOKEN ?? '';
 const PHONE_ID = process.env.META_PHONE_NUMBER_ID ?? '';
+const APP_SECRET = (process.env.META_APP_SECRET ?? '').trim();
 
 const SYSTEM_PROMPT = `Eres Luz, asesora de ventas de Auto Escuela Americana (AEA). Atiendes por WhatsApp. Eres cálida, directa y genuina — una persona real, no un bot.
 
@@ -158,7 +160,7 @@ Cuando deposites, pon tu nombre completo en el concepto y mándame el comprobant
 
 NO dictes la cuenta, la CLABE ni la tarjeta en el chat. Van en la ficha, que se manda sola al guardar la pre-reserva: un solo lugar, siempre al día, y el alumno acaba en la página donde va a reservar en vez de quedarse en la conversación. Si te los pide explícitamente, mándale la liga de la ficha otra vez.
 
-Inmediatamente después de mandar este mensaje → llama a guardarPreReserva con nombre (el del ALUMNO), teléfono, dirección, curso, transmisión, patrón, la fechaInicio + hora que acordaste, y edadAlumno si la mencionaron. No esperes el comprobante — guárdalo ya. Esto calcula y guarda las 4 fechas reales, no solo la primera.
+Inmediatamente después de mandar este mensaje → llama a guardarPreReserva con nombre (el del ALUMNO), dirección, curso, transmisión, patrón, la fechaInicio + hora que acordaste, y edadAlumno si la mencionaron. No esperes el comprobante — guárdalo ya. Esto calcula y guarda las 4 fechas reales, no solo la primera.
 
 La transmisión que mandas a guardarPreReserva es la que el cliente confirmó en el Paso 2 (Estándar/Automático) o en el Paso 2b (para el resto de los cursos) — nunca mandes "Estándar" por default si nunca lo confirmó explícitamente.
 
@@ -220,7 +222,7 @@ Cuando quien escribe contrata para otra persona —muy común: "es para mi hijo"
 
 **Licencia de manejo**: AEA no la tramita directamente. Al terminar el curso el alumno va a SEMOVI — cita en línea, lleva INE y comprobante de domicilio.
 
-**Cancelaciones**: Avisar mínimo 24h antes. Sin aviso, la clase se cuenta como impartida. Si el cliente pide cancelar su clase agendada (o te dice que ya llamó a cancelar), llama a cancelarClaseAlumno con su teléfono — avisa sola al instructor y al equipo, no hace falta que tú les escribas. Si te devuelve ok=false, dile al cliente lo que diga "mensaje" y ofrece conectarlo con un asesor.
+**Cancelaciones**: Avisar mínimo 24h antes. Sin aviso, la clase se cuenta como impartida. Si el cliente pide cancelar su clase agendada (o te dice que ya llamó a cancelar), llama a cancelarClaseAlumno (no lleva datos: cancela la de quien te escribe) — avisa sola al instructor y al equipo, no hace falta que tú les escribas. Si te devuelve ok=false, dile al cliente lo que diga "mensaje" y ofrece conectarlo con un asesor.
 
 **Vigencia**: 3 meses para completar el curso. Se puede renovar (consultar asesor).
 
@@ -272,7 +274,7 @@ Posición al sentarse · Ajuste de espejos y puntos ciegos · Cambio de marchas 
 - **consultarDisponibilidad**: Úsala en el Paso 3 (cuando sepas mañana/tarde/fin de semana) para proponer fechas reales. También cuando pregunten "¿hay lugar?" o "¿cuándo puedo empezar?". Nunca inventes horarios.
 - **consultarCatalogoCursos**: Para confirmar precios exactos.
 - **consultarProgramaCurso**: Si preguntan qué aprenden.
-- **guardarPreReserva**: Llámala UNA SOLA VEZ al final del CIERRE (Paso 6), justo después de mandar los datos de pago. No esperes el comprobante. Pasa: nombre, teléfono (el número de WhatsApp del cliente), dirección completa, curso, transmisión, patrón (lunes-jueves / martes-viernes / fin-de-semana) y la fechaInicio + hora que acordaste. Esto calcula y reserva las 4 fechas reales, no solo la primera. NO la vuelvas a llamar en el resto de la conversación salvo que el patrón, horario o fecha cambien.
+- **guardarPreReserva**: Llámala UNA SOLA VEZ al final del CIERRE (Paso 6), justo después de mandar los datos de pago. No esperes el comprobante. Pasa: nombre, dirección completa, curso, transmisión, patrón (lunes-jueves / martes-viernes / fin-de-semana) y la fechaInicio + hora que acordaste. Esto calcula y reserva las 4 fechas reales, no solo la primera. NO la vuelvas a llamar en el resto de la conversación salvo que el patrón, horario o fecha cambien.
 
 ## REGLAS ABSOLUTAS
 
@@ -470,16 +472,14 @@ async function maybeNotifyLeadCalificado(phone: string, history: HistoryItem[]):
   }
 }
 
-function buildTurnContext(clientPhone?: string): string {
+function buildTurnContext(): string {
   const hoy = new Date().toLocaleDateString('es-MX', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     timeZone: 'America/Mexico_City',
   });
-  let ctx = `[Fecha actual: ${hoy}. Usa este año para calcular cualquier fecha futura.]`;
-  if (clientPhone) {
-    ctx += `\n[Número de WhatsApp del cliente en esta conversación: ${clientPhone}. Usa EXACTAMENTE este número en el campo "telefono" cuando llames a guardarPreReserva, a consultarDisponibilidad y a cancelarClaseAlumno. No uses ningún otro número.]`;
-  }
-  return ctx;
+  // El teléfono del cliente ya no viaja aquí: las herramientas lo reciben del
+  // servidor, así que el modelo no tiene nada que copiar ni que equivocar.
+  return `[Fecha actual: ${hoy}. Usa este año para calcular cualquier fecha futura.]`;
 }
 
 async function raceWithTimeout<T>(promise: Promise<T>): Promise<T | null> {
@@ -498,11 +498,13 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
     model: 'googleai/gemini-2.5-flash',
     system: SYSTEM_PROMPT,
     tools: AEA_TOOLS,
+    // El teléfono lo pone el servidor, no el modelo: ver telefonoDelTurno.
+    ...(clientPhone ? { context: { telefono: clientPhone } } : {}),
     messages: history.map((h) => ({
       role: h.role === 'bot' ? ('model' as const) : ('user' as const),
       content: [{ text: h.text }],
     })),
-    prompt: `${buildTurnContext(clientPhone)}\n\n${userMessage}`,
+    prompt: `${buildTurnContext()}\n\n${userMessage}`,
   }));
 
   if (!result) {
@@ -529,6 +531,7 @@ async function generateReply(userMessage: string, history: HistoryItem[], client
       const retryResult = await raceWithTimeout(ai.generate({
         model: 'googleai/gemini-2.5-flash',
         tools: AEA_TOOLS,
+        ...(clientPhone ? { context: { telefono: clientPhone } } : {}),
         messages: result.messages,
         prompt: 'No generaste texto en tu turno anterior. Respóndele ahora al cliente en el idioma de la conversación, siguiendo exactamente las instrucciones del system prompt para el paso en el que estás (por ejemplo, si ya tienes nombre + horario + zona, manda el mensaje de CIERRE completo con los datos de pago — no un resumen genérico). No vuelvas a llamar ninguna herramienta que ya ejecutaste arriba.',
       }));
@@ -969,8 +972,20 @@ export async function POST(request: NextRequest) {
   let waDisplayName: string | null = null;
   let phoneId = PHONE_ID;
 
+  // Antes de leer nada: ¿lo mandó Meta? Va fuera del try de abajo, que contesta
+  // 200 ante cualquier error — un POST falsificado no debe recibir un "recibido".
+  const crudo = await request.text();
+  const firma = revisarFirma(crudo, request.headers.get('x-hub-signature-256'), APP_SECRET);
+  if (firma === 'invalida') {
+    console.error('[WEBHOOK] Firma de Meta inválida — POST rechazado');
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+  if (firma === 'sin_secreto') {
+    console.warn('[WEBHOOK] META_APP_SECRET no está configurado: el POST se acepta sin verificar la firma');
+  }
+
   try {
-    const body = await request.json();
+    const body = JSON.parse(crudo);
     console.log('[WEBHOOK] POST recibido:', JSON.stringify(body).slice(0, 300));
     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
     // Responder SIEMPRE desde el número donde llegó el mensaje: es el que tiene la ventana
