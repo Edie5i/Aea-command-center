@@ -365,7 +365,7 @@ export async function getRecentInscripciones(limit = 50): Promise<(InscripcionDa
   return results.slice(0, limit);
 }
 
-// ── UrbDriver — Candidatos a instructor ───────────────────────────────────────
+// ── Vía Urb — Candidatos a instructor ───────────────────────────────────────
 
 export type EstadoCandidato =
   | 'nuevo'
@@ -669,7 +669,7 @@ export async function getMetricsData(): Promise<MetricsData> {
   };
 }
 
-// ── UrbDriver — Clases asignadas ──────────────────────────────────────────────
+// ── Vía Urb — Clases asignadas ──────────────────────────────────────────────
 
 export type EstadoClase =
   | 'pendiente'

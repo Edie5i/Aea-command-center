@@ -23,7 +23,7 @@ export default function InstructoresPage() {
         <div className="relative z-10 max-w-2xl mx-auto">
           <p className="text-xs font-semibold uppercase tracking-widest mb-5"
             style={{ color: '#6366f1' }}>
-            UrbDriver · AEA
+            Vía Urb · AEA
           </p>
 
           <h1 className="text-4xl md:text-5xl font-black leading-tight mb-5">
@@ -147,7 +147,7 @@ export default function InstructoresPage() {
       </section>
 
       <footer className="px-4 py-4 text-center" style={{ borderTop: '1px solid rgba(148,163,184,0.2)' }}>
-        <p className="text-[11px]" style={{ color: '#334155' }}>UrbDriver · Auto Escuela Americana · CDMX</p>
+        <p className="text-[11px]" style={{ color: '#334155' }}>Vía Urb · Auto Escuela Americana · CDMX</p>
       </footer>
     </main>
   );

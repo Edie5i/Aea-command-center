@@ -68,7 +68,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   await sendWA(
     instructorPhone,
-    `🎓 *Nueva clase asignada — UrbDriver*\n\n` +
+    `🎓 *Nueva clase asignada — Vía Urb*\n\n` +
     `👤 Alumno: ${inscripcion.nombre}\n` +
     `📚 Curso: ${inscripcion.curso}\n` +
     `📍 Zona: ${inscripcion.zona || 'CDMX'}\n` +
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     `Responde:\n` +
     `✅ *confirmada* — para aceptar\n` +
     `❌ *no puedo* — si no puedes\n\n` +
-    `— Marco, UrbDriver 🚗`
+    `— Marco, Vía Urb 🚗`
   );
 
   return NextResponse.json({ ok: true, claseId });

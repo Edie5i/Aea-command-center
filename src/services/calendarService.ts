@@ -412,7 +412,7 @@ export async function createEvaluacionEvent(
       calendarId: process.env.GOOGLE_CALENDAR_ID!,
       requestBody: {
         summary: `🚗 Evaluación instructor — ${nombre}`,
-        description: `Candidato UrbDriver\nTel: +${phone}`,
+        description: `Candidato Vía Urb\nTel: +${phone}`,
         location: 'Av. Universidad 1404, Col. Axotla, CDMX',
         colorId: '9',
         start: { dateTime: startISO, timeZone: 'America/Mexico_City' },

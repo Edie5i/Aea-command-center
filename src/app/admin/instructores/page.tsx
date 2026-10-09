@@ -193,7 +193,7 @@ export default async function InstructoresPage() {
         <div className="flex items-center gap-3">
           <Link href="/admin" className="text-sm transition-colors" style={{ color: '#475569' }}>← Admin</Link>
           <div>
-            <h1 className="text-base font-bold text-slate-800">Instructores UrbDriver</h1>
+            <h1 className="text-base font-bold text-slate-800">Instructores Vía Urb</h1>
             <p className="text-xs" style={{ color: '#334155' }}>{todos.length} candidatos · {activos} activos</p>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default async function InstructoresPage() {
             </p>
             <div className="mt-4 rounded-xl p-3 text-left"
               style={{ background: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.22)' }}>
-              <p className="text-xs font-semibold mb-1" style={{ color: '#475569' }}>Link para ads UrbDriver:</p>
+              <p className="text-xs font-semibold mb-1" style={{ color: '#475569' }}>Link para ads Vía Urb:</p>
               <p className="text-xs break-all" style={{ color: '#2563eb' }}>
                 wa.me/5215563206338?text=Quiero+ser+instructor+de+manejo
               </p>

@@ -1,5 +1,5 @@
 /**
- * Marco — bot reclutador de instructores para UrbDriver / AEA
+ * Marco — bot reclutador de instructores para Vía Urb / AEA
  * Mismo número WA que Luz, ruteado por intent en route.ts
  */
 
@@ -93,7 +93,7 @@ async function sendWA(to: string, text: string): Promise<void> {
 
 // ── System prompt de Marco ───────────────────────────────────────────────────
 
-const MARCO_PROMPT = `Eres Marco, reclutador de UrbDriver — el programa de Auto Escuela Americana que convierte conductores de Uber y DiDi en instructores de manejo certificados.
+const MARCO_PROMPT = `Eres Marco, reclutador de Vía Urb — el programa de Auto Escuela Americana que convierte conductores de Uber y DiDi en instructores de manejo certificados.
 
 Tu trabajo es calificar candidatos por WhatsApp y agendar su evaluación presencial. Eres directo, honesto y hablas como alguien del gremio — no como chatbot corporativo. Usas tuteo siempre.
 
@@ -337,7 +337,7 @@ async function handleInstructor(
       confirmada: '✅', completada: '🏁', pendiente: '⏳', alumno_ausente: '❌', cancelada: '🚫',
     };
 
-    let reply = `📅 *Tu agenda — UrbDriver*\n\n`;
+    let reply = `📅 *Tu agenda — Vía Urb*\n\n`;
     if (hoyClases.length > 0) {
       reply += `*Hoy:*\n`;
       for (const c of hoyClases) {

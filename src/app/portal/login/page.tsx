@@ -103,7 +103,7 @@ export default function PortalLogin() {
             </div>
           </div>
           <h1 className="text-xl font-bold text-slate-800">Portal Instructor</h1>
-          <p className="text-xs mt-1" style={{ color: '#475569' }}>UrbDriver · AEA</p>
+          <p className="text-xs mt-1" style={{ color: '#475569' }}>Vía Urb · AEA</p>
         </div>
 
         {/* Card */}
