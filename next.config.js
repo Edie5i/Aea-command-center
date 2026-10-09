@@ -30,6 +30,9 @@ const nextConfig = {
       // vive aquí y no como una página que llama redirect(): esa se prerenderizó
       // y la respuesta cacheada salía 307 SIN header Location, o sea colgada.
       { source: '/admin/ficha-nueva', destination: '/ficha',                  permanent: false },
+      // «Importar ficha» dejó de ser una pantalla: es un botón de la ficha. Aquí
+      // por lo mismo que el de arriba: como página con redirect() salió sin Location.
+      { source: '/admin/importar',    destination: '/ficha',                  permanent: false },
       { source: '/catalogo',          destination: `${WWW}/cursos`,           permanent: true },
       { source: '/english-course',    destination: `${WWW}/english`,          permanent: true },
       { source: '/programa',          destination: `${WWW}/programa`,         permanent: true },
