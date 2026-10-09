@@ -14,7 +14,6 @@ import { normalizePhone } from '@/lib/phone';
 import { guardarFicha, APARTADO } from '@/lib/fichaLuz';
 import { enlaceFicha } from '@/lib/ficha-enlace';
 import { buscarCurso } from '@/lib/pagos';
-import { calcularFechas, HORARIOS_INICIO, type Patron } from '@/lib/patron-fechas';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -23,9 +22,7 @@ type Body = {
   telefono?: string;
   zona?: string;
   curso?: string;
-  patron?: Patron;
-  fechaInicio?: string;
-  hora?: string;
+  fechas?: { date?: string; time?: string }[];
   apartado?: number | string;
   nota?: string;
 };
@@ -41,15 +38,20 @@ export async function POST(req: NextRequest) {
   const telefono = normalizePhone(body.telefono ?? '');
   const zona = (body.zona ?? '').trim();
   const curso = buscarCurso(body.curso);
-  // Las cuatro clases salen del patrón, no se escriben una por una: es como se
-  // acuerdan con el alumno y como las calcula Luz.
-  const patron = body.patron;
-  const fechaInicio = (body.fechaInicio ?? '').trim();
-  const hora = (body.hora ?? '').trim();
-  const fechas =
-    patron && /^\d{4}-\d{2}-\d{2}$/.test(fechaInicio) && HORARIOS_INICIO.includes(hora)
-      ? calcularFechas(patron, fechaInicio, hora).map((f) => ({ date: f.date.split('T')[0], time: f.time }))
-      : [];
+  // Las clases llegan una por una, cada una con su día y su hora: en el
+  // mostrador se acuerdan así, y un patrón fijo dejaba fuera todo lo demás.
+  // Se ordenan y se quitan las repetidas; lo que no tenga forma de fecha u hora
+  // en punto se descarta en vez de guardarse roto.
+  const fechas = [
+    ...new Map(
+      (Array.isArray(body.fechas) ? body.fechas : [])
+        .map((f) => ({ date: String(f?.date ?? '').trim(), time: String(f?.time ?? '').trim() }))
+        .filter((f) => /^\d{4}-\d{2}-\d{2}$/.test(f.date) && /^([01]\d|2[0-3]):00$/.test(f.time))
+        .map((f) => [`${f.date} ${f.time}`, f] as const)
+    ).values(),
+  ]
+    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+    .slice(0, 12);
 
   if (!nombre) return NextResponse.json({ ok: false, error: 'Falta el nombre' }, { status: 400 });
   if (telefono.length !== 12) {
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
   if (!curso) return NextResponse.json({ ok: false, error: 'Falta el curso' }, { status: 400 });
   if (!fechas.length) {
     return NextResponse.json(
-      { ok: false, error: 'Falta el patrón, la fecha de inicio o la hora' },
+      { ok: false, error: 'Falta al menos una clase con su fecha y su hora' },
       { status: 400 }
     );
   }

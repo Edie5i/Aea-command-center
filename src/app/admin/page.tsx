@@ -5,6 +5,9 @@ import { getMetricsData, getAvisosAdminRecientes, getConstanciasPendientes } fro
 import { getEventosProximos } from '@/services/calendarService';
 import { traerFichas } from '@/lib/fichaLuz';
 import { ConstanciaButton } from './ConstanciaButton';
+import FormMostrador from '../ficha/FormMostrador';
+import { cursosDeMostrador } from '../ficha/cursos';
+import '../ficha/aea.css';
 
 const ADMIN_PIN = (process.env.ADMIN_PIN ?? '1234').trim();
 
@@ -49,12 +52,10 @@ const DIVIDER = '1px solid rgba(148,163,184,0.2)';
 
 const navItems = [
   { href: '/admin/conversaciones', icon: '💬', label: 'Conversaciones', accent: '#3b82f6' },
-  { href: '/ficha',                icon: '📋', label: 'Nueva ficha',     accent: '#1d4ed8' },
   { href: '/admin/reservas',       icon: '🗂️', label: 'Fichas',          accent: '#10b981' },
   { href: '/admin/metricas',       icon: '📊', label: 'Métricas',        accent: '#8b5cf6' },
   { href: '/admin/alumnos',        icon: '👥', label: 'Alumnos',         accent: '#6366f1' },
   { href: '/notas-alumno',         icon: '📝', label: 'Notas alumno',    accent: '#14b8a6' },
-  { href: '/admin/importar',       icon: '📥', label: 'Importar ficha',  accent: '#f97316' },
   { href: '/admin/agenda',         icon: '🗓️', label: 'Agenda NLP',      accent: '#a855f7' },
   { href: '/admin/instructores',   icon: '🚗', label: 'Instructores',    accent: '#64748b' },
   { href: '/agenda',               icon: '📅', label: 'Agendar clase',   accent: '#06b6d4' },
@@ -80,6 +81,7 @@ export default async function AdminPage() {
   const uniqueStudents = new Set(fichas.map(f => f.telefono || f.studentName)).size;
   const fichasThisWeek = fichas.filter(f => f.creada >= weekAgo).length;
   const recentFichas = fichas.slice(0, 8);
+  const { transmisiones, otros } = cursosDeMostrador();
 
   return (
     <main className="min-h-screen" style={{ background: '#f8fafc' }}>
@@ -96,6 +98,18 @@ export default async function AdminPage() {
       </header>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
+
+        {/* Nueva ficha, aquí mismo: el formulario de /ficha, sin salir del
+            tablero. Cerrado mientras no se usa, para que no tape lo demás.
+            /ficha sigue viva: es la liga que está en los bookmarks. */}
+        <details className="rounded-2xl overflow-hidden" style={CARD}>
+          <summary className="px-4 py-4 text-sm font-bold text-slate-800 cursor-pointer select-none">
+            📋 Nueva ficha
+          </summary>
+          <div className="ficha" style={{ minHeight: 'auto', padding: '1rem' }}>
+            <FormMostrador transmisiones={transmisiones} otros={otros} />
+          </div>
+        </details>
 
         {/* Avisos recientes — respaldo si WhatsApp no entrega (ver adminNotify.ts) */}
         {avisos.length > 0 && (

@@ -16,8 +16,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { CURSOS } from '@/lib/pagos';
-import { APARTADO } from '@/lib/fichaLuz';
+import { cursosDeMostrador } from './cursos';
 import FormMostrador from './FormMostrador';
 import './aea.css';
 
@@ -31,25 +30,7 @@ export default async function FichaPage() {
     redirect('/admin/conversaciones/login?next=/ficha');
   }
 
-  // El catálogo sale de pagos.ts, no de una lista escrita a mano en el
-  // formulario: es la misma tabla que Luz dicta por WhatsApp y la que usa el
-  // botón de cobro del panel.
-  //
-  // Pero en el mostrador no se elige de una lista de nueve: se elige la
-  // transmisión, que es la única decisión real del alumno —o maneja estándar o
-  // maneja automático—. Los cursos de reforzamiento (Intermedio, Avanzado) no
-  // dicen en qué va a manejar, así que puestos junto a los otros confunden en vez
-  // de ayudar; no entran aquí. Luz los sigue vendiendo, y el catálogo no cambia.
-  const REFORZAMIENTO = ['Intermedio', 'Avanzado'];
-  const ficha = (c: (typeof CURSOS)[number]) => ({
-    nombre: c.nombre,
-    total: c.total,
-    deposito: APARTADO,
-  });
-  const transmisiones = CURSOS.filter((c) => c.nombre === 'Estándar' || c.nombre === 'Automático').map(ficha);
-  const otros = CURSOS
-    .filter((c) => !REFORZAMIENTO.includes(c.nombre) && c.nombre !== 'Estándar' && c.nombre !== 'Automático')
-    .map(ficha);
+  const { transmisiones, otros } = cursosDeMostrador();
 
   return (
     <main className="ficha" style={{ padding: 0 }}>
